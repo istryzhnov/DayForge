@@ -1,4 +1,4 @@
-import type { RecurrenceRule } from './RepeatEntity'
+import type { RecurrenceRule } from './RecurrenceEntity'
 import type { ID, ISODate, ISODateTime, Priority, TaskStatus } from './types'
 
 export interface TaskTemplate {
@@ -32,7 +32,7 @@ export interface DailyTask {
 export interface DailyProgress {
   date: ISODate
   goalId?: ID
-  totalMinor: number
-  completedMinor: number
+  totalTasks: number
+  completedTasks: number
   completionPercent: number
 }
