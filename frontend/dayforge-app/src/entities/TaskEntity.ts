@@ -1,5 +1,5 @@
 import type { RecurrenceRule } from './RepeatEntity'
-import type { ID, ISODate, Priority, TaskStatus } from './types'
+import type { ID, ISODate, ISODateTime, Priority, TaskStatus } from './types'
 
 export interface TaskTemplate {
   id: ID
@@ -7,13 +7,13 @@ export interface TaskTemplate {
   title: string
   notes?: string
   priority: Priority
-  parentTaskId?: ID
+  parentTemplateId?: ID
   order: number
   tagIds: ID[]
   recurrence?: RecurrenceRule
-  isArchived: boolean
-  createdAt: string
-  updatedAt: string
+  isActive: boolean
+  createdAt: ISODateTime
+  updatedAt: ISODateTime
 }
 
 export interface DailyTask {
@@ -26,7 +26,7 @@ export interface DailyTask {
   parentDailyTaskId?: ID
   tagIds: ID[]
   status: TaskStatus
-  completedAt?: string
+  completedAt?: ISODateTime
 }
 
 export interface DailyProgress {
