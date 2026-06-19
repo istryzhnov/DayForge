@@ -21,11 +21,17 @@ export function useGoals() {
     }
   }
 
+  function createGoal(goal: Goal) {
+    goals.value.push(goal)
+    activeGoalId.value = goal.id
+  }
+
   return {
     goals,
     activeGoalId,
     activeGoal,
     selectGoal,
     setGoals,
+    createGoal,
   }
 }
