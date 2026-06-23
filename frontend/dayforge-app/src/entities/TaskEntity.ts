@@ -37,23 +37,23 @@ export interface DailyProgress {
   completionPercent: number
 }
 
-export type CreateTaskInput =
-  | {
-      kind: 'task'
-      goalId: ID
-      title: string
-      priority?: Priority
-    }
-  | {
-      kind: 'subtask'
-      parentTemplateId: ID
-      title: string
-      priority?: Priority
-    }
-
 export const TASK_KIND = {
   TASK: 'task',
   SUBTASK: 'subtask',
 } as const
 
 export type TaskKind = (typeof TASK_KIND)[keyof typeof TASK_KIND]
+
+export type CreateTaskInput =
+  | {
+      kind: typeof TASK_KIND.TASK
+      goalId: ID
+      title: string
+      priority?: Priority
+    }
+  | {
+      kind: typeof TASK_KIND.SUBTASK
+      parentTemplateId: ID
+      title: string
+      priority?: Priority
+    }

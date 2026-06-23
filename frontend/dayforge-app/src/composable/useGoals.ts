@@ -10,14 +10,17 @@ export function useGoals() {
     () => goals.value.find((goal) => goal.id === activeGoalId.value) ?? null,
   )
 
-  function selectGoal(goalId: ID) {
+  function selectGoal(goalId: ID | null) {
     activeGoalId.value = goalId
   }
 
   function setGoals(nextGoals: Goal[]) {
     goals.value = nextGoals
-    if (!activeGoalId.value && nextGoals.length > 0) {
-      activeGoalId.value = nextGoals[0].id
+    if (
+      activeGoalId.value &&
+      !nextGoals.some((goal) => goal.id === activeGoalId.value)
+    ) {
+      activeGoalId.value = null
     }
   }
 

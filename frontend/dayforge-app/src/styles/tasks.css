@@ -1,0 +1,86 @@
+.task-list {
+  display: grid;
+  gap: 8px;
+}
+
+.task-row {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background: var(--panel);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.dot.major {
+  background: var(--major);
+}
+
+.dot.minor {
+  background: var(--minor);
+}
+
+.task-priority-chip {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #121720;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.goal-inline-chip {
+  margin-left: 6px;
+  border: 1px solid var(--line);
+  background: #121720;
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-empty {
+  color: var(--muted);
+  margin: 0;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .task-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

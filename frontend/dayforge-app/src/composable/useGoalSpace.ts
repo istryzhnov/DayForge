@@ -8,7 +8,7 @@ import type { ID, Priority } from '../entities/types'
 import { useGoals } from './useGoals'
 
 function createId(prefix: string): ID {
-  return `${prefix}-${Date.now()}`
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 }
 export function useGoalSpace() {
   const { goals, activeGoalId, activeGoal, selectGoal, setGoals, createGoal } =
@@ -17,8 +17,24 @@ export function useGoalSpace() {
   const taskTemplates = ref<TaskTemplate[]>([])
 
   const tasksForActiveGoal = computed(() =>
-    taskTemplates.value.filter((task) => task.goalId === activeGoalId.value),
+    activeGoalId.value
+      ? taskTemplates.value.filter((task) => task.goalId === activeGoalId.value)
+      : taskTemplates.value,
   )
+
+  const taskCountByGoal = computed<Record<ID, number>>(() => {
+    const counts: Record<ID, number> = {}
+
+    goals.value.forEach((goal) => {
+      counts[goal.id] = 0
+    })
+
+    taskTemplates.value.forEach((task) => {
+      counts[task.goalId] = (counts[task.goalId] ?? 0) + 1
+    })
+
+    return counts
+  })
 
   function createTask(input: CreateTaskInput): TaskTemplate | null {
     const now = new Date().toISOString()
@@ -84,6 +100,7 @@ export function useGoalSpace() {
     activeGoal,
     taskTemplates,
     tasksForActiveGoal,
+    taskCountByGoal,
     selectGoal,
     setGoals,
     createGoal,

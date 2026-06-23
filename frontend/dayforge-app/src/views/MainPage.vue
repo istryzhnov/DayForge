@@ -7,11 +7,13 @@ import type { ID, Priority } from '../entities/types.ts'
 
 const {
   goals,
+  activeGoalId,
   activeGoal,
   selectGoal,
   setGoals,
   taskTemplates,
   tasksForActiveGoal,
+  taskCountByGoal,
   addTask,
   addSubTask,
 } = useGoalSpace()
@@ -27,6 +29,7 @@ onMounted(() => {
       updatedAt: '2026-06-19T09:00:00Z',
     },
     {
+      description: 'Weekly growth sprint',
       id: 'goal-2',
       title: 'Career',
       status: 'active',
@@ -46,6 +49,12 @@ onMounted(() => {
     addSubTask(t2.id, 'Prepare Ingredients', 'minor')
     addSubTask(t2.id, 'Cook', 'minor')
   }
+
+  const t3 = addTask('goal-2', 'Project Delivery', 'major')
+  if (t3) {
+    addSubTask(t3.id, 'Planning', 'minor')
+    addSubTask(t3.id, 'Execution', 'minor')
+  }
 })
 
 function handleAddTask(title: string, priority: Priority) {
@@ -58,28 +67,31 @@ function handleAddSubTask(
   title: string,
   priority: Priority,
 ) {
-  if (!activeGoal.value) return
   addSubTask(parentTemplateId, title, priority)
 }
 </script>
 
 <template>
-  <div class="layout">
-    <aside>
+  <div class="app-shell">
+    <aside class="app-sidebar">
       <SidebarComponent
         :goals="goals"
-        :active-goal-id="activeGoal?.id ?? null"
+        :active-goal-id="activeGoalId"
+        :task-count-by-goal="taskCountByGoal"
+        :total-task-count="taskTemplates.length"
         @select-goal="selectGoal"
       />
     </aside>
 
-    <div>
+    <main class="app-content">
       <GoalComponent
         :goal="activeGoal"
+        :goals="goals"
         :tasks="tasksForActiveGoal"
+        :is-all-mode="activeGoalId === null"
         @add-task="handleAddTask"
         @add-subtask="handleAddSubTask"
       />
-    </div>
+    </main>
   </div>
 </template>
