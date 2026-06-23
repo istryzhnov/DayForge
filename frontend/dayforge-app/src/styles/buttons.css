@@ -29,6 +29,7 @@
   background: transparent;
   border-color: var(--line);
   color: var(--muted);
+  margin-right: 15px;
 }
 
 .btn-ghost:hover {
