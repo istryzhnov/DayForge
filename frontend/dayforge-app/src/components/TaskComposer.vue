@@ -4,57 +4,25 @@ import type { ID, Priority } from '../entities/types'
 
 const props = defineProps<{
   isAllMode: boolean
+  isSubtask?: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-task', title: string, priority: Priority): void
-  (
-    e: 'add-subtask',
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-  ): void
+  (e: 'submit', title: string, priority: Priority): void
+  (e: 'cancel'): void
 }>()
 
-const newTaskTitle = ref('')
-const newTaskPriority = ref<Priority>('major')
+const title = ref('')
+const priority = ref<Priority>(props.isSubtask ? 'minor' : 'major')
 
-const subTaskParentId = ref<ID | null>(null)
-const newSubtaskTitle = ref('')
-const newSubtaskPriority = ref<Priority>('minor')
-
-function submitTask() {
+function submit() {
   if (props.isAllMode) return
-
-  const title = newTaskTitle.value.trim()
-  if (!title) return
-
-  emit('add-task', title, newTaskPriority.value)
-  newTaskTitle.value = ''
-  newTaskPriority.value = 'minor'
+  const t = title.value.trim()
+  if (!t) return
+  emit('submit', t, priority.value)
+  title.value = ''
+  priority.value = props.isSubtask ? 'minor' : 'major'
 }
-
-function openSubtask(parentId: ID) {
-  subTaskParentId.value = parentId
-  newSubtaskTitle.value = ''
-  newSubtaskPriority.value = 'minor'
-}
-
-function submitSubtask() {
-  if (!subTaskParentId.value) return
-
-  const title = newSubtaskTitle.value.trim()
-  if (!title) return
-
-  emit('add-subtask', subTaskParentId.value, title, newSubtaskPriority.value)
-  subTaskParentId.value = null
-  newSubtaskTitle.value = ''
-  newSubtaskPriority.value = 'minor'
-}
-
-defineExpose({
-  openSubtask,
-})
 </script>
 
 <template>
@@ -62,25 +30,17 @@ defineExpose({
     Select a specific goal in the sidebar to add a new top-level task.
   </p>
 
-  <div v-else class="goal-form-card">
+  <div v-else class="goal-form-card" :class="{ 'goal-form-sub': isSubtask }">
     <input
-      v-model="newTaskTitle"
+      v-model="title"
       type="text"
-      placeholder="New task title"
-      @keydown.enter="submitTask"
+      placeholder="New major task title "
+      @keydown.enter="submit"
     />
-    <button class="btn btn-primary" @click="submitTask">Add Task</button>
-  </div>
-
-  <div v-if="subTaskParentId" class="goal-form-card goal-form-sub">
-    <input
-      v-model="newSubtaskTitle"
-      type="text"
-      placeholder="New subtask title"
-      @keydown.enter="submitSubtask"
-    />
-    <button class="btn btn-primary" @click="submitSubtask">Add Subtask</button>
-    <button class="btn btn-ghost" @click="subTaskParentId = null">
+    <button class="btn btn-primary" @click="submit">
+      {{ isSubtask ? 'Add Subtask' : 'Add Task' }}
+    </button>
+    <button v-if="isSubtask" class="btn btn-ghost" @click="$emit('cancel')">
       Cancel
     </button>
   </div>

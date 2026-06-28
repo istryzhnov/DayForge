@@ -13,7 +13,6 @@ defineProps<{
     <div>
       <h2>{{ title }}</h2>
       <p>{{ description }}</p>
-      <span class="goal-status">{{ status }}</span>
     </div>
   </header>
   <div class="goal-kpi-row">

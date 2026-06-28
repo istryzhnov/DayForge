@@ -25,8 +25,6 @@ const emit = defineEmits<{
   ): void
 }>()
 
-const composerRef = ref<InstanceType<typeof TaskComposer> | null>(null)
-
 const {
   orderedFlatNodes,
   totalCount,
@@ -49,19 +47,17 @@ const {
     />
 
     <TaskComposer
-      ref="composerRef"
       :is-all-mode="isAllMode"
-      @add-task="(title, priority) => emit('add-task', title, priority)"
-      @add-subtask="
-        (parentId, title, priority) =>
-          emit('add-subtask', parentId, title, priority)
-      "
+      @submit="(title, priority) => emit('add-task', title, priority)"
     />
 
     <TaskList
       :nodes="orderedFlatNodes"
       :is-all-mode="isAllMode"
-      @open-subtask="(parentId) => composerRef?.openSubtask(parentId)"
+      @add-subtask="
+        (parentId, title, priority) =>
+          emit('add-subtask', parentId, title, priority)
+      "
     />
   </section>
 </template>
