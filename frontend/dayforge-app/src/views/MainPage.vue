@@ -16,6 +16,7 @@ const {
   taskCountByGoal,
   addTask,
   addSubTask,
+  createGoal,
 } = useGoalSpace()
 
 onMounted(() => {
@@ -69,6 +70,19 @@ function handleAddSubTask(
 ) {
   addSubTask(parentTemplateId, title, priority)
 }
+
+function handleCreateGoal(title: string, description: string) {
+  const now = new Date().toISOString()
+  const newGoal: Goal = {
+    id: `goal-${goals.value.length + 1}`,
+    title,
+    description,
+    status: 'active',
+    createdAt: now,
+    updatedAt: now,
+  }
+  createGoal(newGoal)
+}
 </script>
 
 <template>
@@ -80,6 +94,7 @@ function handleAddSubTask(
         :task-count-by-goal="taskCountByGoal"
         :total-task-count="taskTemplates.length"
         @select-goal="selectGoal"
+        @create-goal="handleCreateGoal"
       />
     </aside>
 

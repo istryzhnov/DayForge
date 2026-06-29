@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
 import type { ID } from '../entities/types'
+import NewGoalComponent from './NewGoalComponent.vue'
 
 defineProps<{
   goals: Goal[]
@@ -11,7 +13,15 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'select-goal', goalId: ID | null): void
+  (e: 'create-goal', title: string, description: string): void
 }>()
+
+const showNewGoalForm = ref(false)
+
+function handleCreateGoal(title: string, description: string) {
+  emit('create-goal', title, description)
+  showNewGoalForm.value = false
+}
 </script>
 
 <template>
@@ -42,5 +52,15 @@ const emit = defineEmits<{
       <span>{{ goal.title }}</span>
       <span class="goal-count">{{ taskCountByGoal[goal.id] ?? 0 }}</span>
     </button>
+    <div>
+      <button @click="showNewGoalForm = true" class="btn btn-primary">
+        New Goal
+      </button>
+      <NewGoalComponent
+        v-if="showNewGoalForm"
+        @submit="handleCreateGoal"
+        @cancel="showNewGoalForm = false"
+      />
+    </div>
   </div>
 </template>
