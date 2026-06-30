@@ -1,0 +1,58 @@
+.new-goal-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  display: grid;
+  gap: 12px;
+}
+
+.modal-card h3 {
+  margin: 0 0 8px;
+  color: var(--text);
+}
+
+.modal-card input,
+.modal-card textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #10141b;
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.modal-card input:focus,
+.modal-card textarea:focus {
+  outline: 1px solid var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
