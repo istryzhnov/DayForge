@@ -17,45 +17,11 @@ const {
   addTask,
   addSubTask,
   createGoal,
+  initializeStorage,
 } = useGoalSpace()
 
 onMounted(() => {
-  setGoals([
-    {
-      id: 'goal-1',
-      title: 'Health',
-      description: 'Daily routines',
-      status: 'active',
-      createdAt: '2026-06-19T09:00:00Z',
-      updatedAt: '2026-06-19T09:00:00Z',
-    },
-    {
-      description: 'Weekly growth sprint',
-      id: 'goal-2',
-      title: 'Career',
-      status: 'active',
-      createdAt: '2026-06-19T09:00:00Z',
-      updatedAt: '2026-06-19T09:00:00Z',
-    },
-  ])
-  if (taskTemplates.value.length > 0) return
-
-  const t1 = addTask('goal-1', 'Morning Run', 'major')
-  if (t1) {
-    addSubTask(t1.id, 'Warm-up', 'minor')
-    addSubTask(t1.id, 'Cool-down', 'minor')
-  }
-  const t2 = addTask('goal-1', 'Healthy Breakfast', 'major')
-  if (t2) {
-    addSubTask(t2.id, 'Prepare Ingredients', 'minor')
-    addSubTask(t2.id, 'Cook', 'minor')
-  }
-
-  const t3 = addTask('goal-2', 'Project Delivery', 'major')
-  if (t3) {
-    addSubTask(t3.id, 'Planning', 'minor')
-    addSubTask(t3.id, 'Execution', 'minor')
-  }
+  initializeStorage()
 })
 
 function handleAddTask(title: string, priority: Priority) {
@@ -73,11 +39,11 @@ function handleAddSubTask(
 
 function handleCreateGoal(title: string, description: string) {
   const now = new Date().toISOString()
-  const newGoal: Goal = {
-    id: `goal-${goals.value.length + 1}`,
+  const newGoal = {
+    id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     title,
     description,
-    status: 'active',
+    status: 'active' as const,
     createdAt: now,
     updatedAt: now,
   }

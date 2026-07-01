@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   TASK_KIND,
   type CreateTaskInput,
@@ -7,14 +7,48 @@ import {
 import type { ID, Priority } from '../entities/types'
 import { useGoals } from './useGoals'
 
+const TASKS_STORAGE_KEY = 'dayforge_tasks'
+
 function createId(prefix: string): ID {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
 }
 export function useGoalSpace() {
-  const { goals, activeGoalId, activeGoal, selectGoal, setGoals, createGoal } =
-    useGoals()
+  const {
+    goals,
+    activeGoalId,
+    activeGoal,
+    selectGoal,
+    setGoals,
+    createGoal,
+    loadFromStorage,
+  } = useGoals()
 
   const taskTemplates = ref<TaskTemplate[]>([])
+
+  //load task from storage
+  function loadFromStorageTasks() {
+    try {
+      const stored = localStorage.getItem(TASKS_STORAGE_KEY)
+      if (stored) {
+        taskTemplates.value = JSON.parse(stored)
+      }
+    } catch (e) {
+      console.error('Failed to load tasks from storage:', e)
+    }
+  }
+
+  function initializeStorage() {
+    loadFromStorage()
+    loadFromStorageTasks()
+  }
+
+  watch(
+    () => taskTemplates.value,
+    (newTasks) => {
+      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(newTasks))
+    },
+    { deep: true },
+  )
 
   const tasksForActiveGoal = computed(() =>
     activeGoalId.value
@@ -106,5 +140,6 @@ export function useGoalSpace() {
     createGoal,
     addTask,
     addSubTask,
+    initializeStorage,
   }
 }
