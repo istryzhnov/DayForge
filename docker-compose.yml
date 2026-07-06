@@ -1,0 +1,12 @@
+services:
+frontend:
+build:
+context: ./frontend/dayforge-app
+dockerfile: Dockerfile
+ports:
+  - '5173:5173'
+volumes:
+  - ./frontend/dayforge-app:/app
+  - /app/node_modules
+environment:
+  - CHOKIDAR_USEPOLLING=true
