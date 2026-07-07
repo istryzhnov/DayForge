@@ -14,6 +14,10 @@ export interface TaskTemplate {
   isActive: boolean
   createdAt: ISODateTime
   updatedAt: ISODateTime
+
+  day?: ISODate
+  status?: TaskStatus
+  completedAt?: ISODateTime
 }
 
 export interface DailyTask {
