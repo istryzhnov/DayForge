@@ -1,49 +1,85 @@
 import { computed } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
-import type { TaskTemplate } from '../entities/TaskEntity'
+import type { DailyTask } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 
 type FlatNode = {
-  task: TaskTemplate
+  task: DailyTask
   depth: number
   goalTitle: string
+  minorDone: number
+  minorTotal: number
+  canResolveMajor: boolean
+  majorResolved: boolean
 }
 
 type UseTaskTreeInput = {
   goal: Goal | null
   goals: Goal[]
-  tasks: TaskTemplate[]
+  tasks: DailyTask[]
   isAllMode: boolean
 }
 
 export const useTaskTree = (props: UseTaskTreeInput) => {
   const orderedFlatNodes = computed<FlatNode[]>(() => {
-    const sorted = [...props.tasks].sort((a, b) => a.order - b.order)
+    const sorted = [...props.tasks]
 
-    const childrenMap = new Map<ID, TaskTemplate[]>()
-    const roots: TaskTemplate[] = []
+    const childrenMap = new Map<ID, DailyTask[]>()
+    const roots: DailyTask[] = []
 
     for (const task of sorted) {
-      if (!task.parentTemplateId) {
+      if (!task.parentDailyTaskId) {
         roots.push(task)
         continue
       }
-      const list = childrenMap.get(task.parentTemplateId) ?? []
+      const list = childrenMap.get(task.parentDailyTaskId) ?? []
       list.push(task)
-      childrenMap.set(task.parentTemplateId, list)
+      childrenMap.set(task.parentDailyTaskId, list)
     }
     const out: FlatNode[] = []
     const goalById = new Map(props.goals.map((goal) => [goal.id, goal.title]))
 
-    function traverse(task: TaskTemplate, depth: number) {
+    function collectMinorStats(taskId: ID): { done: number; total: number } {
+      const children = childrenMap.get(taskId) ?? []
+      let done = 0
+      let total = 0
+
+      for (const child of children) {
+        if (child.priority === 'minor') {
+          total += 1
+          if (child.status === 'done') done += 1
+        }
+
+        const nested = collectMinorStats(child.id)
+        done += nested.done
+        total += nested.total
+      }
+
+      return { done, total }
+    }
+
+    function traverse(task: DailyTask, depth: number) {
+      const stats =
+        task.priority === 'major'
+          ? collectMinorStats(task.id)
+          : { done: 0, total: 0 }
+      const canResolveMajor =
+        task.priority === 'major' &&
+        stats.total > 0 &&
+        stats.done === stats.total &&
+        !task.majorDecision
+
       out.push({
         task,
         depth,
         goalTitle: goalById.get(task.goalId) ?? 'Unknown Goal',
+        minorDone: stats.done,
+        minorTotal: stats.total,
+        canResolveMajor,
+        majorResolved: Boolean(task.majorDecision),
       })
-      const children = (childrenMap.get(task.id) ?? []).sort(
-        (a, b) => a.order - b.order,
-      )
+
+      const children = childrenMap.get(task.id) ?? []
       for (const child of children) {
         traverse(child, depth + 1)
       }
@@ -62,7 +98,7 @@ export const useTaskTree = (props: UseTaskTreeInput) => {
   )
 
   const subCount = computed(
-    () => props.tasks.filter((task) => task.parentTemplateId).length,
+    () => props.tasks.filter((task) => task.parentDailyTaskId).length,
   )
   const panelTitle = computed(() =>
     props.isAllMode ? 'All Goals' : (props.goal?.title ?? 'Goal'),

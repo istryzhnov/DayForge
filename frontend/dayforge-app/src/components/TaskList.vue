@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../entities/types'
-import type { TaskTemplate } from '../entities/TaskEntity'
+import type { DailyTask, MajorDecision } from '../entities/TaskEntity'
 import { ref } from 'vue'
 import TaskComposer from './TaskComposer.vue'
 
 type FlatNode = {
-  task: TaskTemplate
+  task: DailyTask
   depth: number
   goalTitle: string
+  minorDone: number
+  minorTotal: number
+  canResolveMajor: boolean
+  majorResolved: boolean
 }
 
 defineProps<{
@@ -17,6 +21,8 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'add-subtask', parentId: ID, title: string, priority: Priority): void
+  (e: 'toggle-minor', dailyTaskId: ID): void
+  (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
 }>()
 
 const activeParentId = ref<ID | null>(null)
@@ -30,16 +36,50 @@ function handleSubtaskSubmit(parentId: ID, title: string, priority: Priority) {
 <template>
   <div v-if="nodes.length" class="task-list">
     <template v-for="node in nodes" :key="node.task.id" class="task-list">
-      <div
-        class="task-row"
-        :style="{ paddingLeft: `${16 + node.depth * 22}px` }"
-      >
+      <div class="task-row" :style="`padding-left: ${16 + node.depth * 22}px`">
         <div class="left">
           <span class="dot" :class="node.task.priority"></span>
-          <span>{{ node.task.title }}</span>
-          <span v-if="isAllMode" class="goal-inline-chip">{{
-            node.goalTitle
-          }}</span>
+
+          <input
+            v-if="node.task.priority === 'minor'"
+            type="checkbox"
+            :checked="node.task.status === 'done'"
+            @change="emit('toggle-minor', node.task.id)"
+          />
+
+          <span :class="{ 'task-done': node.task.status === 'done' }">
+            {{ node.task.title }}
+          </span>
+
+          <span v-if="isAllMode" class="goal-inline-chip">
+            {{ node.goalTitle }}
+          </span>
+
+          <span
+            v-if="node.task.priority === 'major'"
+            class="task-priority-chip"
+          >
+            {{ node.minorDone }} / {{ node.minorTotal }} minor done
+          </span>
+        </div>
+
+        <div class="actions">
+          <template
+            v-if="node.task.priority === 'major' && node.canResolveMajor"
+          >
+            <button
+              class="btn btn-ghost"
+              @click="emit('resolve-major', node.task.id, 'continue')"
+            >
+              Continue work
+            </button>
+            <button
+              class="btn btn-primary"
+              @click="emit('resolve-major', node.task.id, 'done')"
+            >
+              Close space
+            </button>
+          </template>
         </div>
 
         <div class="actions">
@@ -61,7 +101,7 @@ function handleSubtaskSubmit(parentId: ID, title: string, priority: Priority) {
         :is-all-mode="false"
         @submit="
           (title, priority) =>
-            handleSubtaskSubmit(node.task.id, title, priority)
+            handleSubtaskSubmit(node.task.templateId, title, priority)
         "
         @cancel="activeParentId = null"
       />

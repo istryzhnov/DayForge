@@ -4,18 +4,20 @@ import GoalComponent from '../components/GoalComponent.vue'
 import SidebarComponent from '../components/SidebarComponent.vue'
 import { useGoalSpace } from '../composable/useGoalSpace.ts'
 import type { ID, Priority } from '../entities/types.ts'
+import type { MajorDecision } from '../entities/TaskEntity.ts'
 
 const {
   goals,
   activeGoalId,
   activeGoal,
   selectGoal,
-  setGoals,
   taskTemplates,
   tasksForActiveGoal,
   taskCountByGoal,
   addTask,
   addSubTask,
+  toggleMinorDone,
+  resolveMajorTask,
   createGoal,
   initializeStorage,
 } = useGoalSpace()
@@ -49,6 +51,14 @@ function handleCreateGoal(title: string, description: string) {
   }
   createGoal(newGoal)
 }
+
+function handleToggleMinor(dailyTaskId: ID) {
+  toggleMinorDone(dailyTaskId)
+}
+
+function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
+  resolveMajorTask(dailyMajorTaskId, decision)
+}
 </script>
 
 <template>
@@ -72,6 +82,8 @@ function handleCreateGoal(title: string, description: string) {
         :is-all-mode="activeGoalId === null"
         @add-task="handleAddTask"
         @add-subtask="handleAddSubTask"
+        @toggle-minor="handleToggleMinor"
+        @resolve-major="handleResolveMajor"
       />
     </main>
   </div>

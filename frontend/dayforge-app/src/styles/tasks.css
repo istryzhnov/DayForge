@@ -3,6 +3,11 @@
   gap: 8px;
 }
 
+.task-done {
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
 .task-row {
   border: 1px solid var(--line);
   border-radius: 12px;

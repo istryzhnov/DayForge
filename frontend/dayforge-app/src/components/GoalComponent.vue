@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
-import type { TaskTemplate } from '../entities/TaskEntity'
+import type { DailyTask, MajorDecision } from '../entities/TaskEntity'
 import type { ID, Priority } from '../entities/types'
 import GoalHeader from './GoalHeader.vue'
 import TaskComposer from './TaskComposer.vue'
@@ -11,7 +10,7 @@ import { useTaskTree } from '../composable/useTaskTree'
 const props = defineProps<{
   goal: Goal | null
   goals: Goal[]
-  tasks: TaskTemplate[]
+  tasks: DailyTask[]
   isAllMode: boolean
 }>()
 
@@ -23,6 +22,8 @@ const emit = defineEmits<{
     title: string,
     priority: Priority,
   ): void
+  (e: 'toggle-minor', dailyTaskId: ID): void
+  (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
 }>()
 
 const {
@@ -57,6 +58,11 @@ const {
       @add-subtask="
         (parentId, title, priority) =>
           emit('add-subtask', parentId, title, priority)
+      "
+      @toggle-minor="(dailyTaskId) => emit('toggle-minor', dailyTaskId)"
+      @resolve-major="
+        (dailyMajorTaskId, decision) =>
+          emit('resolve-major', dailyMajorTaskId, decision)
       "
     />
   </section>
