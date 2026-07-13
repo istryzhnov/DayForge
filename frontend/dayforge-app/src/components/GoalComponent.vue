@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
-import type { TaskTemplate } from '../entities/TaskEntity'
+import type { DailyTask } from '../entities/TaskEntity'
 import type { ID, Priority } from '../entities/types'
 import GoalHeader from './GoalHeader.vue'
 import TaskComposer from './TaskComposer.vue'
@@ -11,7 +10,7 @@ import { useTaskTree } from '../composable/useTaskTree'
 const props = defineProps<{
   goal: Goal | null
   goals: Goal[]
-  tasks: TaskTemplate[]
+  tasks: DailyTask[]
   isAllMode: boolean
 }>()
 

@@ -1,17 +1,24 @@
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
+import { useGoals } from './useGoals'
 import {
   TASK_KIND,
   type CreateTaskInput,
+  type DailyTask,
   type TaskTemplate,
 } from '../entities/TaskEntity'
-import type { ID, Priority } from '../entities/types'
-import { useGoals } from './useGoals'
+import type { ID, ISODate, Priority } from '../entities/types'
+import { createId, getTodayISODate } from './goalSpace/date'
+import {
+  bindStorage,
+  DAILY_TASKS_STORAGE_KEY,
+  loadJson,
+  TASKS_STORAGE_KEY,
+} from './goalSpace/storage'
+import {
+  ensureDailyTaskForTemplate,
+  ensureTodaySnapshot,
+} from './goalSpace/dailyTasks'
 
-const TASKS_STORAGE_KEY = 'dayforge_tasks'
-
-function createId(prefix: string): ID {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-}
 export function useGoalSpace() {
   const {
     goals,
@@ -24,37 +31,40 @@ export function useGoalSpace() {
   } = useGoals()
 
   const taskTemplates = ref<TaskTemplate[]>([])
+  const dailyTasks = ref<DailyTask[]>([])
+  const currentDate = ref<ISODate>(getTodayISODate())
 
-  //load task from storage
   function loadFromStorageTasks() {
-    try {
-      const stored = localStorage.getItem(TASKS_STORAGE_KEY)
-      if (stored) {
-        taskTemplates.value = JSON.parse(stored)
-      }
-    } catch (e) {
-      console.error('Failed to load tasks from storage:', e)
-    }
+    taskTemplates.value = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
+  }
+
+  function loadFromStorageDailyTasks() {
+    dailyTasks.value = loadJson<DailyTask[]>(DAILY_TASKS_STORAGE_KEY, [])
   }
 
   function initializeStorage() {
     loadFromStorage()
     loadFromStorageTasks()
+    loadFromStorageDailyTasks()
+    ensureTodaySnapshot(
+      taskTemplates.value,
+      dailyTasks.value,
+      currentDate.value,
+    )
   }
 
-  watch(
-    () => taskTemplates.value,
-    (newTasks) => {
-      localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(newTasks))
-    },
-    { deep: true },
-  )
+  bindStorage(taskTemplates, TASKS_STORAGE_KEY)
+  bindStorage(dailyTasks, DAILY_TASKS_STORAGE_KEY)
 
-  const tasksForActiveGoal = computed(() =>
-    activeGoalId.value
-      ? taskTemplates.value.filter((task) => task.goalId === activeGoalId.value)
-      : taskTemplates.value,
-  )
+  const tasksForActiveGoal = computed(() => {
+    const todayTasks = dailyTasks.value.filter(
+      (task) => task.date === currentDate.value,
+    )
+
+    return activeGoalId.value
+      ? todayTasks.filter((task) => task.goalId === activeGoalId.value)
+      : todayTasks
+  })
 
   const taskCountByGoal = computed<Record<ID, number>>(() => {
     const counts: Record<ID, number> = {}
@@ -63,16 +73,17 @@ export function useGoalSpace() {
       counts[goal.id] = 0
     })
 
-    taskTemplates.value.forEach((task) => {
-      counts[task.goalId] = (counts[task.goalId] ?? 0) + 1
-    })
+    dailyTasks.value
+      .filter((task) => task.date === currentDate.value)
+      .forEach((task) => {
+        counts[task.goalId] = (counts[task.goalId] ?? 0) + 1
+      })
 
     return counts
   })
 
   function createTask(input: CreateTaskInput): TaskTemplate | null {
     const now = new Date().toISOString()
-
     const priority = input.priority ?? 'minor'
 
     let goalId: ID
@@ -107,7 +118,15 @@ export function useGoalSpace() {
       createdAt: now,
       updatedAt: now,
     }
+
     taskTemplates.value.push(newTask)
+    ensureDailyTaskForTemplate({
+      taskTemplates: taskTemplates.value,
+      dailyTasks: dailyTasks.value,
+      template: newTask,
+      date: currentDate.value,
+    })
+
     return newTask
   }
 
@@ -133,6 +152,8 @@ export function useGoalSpace() {
     activeGoalId,
     activeGoal,
     taskTemplates,
+    dailyTasks,
+    currentDate,
     tasksForActiveGoal,
     taskCountByGoal,
     selectGoal,

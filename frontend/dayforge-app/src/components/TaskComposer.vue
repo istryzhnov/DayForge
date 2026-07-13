@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { ID, Priority } from '../entities/types'
+import type { Priority } from '../entities/types'
 
 const props = defineProps<{
   isAllMode: boolean

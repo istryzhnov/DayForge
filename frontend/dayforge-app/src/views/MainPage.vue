@@ -10,7 +10,6 @@ const {
   activeGoalId,
   activeGoal,
   selectGoal,
-  setGoals,
   taskTemplates,
   tasksForActiveGoal,
   taskCountByGoal,

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../entities/types'
-import type { TaskTemplate } from '../entities/TaskEntity'
+import type { DailyTask } from '../entities/TaskEntity'
 import { ref } from 'vue'
 import TaskComposer from './TaskComposer.vue'
 
 type FlatNode = {
-  task: TaskTemplate
+  task: DailyTask
   depth: number
   goalTitle: string
 }
@@ -30,10 +30,7 @@ function handleSubtaskSubmit(parentId: ID, title: string, priority: Priority) {
 <template>
   <div v-if="nodes.length" class="task-list">
     <template v-for="node in nodes" :key="node.task.id" class="task-list">
-      <div
-        class="task-row"
-        :style="{ paddingLeft: `${16 + node.depth * 22}px` }"
-      >
+      <div class="task-row" :style="`padding-left: ${16 + node.depth * 22}px`">
         <div class="left">
           <span class="dot" :class="node.task.priority"></span>
           <span>{{ node.task.title }}</span>
@@ -61,7 +58,7 @@ function handleSubtaskSubmit(parentId: ID, title: string, priority: Priority) {
         :is-all-mode="false"
         @submit="
           (title, priority) =>
-            handleSubtaskSubmit(node.task.id, title, priority)
+            handleSubtaskSubmit(node.task.templateId, title, priority)
         "
         @cancel="activeParentId = null"
       />
