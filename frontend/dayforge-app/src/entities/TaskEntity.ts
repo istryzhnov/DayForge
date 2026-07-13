@@ -20,6 +20,8 @@ export interface TaskTemplate {
   completedAt?: ISODateTime
 }
 
+export type MajorDecision = 'continue' | 'done'
+
 export interface DailyTask {
   id: ID
   date: ISODate
@@ -31,6 +33,7 @@ export interface DailyTask {
   tagIds: ID[]
   status: TaskStatus
   completedAt?: ISODateTime
+  majorDecision?: MajorDecision
 }
 
 export interface DailyProgress {

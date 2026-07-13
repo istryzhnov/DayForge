@@ -4,6 +4,7 @@ import {
   TASK_KIND,
   type CreateTaskInput,
   type DailyTask,
+  type MajorDecision,
   type TaskTemplate,
 } from '../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../entities/types'
@@ -147,6 +148,57 @@ export function useGoalSpace() {
     })
   }
 
+  function toggleMinorDone(dailyTaskId: ID) {
+    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    if (!task || task.priority !== 'minor') return
+
+    if (task.status === 'done') {
+      task.status = 'todo'
+      task.completedAt = undefined
+      return
+    }
+    task.status = 'done'
+    task.completedAt = new Date().toISOString()
+  }
+
+  function resolveMajorTask(dailyMajorTaskId: ID, decision: MajorDecision) {
+    const majorTask = dailyTasks.value.find(
+      (item) => item.id === dailyMajorTaskId,
+    )
+    if (!majorTask || majorTask.priority !== 'major') return
+
+    const minorChildren = dailyTasks.value.filter(
+      (item) =>
+        item.date === currentDate.value &&
+        item.parentDailyTaskId === dailyMajorTaskId &&
+        item.priority === 'minor',
+    )
+    const allMinorDone =
+      minorChildren.length > 0 &&
+      minorChildren.every((item) => item.status === 'done')
+
+    if (!allMinorDone) return
+
+    majorTask.majorDecision = decision
+
+    if (decision === 'continue') {
+      majorTask.status = 'todo'
+      majorTask.completedAt = undefined
+      return
+    }
+
+    majorTask.status = 'done'
+    majorTask.completedAt = new Date().toISOString()
+
+    const template = taskTemplates.value.find(
+      (item) => item.id === majorTask.templateId,
+    )
+    if (!template) return
+
+    template.isActive = false
+    template.updatedAt = new Date().toISOString()
+  }
+
   return {
     goals,
     activeGoalId,
@@ -162,5 +214,7 @@ export function useGoalSpace() {
     addTask,
     addSubTask,
     initializeStorage,
+    toggleMinorDone,
+    resolveMajorTask,
   }
 }

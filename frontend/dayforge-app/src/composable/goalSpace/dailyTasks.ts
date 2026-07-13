@@ -68,13 +68,14 @@ export function ensureTodaySnapshot(
 ) {
   if (dailyTasks.some((task) => task.date === today)) return
 
+  const activeTemplates = taskTemplates.filter((task) => task.isActive)
   const lastDate = findLastExistingDate(dailyTasks, today)
 
   if (!lastDate) {
     const sortedTemplates = [...taskTemplates].sort((a, b) => a.order - b.order)
     for (const template of sortedTemplates) {
       ensureDailyTaskForTemplate({
-        taskTemplates,
+        taskTemplates: activeTemplates,
         dailyTasks,
         template,
         date: today,
@@ -83,12 +84,12 @@ export function ensureTodaySnapshot(
     return
   }
 
-  const majorTemplates = taskTemplates.filter(
+  const majorTemplates = activeTemplates.filter(
     (task) => task.priority === 'major',
   )
   for (const template of majorTemplates) {
     ensureDailyTaskForTemplate({
-      taskTemplates,
+      taskTemplates: activeTemplates,
       dailyTasks,
       template,
       date: today,
@@ -103,10 +104,12 @@ export function ensureTodaySnapshot(
   )
 
   for (const minor of unfinishedMinors) {
-    const template = taskTemplates.find((task) => task.id === minor.templateId)
+    const template = activeTemplates.find(
+      (task) => task.id === minor.templateId,
+    )
     if (template) {
       ensureDailyTaskForTemplate({
-        taskTemplates,
+        taskTemplates: activeTemplates,
         dailyTasks,
         template,
         date: today,

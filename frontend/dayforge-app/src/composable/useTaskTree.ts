@@ -7,6 +7,10 @@ type FlatNode = {
   task: DailyTask
   depth: number
   goalTitle: string
+  minorDone: number
+  minorTotal: number
+  canResolveMajor: boolean
+  majorResolved: boolean
 }
 
 type UseTaskTreeInput = {
@@ -35,12 +39,46 @@ export const useTaskTree = (props: UseTaskTreeInput) => {
     const out: FlatNode[] = []
     const goalById = new Map(props.goals.map((goal) => [goal.id, goal.title]))
 
+    function collectMinorStats(taskId: ID): { done: number; total: number } {
+      const children = childrenMap.get(taskId) ?? []
+      let done = 0
+      let total = 0
+
+      for (const child of children) {
+        if (child.priority === 'minor') {
+          total += 1
+          if (child.status === 'done') done += 1
+        }
+
+        const nested = collectMinorStats(child.id)
+        done += nested.done
+        total += nested.total
+      }
+
+      return { done, total }
+    }
+
     function traverse(task: DailyTask, depth: number) {
+      const stats =
+        task.priority === 'major'
+          ? collectMinorStats(task.id)
+          : { done: 0, total: 0 }
+      const canResolveMajor =
+        task.priority === 'major' &&
+        stats.total > 0 &&
+        stats.done === stats.total &&
+        !task.majorDecision
+
       out.push({
         task,
         depth,
         goalTitle: goalById.get(task.goalId) ?? 'Unknown Goal',
+        minorDone: stats.done,
+        minorTotal: stats.total,
+        canResolveMajor,
+        majorResolved: Boolean(task.majorDecision),
       })
+
       const children = childrenMap.get(task.id) ?? []
       for (const child of children) {
         traverse(child, depth + 1)
