@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import GoalComponent from '../components/GoalComponent.vue'
 import SidebarComponent from '../components/SidebarComponent.vue'
 import { useGoalSpace } from '../composable/useGoalSpace.ts'
@@ -16,11 +16,23 @@ const {
   taskCountByGoal,
   addTask,
   addSubTask,
+  addMajorWithMinor,
+  activeMajorTemplates,
   toggleMinorDone,
   resolveMajorTask,
   createGoal,
   initializeStorage,
 } = useGoalSpace()
+
+const majorTaskOptions = computed(() =>
+  activeMajorTemplates.value.map((template) => ({
+    id: template.id,
+    title: template.title,
+    goalTitle:
+      goals.value.find((goal) => goal.id === template.goalId)?.title ??
+      'Unknown Goal',
+  })),
+)
 
 onMounted(() => {
   initializeStorage()
@@ -59,6 +71,18 @@ function handleToggleMinor(dailyTaskId: ID) {
 function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
   resolveMajorTask(dailyMajorTaskId, decision)
 }
+
+function handleAttachMinorTask(majorTemplateId: ID, title: string) {
+  addSubTask(majorTemplateId, title, 'minor')
+}
+
+function handleCreateMajorWithMinor(
+  goalId: ID,
+  majorTitle: string,
+  minorTitle: string,
+) {
+  addMajorWithMinor(goalId, majorTitle, minorTitle)
+}
 </script>
 
 <template>
@@ -80,10 +104,13 @@ function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
         :goals="goals"
         :tasks="tasksForActiveGoal"
         :is-all-mode="activeGoalId === null"
+        :major-task-options="majorTaskOptions"
         @add-task="handleAddTask"
         @add-subtask="handleAddSubTask"
         @toggle-minor="handleToggleMinor"
         @resolve-major="handleResolveMajor"
+        @attach-minor-task="handleAttachMinorTask"
+        @create-major-with-minor="handleCreateMajorWithMinor"
       />
     </main>
   </div>

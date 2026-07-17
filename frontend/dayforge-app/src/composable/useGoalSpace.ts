@@ -148,6 +148,23 @@ export function useGoalSpace() {
     })
   }
 
+  const activeMajorTemplates = computed(() =>
+    taskTemplates.value.filter(
+      (task) => task.priority === 'major' && task.isActive,
+    ),
+  )
+
+  function addMajorWithMinor(
+    goalId: ID,
+    majorTitle: string,
+    minorTitle: string,
+  ) {
+    const major = addTask(goalId, majorTitle, 'major')
+    if (!major) return null
+
+    return addSubTask(major.id, majorTitle, 'minor')
+  }
+
   function toggleMinorDone(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
     if (!task || task.priority !== 'minor') return
@@ -216,5 +233,7 @@ export function useGoalSpace() {
     initializeStorage,
     toggleMinorDone,
     resolveMajorTask,
+    activeMajorTemplates,
+    addMajorWithMinor,
   }
 }

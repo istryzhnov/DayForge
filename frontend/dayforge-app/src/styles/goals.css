@@ -178,3 +178,30 @@
     grid-template-columns: 1fr;
   }
 }
+.major-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.all-mode-composer {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.composer-mode-switch {
+  display: flex;
+  gap: 8px;
+}
+
+.composer-mode-switch .btn.active {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.composer-fields {
+  display: grid;
+  gap: 10px;
+}

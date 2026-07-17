@@ -6,12 +6,20 @@ import GoalHeader from './GoalHeader.vue'
 import TaskComposer from './TaskComposer.vue'
 import TaskList from './TaskList.vue'
 import { useTaskTree } from '../composable/useTaskTree'
+import { ref } from 'vue'
+import AllModeMinorComposer from './AllModeMinorComposer.vue'
 
+type MajorTaskOption = {
+  id: ID
+  title: string
+  goalTitle: string
+}
 const props = defineProps<{
   goal: Goal | null
   goals: Goal[]
   tasks: DailyTask[]
   isAllMode: boolean
+  majorTaskOptions: MajorTaskOption[]
 }>()
 
 const emit = defineEmits<{
@@ -24,7 +32,16 @@ const emit = defineEmits<{
   ): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
+  (e: 'attach-minor-task', majorTemplateId: ID, title: string): void
+  (
+    e: 'create-major-with-minor',
+    goalId: ID,
+    majorTitle: string,
+    minorTitle: string,
+  ): void
 }>()
+
+const showMajorTasks = ref(true)
 
 const {
   orderedFlatNodes,
@@ -33,7 +50,7 @@ const {
   subCount,
   panelTitle,
   panelDescription,
-} = useTaskTree(props)
+} = useTaskTree(props, showMajorTasks)
 </script>
 
 <template>
@@ -47,9 +64,29 @@ const {
       :sub-count="subCount"
     />
 
+    <label v-if="isAllMode" class="major-toggle">
+      <input type="checkbox" v-model="showMajorTasks" />
+      Show major tasks
+    </label>
+
     <TaskComposer
+      v-if="!isAllMode"
       :is-all-mode="isAllMode"
       @submit="(title, priority) => emit('add-task', title, priority)"
+    />
+
+    <AllModeMinorComposer
+      v-else
+      :goals="goals"
+      :major-task-options="majorTaskOptions"
+      @attach-minor="
+        (majorTemplateId, title) =>
+          emit('attach-minor-task', majorTemplateId, title)
+      "
+      @create-major-and-minor="
+        (goalId, majorTitle, minorTitle) =>
+          emit('create-major-with-minor', goalId, majorTitle, minorTitle)
+      "
     />
 
     <TaskList

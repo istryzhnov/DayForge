@@ -72,7 +72,9 @@ export function ensureTodaySnapshot(
   const lastDate = findLastExistingDate(dailyTasks, today)
 
   if (!lastDate) {
-    const sortedTemplates = [...taskTemplates].sort((a, b) => a.order - b.order)
+    const sortedTemplates = [...activeTemplates].sort(
+      (a, b) => a.order - b.order,
+    )
     for (const template of sortedTemplates) {
       ensureDailyTaskForTemplate({
         taskTemplates: activeTemplates,

@@ -1,12 +1,14 @@
-import { computed } from 'vue'
+import { computed, type Ref } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
 import type { DailyTask } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
+import { rewriteDefault } from 'vue/compiler-sfc'
 
 type FlatNode = {
   task: DailyTask
   depth: number
   goalTitle: string
+  majorTitle?: string
   minorDone: number
   minorTotal: number
   canResolveMajor: boolean
@@ -20,9 +22,13 @@ type UseTaskTreeInput = {
   isAllMode: boolean
 }
 
-export const useTaskTree = (props: UseTaskTreeInput) => {
+export const useTaskTree = (
+  props: UseTaskTreeInput,
+  showMajorTasks: Ref<boolean>,
+) => {
   const orderedFlatNodes = computed<FlatNode[]>(() => {
     const sorted = [...props.tasks]
+    const taskById = new Map(sorted.map((task) => [task.id, task]))
 
     const childrenMap = new Map<ID, DailyTask[]>()
     const roots: DailyTask[] = []
@@ -58,6 +64,18 @@ export const useTaskTree = (props: UseTaskTreeInput) => {
       return { done, total }
     }
 
+    function findMajorTitle(task: DailyTask): string | undefined {
+      let current: DailyTask | undefined = task
+
+      while (current) {
+        if (current.priority === 'major') return current.title
+        if (!current.parentDailyTaskId) return undefined
+        current = taskById.get(current.parentDailyTaskId)
+      }
+
+      return undefined
+    }
+
     function traverse(task: DailyTask, depth: number) {
       const stats =
         task.priority === 'major'
@@ -73,6 +91,7 @@ export const useTaskTree = (props: UseTaskTreeInput) => {
         task,
         depth,
         goalTitle: goalById.get(task.goalId) ?? 'Unknown Goal',
+        majorTitle: findMajorTitle(task),
         minorDone: stats.done,
         minorTotal: stats.total,
         canResolveMajor,
@@ -87,6 +106,10 @@ export const useTaskTree = (props: UseTaskTreeInput) => {
 
     for (const root of roots) {
       traverse(root, 0)
+    }
+
+    if (props.isAllMode && !showMajorTasks.value) {
+      return out.filter((node) => node.task.priority !== 'major')
     }
 
     return out

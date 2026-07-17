@@ -8,6 +8,7 @@ type FlatNode = {
   task: DailyTask
   depth: number
   goalTitle: string
+  majorTitle?: string
   minorDone: number
   minorTotal: number
   canResolveMajor: boolean
@@ -60,6 +61,12 @@ function handleSubtaskSubmit(parentId: ID, title: string, priority: Priority) {
             class="task-priority-chip"
           >
             {{ node.minorDone }} / {{ node.minorTotal }} minor done
+          </span>
+          <span
+            v-if="node.task.priority === 'minor' && node.majorTitle"
+            class="major-inline-chip"
+          >
+            {{ node.majorTitle }}
           </span>
         </div>
 
