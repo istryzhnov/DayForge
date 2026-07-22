@@ -162,7 +162,7 @@ export function useGoalSpace() {
     const major = addTask(goalId, majorTitle, 'major')
     if (!major) return null
 
-    return addSubTask(major.id, majorTitle, 'minor')
+    return addSubTask(major.id, minorTitle, 'minor')
   }
 
   function toggleMinorDone(dailyTaskId: ID) {
