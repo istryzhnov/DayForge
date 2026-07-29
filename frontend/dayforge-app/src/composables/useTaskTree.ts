@@ -20,7 +20,10 @@ type TaskTreeProps = {
   isAllMode: boolean
 }
 
-export function useTaskTree(props: TaskTreeProps, showMajorTasks: { value: boolean }) {
+export function useTaskTree(
+  props: TaskTreeProps,
+  showMajorTasks: { value: boolean },
+) {
   const orderedFlatNodes = computed<FlatTaskNode[]>(() => {
     const majorTasks = props.tasks
       .filter((task) => task.priority === 'major')
@@ -40,10 +43,13 @@ export function useTaskTree(props: TaskTreeProps, showMajorTasks: { value: boole
         children: [],
         depth: 0,
         goalTitle: props.goal?.title ?? 'All Goals',
-        minorDone: minorChildren.filter((child) => child.status === 'done').length,
+        minorDone: minorChildren.filter((child) => child.status === 'done')
+          .length,
         minorTotal: minorChildren.length,
         majorTitle: task.title,
-        canResolveMajor: minorChildren.length > 0 && minorChildren.every((child) => child.status === 'done'),
+        canResolveMajor:
+          minorChildren.length > 0 &&
+          minorChildren.every((child) => child.status === 'done'),
       })
     })
 
@@ -51,14 +57,20 @@ export function useTaskTree(props: TaskTreeProps, showMajorTasks: { value: boole
   })
 
   const totalCount = computed(() => props.tasks.length)
-  const majorCount = computed(() => props.tasks.filter((task) => task.priority === 'major').length)
-  const subCount = computed(() => props.tasks.filter((task) => task.priority === 'minor').length)
+  const majorCount = computed(
+    () => props.tasks.filter((task) => task.priority === 'major').length,
+  )
+  const subCount = computed(
+    () => props.tasks.filter((task) => task.priority === 'minor').length,
+  )
 
-  const panelTitle = computed(() => (props.isAllMode ? 'All Goals' : props.goal?.title ?? 'Goal'))
+  const panelTitle = computed(() =>
+    props.isAllMode ? 'All Goals' : (props.goal?.title ?? 'Goal'),
+  )
   const panelDescription = computed(() =>
     props.isAllMode
       ? 'All tasks across goals'
-      : props.goal?.description ?? 'Overview of this goal',
+      : (props.goal?.description ?? 'Overview of this goal'),
   )
 
   return {

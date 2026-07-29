@@ -21,7 +21,9 @@ const emit = defineEmits<{
   <TaskComposer
     v-if="!isAllMode"
     :is-all-mode="isAllMode"
-    @submit="(title: string, priority: Priority) => emit('add-task', title, priority)"
+    @submit="
+      (title: string, priority: Priority) => emit('add-task', title, priority)
+    "
   />
 
   <AllModeMinorComposer

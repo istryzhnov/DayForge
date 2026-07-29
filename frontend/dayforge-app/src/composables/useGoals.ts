@@ -7,8 +7,8 @@ export function useGoals() {
   const goals = ref<Goal[]>([])
   const activeGoalId = ref<ID | null>(null)
 
-  const activeGoal = computed(() =>
-    goals.value.find((goal) => goal.id === activeGoalId.value) ?? null,
+  const activeGoal = computed(
+    () => goals.value.find((goal) => goal.id === activeGoalId.value) ?? null,
   )
 
   function selectGoal(goalId: ID | null) {
