@@ -29,8 +29,8 @@ const { title, description, submit, cancel } = useNewGoalFormState({
         @keydown.enter="submit"
       ></textarea>
       <div class="modal-actions">
-        <button class="btn btn-primary" @click="cancel">Cancel</button>
-        <button class="btn btn-ghost" @click="submit">Add Goal</button>
+        <button class="btn btn-ghost" @click="cancel">Cancel</button>
+        <button class="btn btn-primary" @click="submit">Add Goal</button>
       </div>
     </div>
   </section>

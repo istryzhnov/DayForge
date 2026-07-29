@@ -1,15 +1,18 @@
 :root {
-  --bg: #0f1115;
-  --panel: #161a21;
-  --panel-soft: #1e242e;
-  --line: #2a3140;
-  --text: #e6ebf2;
-  --muted: #9ba8bc;
-  --accent: #9ef01a;
-  --accent-soft: rgba(158, 240, 26, 0.14);
+  --bg: #0b0f17;
+  --panel: #131a25;
+  --panel-soft: #1a2332;
+  --line: #2b3649;
+  --line-soft: #36445d;
+  --text: #edf2fb;
+  --muted: #9cabbe;
+  --accent: #a4ff3f;
+  --accent-soft: rgba(164, 255, 63, 0.16);
   --danger: #ef4444;
-  --major: #f97316;
+  --major: #fb923c;
   --minor: #22d3ee;
+  --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.34);
+  --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.24);
 }
 
 * {
@@ -36,28 +39,33 @@ body {
       rgba(34, 211, 238, 0.08),
       transparent 46%
     ),
-    var(--bg);
-  font-family: 'Segoe UI', 'Inter', sans-serif;
+    linear-gradient(165deg, #0b0f17 0%, #0e1623 60%, #0c1420 100%);
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  line-height: 1.45;
 }
 
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: minmax(260px, 320px) 1fr;
 }
 
 .app-sidebar {
   border-right: 1px solid var(--line);
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.02),
-    transparent 38%
-  );
-  padding: 24px 16px;
+  background:
+    linear-gradient(
+      190deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0) 40%
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 38%);
+  padding: 24px 18px;
+  backdrop-filter: blur(8px);
 }
 
 .app-content {
   padding: 28px;
+  max-width: 1100px;
 }
 
 @media (max-width: 960px) {
@@ -73,5 +81,6 @@ body {
 
   .app-content {
     padding: 16px;
+    max-width: 100%;
   }
 }

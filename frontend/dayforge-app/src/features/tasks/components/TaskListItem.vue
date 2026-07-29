@@ -17,6 +17,7 @@ defineProps<{
     priority: Priority,
   ) => void
   onCancelSubtask: () => void
+  onFocusMajor: (dailyMajorTaskId: ID) => void
 }>()
 </script>
 
@@ -64,6 +65,13 @@ defineProps<{
           @click="onResolveMajor(node.task.id, 'done')"
         >
           Close space
+        </button>
+        <button
+          v-if="node.task.priority === 'major'"
+          class="btn btn-ghost"
+          @click="onFocusMajor(node.task.id)"
+        >
+          Habit
         </button>
       </template>
     </div>

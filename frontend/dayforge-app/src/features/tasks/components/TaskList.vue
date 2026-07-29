@@ -14,6 +14,7 @@ const emit = defineEmits<{
   (e: 'add-subtask', parentId: ID, title: string, priority: Priority): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
+  (e: 'focus-major', dailyMajorTaskId: ID): void
 }>()
 
 const {
@@ -44,6 +45,7 @@ const {
       :on-toggle-parent="toggleParent"
       :on-submit-subtask="handleSubtaskSubmit"
       :on-cancel-subtask="() => (activeParentId = null)"
+      :on-focus-major="(majorId: ID) => emit('focus-major', majorId)"
     />
   </div>
 

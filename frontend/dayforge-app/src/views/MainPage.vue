@@ -14,6 +14,8 @@ const {
   taskTemplates,
   tasksForActiveGoal,
   taskCountByGoal,
+  dailyTasks,
+  currentDate,
 } = goalSpace
 
 const {
@@ -45,6 +47,8 @@ const {
         :goal="activeGoal"
         :goals="goals"
         :tasks="tasksForActiveGoal"
+        :daily-tasks="dailyTasks"
+        :current-date="currentDate"
         :is-all-mode="activeGoalId === null"
         :major-task-options="majorTaskOptions"
         @add-task="handleAddTask"
