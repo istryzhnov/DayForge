@@ -18,6 +18,7 @@ const emit = defineEmits<{
   ): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
+  (e: 'focus-major', dailyMajorTaskId: ID): void
 }>()
 </script>
 
@@ -34,5 +35,6 @@ const emit = defineEmits<{
       (dailyMajorTaskId: ID, decision: MajorDecision) =>
         emit('resolve-major', dailyMajorTaskId, decision)
     "
+    @focus-major="(majorId: ID) => emit('focus-major', majorId)"
   />
 </template>

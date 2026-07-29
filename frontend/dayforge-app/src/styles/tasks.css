@@ -1,6 +1,6 @@
 .task-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .task-done {
@@ -10,14 +10,28 @@
 
 .task-row {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 14px;
   padding-top: 10px;
   padding-bottom: 10px;
-  background: var(--panel);
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.025),
+    rgba(255, 255, 255, 0.01)
+  );
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+  transition:
+    border-color 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
+}
+
+.task-row:hover {
+  border-color: var(--line-soft);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .left {
@@ -43,12 +57,12 @@
 }
 
 .task-priority-chip {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  background: #121720;
+  background: #0f1622;
   color: var(--muted);
   border: 1px solid var(--line);
 }
@@ -56,11 +70,11 @@
 .goal-inline-chip {
   margin-left: 6px;
   border: 1px solid var(--line);
-  background: #121720;
+  background: #0f1622;
   color: var(--muted);
   border-radius: 999px;
   font-size: 12px;
-  padding: 2px 8px;
+  padding: 3px 9px;
 }
 
 .actions {
@@ -72,10 +86,11 @@
 .task-empty {
   color: var(--muted);
   margin: 0;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 14px;
+  padding: 18px;
   text-align: center;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 @media (max-width: 960px) {
@@ -92,9 +107,9 @@
 .major-inline-chip {
   margin-left: 6px;
   border: 1px solid var(--major);
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(251, 146, 60, 0.12);
   color: var(--major);
   border-radius: 999px;
   font-size: 12px;
-  padding: 2px 8px;
+  padding: 3px 9px;
 }
