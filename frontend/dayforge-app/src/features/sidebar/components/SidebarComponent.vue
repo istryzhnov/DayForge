@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Goal } from '../entities/GoalEntity'
-import type { ID } from '../entities/types'
+import type { Goal } from '../../../entities/GoalEntity'
+import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
+import { useSidebarState } from '../composables/useSidebarState'
 
 defineProps<{
   goals: Goal[]
@@ -16,12 +16,16 @@ const emit = defineEmits<{
   (e: 'create-goal', title: string, description: string): void
 }>()
 
-const showNewGoalForm = ref(false)
-
-function handleCreateGoal(title: string, description: string) {
-  emit('create-goal', title, description)
-  showNewGoalForm.value = false
-}
+const {
+  showNewGoalForm,
+  openNewGoalForm,
+  closeNewGoalForm,
+  selectGoal,
+  createGoal,
+} = useSidebarState({
+  onSelectGoal: (goalId) => emit('select-goal', goalId),
+  onCreateGoal: (title, description) => emit('create-goal', title, description),
+})
 </script>
 
 <template>
@@ -36,7 +40,7 @@ function handleCreateGoal(title: string, description: string) {
     <button
       class="nav-goal-btn"
       :class="{ active: activeGoalId === null }"
-      @click="emit('select-goal', null)"
+      @click="selectGoal(null)"
     >
       <span>All Goals</span>
       <span class="goal-count">{{ totalTaskCount }}</span>
@@ -47,19 +51,17 @@ function handleCreateGoal(title: string, description: string) {
       :key="goal.id"
       class="nav-goal-btn"
       :class="{ active: goal.id === activeGoalId }"
-      @click="emit('select-goal', goal.id)"
+      @click="selectGoal(goal.id)"
     >
       <span>{{ goal.title }}</span>
       <span class="goal-count">{{ taskCountByGoal[goal.id] ?? 0 }}</span>
     </button>
     <div>
-      <button @click="showNewGoalForm = true" class="btn btn-primary">
-        New Goal
-      </button>
+      <button @click="openNewGoalForm" class="btn btn-primary">New Goal</button>
       <NewGoalComponent
         v-if="showNewGoalForm"
-        @submit="handleCreateGoal"
-        @cancel="showNewGoalForm = false"
+        @submit="createGoal"
+        @cancel="closeNewGoalForm"
       />
     </div>
   </div>

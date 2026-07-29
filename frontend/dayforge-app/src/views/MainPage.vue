@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import GoalComponent from '../components/GoalComponent.vue'
-import SidebarComponent from '../components/SidebarComponent.vue'
-import { useGoalSpace } from '../composable/useGoalSpace.ts'
-import type { ID, Priority } from '../entities/types.ts'
-import type { MajorDecision } from '../entities/TaskEntity.ts'
+import GoalComponent from '../features/goals/components/GoalComponent.vue'
+import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
+import { useGoalSpace } from '../composables/useGoalSpace'
+import { useMainPageState } from '../pages/composables/useMainPageState'
+
+const goalSpace = useGoalSpace()
 
 const {
   goals,
@@ -14,51 +14,17 @@ const {
   taskTemplates,
   tasksForActiveGoal,
   taskCountByGoal,
-  addTask,
-  addSubTask,
-  toggleMinorDone,
-  resolveMajorTask,
-  createGoal,
-  initializeStorage,
-} = useGoalSpace()
+} = goalSpace
 
-onMounted(() => {
-  initializeStorage()
-})
-
-function handleAddTask(title: string, priority: Priority) {
-  if (!activeGoal.value) return
-  addTask(activeGoal.value.id, title, priority)
-}
-
-function handleAddSubTask(
-  parentTemplateId: ID,
-  title: string,
-  priority: Priority,
-) {
-  addSubTask(parentTemplateId, title, priority)
-}
-
-function handleCreateGoal(title: string, description: string) {
-  const now = new Date().toISOString()
-  const newGoal = {
-    id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    title,
-    description,
-    status: 'active' as const,
-    createdAt: now,
-    updatedAt: now,
-  }
-  createGoal(newGoal)
-}
-
-function handleToggleMinor(dailyTaskId: ID) {
-  toggleMinorDone(dailyTaskId)
-}
-
-function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
-  resolveMajorTask(dailyMajorTaskId, decision)
-}
+const {
+  majorTaskOptions,
+  handleAddTask,
+  handleAddSubTask,
+  handleCreateGoal,
+  handleToggleMinor,
+  handleResolveMajor,
+  handleCreateAllModeMinor,
+} = useMainPageState(goalSpace)
 </script>
 
 <template>
@@ -80,10 +46,12 @@ function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
         :goals="goals"
         :tasks="tasksForActiveGoal"
         :is-all-mode="activeGoalId === null"
+        :major-task-options="majorTaskOptions"
         @add-task="handleAddTask"
         @add-subtask="handleAddSubTask"
         @toggle-minor="handleToggleMinor"
         @resolve-major="handleResolveMajor"
+        @create-all-mode-minor="handleCreateAllModeMinor"
       />
     </main>
   </div>

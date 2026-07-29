@@ -77,6 +77,7 @@ export function useGoalSpace() {
     dailyTasks.value
       .filter((task) => task.date === currentDate.value)
       .forEach((task) => {
+        if (!task.goalId) return
         counts[task.goalId] = (counts[task.goalId] ?? 0) + 1
       })
 
@@ -87,7 +88,7 @@ export function useGoalSpace() {
     const now = new Date().toISOString()
     const priority = input.priority ?? 'minor'
 
-    let goalId: ID
+    let goalId: ID | undefined
     let parentTemplateId: ID | undefined
 
     if (input.kind === TASK_KIND.TASK) {
@@ -131,8 +132,20 @@ export function useGoalSpace() {
     return newTask
   }
 
-  function addTask(goalId: ID, title: string, priority: Priority = 'minor') {
+  function addTask(
+    goalId: ID | undefined,
+    title: string,
+    priority: Priority = 'minor',
+  ) {
     return createTask({ kind: TASK_KIND.TASK, goalId, title, priority })
+  }
+
+  function addMinorInAllMode(title: string, goalId?: ID, majorTemplateId?: ID) {
+    if (majorTemplateId) {
+      return addSubTask(majorTemplateId, title, 'minor')
+    }
+
+    return addTask(goalId, title, 'minor')
   }
 
   function addSubTask(
@@ -146,6 +159,23 @@ export function useGoalSpace() {
       title,
       priority,
     })
+  }
+
+  const activeMajorTemplates = computed(() =>
+    taskTemplates.value.filter(
+      (task) => task.priority === 'major' && task.isActive,
+    ),
+  )
+
+  function addMajorWithMinor(
+    goalId: ID,
+    majorTitle: string,
+    minorTitle: string,
+  ) {
+    const major = addTask(goalId, majorTitle, 'major')
+    if (!major) return null
+
+    return addSubTask(major.id, minorTitle, 'minor')
   }
 
   function toggleMinorDone(dailyTaskId: ID) {
@@ -216,5 +246,8 @@ export function useGoalSpace() {
     initializeStorage,
     toggleMinorDone,
     resolveMajorTask,
+    activeMajorTemplates,
+    addMajorWithMinor,
+    addMinorInAllMode,
   }
 }
