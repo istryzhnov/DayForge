@@ -3,7 +3,7 @@ import type { ID, ISODate, ISODateTime, Priority, TaskStatus } from './types'
 
 export interface TaskTemplate {
   id: ID
-  goalId: ID
+  goalId?: ID
   title: string
   notes?: string
   priority: Priority
@@ -25,7 +25,7 @@ export type MajorDecision = 'continue' | 'done'
 export interface DailyTask {
   id: ID
   date: ISODate
-  goalId: ID
+  goalId?: ID
   templateId: ID
   title: string
   priority: Priority
@@ -44,6 +44,13 @@ export interface DailyProgress {
   completionPercent: number
 }
 
+export type MajorTaskOption = {
+  id: ID
+  title: string
+  goalId?: ID
+  goalTitle: string
+}
+
 export const TASK_KIND = {
   TASK: 'task',
   SUBTASK: 'subtask',
@@ -54,7 +61,7 @@ export type TaskKind = (typeof TASK_KIND)[keyof typeof TASK_KIND]
 export type CreateTaskInput =
   | {
       kind: typeof TASK_KIND.TASK
-      goalId: ID
+      goalId?: ID
       title: string
       priority?: Priority
     }

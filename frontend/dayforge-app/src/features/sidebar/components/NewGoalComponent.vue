@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { useNewGoalFormState } from '../composables/useNewGoalFormState'
 
 const emit = defineEmits<{
   (e: 'submit', title: string, description: string): void
   (e: 'cancel'): void
 }>()
 
-const title = ref('')
-const description = ref('')
-
-function submit() {
-  const trimmedTitle = title.value.trim()
-  if (!trimmedTitle) return
-
-  emit('submit', trimmedTitle, description.value.trim())
-  title.value = ''
-  description.value = ''
-}
+const { title, description, submit, cancel } = useNewGoalFormState({
+  onSubmit: (nextTitle, nextDescription) =>
+    emit('submit', nextTitle, nextDescription),
+  onCancel: () => emit('cancel'),
+})
 </script>
 <template>
   <section class="new-goal-modal">
@@ -35,7 +29,7 @@ function submit() {
         @keydown.enter="submit"
       ></textarea>
       <div class="modal-actions">
-        <button class="btn btn-primary" @click="$emit('cancel')">Cancel</button>
+        <button class="btn btn-primary" @click="cancel">Cancel</button>
         <button class="btn btn-ghost" @click="submit">Add Goal</button>
       </div>
     </div>

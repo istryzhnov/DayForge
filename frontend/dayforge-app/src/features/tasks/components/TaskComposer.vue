@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Priority } from '../entities/types'
+import type { Priority } from '../../../entities/types'
+import { useTaskComposerState } from '../composables/useTaskComposerState'
 
 const props = defineProps<{
   isAllMode: boolean
@@ -12,17 +12,17 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
-const title = ref('')
-const priority = ref<Priority>(props.isSubtask ? 'minor' : 'major')
-
-function submit() {
-  if (props.isAllMode) return
-  const t = title.value.trim()
-  if (!t) return
-  emit('submit', t, priority.value)
-  title.value = ''
-  priority.value = props.isSubtask ? 'minor' : 'major'
-}
+const { title, submit, cancel } = useTaskComposerState(
+  {
+    isSubtask: Boolean(props.isSubtask),
+    isAllMode: props.isAllMode,
+  },
+  {
+    onSubmit: (nextTitle, nextPriority) =>
+      emit('submit', nextTitle, nextPriority),
+    onCancel: () => emit('cancel'),
+  },
+)
 </script>
 
 <template>
@@ -40,7 +40,7 @@ function submit() {
     <button class="btn btn-primary" @click="submit">
       {{ isSubtask ? 'Add Subtask' : 'Add Task' }}
     </button>
-    <button v-if="isSubtask" class="btn btn-ghost" @click="$emit('cancel')">
+    <button v-if="isSubtask" class="btn btn-ghost" @click="cancel">
       Cancel
     </button>
   </div>
