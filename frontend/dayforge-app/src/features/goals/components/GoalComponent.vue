@@ -40,7 +40,6 @@ const emit = defineEmits<{
 }>()
 
 const {
-  showMajorTasks,
   orderedFlatNodes,
   totalCount,
   majorCount,
@@ -94,9 +93,6 @@ const { todayProgress, monthCells } = useProgressMetrics(
       :total-count="totalCount"
       :major-count="majorCount"
       :sub-count="subCount"
-      :is-all-mode="isAllMode"
-      :show-major-tasks="showMajorTasks"
-      :on-toggle-show-major-tasks="(value: boolean) => (showMajorTasks = value)"
     />
 
     <GoalComposerZone

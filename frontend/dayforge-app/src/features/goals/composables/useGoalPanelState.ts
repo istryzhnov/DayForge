@@ -1,4 +1,3 @@
-import { ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, MajorDecision } from '../../../entities/TaskEntity'
 import type { ID, Priority } from '../../../entities/types'
@@ -27,9 +26,7 @@ export function useGoalPanelState(
   props: GoalPanelProps,
   actions: GoalPanelActions,
 ) {
-  const showMajorTasks = ref(true)
-
-  const taskTree = useTaskTree(props, showMajorTasks)
+  const taskTree = useTaskTree(props)
 
   function submitTask(title: string, priority: Priority) {
     actions.onAddTask(title, priority)
@@ -56,7 +53,6 @@ export function useGoalPanelState(
   }
 
   return {
-    showMajorTasks,
     ...taskTree,
     submitTask,
     submitMinor,

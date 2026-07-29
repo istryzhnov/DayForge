@@ -56,7 +56,7 @@ const {
       <span>{{ goal.title }}</span>
       <span class="goal-count">{{ taskCountByGoal[goal.id] ?? 0 }}</span>
     </button>
-    <div>
+    <div class="sidebar-actions">
       <button @click="openNewGoalForm" class="btn btn-primary">New Goal</button>
       <NewGoalComponent
         v-if="showNewGoalForm"
