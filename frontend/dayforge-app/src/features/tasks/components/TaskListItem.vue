@@ -2,6 +2,7 @@
 import type { ID, Priority } from '../../../entities/types'
 import type { MajorDecision } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
+import TaskComposer from './TaskComposer.vue'
 
 defineProps<{
   node: FlatTaskNode

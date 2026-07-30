@@ -1,4 +1,4 @@
-import type { Ref } from 'vue'
+import { watch, type Ref } from 'vue'
 import type { Goal } from '../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID } from '../../entities/types'
@@ -19,15 +19,13 @@ export function loadJson<T>(key: string, fallback: T): T {
 }
 
 export function bindStorage<T>(refValue: Ref<T>, key: string) {
-  refValue.value = loadJson<T>(key, refValue.value)
-
-  refValue.value = new Proxy(refValue.value as object, {
-    set(target, property, value) {
-      ;(target as Record<string, unknown>)[property as string] = value
-      localStorage.setItem(key, JSON.stringify(target))
-      return true
+  watch(
+    refValue,
+    (nextValue) => {
+      localStorage.setItem(key, JSON.stringify(nextValue))
     },
-  }) as T
+    { deep: true },
+  )
 }
 
 export type GoalStorage = {
