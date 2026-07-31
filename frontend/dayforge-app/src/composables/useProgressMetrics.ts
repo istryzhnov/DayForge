@@ -15,8 +15,11 @@ export type HabitDayCell = {
   isToday: boolean
 }
 
-function toISODate(date: Date): ISODate {
-  return date.toISOString().slice(0, 10) as ISODate
+function toLocalISODate(date: Date): ISODate {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}` as ISODate
 }
 
 function clampPercent(value: number): number {
@@ -31,12 +34,11 @@ function percent(done: number, total: number): number {
 
 function getDaysInMonth(baseDateISO: ISODate): ISODate[] {
   const [y, m] = baseDateISO.split('-').map(Number)
-  const first = new Date(y, m - 1, 1)
   const last = new Date(y, m, 0)
   const days: ISODate[] = []
 
-  for (let d = first.getDate(); d <= last.getDate(); d += 1) {
-    days.push(toISODate(new Date(y, m - 1, d)))
+  for (let d = 1; d <= last.getDate(); d += 1) {
+    days.push(toLocalISODate(new Date(y, m - 1, d)))
   }
 
   return days

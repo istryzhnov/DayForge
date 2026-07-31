@@ -1,18 +1,98 @@
 :root {
-  --bg: #0b0f17;
-  --panel: #131a25;
-  --panel-soft: #1a2332;
+  --bg: #0c111a;
+  --panel: #151d29;
+  --panel-soft: #1d2838;
+  --panel-layer: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.045),
+    rgba(255, 255, 255, 0.015)
+  );
   --line: #2b3649;
-  --line-soft: #36445d;
-  --text: #edf2fb;
-  --muted: #9cabbe;
-  --accent: #a4ff3f;
-  --accent-soft: rgba(164, 255, 63, 0.16);
+  --line-soft: #3a4a61;
+  --text: #eef4ff;
+  --muted: #9caec3;
+  --accent: #73ff44;
+  --accent-soft: rgba(115, 255, 68, 0.15);
   --danger: #ef4444;
-  --major: #fb923c;
-  --minor: #22d3ee;
-  --shadow-lg: 0 24px 54px rgba(0, 0, 0, 0.34);
-  --shadow-md: 0 14px 32px rgba(0, 0, 0, 0.24);
+  --major: #ff7a2f;
+  --minor: #23c7eb;
+  --ring-core: #111a29;
+  --ring-check: #0f190c;
+  --shadow-lg: 0 26px 54px rgba(0, 0, 0, 0.34);
+  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.22);
+  --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.15);
+  --bg-blob-1: rgba(115, 255, 68, 0.12);
+  --bg-blob-2: rgba(35, 199, 235, 0.1);
+  --bg-base: linear-gradient(160deg, #0c111a 0%, #11192a 58%, #101827 100%);
+}
+
+:root[data-theme-style='vivid'][data-theme-mode='light'] {
+  --bg: #eef3fb;
+  --panel: #ffffff;
+  --panel-soft: #edf2fa;
+  --panel-layer: linear-gradient(160deg, #ffffff, #f5f8fd);
+  --line: #d6e0ed;
+  --line-soft: #b8c8dd;
+  --text: #162033;
+  --muted: #5f6f88;
+  --accent: #34b531;
+  --accent-soft: rgba(52, 181, 49, 0.13);
+  --major: #ff7a2f;
+  --minor: #1ea9cb;
+  --ring-core: #f7fbff;
+  --ring-check: #123013;
+  --shadow-lg: 0 20px 46px rgba(22, 32, 51, 0.14);
+  --shadow-md: 0 12px 28px rgba(22, 32, 51, 0.12);
+  --shadow-sm: 0 6px 18px rgba(22, 32, 51, 0.09);
+  --bg-blob-1: rgba(52, 181, 49, 0.11);
+  --bg-blob-2: rgba(30, 169, 203, 0.09);
+  --bg-base: linear-gradient(165deg, #eff4fb 0%, #e9f0fa 55%, #eff6ff 100%);
+}
+
+:root[data-theme-style='minimal'][data-theme-mode='dark'] {
+  --bg: #0f0f10;
+  --panel: #141415;
+  --panel-soft: #1a1a1c;
+  --panel-layer: linear-gradient(160deg, #171719, #131315);
+  --line: #2d2d31;
+  --line-soft: #44444a;
+  --text: #f4f4f4;
+  --muted: #a6a6ae;
+  --accent: #ff7a2f;
+  --accent-soft: rgba(255, 122, 47, 0.15);
+  --major: #ff7a2f;
+  --minor: #dddddd;
+  --ring-core: #101011;
+  --ring-check: #1f120a;
+  --shadow-lg: 0 22px 44px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.26);
+  --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.22);
+  --bg-blob-1: rgba(255, 122, 47, 0.06);
+  --bg-blob-2: rgba(255, 255, 255, 0.03);
+  --bg-base: linear-gradient(180deg, #0f0f10, #121214 66%, #0f0f10);
+}
+
+:root[data-theme-style='minimal'][data-theme-mode='light'] {
+  --bg: #fbfbfa;
+  --panel: #ffffff;
+  --panel-soft: #f3f3f2;
+  --panel-layer: linear-gradient(160deg, #ffffff, #f7f7f7);
+  --line: #dfdfdf;
+  --line-soft: #c8c8c8;
+  --text: #171717;
+  --muted: #6c6c6c;
+  --accent: #ff7a2f;
+  --accent-soft: rgba(255, 122, 47, 0.16);
+  --major: #ff7a2f;
+  --minor: #1d1d1d;
+  --ring-core: #ffffff;
+  --ring-check: #2a1709;
+  --shadow-lg: 0 18px 38px rgba(20, 20, 20, 0.12);
+  --shadow-md: 0 10px 24px rgba(20, 20, 20, 0.09);
+  --shadow-sm: 0 5px 12px rgba(20, 20, 20, 0.08);
+  --bg-blob-1: rgba(255, 122, 47, 0.08);
+  --bg-blob-2: rgba(0, 0, 0, 0.03);
+  --bg-base: linear-gradient(180deg, #f8f8f7, #fcfcfc 60%, #f8f8f7);
 }
 
 * {
@@ -31,15 +111,11 @@ body {
   background:
     radial-gradient(
       900px 500px at -10% -20%,
-      rgba(158, 240, 26, 0.08),
+      var(--bg-blob-1),
       transparent 45%
     ),
-    radial-gradient(
-      800px 600px at 110% 10%,
-      rgba(34, 211, 238, 0.08),
-      transparent 46%
-    ),
-    linear-gradient(165deg, #0b0f17 0%, #0e1623 60%, #0c1420 100%);
+    radial-gradient(800px 600px at 110% 10%, var(--bg-blob-2), transparent 46%),
+    var(--bg-base);
   font-family: 'Manrope', 'Segoe UI', sans-serif;
   line-height: 1.45;
 }
@@ -48,23 +124,18 @@ body {
   min-height: 100vh;
   display: grid;
   grid-template-columns: minmax(260px, 320px) 1fr;
+  gap: 0;
 }
 
 .app-sidebar {
   border-right: 1px solid var(--line);
-  background:
-    linear-gradient(
-      190deg,
-      rgba(255, 255, 255, 0.04),
-      rgba(255, 255, 255, 0) 40%
-    ),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 38%);
-  padding: 24px 18px;
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
+  padding: 22px 16px;
   backdrop-filter: blur(8px);
 }
 
 .app-content {
-  padding: 28px;
+  padding: 24px;
   max-width: 1100px;
 }
 
@@ -76,11 +147,11 @@ body {
   .app-sidebar {
     border-right: none;
     border-bottom: 1px solid var(--line);
-    padding: 14px;
+    padding: 12px;
   }
 
   .app-content {
-    padding: 16px;
+    padding: 12px;
     max-width: 100%;
   }
 }

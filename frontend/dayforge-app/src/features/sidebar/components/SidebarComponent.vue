@@ -3,17 +3,22 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
 import { useSidebarState } from '../composables/useSidebarState'
+import type { ThemeMode, ThemeStyle } from '../../../composables/useTheme'
 
 defineProps<{
   goals: Goal[]
   activeGoalId: ID | null
   taskCountByGoal: Record<ID, number>
   totalTaskCount: number
+  themeStyle: ThemeStyle
+  themeMode: ThemeMode
 }>()
 
 const emit = defineEmits<{
   (e: 'select-goal', goalId: ID | null): void
   (e: 'create-goal', title: string, description: string): void
+  (e: 'change-theme-style', style: ThemeStyle): void
+  (e: 'change-theme-mode', mode: ThemeMode): void
 }>()
 
 const {
@@ -34,6 +39,42 @@ const {
       <span class="brand-dot"></span>
       <strong>DayForge</strong>
     </div>
+
+    <section class="theme-panel">
+      <p class="sidebar-caption">Theme</p>
+      <div class="theme-panel__group">
+        <button
+          class="theme-chip"
+          :class="{ active: themeStyle === 'vivid' }"
+          @click="emit('change-theme-style', 'vivid')"
+        >
+          Fresh
+        </button>
+        <button
+          class="theme-chip"
+          :class="{ active: themeStyle === 'minimal' }"
+          @click="emit('change-theme-style', 'minimal')"
+        >
+          Minimal
+        </button>
+      </div>
+      <div class="theme-panel__group">
+        <button
+          class="theme-chip"
+          :class="{ active: themeMode === 'light' }"
+          @click="emit('change-theme-mode', 'light')"
+        >
+          Day
+        </button>
+        <button
+          class="theme-chip"
+          :class="{ active: themeMode === 'dark' }"
+          @click="emit('change-theme-mode', 'dark')"
+        >
+          Night
+        </button>
+      </div>
+    </section>
 
     <p class="sidebar-caption">Goals</p>
 

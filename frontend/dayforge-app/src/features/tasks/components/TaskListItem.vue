@@ -23,34 +23,48 @@ defineProps<{
 </script>
 
 <template>
-  <div class="task-row" :style="`padding-left: ${16 + node.depth * 22}px`">
-    <div class="left">
+  <div class="task-row" :style="`padding-left: ${14 + node.depth * 16}px`">
+    <div class="task-main">
       <span class="dot" :class="node.task.priority"></span>
 
-      <input
-        v-if="node.task.priority === 'minor'"
-        type="checkbox"
-        :checked="node.task.status === 'done'"
-        @change="onToggleMinor(node.task.id)"
-      />
+      <label v-if="node.task.priority === 'minor'" class="task-check-wrap">
+        <input
+          class="task-check"
+          type="checkbox"
+          :checked="node.task.status === 'done'"
+          @change="onToggleMinor(node.task.id)"
+        />
+        <span class="task-check-indicator"></span>
+      </label>
 
-      <span :class="{ 'task-done': node.task.status === 'done' }">
-        {{ node.task.title }}
-      </span>
+      <div class="task-copy">
+        <span
+          class="task-title"
+          :class="{ 'task-done': node.task.status === 'done' }"
+        >
+          {{ node.task.title }}
+        </span>
 
-      <span v-if="isAllMode" class="goal-inline-chip">
-        {{ node.goalTitle }}
-      </span>
+        <div class="task-meta">
+          <span v-if="isAllMode" class="goal-inline-chip">
+            {{ node.goalTitle }}
+          </span>
 
-      <span v-if="node.task.priority === 'major'" class="task-priority-chip">
-        {{ node.minorDone }} / {{ node.minorTotal }} minor done
-      </span>
-      <span
-        v-if="node.task.priority === 'minor' && node.majorTitle"
-        class="major-inline-chip"
-      >
-        {{ node.majorTitle }}
-      </span>
+          <span
+            v-if="node.task.priority === 'major'"
+            class="task-priority-chip"
+          >
+            {{ node.minorDone }} / {{ node.minorTotal }} done
+          </span>
+
+          <span
+            v-if="node.task.priority === 'minor' && node.majorTitle"
+            class="major-inline-chip"
+          >
+            {{ node.majorTitle }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="actions">
@@ -75,9 +89,6 @@ defineProps<{
           Habit
         </button>
       </template>
-    </div>
-
-    <div class="actions">
       <button class="btn btn-ghost" @click="onToggleParent(node.task.id)">
         + subtask
       </button>
