@@ -2,6 +2,11 @@
 import type { ID, Priority } from '../../../entities/types'
 import type { MajorDecision } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
+import {
+  MAJOR_DECISION,
+  PRIORITY,
+  TASK_STATUS,
+} from '../../../entities/constants'
 import TaskComposer from './TaskComposer.vue'
 
 defineProps<{
@@ -27,11 +32,14 @@ defineProps<{
     <div class="task-main">
       <span class="dot" :class="node.task.priority"></span>
 
-      <label v-if="node.task.priority === 'minor'" class="task-check-wrap">
+      <label
+        v-if="node.task.priority === PRIORITY.MINOR"
+        class="task-check-wrap"
+      >
         <input
           class="task-check"
           type="checkbox"
-          :checked="node.task.status === 'done'"
+          :checked="node.task.status === TASK_STATUS.DONE"
           @change="onToggleMinor(node.task.id)"
         />
         <span class="task-check-indicator"></span>
@@ -40,7 +48,7 @@ defineProps<{
       <div class="task-copy">
         <span
           class="task-title"
-          :class="{ 'task-done': node.task.status === 'done' }"
+          :class="{ 'task-done': node.task.status === TASK_STATUS.DONE }"
         >
           {{ node.task.title }}
         </span>
@@ -51,14 +59,14 @@ defineProps<{
           </span>
 
           <span
-            v-if="node.task.priority === 'major'"
+            v-if="node.task.priority === PRIORITY.MAJOR"
             class="task-priority-chip"
           >
             {{ node.minorDone }} / {{ node.minorTotal }} done
           </span>
 
           <span
-            v-if="node.task.priority === 'minor' && node.majorTitle"
+            v-if="node.task.priority === PRIORITY.MINOR && node.majorTitle"
             class="major-inline-chip"
           >
             {{ node.majorTitle }}
@@ -68,21 +76,23 @@ defineProps<{
     </div>
 
     <div class="actions">
-      <template v-if="node.task.priority === 'major' && node.canResolveMajor">
+      <template
+        v-if="node.task.priority === PRIORITY.MAJOR && node.canResolveMajor"
+      >
         <button
           class="btn btn-ghost"
-          @click="onResolveMajor(node.task.id, 'continue')"
+          @click="onResolveMajor(node.task.id, MAJOR_DECISION.CONTINUE)"
         >
           Continue work
         </button>
         <button
           class="btn btn-primary"
-          @click="onResolveMajor(node.task.id, 'done')"
+          @click="onResolveMajor(node.task.id, MAJOR_DECISION.DONE)"
         >
           Close space
         </button>
         <button
-          v-if="node.task.priority === 'major'"
+          v-if="node.task.priority === PRIORITY.MAJOR"
           class="btn btn-ghost"
           @click="onFocusMajor(node.task.id)"
         >

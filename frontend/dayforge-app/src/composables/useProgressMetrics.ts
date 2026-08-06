@@ -1,11 +1,16 @@
 import { computed, type Ref } from 'vue'
 import type { DailyTask } from '../entities/TaskEntity'
 import type { ID, ISODate } from '../entities/types'
+import {
+  PRIORITY,
+  PROGRESS_SCOPE_TYPE,
+  TASK_STATUS,
+} from '../entities/constants'
 
 export type ProgressScope =
-  | { type: 'all' }
-  | { type: 'goal'; goalId: ID }
-  | { type: 'major'; majorDailyTaskId: ID }
+  | { type: typeof PROGRESS_SCOPE_TYPE.ALL }
+  | { type: typeof PROGRESS_SCOPE_TYPE.GOAL; goalId: ID }
+  | { type: typeof PROGRESS_SCOPE_TYPE.MAJOR; majorDailyTaskId: ID }
 
 export type HabitDayCell = {
   date: ISODate
@@ -46,15 +51,16 @@ function getDaysInMonth(baseDateISO: ISODate): ISODate[] {
 
 function calcMajorDayProgress(dayTasks: DailyTask[], majorDailyTaskId: ID) {
   const major = dayTasks.find(
-    (t) => t.id === majorDailyTaskId && t.priority === 'major',
+    (t) => t.id === majorDailyTaskId && t.priority === PRIORITY.MAJOR,
   )
   if (!major) return { done: 0, total: 0, percent: 0 }
 
   const minors = dayTasks.filter(
-    (t) => t.parentDailyTaskId === majorDailyTaskId && t.priority === 'minor',
+    (t) =>
+      t.parentDailyTaskId === majorDailyTaskId && t.priority === PRIORITY.MINOR,
   )
 
-  const done = minors.filter((t) => t.status === 'done').length
+  const done = minors.filter((t) => t.status === TASK_STATUS.DONE).length
   const total = minors.length
 
   return { done, total, percent: percent(done, total) }
@@ -62,14 +68,14 @@ function calcMajorDayProgress(dayTasks: DailyTask[], majorDailyTaskId: ID) {
 
 function calcGoalDayProgress(dayTasks: DailyTask[], goalId: ID) {
   const scoped = dayTasks.filter((t) => t.goalId === goalId)
-  const done = scoped.filter((t) => t.status === 'done').length
+  const done = scoped.filter((t) => t.status === TASK_STATUS.DONE).length
   const total = scoped.length
 
   return { done, total, percent: percent(done, total) }
 }
 
 function calcAllDayProgress(dayTasks: DailyTask[]) {
-  const done = dayTasks.filter((t) => t.status === 'done').length
+  const done = dayTasks.filter((t) => t.status === TASK_STATUS.DONE).length
   const total = dayTasks.length
 
   return { done, total, percent: percent(done, total) }
@@ -85,10 +91,10 @@ export function useProgressMetrics(
       (t) => t.date === currentDate.value,
     )
 
-    if (scope.value.type === 'major') {
+    if (scope.value.type === PROGRESS_SCOPE_TYPE.MAJOR) {
       return calcMajorDayProgress(todayTasks, scope.value.majorDailyTaskId)
     }
-    if (scope.value.type === 'goal') {
+    if (scope.value.type === PROGRESS_SCOPE_TYPE.GOAL) {
       return calcGoalDayProgress(todayTasks, scope.value.goalId)
     }
 
@@ -104,9 +110,9 @@ export function useProgressMetrics(
 
       let result: { done: number; total: number; percent: number }
 
-      if (scope.value.type === 'major') {
+      if (scope.value.type === PROGRESS_SCOPE_TYPE.MAJOR) {
         result = calcMajorDayProgress(dayTasks, scope.value.majorDailyTaskId)
-      } else if (scope.value.type === 'goal') {
+      } else if (scope.value.type === PROGRESS_SCOPE_TYPE.GOAL) {
         result = calcGoalDayProgress(dayTasks, scope.value.goalId)
       } else {
         result = calcAllDayProgress(dayTasks)

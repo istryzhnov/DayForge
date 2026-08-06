@@ -15,6 +15,7 @@ import type { ProgressScope } from '../../../composables/useProgressMetrics'
 import { useProgressMetrics } from '../../../composables/useProgressMetrics'
 import HabitCalendar from './HabitCalendar.vue'
 import type { ISODate } from '../../../entities/types'
+import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
 
 const props = defineProps<{
   goal: Goal | null
@@ -65,14 +66,17 @@ const {
 const selectedMajorDailyTaskId = ref<ID | null>(null)
 const progressScope = computed<ProgressScope>(() => {
   if (selectedMajorDailyTaskId.value) {
-    return { type: 'major', majorDailyTaskId: selectedMajorDailyTaskId.value }
+    return {
+      type: PROGRESS_SCOPE_TYPE.MAJOR,
+      majorDailyTaskId: selectedMajorDailyTaskId.value,
+    }
   }
 
   if (!props.isAllMode && props.goal) {
-    return { type: 'goal', goalId: props.goal.id }
+    return { type: PROGRESS_SCOPE_TYPE.GOAL, goalId: props.goal.id }
   }
 
-  return { type: 'all' }
+  return { type: PROGRESS_SCOPE_TYPE.ALL }
 })
 const dailyTasksRef = computed(() => props.dailyTasks)
 const currentDateRef = computed(() => props.currentDate)
@@ -89,7 +93,7 @@ const { todayProgress, monthCells } = useProgressMetrics(
     <GoalPanelHeader
       :title="panelTitle"
       :description="panelDescription"
-      :status="isAllMode ? 'overview' : (goal?.status ?? 'active')"
+      :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
       :total-count="totalCount"
       :major-count="majorCount"
       :sub-count="subCount"
@@ -120,16 +124,16 @@ const { todayProgress, monthCells } = useProgressMetrics(
 
     <HabitCalendar
       :title="
-        progressScope.type === 'major'
+        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
           ? 'Major habit'
-          : progressScope.type === 'goal'
+          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
             ? 'Goal habit'
             : 'All goals habit'
       "
       :subtitle="
-        progressScope.type === 'major'
+        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
           ? 'Progress for selected major'
-          : progressScope.type === 'goal'
+          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
             ? 'Progress for selected goal'
             : 'Progress across all goals'
       "

@@ -1,5 +1,6 @@
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID, ISODate } from '../../entities/types'
+import { TASK_STATUS } from '../../entities/constants'
 import { createId } from './date'
 
 export function ensureTodaySnapshot(
@@ -35,7 +36,8 @@ export function ensureDailyTaskForTemplate({
 
   if (template.parentTemplateId) {
     const parentDailyTask = dailyTasks.find(
-      (task) => task.templateId === template.parentTemplateId && task.date === date,
+      (task) =>
+        task.templateId === template.parentTemplateId && task.date === date,
     )
 
     if (parentDailyTask) {
@@ -54,7 +56,8 @@ export function ensureDailyTaskForTemplate({
         })
 
         parentDailyTaskId = dailyTasks.find(
-          (task) => task.templateId === template.parentTemplateId && task.date === date,
+          (task) =>
+            task.templateId === template.parentTemplateId && task.date === date,
         )?.id
       }
     }
@@ -65,7 +68,7 @@ export function ensureDailyTaskForTemplate({
     date,
     templateId: template.id,
     title: template.title,
-    status: 'todo',
+    status: TASK_STATUS.TODO,
     priority: template.priority,
     goalId: template.goalId,
     parentDailyTaskId,

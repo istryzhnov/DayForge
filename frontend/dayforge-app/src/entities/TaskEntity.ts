@@ -1,5 +1,6 @@
 import type { RecurrenceRule } from './RecurrenceEntity'
 import type { ID, ISODate, ISODateTime, Priority, TaskStatus } from './types'
+import { MAJOR_DECISION, TASK_KIND } from './constants'
 
 export interface TaskTemplate {
   id: ID
@@ -20,7 +21,7 @@ export interface TaskTemplate {
   completedAt?: ISODateTime
 }
 
-export type MajorDecision = 'continue' | 'done'
+export type MajorDecision = (typeof MAJOR_DECISION)[keyof typeof MAJOR_DECISION]
 
 export interface DailyTask {
   id: ID
@@ -50,11 +51,6 @@ export type MajorTaskOption = {
   goalId?: ID
   goalTitle: string
 }
-
-export const TASK_KIND = {
-  TASK: 'task',
-  SUBTASK: 'subtask',
-} as const
 
 export type TaskKind = (typeof TASK_KIND)[keyof typeof TASK_KIND]
 

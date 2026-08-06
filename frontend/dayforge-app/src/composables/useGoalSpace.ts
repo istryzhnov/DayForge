@@ -1,13 +1,18 @@
 import { computed, ref } from 'vue'
 import { useGoals } from './useGoals'
 import {
-  TASK_KIND,
   type CreateTaskInput,
   type DailyTask,
   type MajorDecision,
   type TaskTemplate,
 } from '../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../entities/types'
+import {
+  MAJOR_DECISION,
+  PRIORITY,
+  TASK_KIND,
+  TASK_STATUS,
+} from '../entities/constants'
 import { createId, getTodayISODate } from './goalSpace/date'
 import {
   bindStorage,
@@ -86,7 +91,7 @@ export function useGoalSpace() {
 
   function createTask(input: CreateTaskInput): TaskTemplate | null {
     const now = new Date().toISOString()
-    const priority = input.priority ?? 'minor'
+    const priority = input.priority ?? PRIORITY.MINOR
 
     let goalId: ID | undefined
     let parentTemplateId: ID | undefined
@@ -109,7 +114,7 @@ export function useGoalSpace() {
     }).length
 
     const newTask: TaskTemplate = {
-      id: createId(parentTemplateId ? 'subtask' : 'task'),
+      id: createId(parentTemplateId ? TASK_KIND.SUBTASK : TASK_KIND.TASK),
       goalId,
       title: input.title,
       priority,
@@ -135,23 +140,23 @@ export function useGoalSpace() {
   function addTask(
     goalId: ID | undefined,
     title: string,
-    priority: Priority = 'minor',
+    priority: Priority = PRIORITY.MINOR,
   ) {
     return createTask({ kind: TASK_KIND.TASK, goalId, title, priority })
   }
 
   function addMinorInAllMode(title: string, goalId?: ID, majorTemplateId?: ID) {
     if (majorTemplateId) {
-      return addSubTask(majorTemplateId, title, 'minor')
+      return addSubTask(majorTemplateId, title, PRIORITY.MINOR)
     }
 
-    return addTask(goalId, title, 'minor')
+    return addTask(goalId, title, PRIORITY.MINOR)
   }
 
   function addSubTask(
     parentTemplateId: ID,
     title: string,
-    priority: Priority = 'minor',
+    priority: Priority = PRIORITY.MINOR,
   ) {
     return createTask({
       kind: TASK_KIND.SUBTASK,
@@ -163,7 +168,7 @@ export function useGoalSpace() {
 
   const activeMajorTemplates = computed(() =>
     taskTemplates.value.filter(
-      (task) => task.priority === 'major' && task.isActive,
+      (task) => task.priority === PRIORITY.MAJOR && task.isActive,
     ),
   )
 
@@ -172,22 +177,22 @@ export function useGoalSpace() {
     majorTitle: string,
     minorTitle: string,
   ) {
-    const major = addTask(goalId, majorTitle, 'major')
+    const major = addTask(goalId, majorTitle, PRIORITY.MAJOR)
     if (!major) return null
 
-    return addSubTask(major.id, minorTitle, 'minor')
+    return addSubTask(major.id, minorTitle, PRIORITY.MINOR)
   }
 
   function toggleMinorDone(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
-    if (!task || task.priority !== 'minor') return
+    if (!task || task.priority !== PRIORITY.MINOR) return
 
-    if (task.status === 'done') {
-      task.status = 'todo'
+    if (task.status === TASK_STATUS.DONE) {
+      task.status = TASK_STATUS.TODO
       task.completedAt = undefined
       return
     }
-    task.status = 'done'
+    task.status = TASK_STATUS.DONE
     task.completedAt = new Date().toISOString()
   }
 
@@ -195,29 +200,29 @@ export function useGoalSpace() {
     const majorTask = dailyTasks.value.find(
       (item) => item.id === dailyMajorTaskId,
     )
-    if (!majorTask || majorTask.priority !== 'major') return
+    if (!majorTask || majorTask.priority !== PRIORITY.MAJOR) return
 
     const minorChildren = dailyTasks.value.filter(
       (item) =>
         item.date === currentDate.value &&
         item.parentDailyTaskId === dailyMajorTaskId &&
-        item.priority === 'minor',
+        item.priority === PRIORITY.MINOR,
     )
     const allMinorDone =
       minorChildren.length > 0 &&
-      minorChildren.every((item) => item.status === 'done')
+      minorChildren.every((item) => item.status === TASK_STATUS.DONE)
 
     if (!allMinorDone) return
 
     majorTask.majorDecision = decision
 
-    if (decision === 'continue') {
-      majorTask.status = 'todo'
+    if (decision === MAJOR_DECISION.CONTINUE) {
+      majorTask.status = TASK_STATUS.TODO
       majorTask.completedAt = undefined
       return
     }
 
-    majorTask.status = 'done'
+    majorTask.status = TASK_STATUS.DONE
     majorTask.completedAt = new Date().toISOString()
 
     const template = taskTemplates.value.find(
