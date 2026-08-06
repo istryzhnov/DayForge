@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import type { Priority } from '../../../entities/types'
+import { PRIORITY } from '../../../entities/constants'
 
 type TaskComposerActions = {
   onSubmit: (title: string, priority: Priority) => void
@@ -16,7 +17,9 @@ export function useTaskComposerState(
   actions: TaskComposerActions,
 ) {
   const title = ref('')
-  const priority = ref<Priority>(options.isSubtask ? 'minor' : 'major')
+  const priority = ref<Priority>(
+    options.isSubtask ? PRIORITY.MINOR : PRIORITY.MAJOR,
+  )
 
   function submit() {
     if (options.isAllMode) return
@@ -26,7 +29,7 @@ export function useTaskComposerState(
 
     actions.onSubmit(trimmedTitle, priority.value)
     title.value = ''
-    priority.value = options.isSubtask ? 'minor' : 'major'
+    priority.value = options.isSubtask ? PRIORITY.MINOR : PRIORITY.MAJOR
   }
 
   function cancel() {

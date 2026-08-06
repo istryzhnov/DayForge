@@ -1,100 +1,178 @@
 .task-list {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .task-done {
   text-decoration: line-through;
-  opacity: 0.65;
+  opacity: 0.58;
 }
 
 .task-row {
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  background: var(--panel);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  border-radius: 18px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: var(--panel-layer);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
 }
 
-.left {
+.task-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.task-main {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 12px;
   min-width: 0;
 }
 
+.task-copy {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.task-title {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.task-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 28px;
+  height: 28px;
   border-radius: 999px;
   flex: 0 0 auto;
+  margin-top: 1px;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
 }
 
 .dot.major {
-  background: var(--major);
+  background:
+    radial-gradient(circle at 35% 35%, #fff4, transparent 40%),
+    color-mix(in srgb, var(--major) 90%, black 10%);
 }
 
 .dot.minor {
-  background: var(--minor);
+  background:
+    radial-gradient(circle at 35% 35%, #fff4, transparent 40%),
+    color-mix(in srgb, var(--minor) 90%, black 10%);
+}
+
+.task-check-wrap {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+}
+
+.task-check {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.task-check-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 7px;
+  border: 1px solid var(--line-soft);
+  background: var(--panel-soft);
+  position: relative;
+}
+
+.task-check:checked + .task-check-indicator {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+}
+
+.task-check:checked + .task-check-indicator::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--ring-check);
+  border-bottom: 2px solid var(--ring-check);
+  position: absolute;
+  top: 5px;
+  left: 4px;
+  transform: rotate(-45deg);
 }
 
 .task-priority-chip {
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background: #121720;
-  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--major) 12%, transparent);
+  color: color-mix(in srgb, var(--major) 72%, var(--text));
   border: 1px solid var(--line);
 }
 
 .goal-inline-chip {
-  margin-left: 6px;
   border: 1px solid var(--line);
-  background: #121720;
+  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
   color: var(--muted);
   border-radius: 999px;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-size: 11px;
+  padding: 3px 9px;
 }
 
 .actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  justify-content: flex-end;
 }
 
 .task-empty {
   color: var(--muted);
   margin: 0;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-  padding: 16px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 18px;
+  padding: 18px;
   text-align: center;
+  background: var(--panel-layer);
 }
 
 @media (max-width: 960px) {
   .task-row {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
 
   .actions {
     width: 100%;
-    justify-content: space-between;
+    justify-content: flex-start;
   }
 }
+
 .major-inline-chip {
-  margin-left: 6px;
   border: 1px solid var(--major);
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--major) 14%, transparent);
   color: var(--major);
   border-radius: 999px;
-  font-size: 12px;
-  padding: 2px 8px;
+  font-size: 11px;
+  padding: 3px 9px;
 }

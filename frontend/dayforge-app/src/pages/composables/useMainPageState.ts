@@ -3,6 +3,7 @@ import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal } from '../../entities/GoalEntity'
 import type { ID, Priority } from '../../entities/types'
 import type { MajorDecision, MajorTaskOption } from '../../entities/TaskEntity'
+import { GOAL_STATUS } from '../../entities/constants'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 
@@ -44,7 +45,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       title,
       description,
-      status: 'active',
+      status: GOAL_STATUS.ACTIVE,
       createdAt: now,
       updatedAt: now,
     })

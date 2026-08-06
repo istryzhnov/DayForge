@@ -2,6 +2,7 @@
 import type { ID, Priority } from '../../../entities/types'
 import type { MajorDecision } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
+import { TASK_STATUS } from '../../../entities/constants'
 import { useTaskListState } from '../composables/useTaskListState'
 import TaskListItem from './TaskListItem.vue'
 
@@ -14,6 +15,7 @@ const emit = defineEmits<{
   (e: 'add-subtask', parentId: ID, title: string, priority: Priority): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
+  (e: 'focus-major', dailyMajorTaskId: ID): void
 }>()
 
 const {
@@ -38,12 +40,13 @@ const {
       :node="node"
       :is-all-mode="isAllMode"
       :is-active-parent="activeParentId === node.task.id"
-      :is-minor-done="node.task.status === 'done'"
+      :is-minor-done="node.task.status === TASK_STATUS.DONE"
       :on-toggle-minor="toggleMinor"
       :on-resolve-major="resolveMajor"
       :on-toggle-parent="toggleParent"
       :on-submit-subtask="handleSubtaskSubmit"
       :on-cancel-subtask="() => (activeParentId = null)"
+      :on-focus-major="(majorId: ID) => emit('focus-major', majorId)"
     />
   </div>
 

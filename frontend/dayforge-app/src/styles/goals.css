@@ -1,30 +1,70 @@
 .sidebar-shell {
   display: grid;
   gap: 10px;
+  align-content: start;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 6px;
   color: var(--text);
+  font-size: 20px;
 }
 
 .brand-dot {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 12px rgba(158, 240, 26, 0.6);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .sidebar-caption {
-  margin: 8px 6px 2px;
+  margin: 8px 6px 4px;
   font-size: 12px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.theme-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px;
+  background: var(--panel-layer);
+}
+
+.theme-panel .sidebar-caption {
+  margin-top: 0;
+}
+
+.theme-panel__group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.theme-panel__group + .theme-panel__group {
+  margin-top: 6px;
+}
+
+.theme-chip {
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  color: var(--muted);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-chip.active {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel));
 }
 
 .nav-goal-btn {
@@ -36,33 +76,39 @@
   background: transparent;
   color: var(--text);
   border-radius: 12px;
-  padding: 12px;
+  padding: 13px 12px;
   cursor: pointer;
   transition:
     background 0.2s ease,
-    border-color 0.2s ease;
+    border-color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .nav-goal-btn:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--line);
+  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--panel-soft) 75%, transparent);
+  border-color: var(--line-soft);
 }
 
 .nav-goal-btn.active {
-  background: linear-gradient(
-    90deg,
-    var(--accent-soft),
-    rgba(255, 255, 255, 0.03)
-  );
-  border-color: rgba(158, 240, 26, 0.35);
+  background: linear-gradient(90deg, var(--accent-soft), transparent 70%);
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
 }
 
 .goal-count {
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 12px;
-  background: var(--panel-soft);
+  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
   color: var(--muted);
+}
+
+.sidebar-actions {
+  margin-top: 8px;
+}
+
+.sidebar-actions .btn {
+  width: 100%;
 }
 
 .goal-panel {
@@ -80,7 +126,7 @@
 .goal-panel-header h2 {
   margin: 0;
   color: var(--text);
-  font-size: 34px;
+  font-size: 32px;
   letter-spacing: -0.02em;
 }
 
@@ -102,28 +148,32 @@
 
 .goal-kpi-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(110px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .kpi {
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 12px;
-  background: var(--panel);
+  background: var(--panel-layer);
+  box-shadow: var(--shadow-sm);
 }
 
-.kpi span {
-  display: block;
+.kpi h3 {
+  margin: 0;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.kpi strong {
-  display: block;
-  margin-top: 6px;
+.kpi p {
+  margin: 4px 0 0;
   color: var(--text);
-  font-size: 24px;
+  font-size: 20px;
+  font-weight: 700;
 }
 
 .goal-hint {
@@ -131,15 +181,16 @@
   color: var(--muted);
   border-left: 3px solid var(--accent);
   padding: 10px 12px;
-  background: rgba(158, 240, 26, 0.06);
-  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-radius: 12px;
 }
 
 .goal-form-card {
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px;
-  background: var(--panel);
+  border-radius: 18px;
+  padding: 14px;
+  background: var(--panel-layer);
+  box-shadow: var(--shadow-sm);
   display: grid;
   grid-template-columns: 1fr 130px;
   gap: 10px;
@@ -153,8 +204,8 @@
 .goal-form-card select {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  background: #10141b;
+  border-radius: 11px;
+  background: var(--panel-soft);
   color: var(--text);
   padding: 10px 12px;
 }
@@ -178,14 +229,6 @@
     grid-template-columns: 1fr;
   }
 }
-.major-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
 .all-mode-composer {
   grid-template-columns: 1fr;
   gap: 12px;

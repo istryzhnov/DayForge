@@ -10,6 +10,12 @@ import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
+import { computed, ref } from 'vue'
+import type { ProgressScope } from '../../../composables/useProgressMetrics'
+import { useProgressMetrics } from '../../../composables/useProgressMetrics'
+import HabitCalendar from './HabitCalendar.vue'
+import type { ISODate } from '../../../entities/types'
+import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
 
 const props = defineProps<{
   goal: Goal | null
@@ -17,6 +23,8 @@ const props = defineProps<{
   tasks: DailyTask[]
   isAllMode: boolean
   majorTaskOptions: MajorTaskOption[]
+  dailyTasks: DailyTask[]
+  currentDate: ISODate
 }>()
 
 const emit = defineEmits<{
@@ -33,7 +41,6 @@ const emit = defineEmits<{
 }>()
 
 const {
-  showMajorTasks,
   orderedFlatNodes,
   totalCount,
   majorCount,
@@ -55,6 +62,30 @@ const {
   onCreateAllModeMinor: (title, goalId, majorId) =>
     emit('create-all-mode-minor', title, goalId, majorId),
 })
+
+const selectedMajorDailyTaskId = ref<ID | null>(null)
+const progressScope = computed<ProgressScope>(() => {
+  if (selectedMajorDailyTaskId.value) {
+    return {
+      type: PROGRESS_SCOPE_TYPE.MAJOR,
+      majorDailyTaskId: selectedMajorDailyTaskId.value,
+    }
+  }
+
+  if (!props.isAllMode && props.goal) {
+    return { type: PROGRESS_SCOPE_TYPE.GOAL, goalId: props.goal.id }
+  }
+
+  return { type: PROGRESS_SCOPE_TYPE.ALL }
+})
+const dailyTasksRef = computed(() => props.dailyTasks)
+const currentDateRef = computed(() => props.currentDate)
+
+const { todayProgress, monthCells } = useProgressMetrics(
+  dailyTasksRef as any,
+  currentDateRef as any,
+  progressScope as any,
+)
 </script>
 
 <template>
@@ -62,13 +93,10 @@ const {
     <GoalPanelHeader
       :title="panelTitle"
       :description="panelDescription"
-      :status="isAllMode ? 'overview' : (goal?.status ?? 'active')"
+      :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
       :total-count="totalCount"
       :major-count="majorCount"
       :sub-count="subCount"
-      :is-all-mode="isAllMode"
-      :show-major-tasks="showMajorTasks"
-      :on-toggle-show-major-tasks="(value: boolean) => (showMajorTasks = value)"
     />
 
     <GoalComposerZone
@@ -91,6 +119,26 @@ const {
       @resolve-major="
         (dailyMajorTaskId, decision) => resolveMajor(dailyMajorTaskId, decision)
       "
+      @focus-major="(majorId) => (selectedMajorDailyTaskId = majorId)"
+    />
+
+    <HabitCalendar
+      :title="
+        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
+          ? 'Major habit'
+          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
+            ? 'Goal habit'
+            : 'All goals habit'
+      "
+      :subtitle="
+        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
+          ? 'Progress for selected major'
+          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
+            ? 'Progress for selected goal'
+            : 'Progress across all goals'
+      "
+      :today-percent="todayProgress.percent"
+      :cells="monthCells"
     />
   </section>
 </template>

@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
 import type { DailyTask } from '../entities/TaskEntity'
+import { PRIORITY, TASK_STATUS } from '../entities/constants'
 
 export type FlatTaskNode = {
   task: DailyTask
@@ -20,48 +21,87 @@ type TaskTreeProps = {
   isAllMode: boolean
 }
 
-export function useTaskTree(
-  props: TaskTreeProps,
-  showMajorTasks: { value: boolean },
-) {
+export function useTaskTree(props: TaskTreeProps) {
   const orderedFlatNodes = computed<FlatTaskNode[]>(() => {
+    const goalTitleById = new Map(
+      props.goals.map((goal) => [goal.id, goal.title]),
+    )
+
     const majorTasks = props.tasks
-      .filter((task) => task.priority === 'major')
+      .filter((task) => task.priority === PRIORITY.MAJOR)
+      .sort((a, b) => a.title.localeCompare(b.title))
+
+    const minorTasks = props.tasks
+      .filter((task) => task.priority === PRIORITY.MINOR)
       .sort((a, b) => a.title.localeCompare(b.title))
 
     const flat: FlatTaskNode[] = []
+    const attachedMinorIds = new Set<string>()
 
-    majorTasks.forEach((task) => {
-      if (!showMajorTasks.value) return
+    majorTasks.forEach((major) => {
+      const minorChildren = props.tasks
+        .filter(
+          (task) =>
+            task.priority === PRIORITY.MINOR &&
+            task.parentDailyTaskId === major.id,
+        )
+        .sort((a, b) => a.title.localeCompare(b.title))
 
-      const minorChildren = props.tasks.filter(
-        (child) => child.parentDailyTaskId === task.id,
-      )
+      const goalTitle = major.goalId
+        ? (goalTitleById.get(major.goalId) ?? 'Unknown Goal')
+        : 'All Goals'
 
       flat.push({
-        task,
+        task: major,
         children: [],
         depth: 0,
-        goalTitle: props.goal?.title ?? 'All Goals',
-        minorDone: minorChildren.filter((child) => child.status === 'done')
-          .length,
+        goalTitle,
+        minorDone: minorChildren.filter(
+          (task) => task.status === TASK_STATUS.DONE,
+        ).length,
         minorTotal: minorChildren.length,
-        majorTitle: task.title,
         canResolveMajor:
           minorChildren.length > 0 &&
-          minorChildren.every((child) => child.status === 'done'),
+          minorChildren.every((task) => task.status === TASK_STATUS.DONE),
+      })
+
+      minorChildren.forEach((minor) => {
+        attachedMinorIds.add(minor.id)
+        flat.push({
+          task: minor,
+          children: [],
+          depth: 1,
+          goalTitle,
+          majorTitle: major.title,
+        })
       })
     })
+
+    // Show minor tasks that are not linked to a visible major task.
+    minorTasks
+      .filter((minor) => !attachedMinorIds.has(minor.id))
+      .forEach((minor) => {
+        const goalTitle = minor.goalId
+          ? (goalTitleById.get(minor.goalId) ?? 'Unknown Goal')
+          : 'All Goals'
+
+        flat.push({
+          task: minor,
+          children: [],
+          depth: 0,
+          goalTitle,
+        })
+      })
 
     return flat
   })
 
   const totalCount = computed(() => props.tasks.length)
   const majorCount = computed(
-    () => props.tasks.filter((task) => task.priority === 'major').length,
+    () => props.tasks.filter((task) => task.priority === PRIORITY.MAJOR).length,
   )
   const subCount = computed(
-    () => props.tasks.filter((task) => task.priority === 'minor').length,
+    () => props.tasks.filter((task) => task.priority === PRIORITY.MINOR).length,
   )
 
   const panelTitle = computed(() =>

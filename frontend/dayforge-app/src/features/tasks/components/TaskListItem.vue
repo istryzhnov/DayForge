@@ -2,6 +2,12 @@
 import type { ID, Priority } from '../../../entities/types'
 import type { MajorDecision } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
+import {
+  MAJOR_DECISION,
+  PRIORITY,
+  TASK_STATUS,
+} from '../../../entities/constants'
+import TaskComposer from './TaskComposer.vue'
 
 defineProps<{
   node: FlatTaskNode
@@ -17,58 +23,82 @@ defineProps<{
     priority: Priority,
   ) => void
   onCancelSubtask: () => void
+  onFocusMajor: (dailyMajorTaskId: ID) => void
 }>()
 </script>
 
 <template>
-  <div class="task-row" :style="`padding-left: ${16 + node.depth * 22}px`">
-    <div class="left">
+  <div class="task-row" :style="`padding-left: ${14 + node.depth * 16}px`">
+    <div class="task-main">
       <span class="dot" :class="node.task.priority"></span>
 
-      <input
-        v-if="node.task.priority === 'minor'"
-        type="checkbox"
-        :checked="node.task.status === 'done'"
-        @change="onToggleMinor(node.task.id)"
-      />
-
-      <span :class="{ 'task-done': node.task.status === 'done' }">
-        {{ node.task.title }}
-      </span>
-
-      <span v-if="isAllMode" class="goal-inline-chip">
-        {{ node.goalTitle }}
-      </span>
-
-      <span v-if="node.task.priority === 'major'" class="task-priority-chip">
-        {{ node.minorDone }} / {{ node.minorTotal }} minor done
-      </span>
-      <span
-        v-if="node.task.priority === 'minor' && node.majorTitle"
-        class="major-inline-chip"
+      <label
+        v-if="node.task.priority === PRIORITY.MINOR"
+        class="task-check-wrap"
       >
-        {{ node.majorTitle }}
-      </span>
+        <input
+          class="task-check"
+          type="checkbox"
+          :checked="node.task.status === TASK_STATUS.DONE"
+          @change="onToggleMinor(node.task.id)"
+        />
+        <span class="task-check-indicator"></span>
+      </label>
+
+      <div class="task-copy">
+        <span
+          class="task-title"
+          :class="{ 'task-done': node.task.status === TASK_STATUS.DONE }"
+        >
+          {{ node.task.title }}
+        </span>
+
+        <div class="task-meta">
+          <span v-if="isAllMode" class="goal-inline-chip">
+            {{ node.goalTitle }}
+          </span>
+
+          <span
+            v-if="node.task.priority === PRIORITY.MAJOR"
+            class="task-priority-chip"
+          >
+            {{ node.minorDone }} / {{ node.minorTotal }} done
+          </span>
+
+          <span
+            v-if="node.task.priority === PRIORITY.MINOR && node.majorTitle"
+            class="major-inline-chip"
+          >
+            {{ node.majorTitle }}
+          </span>
+        </div>
+      </div>
     </div>
 
     <div class="actions">
-      <template v-if="node.task.priority === 'major' && node.canResolveMajor">
+      <template
+        v-if="node.task.priority === PRIORITY.MAJOR && node.canResolveMajor"
+      >
         <button
           class="btn btn-ghost"
-          @click="onResolveMajor(node.task.id, 'continue')"
+          @click="onResolveMajor(node.task.id, MAJOR_DECISION.CONTINUE)"
         >
           Continue work
         </button>
         <button
           class="btn btn-primary"
-          @click="onResolveMajor(node.task.id, 'done')"
+          @click="onResolveMajor(node.task.id, MAJOR_DECISION.DONE)"
         >
           Close space
         </button>
+        <button
+          v-if="node.task.priority === PRIORITY.MAJOR"
+          class="btn btn-ghost"
+          @click="onFocusMajor(node.task.id)"
+        >
+          Habit
+        </button>
       </template>
-    </div>
-
-    <div class="actions">
       <button class="btn btn-ghost" @click="onToggleParent(node.task.id)">
         + subtask
       </button>
