@@ -10,6 +10,8 @@ type TaskListActions = {
   ) => void
   onToggleMinor: (taskId: ID) => void
   onResolveMajor: (taskId: ID, decision: MajorDecision) => void
+  onEditTask: (templateId: ID, title: string) => void
+  onDeleteTask: (templateId: ID) => void
 }
 
 export function useTaskListState(actions: TaskListActions) {
@@ -36,11 +38,21 @@ export function useTaskListState(actions: TaskListActions) {
     actions.onResolveMajor(taskId, decision)
   }
 
+  function editTask(templateId: ID, title: string) {
+    actions.onEditTask(templateId, title)
+  }
+
+  function deleteTask(templateId: ID) {
+    actions.onDeleteTask(templateId)
+  }
+
   return {
     activeParentId,
     toggleParent,
     handleSubtaskSubmit,
     toggleMinor,
     resolveMajor,
+    editTask,
+    deleteTask,
   }
 }
