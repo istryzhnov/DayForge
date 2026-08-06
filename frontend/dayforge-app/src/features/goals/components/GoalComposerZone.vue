@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
 import type { MajorTaskOption } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
@@ -15,6 +16,12 @@ const emit = defineEmits<{
   (e: 'add-task', title: string, priority: Priority): void
   (e: 'create-all-mode-minor', title: string, goalId?: ID, majorId?: ID): void
 }>()
+
+const showComposer = ref(false)
+
+function toggleComposer() {
+  showComposer.value = !showComposer.value
+}
 </script>
 
 <template>
@@ -26,13 +33,34 @@ const emit = defineEmits<{
     "
   />
 
-  <AllModeMinorComposer
-    v-else
-    :goals="goals"
-    :major-task-options="majorTaskOptions"
-    @create-minor="
-      (title: string, goalId: ID | undefined, majorId: ID | undefined) =>
-        emit('create-all-mode-minor', title, goalId, majorId)
-    "
-  />
+  <template v-else>
+    <button
+      v-if="!showComposer"
+      class="btn btn-ghost composer-toggle-btn"
+      type="button"
+      @click="toggleComposer"
+    >
+      + Add task
+    </button>
+
+    <div v-else class="composer-collapsible">
+      <AllModeMinorComposer
+        :goals="goals"
+        :major-task-options="majorTaskOptions"
+        @create-minor="
+          (title: string, goalId: ID | undefined, majorId: ID | undefined) => {
+            emit('create-all-mode-minor', title, goalId, majorId)
+            showComposer = false
+          }
+        "
+      />
+      <button
+        class="btn btn-ghost composer-collapsible__close"
+        type="button"
+        @click="toggleComposer"
+      >
+        Cancel
+      </button>
+    </div>
+  </template>
 </template>

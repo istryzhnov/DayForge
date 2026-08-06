@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
@@ -31,6 +32,26 @@ const {
   onSelectGoal: (goalId) => emit('select-goal', goalId),
   onCreateGoal: (title, description) => emit('create-goal', title, description),
 })
+
+const showSettings = ref(false)
+const settingsRef = ref<HTMLElement | null>(null)
+
+function toggleSettings() {
+  showSettings.value = !showSettings.value
+}
+
+function handleOutsideClick(event: MouseEvent) {
+  if (
+    showSettings.value &&
+    settingsRef.value &&
+    !settingsRef.value.contains(event.target as Node)
+  ) {
+    showSettings.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('mousedown', handleOutsideClick))
+onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
 </script>
 
 <template>
@@ -38,43 +59,53 @@ const {
     <div class="sidebar-brand">
       <span class="brand-dot"></span>
       <strong>DayForge</strong>
-    </div>
+      <div ref="settingsRef" class="sidebar-settings">
+        <button
+          class="sidebar-settings__trigger"
+          type="button"
+          aria-label="Settings"
+          @click="toggleSettings"
+        >
+          ⚙
+        </button>
 
-    <section class="theme-panel">
-      <p class="sidebar-caption">Theme</p>
-      <div class="theme-panel__group">
-        <button
-          class="theme-chip"
-          :class="{ active: themeStyle === 'vivid' }"
-          @click="emit('change-theme-style', 'vivid')"
-        >
-          Fresh
-        </button>
-        <button
-          class="theme-chip"
-          :class="{ active: themeStyle === 'minimal' }"
-          @click="emit('change-theme-style', 'minimal')"
-        >
-          Minimal
-        </button>
+        <section v-if="showSettings" class="theme-panel">
+          <p class="sidebar-caption">Theme</p>
+          <div class="theme-panel__group">
+            <button
+              class="theme-chip"
+              :class="{ active: themeStyle === 'vivid' }"
+              @click="emit('change-theme-style', 'vivid')"
+            >
+              Fresh
+            </button>
+            <button
+              class="theme-chip"
+              :class="{ active: themeStyle === 'minimal' }"
+              @click="emit('change-theme-style', 'minimal')"
+            >
+              Minimal
+            </button>
+          </div>
+          <div class="theme-panel__group">
+            <button
+              class="theme-chip"
+              :class="{ active: themeMode === 'light' }"
+              @click="emit('change-theme-mode', 'light')"
+            >
+              Day
+            </button>
+            <button
+              class="theme-chip"
+              :class="{ active: themeMode === 'dark' }"
+              @click="emit('change-theme-mode', 'dark')"
+            >
+              Night
+            </button>
+          </div>
+        </section>
       </div>
-      <div class="theme-panel__group">
-        <button
-          class="theme-chip"
-          :class="{ active: themeMode === 'light' }"
-          @click="emit('change-theme-mode', 'light')"
-        >
-          Day
-        </button>
-        <button
-          class="theme-chip"
-          :class="{ active: themeMode === 'dark' }"
-          @click="emit('change-theme-mode', 'dark')"
-        >
-          Night
-        </button>
-      </div>
-    </section>
+    </div>
 
     <p class="sidebar-caption">Goals</p>
 

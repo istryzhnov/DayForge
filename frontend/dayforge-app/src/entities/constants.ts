@@ -33,3 +33,13 @@ export const PROGRESS_SCOPE_TYPE = {
   GOAL: 'goal',
   MAJOR: 'major',
 } as const
+
+// Curated swatches offered in the per-goal color picker.
+export const GOAL_COLOR_PRESETS = [
+  '#73ff44',
+  '#ff7a2f',
+  '#23c7eb',
+  '#f2c94c',
+  '#ff5d8f',
+  '#9b6bff',
+] as const

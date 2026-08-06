@@ -31,6 +31,10 @@ const {
   handleToggleMinor,
   handleResolveMajor,
   handleCreateAllModeMinor,
+  handleEditTask,
+  handleDeleteTask,
+  handleDeleteGoal,
+  handleChangeGoalColor,
 } = useMainPageState(goalSpace)
 
 const { themeStyle, themeMode, setThemeStyle, setThemeMode } = useTheme()
@@ -75,6 +79,10 @@ function handleThemeModeChange(nextMode: ThemeMode) {
         @toggle-minor="handleToggleMinor"
         @resolve-major="handleResolveMajor"
         @create-all-mode-minor="handleCreateAllModeMinor"
+        @edit-task="handleEditTask"
+        @delete-task="handleDeleteTask"
+        @delete-goal="handleDeleteGoal"
+        @change-goal-color="handleChangeGoalColor"
       />
     </main>
   </div>

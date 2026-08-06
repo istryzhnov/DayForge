@@ -7,4 +7,6 @@ export interface Goal {
   status: GoalStatus
   createdAt: ISODateTime
   updatedAt: ISODateTime
+  // Custom accent color overriding the global theme for this goal's panel/habit.
+  accentColor?: string
 }

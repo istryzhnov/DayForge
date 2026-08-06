@@ -16,6 +16,8 @@ const emit = defineEmits<{
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
   (e: 'focus-major', dailyMajorTaskId: ID): void
+  (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'delete-task', templateId: ID): void
 }>()
 
 const {
@@ -24,11 +26,15 @@ const {
   handleSubtaskSubmit,
   toggleMinor,
   resolveMajor,
+  editTask,
+  deleteTask,
 } = useTaskListState({
   onAddSubtask: (parentTemplateId, title, priority) =>
     emit('add-subtask', parentTemplateId, title, priority),
   onToggleMinor: (taskId) => emit('toggle-minor', taskId),
   onResolveMajor: (taskId, decision) => emit('resolve-major', taskId, decision),
+  onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onDeleteTask: (templateId) => emit('delete-task', templateId),
 })
 </script>
 
@@ -47,6 +53,8 @@ const {
       :on-submit-subtask="handleSubtaskSubmit"
       :on-cancel-subtask="() => (activeParentId = null)"
       :on-focus-major="(majorId: ID) => emit('focus-major', majorId)"
+      :on-edit-task="editTask"
+      :on-delete-task="deleteTask"
     />
   </div>
 

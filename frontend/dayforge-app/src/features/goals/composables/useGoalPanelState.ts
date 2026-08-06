@@ -20,6 +20,8 @@ type GoalPanelActions = {
   onToggleMinor: (dailyTaskId: ID) => void
   onResolveMajor: (dailyMajorTaskId: ID, decision: MajorDecision) => void
   onCreateAllModeMinor: (title: string, goalId?: ID, majorId?: ID) => void
+  onEditTask: (templateId: ID, title: string) => void
+  onDeleteTask: (templateId: ID) => void
 }
 
 export function useGoalPanelState(
@@ -52,6 +54,14 @@ export function useGoalPanelState(
     actions.onResolveMajor(dailyMajorTaskId, decision)
   }
 
+  function editTask(templateId: ID, title: string) {
+    actions.onEditTask(templateId, title)
+  }
+
+  function deleteTask(templateId: ID) {
+    actions.onDeleteTask(templateId)
+  }
+
   return {
     ...taskTree,
     submitTask,
@@ -59,5 +69,7 @@ export function useGoalPanelState(
     submitSubtask,
     toggleMinor,
     resolveMajor,
+    editTask,
+    deleteTask,
   }
 }

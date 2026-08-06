@@ -77,47 +77,185 @@
     color-mix(in srgb, var(--minor) 90%, black 10%);
 }
 
-.task-check-wrap {
-  width: 22px;
-  height: 22px;
-  margin-top: 2px;
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-}
-
-.task-check {
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  opacity: 0;
+.task-dot-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  appearance: none;
+  padding: 0;
   cursor: pointer;
+  display: grid;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--minor) 70%, var(--line));
+  background: transparent;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease;
 }
 
-.task-check-indicator {
-  width: 20px;
-  height: 20px;
-  border-radius: 7px;
-  border: 1px solid var(--line-soft);
+.task-dot-check:hover {
+  transform: scale(1.06);
+  border-color: var(--minor);
+}
+
+.task-dot-check:active {
+  transform: scale(0.92);
+}
+
+.task-dot-check.is-done {
+  background: var(--minor);
+  border-color: var(--minor);
+  animation: task-dot-pop 0.22s ease;
+}
+
+.task-dot-check__mark {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ring-check);
+}
+
+@keyframes task-dot-pop {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.task-title-input {
+  width: 100%;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
   background: var(--panel-soft);
-  position: relative;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 4px 8px;
 }
 
-.task-check:checked + .task-check-indicator {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+.task-add-btn {
+  width: 30px;
+  height: 30px;
+  margin-right: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-soft) 74%, transparent);
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.12s ease;
 }
 
-.task-check:checked + .task-check-indicator::after {
-  content: '';
-  width: 10px;
-  height: 6px;
-  border-left: 2px solid var(--ring-check);
-  border-bottom: 2px solid var(--ring-check);
-  position: absolute;
-  top: 5px;
-  left: 4px;
-  transform: rotate(-45deg);
+.task-add-btn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  color: var(--text);
+  transform: scale(1.08) rotate(90deg);
+}
+
+.task-add-btn:active {
+  transform: scale(0.92) rotate(90deg);
+}
+
+.task-context-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 2px;
+  animation: task-context-menu-in 0.12s ease;
+}
+
+@keyframes task-context-menu-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.task-context-menu__item {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.task-context-menu__item:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--panel-soft) 90%, transparent);
+}
+
+.task-context-menu__item:disabled {
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.task-context-menu__item--danger {
+  color: var(--danger);
+}
+
+.task-context-menu__item--danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+
+.task-context-menu__badge {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted) 20%, transparent);
+  color: var(--muted);
+}
+
+.task-context-menu__divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+.composer-toggle-btn {
+  justify-self: start;
+}
+
+.composer-collapsible {
+  display: grid;
+  gap: 8px;
+}
+
+.composer-collapsible__close {
+  justify-self: start;
 }
 
 .task-priority-chip {

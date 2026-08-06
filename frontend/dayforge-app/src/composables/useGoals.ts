@@ -43,6 +43,20 @@ export function useGoals() {
     }
   }
 
+  function deleteGoal(goalId: ID) {
+    goals.value = goals.value.filter((goal) => goal.id !== goalId)
+    if (activeGoalId.value === goalId) {
+      activeGoalId.value = null
+    }
+  }
+
+  function updateGoalColor(goalId: ID, accentColor: string | undefined) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+    goal.accentColor = accentColor
+    goal.updatedAt = new Date().toISOString()
+  }
+
   function loadFromStorage() {
     const stored = loadJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
 
@@ -69,6 +83,8 @@ export function useGoals() {
     selectGoal,
     setGoals,
     createGoal,
+    deleteGoal,
+    updateGoalColor,
     loadFromStorage,
   }
 }

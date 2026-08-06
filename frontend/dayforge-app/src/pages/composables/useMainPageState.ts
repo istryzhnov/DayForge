@@ -63,6 +63,22 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.addMinorInAllMode(title, goalId, majorId)
   }
 
+  function handleEditTask(templateId: ID, title: string) {
+    goalSpace.editTaskTitle(templateId, title)
+  }
+
+  function handleDeleteTask(templateId: ID) {
+    goalSpace.deleteTask(templateId)
+  }
+
+  function handleDeleteGoal(goalId: ID) {
+    goalSpace.deleteGoal(goalId)
+  }
+
+  function handleChangeGoalColor(goalId: ID, color: string | undefined) {
+    goalSpace.updateGoalColor(goalId, color)
+  }
+
   return {
     majorTaskOptions,
     handleAddTask,
@@ -71,5 +87,9 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleToggleMinor,
     handleResolveMajor,
     handleCreateAllModeMinor,
+    handleEditTask,
+    handleDeleteTask,
+    handleDeleteGoal,
+    handleChangeGoalColor,
   }
 }

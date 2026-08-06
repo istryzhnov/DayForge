@@ -38,6 +38,10 @@ const emit = defineEmits<{
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
   (e: 'create-all-mode-minor', title: string, goalId?: ID, majorId?: ID): void
+  (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'delete-task', templateId: ID): void
+  (e: 'delete-goal', goalId: ID): void
+  (e: 'change-goal-color', goalId: ID, color: string | undefined): void
 }>()
 
 const {
@@ -52,6 +56,8 @@ const {
   submitSubtask,
   toggleMinor,
   resolveMajor,
+  editTask,
+  deleteTask,
 } = useGoalPanelState(props, {
   onAddTask: (title, priority) => emit('add-task', title, priority),
   onAddSubtask: (parentTemplateId, title, priority) =>
@@ -61,6 +67,8 @@ const {
     emit('resolve-major', dailyMajorTaskId, decision),
   onCreateAllModeMinor: (title, goalId, majorId) =>
     emit('create-all-mode-minor', title, goalId, majorId),
+  onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onDeleteTask: (templateId) => emit('delete-task', templateId),
 })
 
 const selectedMajorDailyTaskId = ref<ID | null>(null)
@@ -86,10 +94,16 @@ const { todayProgress, monthCells } = useProgressMetrics(
   currentDateRef as any,
   progressScope as any,
 )
+
+const goalPanelStyle = computed(() =>
+  !props.isAllMode && props.goal?.accentColor
+    ? { '--accent': props.goal.accentColor }
+    : undefined,
+)
 </script>
 
 <template>
-  <section class="goal-panel">
+  <section class="goal-panel" :style="goalPanelStyle">
     <GoalPanelHeader
       :title="panelTitle"
       :description="panelDescription"
@@ -97,6 +111,12 @@ const { todayProgress, monthCells } = useProgressMetrics(
       :total-count="totalCount"
       :major-count="majorCount"
       :sub-count="subCount"
+      :show-settings="!isAllMode && !!goal"
+      :accent-color="goal?.accentColor"
+      @delete-goal="goal && emit('delete-goal', goal.id)"
+      @change-color="
+        (color) => goal && emit('change-goal-color', goal.id, color)
+      "
     />
 
     <GoalComposerZone
@@ -120,6 +140,8 @@ const { todayProgress, monthCells } = useProgressMetrics(
         (dailyMajorTaskId, decision) => resolveMajor(dailyMajorTaskId, decision)
       "
       @focus-major="(majorId) => (selectedMajorDailyTaskId = majorId)"
+      @edit-task="(templateId, title) => editTask(templateId, title)"
+      @delete-task="(templateId) => deleteTask(templateId)"
     />
 
     <HabitCalendar

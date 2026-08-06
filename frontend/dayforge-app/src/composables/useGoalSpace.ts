@@ -33,6 +33,8 @@ export function useGoalSpace() {
     selectGoal,
     setGoals,
     createGoal,
+    deleteGoal,
+    updateGoalColor,
     loadFromStorage,
   } = useGoals()
 
@@ -166,6 +168,54 @@ export function useGoalSpace() {
     })
   }
 
+  function editTaskTitle(templateId: ID, title: string) {
+    const trimmedTitle = title.trim()
+    if (!trimmedTitle) return
+
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    template.title = trimmedTitle
+    template.updatedAt = new Date().toISOString()
+
+    dailyTasks.value
+      .filter((item) => item.templateId === templateId)
+      .forEach((item) => {
+        item.title = trimmedTitle
+      })
+  }
+
+  function deleteTask(templateId: ID) {
+    const idsToRemove = new Set<ID>()
+
+    function collectDescendants(id: ID) {
+      idsToRemove.add(id)
+      taskTemplates.value
+        .filter((item) => item.parentTemplateId === id)
+        .forEach((child) => collectDescendants(child.id))
+    }
+
+    collectDescendants(templateId)
+
+    taskTemplates.value = taskTemplates.value.filter(
+      (item) => !idsToRemove.has(item.id),
+    )
+    // Keep past days untouched so historical habit-calendar stats stay accurate;
+    // only drop today's/future instances of the removed template(s).
+    dailyTasks.value = dailyTasks.value.filter(
+      (item) =>
+        !idsToRemove.has(item.templateId) || item.date < currentDate.value,
+    )
+  }
+
+  function removeGoal(goalId: ID) {
+    taskTemplates.value = taskTemplates.value.filter(
+      (item) => item.goalId !== goalId,
+    )
+    dailyTasks.value = dailyTasks.value.filter((item) => item.goalId !== goalId)
+    deleteGoal(goalId)
+  }
+
   const activeMajorTemplates = computed(() =>
     taskTemplates.value.filter(
       (task) => task.priority === PRIORITY.MAJOR && task.isActive,
@@ -246,8 +296,12 @@ export function useGoalSpace() {
     selectGoal,
     setGoals,
     createGoal,
+    deleteGoal: removeGoal,
+    updateGoalColor,
     addTask,
     addSubTask,
+    editTaskTitle,
+    deleteTask,
     initializeStorage,
     toggleMinorDone,
     resolveMajorTask,
