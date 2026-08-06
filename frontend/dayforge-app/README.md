@@ -58,62 +58,43 @@ Notable composables:
 
 ```mermaid
 erDiagram
+	%% Core entities
 	GOAL {
-		string id
-		string userId
+		string id PK
+		string userId FK
 		string title
 		string description
-		string status
+		string status        "(enum: active, completed, archived)"
 		string createdAt
 		string updatedAt
+		string archivedAt
 	}
 
 	USER_TAG {
-		string id
-		string userId
+		string id PK
+		string userId FK
 		string name
 		string color
 		string createdAt
 	}
 
 	TASK_TEMPLATE {
-		string id
-		string goalId
+		string id PK
+		string goalId FK
 		string title
 		string notes
-		string priority
-		string parentTemplateId
+		string priority      "(enum: low, medium, high)"
+		string parentTemplateId FK
 		number order
-		string[] tagIds
-		string recurrence
+		string recurrenceRuleId FK
 		boolean isActive
 		string createdAt
 		string updatedAt
 	}
 
-	DAILY_TASK {
-		string id
-		string date
-		string goalId
-		string templateId
-		string title
-		string priority
-		string parentDailyTaskId
-		string[] tagIds
-		string status
-		string completedAt
-	}
-
-	DAILY_PROGRESS {
-		string date
-		string goalId
-		number totalMinor
-		number completedMinor
-		number completionPercent
-	}
-
 	RECURRENCE_RULE {
-		string type
+		string id PK
+		string type          "(enum: none, daily, weekly, monthly, custom)"
 		number interval
 		number[] daysOfWeek
 		number[] daysOfMonth
@@ -121,15 +102,56 @@ erDiagram
 		string endDate
 	}
 
+	DAILY_TASK {
+		string id PK
+		string date          "ISO date"
+		string goalId FK
+		string templateId FK nullable
+		string title
+		string priority
+		string parentDailyTaskId FK
+		string status        "(enum: pending, completed, skipped)"
+		string completedAt
+		json templateSnapshot "(snapshot of template at creation)"
+		number order
+	}
+
+	DAILY_PROGRESS {
+		string date PK
+		string goalId PK
+		number totalMinor
+		number completedMinor
+		number completionPercent
+		string updatedAt
+	}
+
+	%% Tag junction tables for many-to-many relationships
+	TASK_TEMPLATE_TAG {
+		string templateId FK
+		string tagId FK
+	}
+
+	DAILY_TASK_TAG {
+		string dailyTaskId FK
+		string tagId FK
+	}
+
+	%% Relationships
 	GOAL ||--o{ TASK_TEMPLATE : has
 	GOAL ||--o{ DAILY_TASK : has
 	GOAL ||--o{ DAILY_PROGRESS : aggregates
-	USER_TAG ||--o{ TASK_TEMPLATE : labels
-	USER_TAG ||--o{ DAILY_TASK : labels
-	TASK_TEMPLATE ||--o{ DAILY_TASK : snapshot_of
+
 	TASK_TEMPLATE ||--o{ TASK_TEMPLATE : parent_of
-	DAILY_TASK ||--o{ DAILY_TASK : parent_of
+	TASK_TEMPLATE ||--o{ DAILY_TASK : snapshot_of
 	TASK_TEMPLATE }o--|| RECURRENCE_RULE : uses
+
+	USER_TAG ||--o{ TASK_TEMPLATE_TAG : labels
+	TASK_TEMPLATE ||--o{ TASK_TEMPLATE_TAG : has_tags
+
+	USER_TAG ||--o{ DAILY_TASK_TAG : labels
+	DAILY_TASK ||--o{ DAILY_TASK_TAG : has_tags
+
+	DAILY_TASK ||--o{ DAILY_TASK : parent_of
 ```
 
 ## Local development
