@@ -22,6 +22,9 @@ The frontend app uses a feature-based structure to keep the codebase easier to s
 ## Why this structure
 
 This layout makes it easier to:
+
 - find feature-specific code quickly,
 - keep UI and state responsibilities separated,
 - scale the project without a single large components folder.
+
+--
