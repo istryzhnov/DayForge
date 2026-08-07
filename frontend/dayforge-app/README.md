@@ -54,106 +54,6 @@ Notable composables:
 - `useGoalSpace.ts` — generates daily tasks from templates
 - `useTaskTree.ts` — hierarchical task representation
 
-## Data model (ERD)
-
-```mermaid
-erDiagram
-	%% Core entities
-	GOAL {
-		string id PK
-		string userId FK
-		string title
-		string description
-		string status        "(enum: active, completed, archived)"
-		string createdAt
-		string updatedAt
-		string archivedAt
-	}
-
-	USER_TAG {
-		string id PK
-		string userId FK
-		string name
-		string color
-		string createdAt
-	}
-
-	TASK_TEMPLATE {
-		string id PK
-		string goalId FK
-		string title
-		string notes
-		string priority      "(enum: low, medium, high)"
-		string parentTemplateId FK
-		number order
-		string recurrenceRuleId FK
-		boolean isActive
-		string createdAt
-		string updatedAt
-	}
-
-	RECURRENCE_RULE {
-		string id PK
-		string type          "(enum: none, daily, weekly, monthly, custom)"
-		number interval
-		number[] daysOfWeek
-		number[] daysOfMonth
-		string startDate
-		string endDate
-	}
-
-	DAILY_TASK {
-		string id PK
-		string date          "ISO date"
-		string goalId FK
-		string templateId FK nullable
-		string title
-		string priority
-		string parentDailyTaskId FK
-		string status        "(enum: pending, completed, skipped)"
-		string completedAt
-		json templateSnapshot "(snapshot of template at creation)"
-		number order
-	}
-
-	DAILY_PROGRESS {
-		string date PK
-		string goalId PK
-		number totalMinor
-		number completedMinor
-		number completionPercent
-		string updatedAt
-	}
-
-	%% Tag junction tables for many-to-many relationships
-	TASK_TEMPLATE_TAG {
-		string templateId FK
-		string tagId FK
-	}
-
-	DAILY_TASK_TAG {
-		string dailyTaskId FK
-		string tagId FK
-	}
-
-	%% Relationships
-	GOAL ||--o{ TASK_TEMPLATE : has
-	GOAL ||--o{ DAILY_TASK : has
-	GOAL ||--o{ DAILY_PROGRESS : aggregates
-
-	TASK_TEMPLATE ||--o{ TASK_TEMPLATE : parent_of
-	TASK_TEMPLATE ||--o{ DAILY_TASK : snapshot_of
-	TASK_TEMPLATE }o--|| RECURRENCE_RULE : uses
-
-	USER_TAG ||--o{ TASK_TEMPLATE_TAG : labels
-	TASK_TEMPLATE ||--o{ TASK_TEMPLATE_TAG : has_tags
-
-	USER_TAG ||--o{ DAILY_TASK_TAG : labels
-	DAILY_TASK ||--o{ DAILY_TASK_TAG : has_tags
-
-	DAILY_TASK ||--o{ DAILY_TASK : parent_of
-```
-
 ## Local development
 
 Make sure you have Node.js installed (LTS recommended) and npm available.
@@ -212,3 +112,103 @@ This repository currently has no test configuration. Adding unit tests for compo
 ---
 
 If you want, I can add an "API contract" section with backend request/response examples, or expand the CONTRIBUTING section with Prettier/ESLint and CI setup. Would you like me to add that?
+
+## Data model (ERD)
+
+```mermaid
+erDiagram
+    %% Core entities (simple attribute lines for mermaid compatibility)
+    GOAL {
+        string id
+        string userId
+        string title
+        string description
+        string status
+        string createdAt
+        string updatedAt
+        string archivedAt
+    }
+
+    USER_TAG {
+        string id
+        string userId
+        string name
+        string color
+        string createdAt
+    }
+
+    TASK_TEMPLATE {
+        string id
+        string goalId
+        string title
+        string notes
+        string priority
+        string parentTemplateId
+        number order
+        string recurrenceRuleId
+        boolean isActive
+        string createdAt
+        string updatedAt
+    }
+
+    RECURRENCE_RULE {
+        string id
+        string type
+        number interval
+        string daysOfWeek
+        string daysOfMonth
+        string startDate
+        string endDate
+    }
+
+    DAILY_TASK {
+        string id
+        string date
+        string goalId
+        string templateId
+        string title
+        string priority
+        string parentDailyTaskId
+        string status
+        string completedAt
+        string templateSnapshot
+        number order
+    }
+
+    DAILY_PROGRESS {
+        string date
+        string goalId
+        number totalMinor
+        number completedMinor
+        number completionPercent
+        string updatedAt
+    }
+
+    %% Tag junction tables
+    TASK_TEMPLATE_TAG {
+        string templateId
+        string tagId
+    }
+
+    DAILY_TASK_TAG {
+        string dailyTaskId
+        string tagId
+    }
+
+    %% Relationships
+    GOAL ||--o{ TASK_TEMPLATE : has
+    GOAL ||--o{ DAILY_TASK : has
+    GOAL ||--o{ DAILY_PROGRESS : aggregates
+
+    TASK_TEMPLATE ||--o{ TASK_TEMPLATE : parent_of
+    TASK_TEMPLATE ||--o{ DAILY_TASK : snapshot_of
+    TASK_TEMPLATE }o--|| RECURRENCE_RULE : uses
+
+    USER_TAG ||--o{ TASK_TEMPLATE_TAG : labels
+    TASK_TEMPLATE ||--o{ TASK_TEMPLATE_TAG : has_tags
+
+    USER_TAG ||--o{ DAILY_TASK_TAG : labels
+    DAILY_TASK ||--o{ DAILY_TASK_TAG : has_tags
+
+    DAILY_TASK ||--o{ DAILY_TASK : parent_of
+```
