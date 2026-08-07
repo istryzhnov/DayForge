@@ -104,15 +104,6 @@ This repository currently has no test configuration. Adding unit tests for compo
 3. Make changes locally and add tests when possible.
 4. Open a Pull Request describing the changes.
 
-## FAQ / Troubleshooting
-
-- If the app does not render, check the browser console for TypeScript or runtime compilation errors.
-- If styles do not apply, ensure the `lightningcss` platform package from `devDependencies` matches your development environment.
-
----
-
-If you want, I can add an "API contract" section with backend request/response examples, or expand the CONTRIBUTING section with Prettier/ESLint and CI setup. Would you like me to add that?
-
 ## Data model (ERD)
 
 ```mermaid
