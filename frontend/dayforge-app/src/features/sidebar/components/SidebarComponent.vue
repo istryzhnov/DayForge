@@ -13,6 +13,7 @@ defineProps<{
   totalTaskCount: number
   themeStyle: ThemeStyle
   themeMode: ThemeMode
+  activeView: 'goals' | 'calendar' // NEW
 }>()
 
 const emit = defineEmits<{
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   (e: 'create-goal', title: string, description: string): void
   (e: 'change-theme-style', style: ThemeStyle): void
   (e: 'change-theme-mode', mode: ThemeMode): void
+  (e: 'select-view', view: 'goals' | 'calendar'): void // NEW
 }>()
 
 const {
@@ -127,6 +129,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
     >
       <span>{{ goal.title }}</span>
       <span class="goal-count">{{ taskCountByGoal[goal.id] ?? 0 }}</span>
+    </button>
+    <p class="sidebar-caption">View</p>
+    <button
+      class="nav-goal-btn"
+      :class="{ active: activeView === 'calendar' }"
+      @click="emit('select-view', 'calendar')"
+    >
+      <span>Calendar</span>
     </button>
     <div class="sidebar-actions">
       <button @click="openNewGoalForm" class="btn btn-primary">New Goal</button>
