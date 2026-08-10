@@ -1,5 +1,12 @@
 import type { RecurrenceRule } from './RecurrenceEntity'
-import type { ID, ISODate, ISODateTime, Priority, TaskStatus } from './types'
+import type {
+  ID,
+  ISODate,
+  ISODateTime,
+  Priority,
+  TaskStatus,
+  TimeOfDay,
+} from './types'
 import { MAJOR_DECISION, TASK_KIND } from './constants'
 
 export interface TaskTemplate {
@@ -35,6 +42,8 @@ export interface DailyTask {
   status: TaskStatus
   completedAt?: ISODateTime
   majorDecision?: MajorDecision
+  startTime?: TimeOfDay
+  endTime?: TimeOfDay
 }
 
 export interface DailyProgress {

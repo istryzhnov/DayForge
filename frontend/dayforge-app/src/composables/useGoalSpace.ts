@@ -13,7 +13,7 @@ import {
   TASK_KIND,
   TASK_STATUS,
 } from '../entities/constants'
-import { createId, getTodayISODate } from './goalSpace/date'
+import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import {
   bindStorage,
   DAILY_TASKS_STORAGE_KEY,
@@ -216,6 +216,40 @@ export function useGoalSpace() {
     deleteGoal(goalId)
   }
 
+  function scheduleDailyTask(
+    dailyTaskId: ID,
+    startTime: string,
+    endTime: string,
+  ) {
+    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    if (!task) return
+    task.startTime = startTime
+    task.endTime = endTime
+  }
+
+  function unscheduleDailyTask(dailyTaskId: ID) {
+    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    if (!task) return
+    task.startTime = undefined
+    task.endTime = undefined
+  }
+
+  function goToDate(date: ISODate) {
+    currentDate.value = date
+    ensureTodaySnapshot(taskTemplates.value, dailyTasks.value, date)
+  }
+
+  function goToPreviousDay() {
+    goToDate(addDaysToISODate(currentDate.value, -1))
+  }
+  function goToNextDay() {
+    goToDate(addDaysToISODate(currentDate.value, 1))
+  }
+
+  function goToToday() {
+    goToDate(getTodayISODate())
+  }
+
   const activeMajorTemplates = computed(() =>
     taskTemplates.value.filter(
       (task) => task.priority === PRIORITY.MAJOR && task.isActive,
@@ -308,5 +342,10 @@ export function useGoalSpace() {
     activeMajorTemplates,
     addMajorWithMinor,
     addMinorInAllMode,
+    scheduleDailyTask,
+    unscheduleDailyTask,
+    goToPreviousDay,
+    goToNextDay,
+    goToDate,
   }
 }
