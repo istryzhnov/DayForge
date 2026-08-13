@@ -346,6 +346,7 @@ export function useGoalSpace() {
     unscheduleDailyTask,
     goToPreviousDay,
     goToNextDay,
+    goToToday,
     goToDate,
   }
 }

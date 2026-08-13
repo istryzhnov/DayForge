@@ -232,6 +232,10 @@ function handleUpdateTime(payload: {
 function hourLineTop(hour: number) {
   return { top: `${(hour - DAY_START_HOUR) * 60 * PX_PER_MINUTE}px` }
 }
+
+function gridStyle(heightPx: number) {
+  return { height: `${heightPx}px` }
+}
 </script>
 
 <template>
@@ -266,7 +270,7 @@ function hourLineTop(hour: number) {
         <div
           ref="gridRef"
           class="calendar-view__grid"
-          :style="{ height: `${GRID_HEIGHT_PX}px` }"
+          :style="gridStyle(GRID_HEIGHT_PX)"
           @pointerdown="onGridPointerDown"
           @click="closeContextMenu"
           @dragover="onGridDragOver"
