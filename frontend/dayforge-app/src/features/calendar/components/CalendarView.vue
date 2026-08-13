@@ -2,7 +2,9 @@
 import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
+import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import CalendarEventBlock from './CalendarEventBlock.vue'
+import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
 import {
   DAY_START_HOUR,
@@ -34,6 +36,7 @@ const emit = defineEmits<{
     e: 'create-task',
     payload: { title: string; startTime: string; endTime: string },
   ): void
+  (e: 'toggle-task-done', taskId: ID): void
 }>()
 
 const gridRef = ref<HTMLElement | null>(null)
@@ -45,6 +48,11 @@ const scheduledTasks = computed(() =>
 const unscheduledTasks = computed(() => props.tasks.filter((t) => !t.startTime))
 const selectedTask = computed(
   () => props.tasks.find((t) => t.id === selectedTaskId.value) ?? null,
+)
+const contextMenuTaskId = ref<ID | null>(null)
+const contextMenuPos = ref<{ x: number; y: number } | null>(null)
+const contextMenuTask = computed(
+  () => props.tasks.find((task) => task.id === contextMenuTaskId.value) ?? null,
 )
 
 const dateLabel = computed(() =>
@@ -177,11 +185,34 @@ function onResize(payload: { taskId: ID; endTime: string }) {
 }
 
 function openDetails(taskId: ID) {
+  closeContextMenu()
   selectedTaskId.value = taskId
 }
 
 function closeDetails() {
   selectedTaskId.value = null
+}
+
+function closeContextMenu() {
+  contextMenuTaskId.value = null
+  contextMenuPos.value = null
+}
+
+function openContextMenu(payload: { taskId: ID; x: number; y: number }) {
+  const task = props.tasks.find((item) => item.id === payload.taskId)
+  if (!task || task.priority !== PRIORITY.MINOR) {
+    closeContextMenu()
+    return
+  }
+
+  selectedTaskId.value = null
+  contextMenuTaskId.value = payload.taskId
+  contextMenuPos.value = { x: payload.x, y: payload.y }
+}
+
+function handleToggleTaskDone() {
+  if (!contextMenuTaskId.value) return
+  emit('toggle-task-done', contextMenuTaskId.value)
 }
 
 function handleUnschedule(taskId: ID) {
@@ -237,6 +268,7 @@ function hourLineTop(hour: number) {
           class="calendar-view__grid"
           :style="{ height: `${GRID_HEIGHT_PX}px` }"
           @pointerdown="onGridPointerDown"
+          @click="closeContextMenu"
           @dragover="onGridDragOver"
           @drop="onGridDrop"
         >
@@ -256,6 +288,7 @@ function hourLineTop(hour: number) {
             @select="openDetails"
             @drag-start="onBlockDragStart"
             @resize="onResize"
+            @context-menu="openContextMenu"
           />
 
           <div
@@ -307,6 +340,15 @@ function hourLineTop(hour: number) {
         </p>
       </aside>
     </div>
+
+    <CalendarTaskContextMenu
+      v-if="contextMenuTask && contextMenuPos"
+      :x="contextMenuPos.x"
+      :y="contextMenuPos.y"
+      :is-done="contextMenuTask.status === TASK_STATUS.DONE"
+      @toggle-check="handleToggleTaskDone"
+      @close="closeContextMenu"
+    />
 
     <EventDetailsPanel
       v-if="selectedTask"

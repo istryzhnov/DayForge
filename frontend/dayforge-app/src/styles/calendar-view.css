@@ -69,6 +69,18 @@
   box-shadow: var(--shadow-sm);
 }
 
+.cal-event.is-resizing {
+  cursor: ns-resize;
+}
+
+.cal-event.is-done {
+  opacity: 0.65;
+}
+
+.cal-event.is-done .cal-event__title {
+  text-decoration: line-through;
+}
+
 .cal-event.major {
   background: color-mix(in srgb, var(--major) 80%, white 10%);
 }

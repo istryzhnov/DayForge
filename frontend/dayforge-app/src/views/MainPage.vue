@@ -98,6 +98,10 @@ function handleCreateScheduledTask(payload: {
     scheduleDailyTask(createdDailyTask.id, payload.startTime, payload.endTime)
   }
 }
+
+function handleToggleCalendarTaskDone(taskId: ID) {
+  handleToggleMinor(taskId)
+}
 </script>
 
 <template>
@@ -150,6 +154,7 @@ function handleCreateScheduledTask(payload: {
         @schedule-task="handleScheduleTask"
         @unschedule-task="unscheduleDailyTask"
         @create-task="handleCreateScheduledTask"
+        @toggle-task-done="handleToggleCalendarTaskDone"
       />
     </main>
   </div>
