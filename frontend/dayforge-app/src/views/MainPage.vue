@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import CalendarView from '../features/calendar/components/CalendarView.vue'
+import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import {
@@ -10,6 +11,7 @@ import {
   type ThemeMode,
   type ThemeStyle,
 } from '../composables/useTheme'
+import { useTaskNotifications } from '../composables/useTaskNotifications'
 import type { ID } from '../entities/types'
 import { PRIORITY } from '../entities/constants'
 
@@ -47,6 +49,24 @@ const {
 } = useMainPageState(goalSpace)
 
 const { themeStyle, themeMode, setThemeStyle, setThemeMode } = useTheme()
+
+const {
+  isSupported: notificationsSupported,
+  enabled: notificationsEnabled,
+  activeAlert,
+  pendingCount,
+  enableNotifications,
+  disableNotifications,
+  acknowledgeAlert,
+} = useTaskNotifications(dailyTasks)
+
+function handleToggleNotifications() {
+  if (notificationsEnabled.value) {
+    disableNotifications()
+  } else {
+    void enableNotifications()
+  }
+}
 
 const activeView = ref<'goals' | 'calendar'>('goals')
 
@@ -115,11 +135,14 @@ function handleToggleCalendarTaskDone(taskId: ID) {
         :theme-style="themeStyle"
         :theme-mode="themeMode"
         :active-view="activeView"
+        :notifications-supported="notificationsSupported"
+        :notifications-enabled="notificationsEnabled"
         @select-goal="handleSelectGoal"
         @create-goal="handleCreateGoal"
         @change-theme-style="handleThemeStyleChange"
         @change-theme-mode="handleThemeModeChange"
         @select-view="handleSelectView"
+        @toggle-notifications="handleToggleNotifications"
       />
     </aside>
 
@@ -157,5 +180,12 @@ function handleToggleCalendarTaskDone(taskId: ID) {
         @toggle-task-done="handleToggleCalendarTaskDone"
       />
     </main>
+
+    <TaskReminderPopup
+      v-if="activeAlert"
+      :task="activeAlert"
+      :pending-count="pendingCount"
+      @acknowledge="acknowledgeAlert"
+    />
   </div>
 </template>

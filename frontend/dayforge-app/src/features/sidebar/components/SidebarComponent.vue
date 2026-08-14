@@ -14,6 +14,8 @@ defineProps<{
   themeStyle: ThemeStyle
   themeMode: ThemeMode
   activeView: 'goals' | 'calendar' // NEW
+  notificationsSupported: boolean
+  notificationsEnabled: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,6 +24,7 @@ const emit = defineEmits<{
   (e: 'change-theme-style', style: ThemeStyle): void
   (e: 'change-theme-mode', mode: ThemeMode): void
   (e: 'select-view', view: 'goals' | 'calendar'): void // NEW
+  (e: 'toggle-notifications'): void
 }>()
 
 const {
@@ -61,6 +64,25 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
     <div class="sidebar-brand">
       <span class="brand-dot"></span>
       <strong>DayForge</strong>
+      <button
+        v-if="notificationsSupported"
+        class="sidebar-notify-trigger"
+        :class="{ 'is-active': notificationsEnabled }"
+        type="button"
+        :aria-label="
+          notificationsEnabled
+            ? 'Disable task reminders'
+            : 'Enable task reminders'
+        "
+        :title="
+          notificationsEnabled
+            ? 'Reminders on: alerts 5 min before a task starts'
+            : 'Enable sound reminders for upcoming tasks'
+        "
+        @click="emit('toggle-notifications')"
+      >
+        {{ notificationsEnabled ? '🔔' : '🔕' }}
+      </button>
       <div ref="settingsRef" class="sidebar-settings">
         <button
           class="sidebar-settings__trigger"

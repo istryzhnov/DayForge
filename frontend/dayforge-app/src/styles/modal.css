@@ -57,3 +57,41 @@
   justify-content: flex-end;
   margin-top: 8px;
 }
+
+.task-reminder-modal {
+  z-index: 1400;
+}
+
+.task-reminder-card {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  animation: task-reminder-pulse 1.4s ease-in-out infinite;
+}
+
+.task-reminder-card__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+
+.task-reminder-card__time {
+  margin: 0;
+  color: var(--muted);
+}
+
+.task-reminder-card__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+@keyframes task-reminder-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
+  }
+}
