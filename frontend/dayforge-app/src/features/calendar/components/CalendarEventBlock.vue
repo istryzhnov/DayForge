@@ -11,6 +11,7 @@ import {
   snapMinutes,
   timeFromMinutes,
 } from '../composables/useCalendarGrid'
+import { transform } from 'typescript'
 
 const props = defineProps<{
   task: DailyTask
@@ -23,13 +24,19 @@ const emit = defineEmits<{
   (e: 'drag-start', payload: { taskId: ID; grabOffsetMinutes: number }): void
   (e: 'resize', payload: { taskId: ID; endTime: string }): void
   (e: 'context-menu', payload: { taskId: ID; x: number; y: number }): void
+  (e: 'touch-drag-end', payload: { taskId: ID; clientY: number }): void
 }>()
+
+const isCoarsePointer =
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(pointer: coarse)').matches
 
 // keep :style bound to a helper (not an inline object) to avoid vue-tsc CSSProperties false positives
 function blockStyle(top: number, height: number) {
   return {
     top: `${top}px`,
     height: `${Math.max(height, 20)}px`,
+    transform: isTouchDragging.value,
   }
 }
 
