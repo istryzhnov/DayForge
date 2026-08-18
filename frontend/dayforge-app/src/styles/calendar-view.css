@@ -67,6 +67,46 @@
   cursor: grab;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  /* A long press must grab the block, not select its text or raise the iOS
+     selection callout. */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+.cal-event.is-resizing {
+  cursor: ns-resize;
+}
+
+/* Picked up by a long press — lifts off the grid so it reads as "held". */
+.cal-event.is-lifted {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-lg);
+  z-index: 3;
+}
+
+.cal-event.is-dragging {
+  opacity: 0.9;
+  transition: none;
+}
+
+/* Where an unscheduled task would land while it is being dragged in. */
+.cal-event--preview {
+  opacity: 0.6;
+  border: 1px dashed color-mix(in srgb, var(--text) 45%, transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cal-event.is-done {
+  opacity: 0.65;
+}
+
+.cal-event.is-done .cal-event__title {
+  text-decoration: line-through;
 }
 
 .cal-event.major {
@@ -96,6 +136,8 @@
   bottom: 0;
   height: 6px;
   cursor: ns-resize;
+  /* Own the vertical gesture so resizing never turns into a page scroll. */
+  touch-action: none;
 }
 
 .calendar-view__draft {
@@ -136,15 +178,35 @@
   cursor: grab;
   background: color-mix(in srgb, var(--panel-soft) 90%, transparent);
   border-left: 3px solid var(--minor);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 }
 
 .calendar-view__unscheduled-item.major {
   border-left-color: var(--major);
 }
 
+.calendar-view__unscheduled-item.is-lifted {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
 .calendar-view__empty-hint {
   color: var(--muted);
   font-size: 13px;
+}
+
+/* Only rendered on touch devices, where the gestures aren't discoverable. */
+.calendar-view__touch-hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+  text-align: center;
 }
 
 .event-details-overlay {
@@ -199,4 +261,107 @@
 .event-details__actions {
   display: flex;
   gap: 8px;
+}
+
+/* Mobile timeline layout — inspired by the attached references */
+@media (max-width: 720px) {
+  .calendar-view {
+    gap: 10px;
+  }
+
+  .calendar-view__header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    padding: 8px 4px;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .calendar-view__date {
+    gap: 8px;
+  }
+
+  .calendar-view__date strong {
+    font-size: 14px;
+  }
+
+  /* stack the grid above the unscheduled list instead of side-by-side */
+  .calendar-view__body {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  /* narrower hour-label column frees space for event cards */
+  .calendar-view__grid-wrap {
+    grid-template-columns: 40px 1fr;
+    border-radius: 14px;
+  }
+
+  .calendar-view__hour-label {
+    padding: 4px;
+    font-size: 10px;
+  }
+
+  .cal-event {
+    left: 3px;
+    right: 3px;
+    padding: 6px 9px;
+    border-radius: 12px;
+  }
+
+  .cal-event__title {
+    font-size: 12px;
+  }
+
+  .cal-event__time {
+    font-size: 10px;
+  }
+
+  /* Fingers need a taller grab strip than a mouse cursor does. */
+  .cal-event__resize-handle {
+    height: 14px;
+  }
+
+  /* unscheduled tasks become a horizontally scrollable strip below the grid */
+  .calendar-view__unscheduled {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 10px;
+    gap: 8px;
+    /* Let the strip pan sideways while long-press still grabs a chip. */
+    scrollbar-width: none;
+  }
+
+  .calendar-view__unscheduled::-webkit-scrollbar {
+    display: none;
+  }
+
+  .calendar-view__unscheduled-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 10px 14px;
+    border-radius: 999px;
+    border-left: none;
+    border: 1px solid color-mix(in srgb, var(--minor) 45%, var(--line));
+  }
+
+  .calendar-view__unscheduled-item.major {
+    border-color: color-mix(in srgb, var(--major) 55%, var(--line));
+  }
+
+  .calendar-view__unscheduled .sidebar-caption {
+    flex: 0 0 auto;
+    align-self: center;
+  }
+
+  /* modal-like popovers stay within the viewport on small screens */
+  .event-details {
+    width: min(320px, calc(100vw - 32px));
+  }
+
+  .task-context-menu {
+    max-width: calc(100vw - 16px);
+  }
 }

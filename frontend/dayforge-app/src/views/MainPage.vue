@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import CalendarView from '../features/calendar/components/CalendarView.vue'
+import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import {
@@ -10,6 +11,7 @@ import {
   type ThemeMode,
   type ThemeStyle,
 } from '../composables/useTheme'
+import { useTaskNotifications } from '../composables/useTaskNotifications'
 import type { ID } from '../entities/types'
 import { PRIORITY } from '../entities/constants'
 
@@ -47,6 +49,24 @@ const {
 } = useMainPageState(goalSpace)
 
 const { themeStyle, themeMode, setThemeStyle, setThemeMode } = useTheme()
+
+const {
+  isSupported: notificationsSupported,
+  enabled: notificationsEnabled,
+  activeAlert,
+  pendingCount,
+  enableNotifications,
+  disableNotifications,
+  acknowledgeAlert,
+} = useTaskNotifications(dailyTasks)
+
+function handleToggleNotifications() {
+  if (notificationsEnabled.value) {
+    disableNotifications()
+  } else {
+    void enableNotifications()
+  }
+}
 
 const activeView = ref<'goals' | 'calendar'>('goals')
 
@@ -98,6 +118,10 @@ function handleCreateScheduledTask(payload: {
     scheduleDailyTask(createdDailyTask.id, payload.startTime, payload.endTime)
   }
 }
+
+function handleToggleCalendarTaskDone(taskId: ID) {
+  handleToggleMinor(taskId)
+}
 </script>
 
 <template>
@@ -111,46 +135,59 @@ function handleCreateScheduledTask(payload: {
         :theme-style="themeStyle"
         :theme-mode="themeMode"
         :active-view="activeView"
+        :notifications-supported="notificationsSupported"
+        :notifications-enabled="notificationsEnabled"
         @select-goal="handleSelectGoal"
         @create-goal="handleCreateGoal"
         @change-theme-style="handleThemeStyleChange"
         @change-theme-mode="handleThemeModeChange"
         @select-view="handleSelectView"
+        @toggle-notifications="handleToggleNotifications"
       />
     </aside>
 
     <main class="app-content">
-      <GoalComponent
-        v-if="activeView === 'goals'"
-        :goal="activeGoal"
-        :goals="goals"
-        :tasks="tasksForActiveGoal"
-        :daily-tasks="dailyTasks"
-        :current-date="currentDate"
-        :is-all-mode="activeGoalId === null"
-        :major-task-options="majorTaskOptions"
-        @add-task="handleAddTask"
-        @add-subtask="handleAddSubTask"
-        @toggle-minor="handleToggleMinor"
-        @resolve-major="handleResolveMajor"
-        @create-all-mode-minor="handleCreateAllModeMinor"
-        @edit-task="handleEditTask"
-        @delete-task="handleDeleteTask"
-        @delete-goal="handleDeleteGoal"
-        @change-goal-color="handleChangeGoalColor"
-      />
+      <div class="app-content__inner">
+        <GoalComponent
+          v-if="activeView === 'goals'"
+          :goal="activeGoal"
+          :goals="goals"
+          :tasks="tasksForActiveGoal"
+          :daily-tasks="dailyTasks"
+          :current-date="currentDate"
+          :is-all-mode="activeGoalId === null"
+          :major-task-options="majorTaskOptions"
+          @add-task="handleAddTask"
+          @add-subtask="handleAddSubTask"
+          @toggle-minor="handleToggleMinor"
+          @resolve-major="handleResolveMajor"
+          @create-all-mode-minor="handleCreateAllModeMinor"
+          @edit-task="handleEditTask"
+          @delete-task="handleDeleteTask"
+          @delete-goal="handleDeleteGoal"
+          @change-goal-color="handleChangeGoalColor"
+        />
 
-      <CalendarView
-        v-else
-        :tasks="tasksForCurrentDate"
-        :current-date="currentDate"
-        @prev-day="goToPreviousDay"
-        @next-day="goToNextDay"
-        @today="goToToday"
-        @schedule-task="handleScheduleTask"
-        @unschedule-task="unscheduleDailyTask"
-        @create-task="handleCreateScheduledTask"
-      />
+        <CalendarView
+          v-else
+          :tasks="tasksForCurrentDate"
+          :current-date="currentDate"
+          @prev-day="goToPreviousDay"
+          @next-day="goToNextDay"
+          @today="goToToday"
+          @schedule-task="handleScheduleTask"
+          @unschedule-task="unscheduleDailyTask"
+          @create-task="handleCreateScheduledTask"
+          @toggle-task-done="handleToggleCalendarTaskDone"
+        />
+      </div>
     </main>
+
+    <TaskReminderPopup
+      v-if="activeAlert"
+      :task="activeAlert"
+      :pending-count="pendingCount"
+      @acknowledge="acknowledgeAlert"
+    />
   </div>
 </template>

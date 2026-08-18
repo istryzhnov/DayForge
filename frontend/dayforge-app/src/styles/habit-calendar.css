@@ -193,7 +193,11 @@
 
 @media (max-width: 720px) {
   .habit-calendar {
-    padding: 12px;
+    padding: 14px 12px;
+    border-radius: 16px;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--panel-soft) 88%, transparent);
+    box-shadow: none;
   }
 
   .habit-calendar__title {
@@ -204,8 +208,20 @@
     font-size: 24px;
   }
 
+  .habit-calendar__week {
+    gap: 4px;
+  }
+
   .habit-calendar__circle--week {
     --size: 36px;
+  }
+
+  .habit-calendar__weekday {
+    font-size: 11px;
+  }
+
+  .habit-calendar__month-grid {
+    gap: 4px;
   }
 
   .habit-calendar__day {

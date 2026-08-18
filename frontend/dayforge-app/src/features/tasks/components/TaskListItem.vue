@@ -10,6 +10,8 @@ import {
 } from '../../../entities/constants'
 import TaskComposer from './TaskComposer.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
+import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { usePressGesture } from '../../../composables/usePressGesture'
 
 const props = defineProps<{
   node: FlatTaskNode
@@ -43,6 +45,18 @@ function closeContextMenu() {
   contextMenuPos.value = null
 }
 
+const isCoarsePointer = useIsCoarsePointer()
+
+// Touch has no right-click, so a long press opens the same menu. The row isn't
+// draggable, so the menu opens as soon as the press registers rather than
+// waiting for the finger to lift.
+const { isLifted, onPointerDown } = usePressGesture({
+  isEnabled: () => isCoarsePointer.value,
+  onLift: (point) => {
+    contextMenuPos.value = { x: point.x, y: point.y }
+  },
+})
+
 function startEditing() {
   editValue.value = props.node.task.title
   isEditing.value = true
@@ -64,8 +78,10 @@ function cancelEditing() {
 <template>
   <div
     class="task-row"
+    :class="{ 'is-lifted': isLifted }"
     :style="`padding-left: ${14 + node.depth * 16}px`"
     @contextmenu.prevent="openContextMenu"
+    @pointerdown="onPointerDown"
   >
     <div class="task-main">
       <button
