@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useTemplateRef } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import type { MajorTaskOption } from '../../../entities/TaskEntity'
+import type { MajorTaskOption, TaskSchedule } from '../../../entities/TaskEntity'
 import { useAllModeMinorComposerState } from '../composables/useAllModeMinorComposerState'
+import TaskScheduleFields from './TaskScheduleFields.vue'
 
 const props = defineProps<{
   goals: Goal[]
@@ -10,8 +12,18 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'create-minor', title: string, goalId?: ID, majorTemplateId?: ID): void
+  (
+    e: 'create-minor',
+    title: string,
+    goalId?: ID,
+    majorTemplateId?: ID,
+    schedule?: TaskSchedule,
+  ): void
 }>()
+
+const scheduleFields = useTemplateRef<InstanceType<typeof TaskScheduleFields>>(
+  'scheduleFields',
+)
 
 const {
   selectedGoalId,
@@ -19,10 +31,18 @@ const {
   minorTitle,
   filteredMajorTaskOptions,
   submitMinor,
-} = useAllModeMinorComposerState(props, {
-  onCreateMinor: (title, goalId, majorTemplateId) =>
-    emit('create-minor', title, goalId, majorTemplateId),
-})
+} = useAllModeMinorComposerState(
+  props,
+  {
+    onCreateMinor: (title, goalId, majorTemplateId, schedule) =>
+      emit('create-minor', title, goalId, majorTemplateId, schedule),
+  },
+  {
+    readSchedule: () => scheduleFields.value?.buildSchedule(),
+    canSubmitSchedule: () => scheduleFields.value?.isValid ?? true,
+    onScheduleSubmitted: () => scheduleFields.value?.reset(),
+  },
+)
 </script>
 <template>
   <div class="goal-form-card all-mode-composer">
@@ -51,6 +71,8 @@ const {
         placeholder="New minor task title"
         @keydown.enter="submitMinor"
       />
+
+      <TaskScheduleFields ref="scheduleFields" />
 
       <button class="btn btn-primary" @click="submitMinor">
         Add Minor Task

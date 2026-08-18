@@ -4,6 +4,7 @@ import type {
   DailyTask,
   MajorDecision,
   MajorTaskOption,
+  TaskSchedule,
 } from '../../../entities/TaskEntity'
 import type { ID, Priority } from '../../../entities/types'
 import GoalPanelHeader from './GoalPanelHeader.vue'
@@ -34,10 +35,17 @@ const emit = defineEmits<{
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
-  (e: 'create-all-mode-minor', title: string, goalId?: ID, majorId?: ID): void
+  (
+    e: 'create-all-mode-minor',
+    title: string,
+    goalId?: ID,
+    majorId?: ID,
+    schedule?: TaskSchedule,
+  ): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'delete-task', templateId: ID): void
   (e: 'delete-goal', goalId: ID): void
@@ -60,13 +68,13 @@ const {
   deleteTask,
 } = useGoalPanelState(props, {
   onAddTask: (title, priority) => emit('add-task', title, priority),
-  onAddSubtask: (parentTemplateId, title, priority) =>
-    emit('add-subtask', parentTemplateId, title, priority),
+  onAddSubtask: (parentTemplateId, title, priority, schedule) =>
+    emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleMinor: (dailyTaskId) => emit('toggle-minor', dailyTaskId),
   onResolveMajor: (dailyMajorTaskId, decision) =>
     emit('resolve-major', dailyMajorTaskId, decision),
-  onCreateAllModeMinor: (title, goalId, majorId) =>
-    emit('create-all-mode-minor', title, goalId, majorId),
+  onCreateAllModeMinor: (title, goalId, majorId, schedule) =>
+    emit('create-all-mode-minor', title, goalId, majorId, schedule),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
 })
@@ -125,7 +133,8 @@ const goalPanelStyle = computed(() =>
       :major-task-options="majorTaskOptions"
       @add-task="(title, priority) => submitTask(title, priority)"
       @create-all-mode-minor="
-        (title, goalId, majorId) => submitMinor(title, goalId, majorId)
+        (title, goalId, majorId, schedule) =>
+          submitMinor(title, goalId, majorId, schedule)
       "
     />
 
@@ -133,7 +142,8 @@ const goalPanelStyle = computed(() =>
       :nodes="orderedFlatNodes"
       :is-all-mode="isAllMode"
       @add-subtask="
-        (parentId, title, priority) => submitSubtask(parentId, title, priority)
+        (parentId, title, priority, schedule) =>
+          submitSubtask(parentId, title, priority, schedule)
       "
       @toggle-minor="(dailyTaskId) => toggleMinor(dailyTaskId)"
       @resolve-major="

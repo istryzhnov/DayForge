@@ -4,6 +4,7 @@ import {
   type CreateTaskInput,
   type DailyTask,
   type MajorDecision,
+  type TaskSchedule,
   type TaskTemplate,
 } from '../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../entities/types'
@@ -123,17 +124,23 @@ export function useGoalSpace() {
       parentTemplateId,
       order,
       tagIds: [],
+      recurrence: input.schedule?.recurrence,
+      startTime: input.schedule?.startTime,
+      endTime: input.schedule?.endTime,
       isActive: true,
       createdAt: now,
       updatedAt: now,
     }
 
     taskTemplates.value.push(newTask)
+
+    // A scheduled task materializes on its own date rather than today — for a
+    // future date, today is simply not one of its occurrences.
     ensureDailyTaskForTemplate({
       taskTemplates: taskTemplates.value,
       dailyTasks: dailyTasks.value,
       template: newTask,
-      date: currentDate.value,
+      date: input.schedule?.date ?? currentDate.value,
     })
 
     return newTask
@@ -143,28 +150,42 @@ export function useGoalSpace() {
     goalId: ID | undefined,
     title: string,
     priority: Priority = PRIORITY.MINOR,
+    schedule?: TaskSchedule,
   ) {
-    return createTask({ kind: TASK_KIND.TASK, goalId, title, priority })
+    return createTask({
+      kind: TASK_KIND.TASK,
+      goalId,
+      title,
+      priority,
+      schedule,
+    })
   }
 
-  function addMinorInAllMode(title: string, goalId?: ID, majorTemplateId?: ID) {
+  function addMinorInAllMode(
+    title: string,
+    goalId?: ID,
+    majorTemplateId?: ID,
+    schedule?: TaskSchedule,
+  ) {
     if (majorTemplateId) {
-      return addSubTask(majorTemplateId, title, PRIORITY.MINOR)
+      return addSubTask(majorTemplateId, title, PRIORITY.MINOR, schedule)
     }
 
-    return addTask(goalId, title, PRIORITY.MINOR)
+    return addTask(goalId, title, PRIORITY.MINOR, schedule)
   }
 
   function addSubTask(
     parentTemplateId: ID,
     title: string,
     priority: Priority = PRIORITY.MINOR,
+    schedule?: TaskSchedule,
   ) {
     return createTask({
       kind: TASK_KIND.SUBTASK,
       parentTemplateId,
       title,
       priority,
+      schedule,
     })
   }
 

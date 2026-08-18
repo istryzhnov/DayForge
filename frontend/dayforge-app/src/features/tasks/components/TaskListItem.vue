@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision } from '../../../entities/TaskEntity'
+import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
 import {
   MAJOR_DECISION,
@@ -25,6 +25,7 @@ const props = defineProps<{
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) => void
   onCancelSubtask: () => void
   onFocusMajor: (dailyMajorTaskId: ID) => void
@@ -199,8 +200,8 @@ function cancelEditing() {
     :is-subtask="true"
     :is-all-mode="false"
     @submit="
-      (title: string, priority: Priority) =>
-        onSubmitSubtask(node.task.templateId, title, priority)
+      (title: string, priority: Priority, schedule?: TaskSchedule) =>
+        onSubmitSubtask(node.task.templateId, title, priority, schedule)
     "
     @cancel="onCancelSubtask"
   />

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision } from '../../../entities/TaskEntity'
+import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
 import TaskList from '../../tasks/components/TaskList.vue'
 
@@ -15,6 +15,7 @@ const emit = defineEmits<{
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
@@ -29,8 +30,12 @@ const emit = defineEmits<{
     :nodes="nodes"
     :is-all-mode="isAllMode"
     @add-subtask="
-      (parentId: ID, title: string, priority: Priority) =>
-        emit('add-subtask', parentId, title, priority)
+      (
+        parentId: ID,
+        title: string,
+        priority: Priority,
+        schedule?: TaskSchedule,
+      ) => emit('add-subtask', parentId, title, priority, schedule)
     "
     @toggle-minor="(dailyTaskId: ID) => emit('toggle-minor', dailyTaskId)"
     @resolve-major="

@@ -1,5 +1,9 @@
 import type { Goal } from '../../../entities/GoalEntity'
-import type { DailyTask, MajorDecision } from '../../../entities/TaskEntity'
+import type {
+  DailyTask,
+  MajorDecision,
+  TaskSchedule,
+} from '../../../entities/TaskEntity'
 import type { ID, Priority } from '../../../entities/types'
 import { useTaskTree } from '../../../composables/useTaskTree'
 
@@ -16,10 +20,16 @@ type GoalPanelActions = {
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) => void
   onToggleMinor: (dailyTaskId: ID) => void
   onResolveMajor: (dailyMajorTaskId: ID, decision: MajorDecision) => void
-  onCreateAllModeMinor: (title: string, goalId?: ID, majorId?: ID) => void
+  onCreateAllModeMinor: (
+    title: string,
+    goalId?: ID,
+    majorId?: ID,
+    schedule?: TaskSchedule,
+  ) => void
   onEditTask: (templateId: ID, title: string) => void
   onDeleteTask: (templateId: ID) => void
 }
@@ -34,16 +44,22 @@ export function useGoalPanelState(
     actions.onAddTask(title, priority)
   }
 
-  function submitMinor(title: string, goalId?: ID, majorId?: ID) {
-    actions.onCreateAllModeMinor(title, goalId, majorId)
+  function submitMinor(
+    title: string,
+    goalId?: ID,
+    majorId?: ID,
+    schedule?: TaskSchedule,
+  ) {
+    actions.onCreateAllModeMinor(title, goalId, majorId, schedule)
   }
 
   function submitSubtask(
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) {
-    actions.onAddSubtask(parentTemplateId, title, priority)
+    actions.onAddSubtask(parentTemplateId, title, priority, schedule)
   }
 
   function toggleMinor(dailyTaskId: ID) {

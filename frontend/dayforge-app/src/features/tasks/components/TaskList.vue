@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision } from '../../../entities/TaskEntity'
+import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
 import type { FlatTaskNode } from '../../../composables/useTaskTree'
 import { TASK_STATUS } from '../../../entities/constants'
 import { useTaskListState } from '../composables/useTaskListState'
@@ -12,7 +12,13 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-subtask', parentId: ID, title: string, priority: Priority): void
+  (
+    e: 'add-subtask',
+    parentId: ID,
+    title: string,
+    priority: Priority,
+    schedule?: TaskSchedule,
+  ): void
   (e: 'toggle-minor', dailyTaskId: ID): void
   (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
   (e: 'focus-major', dailyMajorTaskId: ID): void
@@ -29,8 +35,8 @@ const {
   editTask,
   deleteTask,
 } = useTaskListState({
-  onAddSubtask: (parentTemplateId, title, priority) =>
-    emit('add-subtask', parentTemplateId, title, priority),
+  onAddSubtask: (parentTemplateId, title, priority, schedule) =>
+    emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleMinor: (taskId) => emit('toggle-minor', taskId),
   onResolveMajor: (taskId, decision) => emit('resolve-major', taskId, decision),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),

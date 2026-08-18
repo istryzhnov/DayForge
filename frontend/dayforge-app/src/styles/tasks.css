@@ -245,6 +245,113 @@
   margin: 4px 0;
 }
 
+.task-schedule {
+  display: grid;
+  gap: 10px;
+}
+
+.task-schedule__toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-schedule__toggle input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.task-schedule__body {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+}
+
+.task-schedule__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.task-schedule__field {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 130px;
+  min-width: 0;
+}
+
+.task-schedule__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.task-schedule__field input,
+.task-schedule__field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.task-schedule__field input:focus,
+.task-schedule__field select:focus {
+  outline: 1px solid var(--accent);
+}
+
+.task-schedule__weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.task-schedule__weekday {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.task-schedule__weekday.is-selected {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel));
+}
+
+.task-schedule__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.task-schedule__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--danger);
+}
+
 .composer-toggle-btn {
   justify-self: start;
 }
@@ -403,6 +510,28 @@
   .task-context-menu__item {
     padding: 12px 12px;
     font-size: 14px;
+  }
+
+  .task-schedule__body {
+    padding: 10px;
+    border-radius: 14px;
+  }
+
+  /* Date and time sit side by side; the end time wraps to its own line rather
+     than squeezing all three into a phone width. */
+  .task-schedule__field {
+    flex: 1 1 calc(50% - 5px);
+  }
+
+  .task-schedule__field input,
+  .task-schedule__field select {
+    /* iOS zooms the page when a focused field is under 16px. */
+    font-size: 16px;
+  }
+
+  .task-schedule__weekday {
+    flex: 1 1 auto;
+    padding: 9px 10px;
   }
 }
 

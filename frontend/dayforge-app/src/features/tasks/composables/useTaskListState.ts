@@ -1,12 +1,13 @@
 import { ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision } from '../../../entities/TaskEntity'
+import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
 
 type TaskListActions = {
   onAddSubtask: (
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) => void
   onToggleMinor: (taskId: ID) => void
   onResolveMajor: (taskId: ID, decision: MajorDecision) => void
@@ -25,8 +26,9 @@ export function useTaskListState(actions: TaskListActions) {
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) {
-    actions.onAddSubtask(parentTemplateId, title, priority)
+    actions.onAddSubtask(parentTemplateId, title, priority, schedule)
     activeParentId.value = null
   }
 

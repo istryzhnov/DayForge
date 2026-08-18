@@ -1,8 +1,13 @@
-export const DAY_START_HOUR = 6
-export const DAY_END_HOUR = 23
+import {
+  DAY_WINDOW,
+  DEFAULT_TASK_DURATION_MINUTES,
+} from '../../../entities/constants'
+
+export const DAY_START_HOUR = DAY_WINDOW.START_HOUR
+export const DAY_END_HOUR = DAY_WINDOW.END_HOUR
 export const PX_PER_MINUTE = 1
 export const SNAP_MINUTES = 15
-export const DEFAULT_DURATION_MINUTES = 60
+export const DEFAULT_DURATION_MINUTES = DEFAULT_TASK_DURATION_MINUTES
 
 export const HOURS = Array.from(
   { length: DAY_END_HOUR - DAY_START_HOUR + 1 },
