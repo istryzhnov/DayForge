@@ -3,6 +3,11 @@ import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
+import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import {
+  usePressGesture,
+  type GesturePoint,
+} from '../../../composables/usePressGesture'
 import {
   PX_PER_MINUTE,
   SNAP_MINUTES,
@@ -11,12 +16,12 @@ import {
   snapMinutes,
   timeFromMinutes,
 } from '../composables/useCalendarGrid'
-import { transform } from 'typescript'
 
 const props = defineProps<{
   task: DailyTask
   topPx: number
   heightPx: number
+  isDragging?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -24,21 +29,50 @@ const emit = defineEmits<{
   (e: 'drag-start', payload: { taskId: ID; grabOffsetMinutes: number }): void
   (e: 'resize', payload: { taskId: ID; endTime: string }): void
   (e: 'context-menu', payload: { taskId: ID; x: number; y: number }): void
-  (e: 'touch-drag-end', payload: { taskId: ID; clientY: number }): void
+  (e: 'touch-lift', payload: { taskId: ID; grabOffsetMinutes: number }): void
+  (e: 'touch-move', point: GesturePoint): void
+  (e: 'touch-drop', point: GesturePoint): void
+  (e: 'touch-cancel'): void
 }>()
 
-const isCoarsePointer =
-  typeof window !== 'undefined' &&
-  window.matchMedia?.('(pointer: coarse)').matches
+const isCoarsePointer = useIsCoarsePointer()
+const isDone = computed(() => props.task.status === TASK_STATUS.DONE)
+const isResizing = ref(false)
+const blockNativeDrag = ref(false)
+const blockRef = ref<HTMLElement | null>(null)
 
 // keep :style bound to a helper (not an inline object) to avoid vue-tsc CSSProperties false positives
 function blockStyle(top: number, height: number) {
   return {
     top: `${top}px`,
     height: `${Math.max(height, 20)}px`,
-    transform: isTouchDragging.value,
   }
 }
+
+/** Where inside the block the pointer grabbed it, so drops feel anchored. */
+function grabOffsetFrom(clientY: number): number {
+  const rect = blockRef.value?.getBoundingClientRect()
+  if (!rect) return 0
+  return Math.round((clientY - rect.top) / PX_PER_MINUTE)
+}
+
+// --- touch: long-press to lift, then drag or open the context menu --------
+
+const { isLifted, onPointerDown } = usePressGesture({
+  isEnabled: () => isCoarsePointer.value && !isResizing.value,
+  onLift: (point) =>
+    emit('touch-lift', {
+      taskId: props.task.id,
+      grabOffsetMinutes: grabOffsetFrom(point.y),
+    }),
+  onDragMove: (point) => emit('touch-move', point),
+  onDrop: (point) => emit('touch-drop', point),
+  onLongPress: (point) =>
+    emit('context-menu', { taskId: props.task.id, x: point.x, y: point.y }),
+  onCancel: () => emit('touch-cancel'),
+})
+
+// --- desktop: native drag and right-click --------------------------------
 
 function onDragStart(event: DragEvent) {
   if (isResizing.value || blockNativeDrag.value) {
@@ -46,17 +80,12 @@ function onDragStart(event: DragEvent) {
     return
   }
 
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const grabOffsetMinutes = Math.round(
-    (event.clientY - rect.top) / PX_PER_MINUTE,
-  )
   event.dataTransfer?.setData('text/plain', props.task.id)
-  emit('drag-start', { taskId: props.task.id, grabOffsetMinutes })
+  emit('drag-start', {
+    taskId: props.task.id,
+    grabOffsetMinutes: grabOffsetFrom(event.clientY),
+  })
 }
-
-const isDone = computed(() => props.task.status === TASK_STATUS.DONE)
-const isResizing = ref(false)
-const blockNativeDrag = ref(false)
 
 function onContextMenu(event: MouseEvent) {
   emit('context-menu', {
@@ -71,6 +100,7 @@ function onResizeHandleDown(event: PointerEvent) {
   event.stopPropagation()
   isResizing.value = true
   blockNativeDrag.value = true
+
   const startClientY = event.clientY
   const startMin = minutesFromDayStart(props.task.startTime!)
   const initialDurationMin = minutesFromDayStart(props.task.endTime!) - startMin
@@ -106,11 +136,21 @@ function onResizeHandleDown(event: PointerEvent) {
 
 <template>
   <div
+    ref="blockRef"
     class="cal-event"
-    :class="[task.priority, { 'is-done': isDone, 'is-resizing': isResizing }]"
+    :class="[
+      task.priority,
+      {
+        'is-done': isDone,
+        'is-resizing': isResizing,
+        'is-lifted': isLifted,
+        'is-dragging': isDragging,
+      },
+    ]"
     :style="blockStyle(topPx, heightPx)"
-    :draggable="!isResizing"
+    :draggable="!isCoarsePointer && !isResizing"
     @dragstart="onDragStart"
+    @pointerdown="onPointerDown"
     @click="emit('select', task.id)"
     @contextmenu.prevent="onContextMenu"
   >

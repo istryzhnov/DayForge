@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useContextMenu } from '../../../composables/useContextMenu'
 
 const props = defineProps<{
   x: number
@@ -12,30 +12,9 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const menuRef = ref<HTMLElement | null>(null)
-const menuPositionStyle = computed(() => ({
-  top: `${props.y}px`,
-  left: `${props.x}px`,
-}))
-
-function handleOutsideClick(event: MouseEvent) {
-  if (menuRef.value && !menuRef.value.contains(event.target as Node)) {
-    emit('close')
-  }
-}
-
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('close')
-}
-
-onMounted(() => {
-  document.addEventListener('mousedown', handleOutsideClick)
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('mousedown', handleOutsideClick)
-  document.removeEventListener('keydown', handleKeydown)
+const { menuPositionStyle } = useContextMenu({
+  getPosition: () => ({ x: props.x, y: props.y }),
+  onClose: () => emit('close'),
 })
 </script>
 

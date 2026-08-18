@@ -32,3 +32,20 @@ export function clampMinutes(minutes: number): number {
   const max = (DAY_END_HOUR - DAY_START_HOUR) * 60
   return Math.min(Math.max(minutes, 0), max)
 }
+
+/** Convert a viewport Y coordinate into snapped, in-range grid minutes. */
+export function minutesFromClientY(
+  gridElement: HTMLElement,
+  clientY: number,
+  grabOffsetMinutes = 0,
+): number {
+  const rect = gridElement.getBoundingClientRect()
+  const rawMinutes = (clientY - rect.top) / PX_PER_MINUTE - grabOffsetMinutes
+  return clampMinutes(snapMinutes(rawMinutes))
+}
+
+/** Scheduled duration in minutes, falling back to the default for unscheduled tasks. */
+export function durationMinutes(startTime?: string, endTime?: string): number {
+  if (!startTime || !endTime) return DEFAULT_DURATION_MINUTES
+  return minutesFromDayStart(endTime) - minutesFromDayStart(startTime)
+}

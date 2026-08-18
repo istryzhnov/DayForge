@@ -396,6 +396,87 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Phone layout: a big editorial title over a compact stat strip. The three
+   stats stay side by side here — stacked full-width cards pushed the actual
+   task list below the fold. */
+@media (max-width: 720px) {
+  .goal-panel {
+    gap: 14px;
+  }
+
+  .goal-panel-header {
+    align-items: center;
+    gap: 12px;
+  }
+
+  .goal-panel-header h2 {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+
+  .goal-panel-header p {
+    margin-top: 4px;
+    font-size: 13px;
+  }
+
+  .goal-kpi-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .kpi {
+    padding: 10px 10px;
+    border-radius: 14px;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--panel-soft) 88%, transparent);
+    box-shadow: none;
+  }
+
+  .kpi h3 {
+    font-size: 9px;
+    letter-spacing: 0.06em;
+  }
+
+  .kpi p {
+    margin-top: 2px;
+    font-size: 20px;
+  }
+
+  .goal-status {
+    align-self: flex-start;
+  }
+
+  .goal-form-card {
+    border-radius: 16px;
+    padding: 12px;
+  }
+
+  .goal-form-card input,
+  .goal-form-card select {
+    padding: 12px;
+    border-radius: 12px;
+    /* iOS zooms the page when a focused field is under 16px. */
+    font-size: 16px;
+  }
+
+  .composer-toggle-btn,
+  .composer-collapsible__close {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .goal-settings__menu {
+    width: min(260px, calc(100vw - 32px));
+  }
+
+  .goal-settings__item {
+    padding: 11px 8px;
+    font-size: 14px;
+  }
+}
 .all-mode-composer {
   grid-template-columns: 1fr;
   gap: 12px;

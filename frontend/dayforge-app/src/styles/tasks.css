@@ -306,6 +306,106 @@
   }
 }
 
+/* Phone layout: flat, generously rounded cards with the row kept on a single
+   line (copy left, add-button right) instead of the actions wrapping full-width
+   underneath, which made every row twice as tall as it needed to be. */
+@media (max-width: 720px) {
+  .task-list {
+    gap: 8px;
+  }
+
+  .task-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px;
+    border-radius: 16px;
+    border-color: transparent;
+    background: color-mix(in srgb, var(--panel-soft) 88%, transparent);
+  }
+
+  /* Touch has no hover; the lift state below is the real feedback. */
+  .task-row:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  /* Held long enough to open the context menu. */
+  .task-row.is-lifted {
+    transform: scale(0.98);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  }
+
+  .task-main {
+    gap: 10px;
+  }
+
+  .task-copy {
+    gap: 4px;
+  }
+
+  .task-title {
+    font-size: 15px;
+    line-height: 1.25;
+  }
+
+  .task-meta {
+    gap: 5px;
+  }
+
+  .goal-inline-chip,
+  .major-inline-chip,
+  .task-priority-chip {
+    font-size: 10px;
+    padding: 2px 7px;
+  }
+
+  .actions {
+    width: auto;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .task-add-btn {
+    margin-right: 0;
+  }
+
+  /* A major task's resolve buttons need the full width to stay legible, so
+     they drop to their own line beneath the row's copy. */
+  .task-row:has(.actions .btn) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .task-row:has(.actions .btn) .actions {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .task-row:has(.actions .btn) .actions .btn {
+    flex: 1 1 auto;
+    padding: 9px 12px;
+    font-size: 13px;
+  }
+
+  .task-empty {
+    border-radius: 16px;
+    padding: 22px 16px;
+  }
+
+  .task-context-menu {
+    min-width: 200px;
+    padding: 8px;
+  }
+
+  /* Comfortable tap targets in the long-press menu. */
+  .task-context-menu__item {
+    padding: 12px 12px;
+    font-size: 14px;
+  }
+}
+
 .major-inline-chip {
   border: 1px solid var(--major);
   background: color-mix(in srgb, var(--major) 14%, transparent);
