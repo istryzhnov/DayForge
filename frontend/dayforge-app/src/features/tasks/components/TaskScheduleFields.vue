@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ComposerToggleSection from './ComposerToggleSection.vue'
 import {
   MAX_TIME,
   MIN_TIME,
@@ -32,13 +33,8 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
 </script>
 
 <template>
-  <div class="task-schedule">
-    <label class="task-schedule__toggle">
-      <input v-model="isEnabled" type="checkbox" />
-      <span>Schedule on the calendar</span>
-    </label>
-
-    <div v-if="isEnabled" class="task-schedule__body">
+  <ComposerToggleSection v-model="isEnabled" label="Schedule on the calendar">
+    <div class="task-schedule__fields">
       <div class="task-schedule__row">
         <label class="task-schedule__field">
           <span class="task-schedule__label">Date</span>
@@ -107,5 +103,5 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
         Happens once on {{ date }} and only on that day.
       </p>
     </div>
-  </div>
+  </ComposerToggleSection>
 </template>

@@ -82,7 +82,6 @@ export function ensureDailyTaskForTemplate({
     priority: template.priority,
     goalId: template.goalId,
     parentDailyTaskId,
-    majorDecision: undefined,
     tagIds: [],
     completedAt: undefined,
     // Each occurrence inherits the template's planned time, which is what puts

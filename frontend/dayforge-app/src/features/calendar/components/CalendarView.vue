@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { DailyTask } from '../../../entities/TaskEntity'
+import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { TASK_STATUS } from '../../../entities/constants'
+import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
@@ -23,6 +23,7 @@ import { useCalendarSelection } from '../composables/useCalendarSelection'
 const props = defineProps<{
   tasks: DailyTask[]
   currentDate: ISODate
+  projectOptions: MajorTaskOption[]
 }>()
 
 const emit = defineEmits<{
@@ -39,6 +40,8 @@ const emit = defineEmits<{
     payload: { title: string; startTime: string; endTime: string },
   ): void
   (e: 'toggle-task-done', taskId: ID): void
+  (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
 }>()
 
 const gridRef = ref<HTMLElement | null>(null)
@@ -57,8 +60,19 @@ function bottomInset() {
 const scheduledTasks = computed(() =>
   props.tasks.filter((task) => task.startTime && task.endTime),
 )
+/**
+ * What still needs a slot on the grid. Excludes projects (containers, not
+ * things you drop on a time) and anything already finished — a completed task
+ * has nothing left to schedule. Done tasks that *are* scheduled stay on the
+ * grid as a record of the day.
+ */
 const unscheduledTasks = computed(() =>
-  props.tasks.filter((task) => !task.startTime),
+  props.tasks.filter(
+    (task) =>
+      !task.startTime &&
+      task.priority !== PRIORITY.MAJOR &&
+      task.status !== TASK_STATUS.DONE,
+  ),
 )
 
 const dateLabel = computed(() =>
@@ -174,6 +188,15 @@ function handleToggleTaskDone() {
   const taskId = contextMenuTask.value?.id
   if (taskId) emit('toggle-task-done', taskId)
 }
+
+/** The select works in template ids, but the row only stores its parent row id. */
+const selectedProjectTemplateId = computed(() => {
+  const parentRowId = selectedTask.value?.parentDailyTaskId
+  if (!parentRowId) return null
+  return (
+    props.tasks.find((task) => task.id === parentRowId)?.templateId ?? null
+  )
+})
 
 function handleUnschedule(taskId: ID) {
   emit('unschedule-task', taskId)
@@ -333,7 +356,7 @@ function onTouchDrop(point: GesturePoint) {
           @context-menu="openContextMenu"
         />
         <p v-if="!unscheduledTasks.length" class="calendar-view__empty-hint">
-          All tasks are scheduled
+          Nothing left to schedule
         </p>
       </aside>
     </div>
@@ -354,9 +377,18 @@ function onTouchDrop(point: GesturePoint) {
     <EventDetailsPanel
       v-if="selectedTask"
       :task="selectedTask"
+      :project-options="projectOptions"
+      :current-project-id="selectedProjectTemplateId"
       @close="closeDetails"
       @unschedule="handleUnschedule"
       @update-time="handleUpdateTime"
+      @update-title="
+        (payload) => emit('edit-task', payload.templateId, payload.title)
+      "
+      @update-project="
+        (payload) =>
+          emit('attach-to-project', payload.templateId, payload.projectTemplateId)
+      "
     />
   </section>
 </template>

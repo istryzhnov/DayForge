@@ -3,17 +3,14 @@ import { useGoals } from './useGoals'
 import {
   type CreateTaskInput,
   type DailyTask,
-  type MajorDecision,
   type TaskSchedule,
   type TaskTemplate,
 } from '../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../entities/types'
-import {
-  MAJOR_DECISION,
-  PRIORITY,
-  TASK_KIND,
-  TASK_STATUS,
-} from '../entities/constants'
+import { PRIORITY, TASK_KIND, TASK_STATUS } from '../entities/constants'
+
+/** How long a freshly created task keeps its "just added" highlight. */
+const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import {
   bindStorage,
@@ -42,6 +39,23 @@ export function useGoalSpace() {
   const taskTemplates = ref<TaskTemplate[]>([])
   const dailyTasks = ref<DailyTask[]>([])
   const currentDate = ref<ISODate>(getTodayISODate())
+
+  /**
+   * The template just created, so its row can play a one-off highlight. Held in
+   * a ref (rather than derived from `createdAt`) so clearing it is a reactive
+   * change that reliably re-renders the list.
+   */
+  const lastCreatedTemplateId = ref<ID | null>(null)
+  let highlightTimerId: number | undefined
+
+  function markRecentlyCreated(templateId: ID) {
+    lastCreatedTemplateId.value = templateId
+    if (highlightTimerId !== undefined) window.clearTimeout(highlightTimerId)
+    highlightTimerId = window.setTimeout(() => {
+      lastCreatedTemplateId.value = null
+      highlightTimerId = undefined
+    }, NEW_TASK_HIGHLIGHT_MS)
+  }
 
   function loadFromStorageTasks() {
     taskTemplates.value = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
@@ -133,6 +147,7 @@ export function useGoalSpace() {
     }
 
     taskTemplates.value.push(newTask)
+    markRecentlyCreated(newTask.id)
 
     // A scheduled task materializes on its own date rather than today — for a
     // future date, today is simply not one of its occurrences.
@@ -180,6 +195,10 @@ export function useGoalSpace() {
     priority: Priority = PRIORITY.MINOR,
     schedule?: TaskSchedule,
   ) {
+    // Anything that gains children is a project by definition, so giving a plain
+    // task a subtask promotes it rather than leaving a task that groups others.
+    convertTaskToProject(parentTemplateId)
+
     return createTask({
       kind: TASK_KIND.SUBTASK,
       parentTemplateId,
@@ -227,6 +246,51 @@ export function useGoalSpace() {
       (item) =>
         !idsToRemove.has(item.templateId) || item.date < currentDate.value,
     )
+  }
+
+  /**
+   * Move a task under a project, or detach it when `projectTemplateId` is null.
+   *
+   * Like `deleteTask` and `convertTaskToProject`, only today's and future rows
+   * are rewritten — past days keep the grouping they were completed under.
+   * Projects are excluded because nesting is capped at two levels.
+   */
+  function attachTaskToProject(templateId: ID, projectTemplateId: ID | null) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template || template.priority === PRIORITY.MAJOR) return
+
+    const project = projectTemplateId
+      ? taskTemplates.value.find((item) => item.id === projectTemplateId)
+      : null
+    if (projectTemplateId && (!project || project.id === templateId)) return
+
+    template.parentTemplateId = project?.id
+    template.updatedAt = new Date().toISOString()
+
+    dailyTasks.value
+      .filter(
+        (item) =>
+          item.templateId === templateId && item.date >= currentDate.value,
+      )
+      .forEach((row) => {
+        if (!project) {
+          row.parentDailyTaskId = undefined
+          return
+        }
+
+        // The project may not have a row on that date yet — create it so the
+        // task has something to hang off.
+        ensureDailyTaskForTemplate({
+          taskTemplates: taskTemplates.value,
+          dailyTasks: dailyTasks.value,
+          template: project,
+          date: row.date,
+        })
+
+        row.parentDailyTaskId = dailyTasks.value.find(
+          (item) => item.templateId === project.id && item.date === row.date,
+        )?.id
+      })
   }
 
   function removeGoal(goalId: ID) {
@@ -277,20 +341,11 @@ export function useGoalSpace() {
     ),
   )
 
-  function addMajorWithMinor(
-    goalId: ID,
-    majorTitle: string,
-    minorTitle: string,
-  ) {
-    const major = addTask(goalId, majorTitle, PRIORITY.MAJOR)
-    if (!major) return null
-
-    return addSubTask(major.id, minorTitle, PRIORITY.MINOR)
-  }
-
-  function toggleMinorDone(dailyTaskId: ID) {
+  // Every task closes the same way, projects included — a project is a grouping
+  // container, not a task with its own lifecycle.
+  function toggleTaskDone(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
-    if (!task || task.priority !== PRIORITY.MINOR) return
+    if (!task) return
 
     if (task.status === TASK_STATUS.DONE) {
       task.status = TASK_STATUS.TODO
@@ -301,42 +356,31 @@ export function useGoalSpace() {
     task.completedAt = new Date().toISOString()
   }
 
-  function resolveMajorTask(dailyMajorTaskId: ID, decision: MajorDecision) {
-    const majorTask = dailyTasks.value.find(
-      (item) => item.id === dailyMajorTaskId,
-    )
-    if (!majorTask || majorTask.priority !== PRIORITY.MAJOR) return
-
-    const minorChildren = dailyTasks.value.filter(
-      (item) =>
-        item.date === currentDate.value &&
-        item.parentDailyTaskId === dailyMajorTaskId &&
-        item.priority === PRIORITY.MINOR,
-    )
-    const allMinorDone =
-      minorChildren.length > 0 &&
-      minorChildren.every((item) => item.status === TASK_STATUS.DONE)
-
-    if (!allMinorDone) return
-
-    majorTask.majorDecision = decision
-
-    if (decision === MAJOR_DECISION.CONTINUE) {
-      majorTask.status = TASK_STATUS.TODO
-      majorTask.completedAt = undefined
-      return
-    }
-
-    majorTask.status = TASK_STATUS.DONE
-    majorTask.completedAt = new Date().toISOString()
-
-    const template = taskTemplates.value.find(
-      (item) => item.id === majorTask.templateId,
-    )
+  /**
+   * Promote a plain task into a project so it can group others.
+   *
+   * Only today's and future occurrences change: rewriting past rows would
+   * restate history the habit calendar already counted (same rule as
+   * `deleteTask`). Nesting is capped at two levels, so a task that already sits
+   * inside a project cannot become one.
+   */
+  function convertTaskToProject(templateId: ID) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template) return
+    if (template.priority === PRIORITY.MAJOR) return
+    if (template.parentTemplateId) return
 
-    template.isActive = false
+    template.priority = PRIORITY.MAJOR
     template.updatedAt = new Date().toISOString()
+
+    dailyTasks.value
+      .filter(
+        (item) =>
+          item.templateId === templateId && item.date >= currentDate.value,
+      )
+      .forEach((item) => {
+        item.priority = PRIORITY.MAJOR
+      })
   }
 
   return {
@@ -346,6 +390,7 @@ export function useGoalSpace() {
     taskTemplates,
     dailyTasks,
     currentDate,
+    lastCreatedTemplateId,
     tasksForActiveGoal,
     taskCountByGoal,
     selectGoal,
@@ -358,10 +403,10 @@ export function useGoalSpace() {
     editTaskTitle,
     deleteTask,
     initializeStorage,
-    toggleMinorDone,
-    resolveMajorTask,
+    toggleTaskDone,
+    convertTaskToProject,
+    attachTaskToProject,
     activeMajorTemplates,
-    addMajorWithMinor,
     addMinorInAllMode,
     scheduleDailyTask,
     unscheduleDailyTask,

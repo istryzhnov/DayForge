@@ -290,6 +290,39 @@
   background: var(--line);
 }
 
+/* Same look as .goal-settings__menu, but positioned at the pointer instead of
+   anchored to a trigger. Reuses the goal-settings item styles below it. */
+.goal-context-menu {
+  position: fixed;
+  z-index: 1200;
+  min-width: 180px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 6px;
+  animation: task-context-menu-in 0.12s ease;
+}
+
+.goal-context-menu__title {
+  margin: 0;
+  padding: 2px 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Held long enough on touch to open the menu. */
+.nav-goal-btn.is-lifted {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
 .goal-panel-header h2 {
   margin: 0;
   color: var(--text);
@@ -475,6 +508,11 @@
   .goal-settings__item {
     padding: 11px 8px;
     font-size: 14px;
+  }
+
+  .goal-context-menu {
+    min-width: 200px;
+    max-width: calc(100vw - 16px);
   }
 }
 .all-mode-composer {

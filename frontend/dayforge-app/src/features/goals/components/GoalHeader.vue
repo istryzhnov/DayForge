@@ -10,8 +10,8 @@ const props = defineProps<{
   description: string
   status: string
   totalCount: number
-  majorCount: number
-  subCount: number
+  projectCount: number
+  taskCount: number
   showSettings: boolean
   accentColor?: string
 }>()
@@ -100,16 +100,16 @@ function swatchStyle(color: string): Record<string, string> {
   </header>
   <div class="goal-kpi-row">
     <article class="kpi">
-      <h3>Total Tasks</h3>
+      <h3>Total</h3>
       <p>{{ totalCount }}</p>
     </article>
     <article class="kpi">
-      <h3>Major Tasks</h3>
-      <p>{{ majorCount }}</p>
+      <h3>Projects</h3>
+      <p>{{ projectCount }}</p>
     </article>
     <article class="kpi">
-      <h3>Subtasks</h3>
-      <p>{{ subCount }}</p>
+      <h3>Tasks</h3>
+      <p>{{ taskCount }}</p>
     </article>
   </div>
 </template>

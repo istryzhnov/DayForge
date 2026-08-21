@@ -19,12 +19,14 @@ function levelClass(percent: number) {
 
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-const monthLabel = computed(() => {
-  if (!props.cells.length) return ''
-  const [year, month] = props.cells[0].date.split('-').map(Number)
-  const d = new Date(year, month - 1, 1)
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-})
+// Commented out together with the month grid in the template below; restore
+// both at once. Left in place rather than deleted so the grid can come back.
+// const monthLabel = computed(() => {
+//   if (!props.cells.length) return ''
+//   const [year, month] = props.cells[0].date.split('-').map(Number)
+//   const d = new Date(year, month - 1, 1)
+//   return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+// })
 
 function parseISODate(isoDate: string) {
   const [year, month, day] = isoDate.split('-').map(Number)
@@ -70,9 +72,10 @@ const weekCells = computed(() => {
   })
 })
 
-function dayNumber(dateISO: string) {
-  return Number(dateISO.split('-')[2])
-}
+// Also part of the commented-out month grid.
+// function dayNumber(dateISO: string) {
+//   return Number(dateISO.split('-')[2])
+// }
 
 function progressState(percent: number) {
   if (percent <= 0) return 'is-empty'

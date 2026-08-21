@@ -61,6 +61,17 @@ export function occursOn(template: TaskTemplate, date: ISODate): boolean {
   return matchesRecurrence(template.recurrence, date)
 }
 
+/**
+ * Whether a template produces more than one occurrence.
+ *
+ * A missing rule means "every day" (the pre-scheduling default), so it counts
+ * as repeating; only an explicit `none` is a genuine one-off.
+ */
+export function isRepeating(template: TaskTemplate): boolean {
+  if (!template.recurrence) return true
+  return template.recurrence.type !== RECURRENCE_TYPE.NONE
+}
+
 /** Last date a repeating rule may produce an occurrence on. */
 export function recurrenceHorizonEnd(startDate: ISODate): ISODate {
   return addDaysToISODate(startDate, RECURRENCE_HORIZON_DAYS)

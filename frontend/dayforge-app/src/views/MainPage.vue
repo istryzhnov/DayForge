@@ -23,6 +23,7 @@ const {
   activeGoal,
   selectGoal,
   taskTemplates,
+  lastCreatedTemplateId,
   tasksForActiveGoal,
   taskCountByGoal,
   dailyTasks,
@@ -39,8 +40,9 @@ const {
   handleAddTask,
   handleAddSubTask,
   handleCreateGoal,
-  handleToggleMinor,
-  handleResolveMajor,
+  handleToggleDone,
+  handleSetAsProject,
+  handleAttachToProject,
   handleCreateAllModeMinor,
   handleEditTask,
   handleDeleteTask,
@@ -122,7 +124,7 @@ function handleCreateScheduledTask(payload: {
 }
 
 function handleToggleCalendarTaskDone(taskId: ID) {
-  handleToggleMinor(taskId)
+  handleToggleDone(taskId)
 }
 </script>
 
@@ -145,6 +147,7 @@ function handleToggleCalendarTaskDone(taskId: ID) {
         @change-theme-mode="handleThemeModeChange"
         @select-view="handleSelectView"
         @toggle-notifications="handleToggleNotifications"
+        @delete-goal="handleDeleteGoal"
       />
     </aside>
 
@@ -155,14 +158,16 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           :goal="activeGoal"
           :goals="goals"
           :tasks="tasksForActiveGoal"
+          :templates="taskTemplates"
+          :new-template-id="lastCreatedTemplateId"
           :daily-tasks="dailyTasks"
           :current-date="currentDate"
           :is-all-mode="activeGoalId === null"
           :major-task-options="majorTaskOptions"
           @add-task="handleAddTask"
           @add-subtask="handleAddSubTask"
-          @toggle-minor="handleToggleMinor"
-          @resolve-major="handleResolveMajor"
+          @toggle-done="handleToggleDone"
+          @set-as-project="handleSetAsProject"
           @create-all-mode-minor="handleCreateAllModeMinor"
           @edit-task="handleEditTask"
           @delete-task="handleDeleteTask"
@@ -177,10 +182,13 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           @prev-day="goToPreviousDay"
           @next-day="goToNextDay"
           @today="goToToday"
+          :project-options="majorTaskOptions"
           @schedule-task="handleScheduleTask"
           @unschedule-task="unscheduleDailyTask"
           @create-task="handleCreateScheduledTask"
           @toggle-task-done="handleToggleCalendarTaskDone"
+          @edit-task="handleEditTask"
+          @attach-to-project="handleAttachToProject"
         />
       </div>
     </main>

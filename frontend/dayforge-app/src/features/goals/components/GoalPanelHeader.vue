@@ -6,8 +6,8 @@ defineProps<{
   description: string
   status: string
   totalCount: number
-  majorCount: number
-  subCount: number
+  projectCount: number
+  taskCount: number
   showSettings: boolean
   accentColor?: string
 }>()
@@ -24,8 +24,8 @@ const emit = defineEmits<{
     :description="description"
     :status="status"
     :total-count="totalCount"
-    :major-count="majorCount"
-    :sub-count="subCount"
+    :project-count="projectCount"
+    :task-count="taskCount"
     :show-settings="showSettings"
     :accent-color="accentColor"
     @delete-goal="emit('delete-goal')"

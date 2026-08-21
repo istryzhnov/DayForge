@@ -23,11 +23,6 @@ export const GOAL_STATUS = {
   ARCHIVED: 'archived',
 } as const
 
-export const MAJOR_DECISION = {
-  CONTINUE: 'continue',
-  DONE: 'done',
-} as const
-
 export const PROGRESS_SCOPE_TYPE = {
   ALL: 'all',
   GOAL: 'goal',
@@ -50,8 +45,8 @@ export const RECURRENCE_HORIZON_DAYS = 30
 // The planning day window. Times outside it have nowhere to render on the
 // calendar grid, so schedule inputs are constrained to it too.
 export const DAY_WINDOW = {
-  START_HOUR: 6,
-  END_HOUR: 23,
+  START_HOUR: 0,
+  END_HOUR: 24,
 } as const
 
 export const DEFAULT_TASK_DURATION_MINUTES = 60

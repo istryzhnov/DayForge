@@ -47,12 +47,10 @@ const { title, submit, cancel } = useTaskComposerState(
       <input
         v-model="title"
         type="text"
-        placeholder="New major task title "
+        placeholder="New task title"
         @keydown.enter="submit"
       />
-      <button class="btn btn-primary" @click="submit">
-        {{ isSubtask ? 'Add Subtask' : 'Add Task' }}
-      </button>
+      <button class="btn btn-primary" @click="submit">Add task</button>
       <button v-if="isSubtask" class="btn btn-ghost" @click="cancel">
         Cancel
       </button>

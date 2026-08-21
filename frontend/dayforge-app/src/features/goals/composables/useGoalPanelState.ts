@@ -1,16 +1,21 @@
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
-  MajorDecision,
   TaskSchedule,
+  TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, Priority } from '../../../entities/types'
+import { PRIORITY } from '../../../entities/constants'
 import { useTaskTree } from '../../../composables/useTaskTree'
 
 type GoalPanelProps = {
   goal: Goal | null
   goals: Goal[]
   tasks: DailyTask[]
+  /** Every day's rows — the task tree counts completions across all of them. */
+  dailyTasks: DailyTask[]
+  templates: TaskTemplate[]
+  newTemplateId: ID | null
   isAllMode: boolean
 }
 
@@ -22,8 +27,7 @@ type GoalPanelActions = {
     priority: Priority,
     schedule?: TaskSchedule,
   ) => void
-  onToggleMinor: (dailyTaskId: ID) => void
-  onResolveMajor: (dailyMajorTaskId: ID, decision: MajorDecision) => void
+  onToggleDone: (dailyTaskId: ID) => void
   onCreateAllModeMinor: (
     title: string,
     goalId?: ID,
@@ -32,6 +36,7 @@ type GoalPanelActions = {
   ) => void
   onEditTask: (templateId: ID, title: string) => void
   onDeleteTask: (templateId: ID) => void
+  onSetAsProject: (templateId: ID) => void
 }
 
 export function useGoalPanelState(
@@ -62,12 +67,20 @@ export function useGoalPanelState(
     actions.onAddSubtask(parentTemplateId, title, priority, schedule)
   }
 
-  function toggleMinor(dailyTaskId: ID) {
-    actions.onToggleMinor(dailyTaskId)
+  /**
+   * The empty-state field only asks for a title, so it creates a plain task —
+   * scoped to the open goal, or unassigned in All Goals.
+   */
+  function submitQuickAdd(title: string) {
+    if (props.isAllMode) {
+      actions.onCreateAllModeMinor(title)
+      return
+    }
+    actions.onAddTask(title, PRIORITY.MINOR)
   }
 
-  function resolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
-    actions.onResolveMajor(dailyMajorTaskId, decision)
+  function toggleDone(dailyTaskId: ID) {
+    actions.onToggleDone(dailyTaskId)
   }
 
   function editTask(templateId: ID, title: string) {
@@ -78,14 +91,19 @@ export function useGoalPanelState(
     actions.onDeleteTask(templateId)
   }
 
+  function setAsProject(templateId: ID) {
+    actions.onSetAsProject(templateId)
+  }
+
   return {
     ...taskTree,
     submitTask,
     submitMinor,
     submitSubtask,
-    toggleMinor,
-    resolveMajor,
+    submitQuickAdd,
+    toggleDone,
     editTask,
     deleteTask,
+    setAsProject,
   }
 }

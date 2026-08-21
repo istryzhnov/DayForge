@@ -3,16 +3,78 @@
   gap: 12px;
 }
 
+/* A project that groups tasks is drawn as one container so the relationship is
+   structural rather than implied by indentation. */
+.task-project {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--panel-soft) 35%, transparent);
+}
+
+.task-project .task-row--project {
+  border-color: transparent;
+  background: transparent;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.task-project__children {
+  display: grid;
+  gap: 8px;
+}
+
+.task-quick-add {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed var(--line-soft);
+  border-radius: 18px;
+  padding: 18px;
+  background: var(--panel-layer);
+}
+
+.task-quick-add__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.task-quick-add__row {
+  display: flex;
+  gap: 8px;
+}
+
+.task-quick-add__row input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 11px 12px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.task-quick-add__row input:focus {
+  outline: 1px solid var(--accent);
+}
+
 .task-done {
   text-decoration: line-through;
   opacity: 0.58;
 }
 
 .task-row {
+  position: relative;
   border: 1px solid var(--line);
   border-radius: 18px;
   padding-top: 12px;
   padding-bottom: 12px;
+  padding-left: 15px;
   background: var(--panel-layer);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -21,6 +83,41 @@
     border-color 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.15s ease;
+}
+
+/* A gradient sweeps across a task the moment it is created, so the user sees
+   where it landed. Painted on a pseudo-element via a moving background
+   position — nothing overflows the box, so the row needs no clipping. */
+.task-row.is-new::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: linear-gradient(
+    100deg,
+    transparent 40%,
+    color-mix(in srgb, var(--accent) 32%, transparent) 50%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: task-row-sweep 0.9s ease-out 1;
+}
+
+@keyframes task-row-sweep {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .task-row.is-new::after {
+    animation: none;
+  }
 }
 
 .task-row:hover {
@@ -109,6 +206,21 @@
   background: var(--minor);
   border-color: var(--minor);
   animation: task-dot-pop 0.22s ease;
+}
+
+/* A project is completable like anything else, but keeps its own colour so it
+   still reads as the container of the block. */
+.task-dot-check--project {
+  border-color: color-mix(in srgb, var(--major) 70%, var(--line));
+}
+
+.task-dot-check--project:hover {
+  border-color: var(--major);
+}
+
+.task-dot-check--project.is-done {
+  background: var(--major);
+  border-color: var(--major);
 }
 
 .task-dot-check__mark {
@@ -245,12 +357,14 @@
   margin: 4px 0;
 }
 
-.task-schedule {
+/* Shared "checkbox reveals a panel" block, used by the schedule fields and the
+   goal/project pickers so both stay identical. */
+.composer-section {
   display: grid;
   gap: 10px;
 }
 
-.task-schedule__toggle {
+.composer-section__toggle {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -260,20 +374,42 @@
   user-select: none;
 }
 
-.task-schedule__toggle input {
+.composer-section__toggle input {
   width: 16px;
   height: 16px;
   accent-color: var(--accent);
   cursor: pointer;
 }
 
-.task-schedule__body {
+.composer-section__body {
   display: grid;
   gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+}
+
+.composer-assign {
+  display: grid;
+  gap: 10px;
+}
+
+.composer-assign__field {
+  display: grid;
+  gap: 4px;
+}
+
+.composer-assign__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.task-schedule__fields {
+  display: grid;
+  gap: 10px;
 }
 
 .task-schedule__row {
@@ -373,6 +509,18 @@
   background: color-mix(in srgb, var(--major) 12%, transparent);
   color: color-mix(in srgb, var(--major) 72%, var(--text));
   border: 1px solid var(--line);
+}
+
+/* Running completion tally on a repeating task. */
+.task-repeat-chip {
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: color-mix(in srgb, var(--accent) 70%, var(--text));
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 9px;
+  white-space: nowrap;
 }
 
 .goal-inline-chip {
@@ -478,27 +626,34 @@
     margin-right: 0;
   }
 
-  /* A major task's resolve buttons need the full width to stay legible, so
-     they drop to their own line beneath the row's copy. */
-  .task-row:has(.actions .btn) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .task-row:has(.actions .btn) .actions {
-    width: 100%;
-    justify-content: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .task-row:has(.actions .btn) .actions .btn {
-    flex: 1 1 auto;
-    padding: 9px 12px;
-    font-size: 13px;
-  }
-
   .task-empty {
     border-radius: 16px;
     padding: 22px 16px;
+  }
+
+  .task-project {
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .task-quick-add {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  /* The field needs the width more than the button does. */
+  .task-quick-add__row {
+    flex-wrap: wrap;
+  }
+
+  .task-quick-add__row input {
+    flex: 1 1 100%;
+    /* iOS zooms the page when a focused field is under 16px. */
+    font-size: 16px;
+  }
+
+  .task-quick-add__row .btn {
+    flex: 1 1 auto;
   }
 
   .task-context-menu {
@@ -512,9 +667,14 @@
     font-size: 14px;
   }
 
-  .task-schedule__body {
+  .composer-section__body {
     padding: 10px;
     border-radius: 14px;
+  }
+
+  .composer-assign__field select {
+    /* iOS zooms the page when a focused field is under 16px. */
+    font-size: 16px;
   }
 
   /* Date and time sit side by side; the end time wraps to its own line rather

@@ -2,11 +2,7 @@ import { computed, onMounted } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal } from '../../entities/GoalEntity'
 import type { ID, Priority } from '../../entities/types'
-import type {
-  MajorDecision,
-  MajorTaskOption,
-  TaskSchedule,
-} from '../../entities/TaskEntity'
+import type { MajorTaskOption, TaskSchedule } from '../../entities/TaskEntity'
 import { GOAL_STATUS } from '../../entities/constants'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
@@ -56,12 +52,19 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     })
   }
 
-  function handleToggleMinor(dailyTaskId: ID) {
-    goalSpace.toggleMinorDone(dailyTaskId)
+  function handleToggleDone(dailyTaskId: ID) {
+    goalSpace.toggleTaskDone(dailyTaskId)
   }
 
-  function handleResolveMajor(dailyMajorTaskId: ID, decision: MajorDecision) {
-    goalSpace.resolveMajorTask(dailyMajorTaskId, decision)
+  function handleSetAsProject(templateId: ID) {
+    goalSpace.convertTaskToProject(templateId)
+  }
+
+  function handleAttachToProject(
+    templateId: ID,
+    projectTemplateId: ID | null,
+  ) {
+    goalSpace.attachTaskToProject(templateId, projectTemplateId)
   }
 
   function handleCreateAllModeMinor(
@@ -94,8 +97,9 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleAddTask,
     handleAddSubTask,
     handleCreateGoal,
-    handleToggleMinor,
-    handleResolveMajor,
+    handleToggleDone,
+    handleSetAsProject,
+    handleAttachToProject,
     handleCreateAllModeMinor,
     handleEditTask,
     handleDeleteTask,

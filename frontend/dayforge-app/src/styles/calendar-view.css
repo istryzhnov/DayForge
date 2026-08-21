@@ -115,6 +115,7 @@
 
 .cal-event.minor {
   background: color-mix(in srgb, var(--minor) 80%, white 10%);
+  color: var(--on-minor);
 }
 
 .cal-event__time {
@@ -242,6 +243,36 @@
   color: var(--muted);
   cursor: pointer;
   font-size: 16px;
+}
+
+.event-details__field {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.event-details__label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.event-details__field input,
+.event-details__field select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.event-details__field input:focus,
+.event-details__field select:focus {
+  outline: 1px solid var(--accent);
 }
 
 .event-details__time {

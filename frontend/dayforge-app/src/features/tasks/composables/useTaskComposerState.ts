@@ -27,9 +27,8 @@ export function useTaskComposerState(
   actions: TaskComposerActions,
 ) {
   const title = ref('')
-  const priority = ref<Priority>(
-    options.isSubtask ? PRIORITY.MINOR : PRIORITY.MAJOR,
-  )
+  // Everything starts as a plain task; projects only come from promotion.
+  const priority = ref<Priority>(PRIORITY.MINOR)
 
   function submit() {
     if (options.isAllMode) return
@@ -40,7 +39,6 @@ export function useTaskComposerState(
 
     actions.onSubmit(trimmedTitle, priority.value, options.readSchedule?.())
     title.value = ''
-    priority.value = options.isSubtask ? PRIORITY.MINOR : PRIORITY.MAJOR
     options.onScheduleSubmitted?.()
   }
 
