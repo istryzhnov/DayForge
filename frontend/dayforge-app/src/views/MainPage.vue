@@ -13,7 +13,7 @@ import {
 } from '../composables/useTheme'
 import { useTaskNotifications } from '../composables/useTaskNotifications'
 import type { ID } from '../entities/types'
-import { PRIORITY } from '../entities/constants'
+import { PRIORITY, RECURRENCE_TYPE } from '../entities/constants'
 
 const goalSpace = useGoalSpace()
 
@@ -99,24 +99,26 @@ function handleScheduleTask(payload: {
   scheduleDailyTask(payload.taskId, payload.startTime, payload.endTime)
 }
 
+// Drawn directly on the calendar grid, so it is a one-off on the day in view.
 function handleCreateScheduledTask(payload: {
   title: string
   startTime: string
   endTime: string
 }) {
-  const created = goalSpace.addTask(
+  goalSpace.addTask(
     activeGoalId.value ?? undefined,
     payload.title,
     PRIORITY.MINOR,
+    {
+      date: currentDate.value,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      recurrence: {
+        type: RECURRENCE_TYPE.NONE,
+        startDate: currentDate.value,
+      },
+    },
   )
-  if (!created) return
-
-  const createdDailyTask = dailyTasks.value.find(
-    (task) => task.templateId === created.id && task.date === currentDate.value,
-  )
-  if (createdDailyTask) {
-    scheduleDailyTask(createdDailyTask.id, payload.startTime, payload.endTime)
-  }
 }
 
 function handleToggleCalendarTaskDone(taskId: ID) {

@@ -2,16 +2,24 @@ import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID, ISODate } from '../../entities/types'
 import { TASK_STATUS } from '../../entities/constants'
 import { createId } from './date'
+import { occursOn } from './recurrence'
 
+/**
+ * Materialize every template that occurs on `date`.
+ *
+ * Deliberately not short-circuited on "the day already has rows": a task
+ * scheduled ahead of time creates a single row for a future date, and bailing
+ * out here would mean that when the user finally navigates to that day, every
+ * other template is skipped and their day looks empty except for that one task.
+ * `ensureDailyTaskForTemplate` is idempotent per template, so re-running is safe.
+ */
 export function ensureTodaySnapshot(
   taskTemplates: TaskTemplate[],
   dailyTasks: DailyTask[],
   date: ISODate,
 ) {
-  const todayTasks = dailyTasks.filter((task) => task.date === date)
-  if (todayTasks.length > 0) return
-
   taskTemplates.forEach((template) => {
+    if (!occursOn(template, date)) return
     ensureDailyTaskForTemplate({ taskTemplates, dailyTasks, template, date })
   })
 }
@@ -48,6 +56,8 @@ export function ensureDailyTaskForTemplate({
       )
 
       if (parentTemplate) {
+        // Created regardless of the parent's own recurrence: a subtask on this
+        // date needs a parent row to hang off.
         ensureDailyTaskForTemplate({
           taskTemplates,
           dailyTasks,
@@ -75,6 +85,10 @@ export function ensureDailyTaskForTemplate({
     majorDecision: undefined,
     tagIds: [],
     completedAt: undefined,
+    // Each occurrence inherits the template's planned time, which is what puts
+    // a repeating task on the calendar without any further action.
+    startTime: template.startTime,
+    endTime: template.endTime,
   }
 
   dailyTasks.push(newTask)

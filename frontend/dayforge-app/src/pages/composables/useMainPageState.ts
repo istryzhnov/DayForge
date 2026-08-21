@@ -2,7 +2,11 @@ import { computed, onMounted } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal } from '../../entities/GoalEntity'
 import type { ID, Priority } from '../../entities/types'
-import type { MajorDecision, MajorTaskOption } from '../../entities/TaskEntity'
+import type {
+  MajorDecision,
+  MajorTaskOption,
+  TaskSchedule,
+} from '../../entities/TaskEntity'
 import { GOAL_STATUS } from '../../entities/constants'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
@@ -35,8 +39,9 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     parentTemplateId: ID,
     title: string,
     priority: Priority,
+    schedule?: TaskSchedule,
   ) {
-    goalSpace.addSubTask(parentTemplateId, title, priority)
+    goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
   }
 
   function handleCreateGoal(title: string, description: string) {
@@ -59,8 +64,13 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.resolveMajorTask(dailyMajorTaskId, decision)
   }
 
-  function handleCreateAllModeMinor(title: string, goalId?: ID, majorId?: ID) {
-    goalSpace.addMinorInAllMode(title, goalId, majorId)
+  function handleCreateAllModeMinor(
+    title: string,
+    goalId?: ID,
+    majorId?: ID,
+    schedule?: TaskSchedule,
+  ) {
+    goalSpace.addMinorInAllMode(title, goalId, majorId, schedule)
   }
 
   function handleEditTask(templateId: ID, title: string) {

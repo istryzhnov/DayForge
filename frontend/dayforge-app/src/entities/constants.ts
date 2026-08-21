@@ -34,6 +34,28 @@ export const PROGRESS_SCOPE_TYPE = {
   MAJOR: 'major',
 } as const
 
+export const RECURRENCE_TYPE = {
+  NONE: 'none',
+  DAILY: 'daily',
+  WEEKLY: 'weekly',
+  MONTHLY: 'monthly',
+  CUSTOM: 'custom',
+} as const
+
+// A repeating task stops generating occurrences after this many days. Snapshots
+// are created lazily per visited day, so this caps how far a rule can ever grow
+// localStorage.
+export const RECURRENCE_HORIZON_DAYS = 30
+
+// The planning day window. Times outside it have nowhere to render on the
+// calendar grid, so schedule inputs are constrained to it too.
+export const DAY_WINDOW = {
+  START_HOUR: 6,
+  END_HOUR: 23,
+} as const
+
+export const DEFAULT_TASK_DURATION_MINUTES = 60
+
 // Curated swatches offered in the per-goal color picker.
 export const GOAL_COLOR_PRESETS = [
   '#73ff44',

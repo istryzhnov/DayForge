@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorTaskOption } from '../../../entities/TaskEntity'
+import type { MajorTaskOption, TaskSchedule } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import TaskComposer from '../../tasks/components/TaskComposer.vue'
 import AllModeMinorComposer from '../../tasks/components/AllModeMinorComposer.vue'
@@ -14,7 +14,13 @@ defineProps<{
 
 const emit = defineEmits<{
   (e: 'add-task', title: string, priority: Priority): void
-  (e: 'create-all-mode-minor', title: string, goalId?: ID, majorId?: ID): void
+  (
+    e: 'create-all-mode-minor',
+    title: string,
+    goalId?: ID,
+    majorId?: ID,
+    schedule?: TaskSchedule,
+  ): void
 }>()
 
 const showComposer = ref(false)
@@ -48,8 +54,13 @@ function toggleComposer() {
         :goals="goals"
         :major-task-options="majorTaskOptions"
         @create-minor="
-          (title: string, goalId: ID | undefined, majorId: ID | undefined) => {
-            emit('create-all-mode-minor', title, goalId, majorId)
+          (
+            title: string,
+            goalId: ID | undefined,
+            majorId: ID | undefined,
+            schedule?: TaskSchedule,
+          ) => {
+            emit('create-all-mode-minor', title, goalId, majorId, schedule)
             showComposer = false
           }
         "

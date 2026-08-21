@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import type { MajorTaskOption } from '../../../entities/TaskEntity'
+import type { MajorTaskOption, TaskSchedule } from '../../../entities/TaskEntity'
 
 type Props = {
   goals: Goal[]
@@ -9,10 +9,25 @@ type Props = {
 }
 
 type Actions = {
-  onCreateMinor: (title: string, goalId?: ID, majorTemplateId?: ID) => void
+  onCreateMinor: (
+    title: string,
+    goalId?: ID,
+    majorTemplateId?: ID,
+    schedule?: TaskSchedule,
+  ) => void
 }
 
-export function useAllModeMinorComposerState(props: Props, actions: Actions) {
+type Options = {
+  readSchedule?: () => TaskSchedule | undefined
+  canSubmitSchedule?: () => boolean
+  onScheduleSubmitted?: () => void
+}
+
+export function useAllModeMinorComposerState(
+  props: Props,
+  actions: Actions,
+  options: Options = {},
+) {
   const selectedGoalId = ref<ID | ''>('')
   const selectedMajorId = ref<ID | ''>('')
   const minorTitle = ref('')
@@ -40,13 +55,16 @@ export function useAllModeMinorComposerState(props: Props, actions: Actions) {
   function submitMinor() {
     const title = minorTitle.value.trim()
     if (!title) return
+    if (options.canSubmitSchedule && !options.canSubmitSchedule()) return
 
     actions.onCreateMinor(
       title,
       selectedGoalId.value || undefined,
       selectedMajorId.value || undefined,
+      options.readSchedule?.(),
     )
     minorTitle.value = ''
+    options.onScheduleSubmitted?.()
   }
 
   return {

@@ -28,6 +28,12 @@ type DragDropOptions = {
   getGridElement: () => HTMLElement | null
   findTask: (taskId: ID) => DailyTask | undefined
   onSchedule: (payload: SchedulePayload) => void
+  /**
+   * Height of any UI pinned over the bottom of the viewport (the mobile
+   * unscheduled bar). Without it, a chip lifted from that bar sits inside the
+   * bottom auto-scroll zone and the page runs away the moment it is picked up.
+   */
+  getBottomInset?: () => number
 }
 
 /** Distance from a viewport edge (px) that starts auto-scrolling during a drag. */
@@ -111,8 +117,9 @@ export function useCalendarDragDrop(options: DragDropOptions) {
   function updateAutoScroll(point: GesturePoint) {
     stopAutoScroll()
 
+    const bottomInset = options.getBottomInset?.() ?? 0
     const distanceFromTop = point.y
-    const distanceFromBottom = window.innerHeight - point.y
+    const distanceFromBottom = window.innerHeight - bottomInset - point.y
 
     let direction = 0
     if (distanceFromTop < AUTO_SCROLL_EDGE_PX) direction = -1

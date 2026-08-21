@@ -18,7 +18,13 @@ export interface TaskTemplate {
   parentTemplateId?: ID
   order: number
   tagIds: ID[]
+  // Absent means "occurs every day" — the behavior every task had before
+  // scheduling existed, so untouched templates keep working unchanged.
   recurrence?: RecurrenceRule
+  // Planned time of day each occurrence inherits when its snapshot is created.
+  // Moving a single day's block on the calendar edits that DailyTask only.
+  startTime?: TimeOfDay
+  endTime?: TimeOfDay
   isActive: boolean
   createdAt: ISODateTime
   updatedAt: ISODateTime
@@ -26,6 +32,14 @@ export interface TaskTemplate {
   day?: ISODate
   status?: TaskStatus
   completedAt?: ISODateTime
+}
+
+/** Optional scheduling captured while creating a task. */
+export type TaskSchedule = {
+  date: ISODate
+  startTime: TimeOfDay
+  endTime: TimeOfDay
+  recurrence: RecurrenceRule
 }
 
 export type MajorDecision = (typeof MAJOR_DECISION)[keyof typeof MAJOR_DECISION]
@@ -69,10 +83,12 @@ export type CreateTaskInput =
       goalId?: ID
       title: string
       priority?: Priority
+      schedule?: TaskSchedule
     }
   | {
       kind: typeof TASK_KIND.SUBTASK
       parentTemplateId: ID
       title: string
       priority?: Priority
+      schedule?: TaskSchedule
     }

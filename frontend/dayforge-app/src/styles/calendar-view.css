@@ -267,6 +267,8 @@
 @media (max-width: 720px) {
   .calendar-view {
     gap: 10px;
+    /* Reserves room for the pinned unscheduled bar, which is out of flow. */
+    padding-bottom: 76px;
   }
 
   .calendar-view__header {
@@ -323,14 +325,28 @@
     height: 14px;
   }
 
-  /* unscheduled tasks become a horizontally scrollable strip below the grid */
+  /* Unscheduled tasks become a strip pinned to the bottom of the viewport, with
+     the day grid scrolling behind it. Laid out in flow it sat ~1500px down the
+     page, so reaching an early hour meant holding at the screen edge through a
+     full grid's worth of auto-scroll. Pinned, whatever hour is on screen is
+     always one short drag away from a chip. */
   .calendar-view__unscheduled {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 6;
     flex-direction: row;
     flex-wrap: nowrap;
+    align-items: center;
     overflow-x: auto;
-    padding: 10px;
+    padding: 10px 12px;
     gap: 8px;
-    /* Let the strip pan sideways while long-press still grabs a chip. */
+    border: none;
+    border-top: 1px solid var(--line);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--panel) 94%, transparent);
+    backdrop-filter: blur(10px);
     scrollbar-width: none;
   }
 
@@ -345,10 +361,18 @@
     border-radius: 999px;
     border-left: none;
     border: 1px solid color-mix(in srgb, var(--minor) 45%, var(--line));
+    /* Sideways swipes pan the strip; the browser must not also claim vertical
+       movement, or it cancels the drag gesture mid-way. */
+    touch-action: pan-x;
   }
 
   .calendar-view__unscheduled-item.major {
     border-color: color-mix(in srgb, var(--major) 55%, var(--line));
+  }
+
+  /* Lifted out of the bar and following the finger. */
+  .calendar-view__unscheduled-item.is-lifted {
+    border-color: var(--accent);
   }
 
   .calendar-view__unscheduled .sidebar-caption {
