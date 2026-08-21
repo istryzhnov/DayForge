@@ -42,7 +42,17 @@ const emit = defineEmits<{
 }>()
 
 const gridRef = ref<HTMLElement | null>(null)
+const unscheduledRef = ref<HTMLElement | null>(null)
 const isCoarsePointer = useIsCoarsePointer()
+
+// Only pinned over the viewport on the mobile layout; on desktop it is a normal
+// side column and shouldn't shrink the auto-scroll zone.
+function bottomInset() {
+  if (!isCoarsePointer.value) return 0
+  const element = unscheduledRef.value
+  if (!element || getComputedStyle(element).position !== 'fixed') return 0
+  return element.getBoundingClientRect().height
+}
 
 const scheduledTasks = computed(() =>
   props.tasks.filter((task) => task.startTime && task.endTime),
@@ -85,6 +95,7 @@ const {
   getGridElement: () => gridRef.value,
   findTask: (taskId) => props.tasks.find((task) => task.id === taskId),
   onSchedule: (payload) => emit('schedule-task', payload),
+  getBottomInset: bottomInset,
 })
 
 const {
@@ -308,7 +319,7 @@ function onTouchDrop(point: GesturePoint) {
         </div>
       </div>
 
-      <aside class="calendar-view__unscheduled">
+      <aside ref="unscheduledRef" class="calendar-view__unscheduled">
         <p class="sidebar-caption">Unscheduled</p>
         <CalendarUnscheduledItem
           v-for="task in unscheduledTasks"

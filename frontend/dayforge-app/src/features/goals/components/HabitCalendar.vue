@@ -127,7 +127,7 @@ function progressStyle(percent: number) {
         <span class="habit-calendar__weekday">{{ cell.label }}</span>
       </div>
     </div>
-
+    <!--
     <p class="habit-calendar__month">{{ monthLabel }}</p>
 
     <div class="habit-calendar__month-grid">
@@ -149,5 +149,6 @@ function progressStyle(percent: number) {
         }}</span>
       </button>
     </div>
+    -->
   </section>
 </template>
