@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { ISODate } from '../../../entities/types'
+import type { ID, ISODate } from '../../../entities/types'
 import {
   useCalendarMonth,
   type MonthDayCell,
@@ -10,6 +10,8 @@ const props = defineProps<{
   templates: TaskTemplate[]
   dailyTasks: DailyTask[]
   currentDate: ISODate
+  /** Per-project colours, keyed by goal id. */
+  goalVarsById: Record<ID, Record<string, string>>
 }>()
 
 const emit = defineEmits<{
@@ -99,6 +101,7 @@ function hiddenCount(day: MonthDayCell) {
             v-for="event in visibleEvents(day)"
             :key="event.key"
             class="calendar-month__event"
+            :style="event.goalId ? goalVarsById[event.goalId] : undefined"
             :class="[
               event.priority,
               { 'is-done': event.isDone, 'is-projected': event.isProjected },

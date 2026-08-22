@@ -1,9 +1,10 @@
 import { computed, onMounted } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
-import type { Goal } from '../../entities/GoalEntity'
+import type { Goal, GoalTheme } from '../../entities/GoalEntity'
 import type { ID, ISODate, Priority } from '../../entities/types'
 import type { MajorTaskOption, TaskSchedule } from '../../entities/TaskEntity'
-import { GOAL_STATUS } from '../../entities/constants'
+import { GOAL_STATUS, PRIORITY } from '../../entities/constants'
+import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 
@@ -56,6 +57,46 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.toggleTaskDone(dailyTaskId)
   }
 
+  /**
+   * Turn a starter answer set into a real first day.
+   *
+   * The blocks are created as ordinary open tasks and then placed on the
+   * calendar, rather than as dated one-offs: a one-off would file itself under
+   * Planned tasks, and these are today's work, not appointments. Being open
+   * also means anything left unfinished follows the user forward.
+   */
+  function applyStarterPlan(plan: StarterPlan) {
+    const now = new Date().toISOString()
+    const goalId = `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+
+    goalSpace.createGoal({
+      id: goalId,
+      title: plan.goalTitle,
+      description: plan.goalDescription,
+      status: GOAL_STATUS.ACTIVE,
+      createdAt: now,
+      updatedAt: now,
+    })
+    goalSpace.selectGoal(goalId)
+
+    const project = goalSpace.addTask(goalId, plan.projectTitle, PRIORITY.MINOR)
+    if (!project) return
+
+    plan.tasks.forEach((task) => {
+      const created = goalSpace.addSubTask(project.id, task.title, PRIORITY.MINOR)
+      if (!created) return
+
+      const row = goalSpace.dailyTasks.value.find(
+        (item) =>
+          item.templateId === created.id &&
+          item.date === goalSpace.currentDate.value,
+      )
+      if (row) {
+        goalSpace.scheduleDailyTask(row.id, task.startTime, task.endTime)
+      }
+    })
+  }
+
   function handleTogglePlanned(templateId: ID, date: ISODate) {
     goalSpace.togglePlannedTask(templateId, date)
   }
@@ -96,6 +137,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalColor(goalId, color)
   }
 
+  function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
+    goalSpace.updateGoalTheme(goalId, theme)
+  }
+
   return {
     majorTaskOptions,
     handleAddTask,
@@ -103,6 +148,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleCreateGoal,
     handleToggleDone,
     handleTogglePlanned,
+    applyStarterPlan,
     handleSetAsProject,
     handleAttachToProject,
     handleCreateAllModeMinor,
@@ -110,5 +156,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleDeleteTask,
     handleDeleteGoal,
     handleChangeGoalColor,
+    handleChangeGoalTheme,
   }
 }

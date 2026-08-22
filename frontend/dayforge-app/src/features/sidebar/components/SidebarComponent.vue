@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
 import SidebarGoalButton from './SidebarGoalButton.vue'
 import GoalContextMenu from './GoalContextMenu.vue'
 import { useSidebarState } from '../composables/useSidebarState'
-import type { ThemeMode, ThemeStyle } from '../../../composables/useTheme'
+import {
+  APPEARANCE_SECTION,
+  useAppearancePanel,
+} from '../../appearance/composables/useAppearancePanel'
 
 defineProps<{
   goals: Goal[]
   activeGoalId: ID | null
   taskCountByGoal: Record<ID, number>
   totalTaskCount: number
-  themeStyle: ThemeStyle
-  themeMode: ThemeMode
-  activeView: 'goals' | 'calendar' | 'planned'
+  /** Per-project colours, so a themed project keeps its colour in this list. */
+  goalVarsById: Record<ID, Record<string, string>>
+  activeView: 'goals' | 'calendar' | 'planned' | 'archive'
   plannedCount: number
+  doneCount: number
   notificationsSupported: boolean
   notificationsEnabled: boolean
 }>()
@@ -24,9 +27,10 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'select-goal', goalId: ID | null): void
   (e: 'create-goal', title: string, description: string): void
-  (e: 'change-theme-style', style: ThemeStyle): void
-  (e: 'change-theme-mode', mode: ThemeMode): void
-  (e: 'select-view', view: 'goals' | 'calendar' | 'planned'): void
+  (
+    e: 'select-view',
+    view: 'goals' | 'calendar' | 'planned' | 'archive',
+  ): void
   (e: 'toggle-notifications'): void
   (e: 'delete-goal', goalId: ID): void
 }>()
@@ -48,25 +52,10 @@ const {
   onDeleteGoal: (goalId) => emit('delete-goal', goalId),
 })
 
-const showSettings = ref(false)
-const settingsRef = ref<HTMLElement | null>(null)
-
-function toggleSettings() {
-  showSettings.value = !showSettings.value
-}
-
-function handleOutsideClick(event: MouseEvent) {
-  if (
-    showSettings.value &&
-    settingsRef.value &&
-    !settingsRef.value.contains(event.target as Node)
-  ) {
-    showSettings.value = false
-  }
-}
-
-onMounted(() => document.addEventListener('mousedown', handleOutsideClick))
-onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
+// The theme controls used to live in a dropdown here; they now open the
+// appearance sidebar on the right, which has room for the whole palette.
+const { isOpen: isAppearanceOpen, toggle: toggleAppearance } =
+  useAppearancePanel()
 </script>
 
 <template>
@@ -93,51 +82,17 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
       >
         {{ notificationsEnabled ? '🔔' : '🔕' }}
       </button>
-      <div ref="settingsRef" class="sidebar-settings">
+      <div class="sidebar-settings">
         <button
           class="sidebar-settings__trigger"
+          :class="{ 'is-active': isAppearanceOpen }"
           type="button"
-          aria-label="Settings"
-          @click="toggleSettings"
+          aria-label="Appearance settings"
+          title="Theme, colours and workspace"
+          @click="toggleAppearance(APPEARANCE_SECTION.PRESETS)"
         >
           ⚙
         </button>
-
-        <section v-if="showSettings" class="theme-panel">
-          <p class="sidebar-caption">Theme</p>
-          <div class="theme-panel__group">
-            <button
-              class="theme-chip"
-              :class="{ active: themeStyle === 'vivid' }"
-              @click="emit('change-theme-style', 'vivid')"
-            >
-              Fresh
-            </button>
-            <button
-              class="theme-chip"
-              :class="{ active: themeStyle === 'minimal' }"
-              @click="emit('change-theme-style', 'minimal')"
-            >
-              Minimal
-            </button>
-          </div>
-          <div class="theme-panel__group">
-            <button
-              class="theme-chip"
-              :class="{ active: themeMode === 'light' }"
-              @click="emit('change-theme-mode', 'light')"
-            >
-              Day
-            </button>
-            <button
-              class="theme-chip"
-              :class="{ active: themeMode === 'dark' }"
-              @click="emit('change-theme-mode', 'dark')"
-            >
-              Night
-            </button>
-          </div>
-        </section>
       </div>
     </div>
 
@@ -158,6 +113,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
       :goal="goal"
       :is-active="goal.id === activeGoalId"
       :task-count="taskCountByGoal[goal.id] ?? 0"
+      :theme-vars="goalVarsById[goal.id]"
       @select="selectGoal(goal.id)"
       @context-menu="openGoalContextMenu"
     />
@@ -178,6 +134,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
       @click="emit('select-view', 'calendar')"
     >
       <span>Calendar</span>
+    </button>
+    <button
+      class="nav-goal-btn"
+      :class="{ active: activeView === 'archive' }"
+      @click="emit('select-view', 'archive')"
+    >
+      <span>What I did</span>
+      <span class="goal-count">{{ doneCount }}</span>
     </button>
     <div class="sidebar-actions">
       <button @click="openNewGoalForm" class="btn btn-primary">New Goal</button>

@@ -6,6 +6,7 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import CalendarMonthView from './CalendarMonthView.vue'
+import CalendarWeekView from './CalendarWeekView.vue'
 import type { ID, ISODate } from '../../../entities/types'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import CalendarEventBlock from './CalendarEventBlock.vue'
@@ -32,9 +33,11 @@ const props = defineProps<{
   /** Whole-history rows and rules — the month view projects from both. */
   dailyTasks: DailyTask[]
   templates: TaskTemplate[]
+  /** Per-project colours, keyed by goal id. */
+  goalVarsById: Record<ID, Record<string, string>>
 }>()
 
-type CalendarViewMode = 'day' | 'month'
+type CalendarViewMode = 'day' | 'week' | 'month'
 const viewMode = ref<CalendarViewMode>('day')
 
 function openDay(date: ISODate) {
@@ -245,6 +248,11 @@ function gridStyle(heightPx: number) {
   return { height: `${heightPx}px` }
 }
 
+/** A task carries its project colour onto the grid. */
+function themeVarsFor(goalId: ID | undefined) {
+  return goalId ? props.goalVarsById[goalId] : undefined
+}
+
 function onTouchMove(point: GesturePoint) {
   updateTouchDrag(point)
 }
@@ -267,6 +275,14 @@ function onTouchDrop(point: GesturePoint) {
       </button>
       <button
         class="theme-chip"
+        :class="{ active: viewMode === 'week' }"
+        type="button"
+        @click="viewMode = 'week'"
+      >
+        Week
+      </button>
+      <button
+        class="theme-chip"
         :class="{ active: viewMode === 'month' }"
         type="button"
         @click="viewMode = 'month'"
@@ -275,11 +291,21 @@ function onTouchDrop(point: GesturePoint) {
       </button>
     </div>
 
-    <CalendarMonthView
-      v-if="viewMode === 'month'"
+    <CalendarWeekView
+      v-if="viewMode === 'week'"
       :templates="templates"
       :daily-tasks="dailyTasks"
       :current-date="currentDate"
+      :goal-vars-by-id="goalVarsById"
+      @open-day="openDay"
+    />
+
+    <CalendarMonthView
+      v-else-if="viewMode === 'month'"
+      :templates="templates"
+      :daily-tasks="dailyTasks"
+      :current-date="currentDate"
+      :goal-vars-by-id="goalVarsById"
       @open-day="openDay"
     />
 
@@ -335,6 +361,7 @@ function onTouchDrop(point: GesturePoint) {
             :top-px="topPxFor(task)"
             :height-px="heightPxFor(task)"
             :is-dragging="draggingTaskId === task.id"
+            :theme-vars="themeVarsFor(task.goalId)"
             @select="openDetails"
             @drag-start="onBlockDragStart"
             @resize="onResize"
@@ -393,6 +420,7 @@ function onTouchDrop(point: GesturePoint) {
           v-for="task in unscheduledTasks"
           :key="task.id"
           :task="task"
+          :theme-vars="themeVarsFor(task.goalId)"
           @drag-start="onDragStartFromList"
           @touch-lift="onUnscheduledTouchLift"
           @touch-move="onTouchMove"

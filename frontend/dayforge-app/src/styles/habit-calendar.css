@@ -1,7 +1,7 @@
 .habit-calendar {
   margin-top: 14px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: calc(18px * var(--radius-scale));
   padding: 14px;
   background: var(--panel-layer);
   box-shadow: var(--shadow-sm);
@@ -196,7 +196,7 @@
 @media (max-width: 720px) {
   .habit-calendar {
     padding: 14px 12px;
-    border-radius: 16px;
+    border-radius: calc(16px * var(--radius-scale));
     border-color: transparent;
     background: color-mix(in srgb, var(--panel-soft) 88%, transparent);
     box-shadow: none;

@@ -7,6 +7,8 @@ const props = defineProps<{
   goal: Goal
   isActive: boolean
   taskCount: number
+  /** The project's own colours, when it has any. */
+  themeVars?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -36,7 +38,8 @@ function onContextMenu(event: MouseEvent) {
 <template>
   <button
     class="nav-goal-btn"
-    :class="{ active: isActive, 'is-lifted': isLifted }"
+    :class="{ active: isActive, 'is-lifted': isLifted, 'is-themed': !!themeVars }"
+    :style="themeVars"
     @click="emit('select')"
     @contextmenu.prevent="onContextMenu"
     @pointerdown="onPointerDown"

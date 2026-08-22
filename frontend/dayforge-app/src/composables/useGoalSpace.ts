@@ -8,6 +8,7 @@ import {
 } from '../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../entities/types'
 import { PRIORITY, TASK_KIND, TASK_STATUS } from '../entities/constants'
+import { useUndoToast } from './useUndoToast'
 
 /** How long a freshly created task keeps its "just added" highlight. */
 const NEW_TASK_HIGHLIGHT_MS = 1500
@@ -33,8 +34,11 @@ export function useGoalSpace() {
     createGoal,
     deleteGoal,
     updateGoalColor,
+    updateGoalTheme,
     loadFromStorage,
   } = useGoals()
+
+  const { offerUndo } = useUndoToast()
 
   const taskTemplates = ref<TaskTemplate[]>([])
   const dailyTasks = ref<DailyTask[]>([])
@@ -249,6 +253,19 @@ export function useGoalSpace() {
 
     collectDescendants(templateId)
 
+    const removedTitle =
+      taskTemplates.value.find((item) => item.id === templateId)?.title ?? 'Task'
+
+    // Captured before the filters run so the deletion can be reversed — there
+    // is no other copy of this data once it leaves the arrays.
+    const removedTemplates = taskTemplates.value.filter((item) =>
+      idsToRemove.has(item.id),
+    )
+    const removedDailyTasks = dailyTasks.value.filter(
+      (item) =>
+        idsToRemove.has(item.templateId) && item.date >= currentDate.value,
+    )
+
     taskTemplates.value = taskTemplates.value.filter(
       (item) => !idsToRemove.has(item.id),
     )
@@ -258,6 +275,11 @@ export function useGoalSpace() {
       (item) =>
         !idsToRemove.has(item.templateId) || item.date < currentDate.value,
     )
+
+    offerUndo(`Deleted "${removedTitle}"`, () => {
+      taskTemplates.value = [...taskTemplates.value, ...removedTemplates]
+      dailyTasks.value = [...dailyTasks.value, ...removedDailyTasks]
+    })
   }
 
   /**
@@ -433,6 +455,7 @@ export function useGoalSpace() {
     createGoal,
     deleteGoal: removeGoal,
     updateGoalColor,
+    updateGoalTheme,
     addTask,
     addSubTask,
     editTaskTitle,

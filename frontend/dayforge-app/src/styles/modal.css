@@ -20,7 +20,7 @@
   position: relative;
   background: var(--panel-layer);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: calc(18px * var(--radius-scale));
   padding: 24px;
   width: 90%;
   max-width: 400px;
@@ -38,7 +38,7 @@
 .modal-card textarea {
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: calc(10px * var(--radius-scale));
   background: var(--panel-soft);
   color: var(--text);
   padding: 10px 12px;

@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue'
-import type { Goal } from '../entities/GoalEntity'
+import type { Goal, GoalTheme } from '../entities/GoalEntity'
 import type { ID } from '../entities/types'
 import { loadJson, GOALS_STORAGE_KEY } from './goalSpace/storage'
 
@@ -50,17 +50,39 @@ export function useGoals() {
     }
   }
 
+  function updateGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+    // An empty theme is the same as none — keep the stored shape clean so a
+    // project either has colours or plainly doesn't.
+    goal.theme = theme && Object.keys(theme).length > 0 ? theme : undefined
+    goal.updatedAt = new Date().toISOString()
+  }
+
   function updateGoalColor(goalId: ID, accentColor: string | undefined) {
     const goal = goals.value.find((item) => item.id === goalId)
     if (!goal) return
-    goal.accentColor = accentColor
-    goal.updatedAt = new Date().toISOString()
+    updateGoalTheme(
+      goalId,
+      accentColor ? { ...goal.theme, accent: accentColor } : undefined,
+    )
+  }
+
+  /** Goals coloured before per-project theming existed stored a bare hex. */
+  function migrateGoalThemes(list: Goal[]) {
+    list.forEach((goal) => {
+      if (goal.accentColor && !goal.theme) {
+        goal.theme = { accent: goal.accentColor }
+      }
+      delete goal.accentColor
+    })
   }
 
   function loadFromStorage() {
     const stored = loadJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
 
     if (Array.isArray(stored)) {
+      migrateGoalThemes(stored)
       goals.value = stored
       if (goals.value.length > 0 && activeGoalId.value === null) {
         activeGoalId.value = goals.value[0].id
@@ -69,6 +91,7 @@ export function useGoals() {
     }
 
     goals.value = stored.goals ?? []
+    migrateGoalThemes(goals.value)
     activeGoalId.value = stored.activeGoalId ?? null
 
     if (goals.value.length > 0 && activeGoalId.value === null) {
@@ -85,6 +108,7 @@ export function useGoals() {
     createGoal,
     deleteGoal,
     updateGoalColor,
+    updateGoalTheme,
     loadFromStorage,
   }
 }

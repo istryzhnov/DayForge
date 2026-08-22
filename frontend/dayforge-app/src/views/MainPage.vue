@@ -5,14 +5,19 @@ import SidebarComponent from '../features/sidebar/components/SidebarComponent.vu
 import CalendarView from '../features/calendar/components/CalendarView.vue'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import PlannedTaskList from '../features/tasks/components/PlannedTaskList.vue'
+import ArchiveView from '../features/tasks/components/ArchiveView.vue'
+import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
+import StarterTemplateModal from '../features/onboarding/components/StarterTemplateModal.vue'
+import UndoToast from '../components/UndoToast.vue'
+import AppearanceSidebar from '../features/appearance/components/AppearanceSidebar.vue'
 import { usePlannedTasks } from '../features/tasks/composables/usePlannedTasks'
+import { useArchive } from '../features/tasks/composables/useArchive'
+import type { StarterPlan } from '../features/onboarding/composables/useStarterTemplate'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
-import {
-  useTheme,
-  type ThemeMode,
-  type ThemeStyle,
-} from '../composables/useTheme'
+import { useTheme } from '../composables/useTheme'
+import { buildGoalAccentVars } from '../composables/theme/goalTheme'
+import { useAppearancePanel } from '../features/appearance/composables/useAppearancePanel'
 import { useTaskNotifications } from '../composables/useTaskNotifications'
 import type { ID } from '../entities/types'
 import { PRIORITY, RECURRENCE_TYPE } from '../entities/constants'
@@ -45,6 +50,7 @@ const {
   handleCreateGoal,
   handleToggleDone,
   handleTogglePlanned,
+  applyStarterPlan,
   handleSetAsProject,
   handleAttachToProject,
   handleCreateAllModeMinor,
@@ -52,9 +58,25 @@ const {
   handleDeleteTask,
   handleDeleteGoal,
   handleChangeGoalColor,
+  handleChangeGoalTheme,
 } = useMainPageState(goalSpace)
 
-const { themeStyle, themeMode, setThemeStyle, setThemeMode } = useTheme()
+const { themeMode } = useTheme()
+const { isOpen: isAppearanceOpen } = useAppearancePanel()
+
+/**
+ * A project's colour has to travel with its tasks outside its own panel — the
+ * sidebar row and the calendar blocks belong to shared chrome, so they take the
+ * accent-only variant that leaves surrounding surfaces alone.
+ */
+const goalVarsById = computed(() => {
+  const result: Record<ID, Record<string, string>> = {}
+  goals.value.forEach((goal) => {
+    const vars = buildGoalAccentVars(goal.theme, themeMode.value)
+    if (Object.keys(vars).length > 0) result[goal.id] = vars
+  })
+  return result
+})
 
 const {
   isSupported: notificationsSupported,
@@ -74,7 +96,7 @@ function handleToggleNotifications() {
   }
 }
 
-type ActiveView = 'goals' | 'calendar' | 'planned'
+type ActiveView = 'goals' | 'calendar' | 'planned' | 'archive'
 const activeView = ref<ActiveView>('goals')
 
 const { plannedTasks, plannedCount } = usePlannedTasks({
@@ -83,12 +105,21 @@ const { plannedTasks, plannedCount } = usePlannedTasks({
   getGoals: () => goals.value,
 })
 
-function handleThemeStyleChange(nextStyle: ThemeStyle) {
-  setThemeStyle(nextStyle)
-}
+const { blocks: archiveBlocks, totalDone } = useArchive({
+  getTemplates: () => taskTemplates.value,
+  getDailyTasks: () => dailyTasks.value,
+  getGoals: () => goals.value,
+})
 
-function handleThemeModeChange(nextMode: ThemeMode) {
-  setThemeMode(nextMode)
+// A brand new install: nothing to look at, so explain the model instead.
+const isFirstRun = computed(
+  () => goals.value.length === 0 && taskTemplates.value.length === 0,
+)
+const showStarter = ref(false)
+
+function handleApplyStarter(plan: StarterPlan) {
+  applyStarterPlan(plan)
+  showStarter.value = false
 }
 
 function handleSelectGoal(goalId: ID | null) {
@@ -140,23 +171,21 @@ function handleToggleCalendarTaskDone(taskId: ID) {
 </script>
 
 <template>
-  <div class="app-shell">
+  <div class="app-shell" :class="{ 'is-appearance-open': isAppearanceOpen }">
     <aside class="app-sidebar">
       <SidebarComponent
         :goals="goals"
         :active-goal-id="activeGoalId"
         :task-count-by-goal="taskCountByGoal"
         :total-task-count="taskTemplates.length"
-        :theme-style="themeStyle"
-        :theme-mode="themeMode"
+        :goal-vars-by-id="goalVarsById"
         :active-view="activeView"
         :planned-count="plannedCount"
+        :done-count="totalDone"
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"
         @select-goal="handleSelectGoal"
         @create-goal="handleCreateGoal"
-        @change-theme-style="handleThemeStyleChange"
-        @change-theme-mode="handleThemeModeChange"
         @select-view="handleSelectView"
         @toggle-notifications="handleToggleNotifications"
         @delete-goal="handleDeleteGoal"
@@ -165,6 +194,11 @@ function handleToggleCalendarTaskDone(taskId: ID) {
 
     <main class="app-content">
       <div class="app-content__inner">
+        <OnboardingHints
+          v-if="isFirstRun && activeView === 'goals'"
+          @open-starter="showStarter = true"
+        />
+
         <GoalComponent
           v-if="activeView === 'goals'"
           :goal="activeGoal"
@@ -194,6 +228,12 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           @toggle="handleTogglePlanned"
         />
 
+        <ArchiveView
+          v-else-if="activeView === 'archive'"
+          :blocks="archiveBlocks"
+          :total-done="totalDone"
+        />
+
         <CalendarView
           v-else
           :tasks="tasksForCurrentDate"
@@ -204,6 +244,7 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           :project-options="majorTaskOptions"
           :daily-tasks="dailyTasks"
           :templates="taskTemplates"
+          :goal-vars-by-id="goalVarsById"
           @select-date="goToDate"
           @schedule-task="handleScheduleTask"
           @unschedule-task="unscheduleDailyTask"
@@ -214,6 +255,23 @@ function handleToggleCalendarTaskDone(taskId: ID) {
         />
       </div>
     </main>
+
+    <!-- Sits to the right of everything: its own column on a wide screen, an
+         overlay drawer once the shell runs out of room. -->
+    <aside v-if="isAppearanceOpen" class="app-appearance">
+      <AppearanceSidebar
+        :active-goal="activeGoal"
+        @change-goal-theme="handleChangeGoalTheme"
+      />
+    </aside>
+
+    <StarterTemplateModal
+      v-if="showStarter"
+      @apply="handleApplyStarter"
+      @close="showStarter = false"
+    />
+
+    <UndoToast />
 
     <TaskReminderPopup
       v-if="activeAlert"

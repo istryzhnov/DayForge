@@ -17,6 +17,8 @@ import { useProgressMetrics } from '../../../composables/useProgressMetrics'
 import HabitCalendar from './HabitCalendar.vue'
 import type { ISODate } from '../../../entities/types'
 import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
+import { useTheme } from '../../../composables/useTheme'
+import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
 
 const props = defineProps<{
   goal: Goal | null
@@ -107,11 +109,22 @@ const { todayProgress, monthCells } = useProgressMetrics(
   progressScope as any,
 )
 
-const goalPanelStyle = computed(() =>
-  !props.isAllMode && props.goal?.accentColor
-    ? { '--accent': props.goal.accentColor }
-    : undefined,
-)
+const { themeMode, surfaces } = useTheme()
+
+/**
+ * A project's colour has to reach further than `--accent`: the task circles,
+ * the frames and the habit ring all read their own tokens, so the whole set is
+ * derived from the project colour and carried by the panel.
+ */
+const goalPanelStyle = computed(() => {
+  if (props.isAllMode || !props.goal?.theme) return undefined
+  const vars = buildGoalThemeVars(
+    props.goal.theme,
+    surfaces.value,
+    themeMode.value,
+  )
+  return Object.keys(vars).length > 0 ? vars : undefined
+})
 </script>
 
 <template>
@@ -124,7 +137,7 @@ const goalPanelStyle = computed(() =>
       :project-count="projectCount"
       :task-count="taskCount"
       :show-settings="!isAllMode && !!goal"
-      :accent-color="goal?.accentColor"
+      :goal-theme="goal?.theme"
       @delete-goal="goal && emit('delete-goal', goal.id)"
       @change-color="
         (color) => goal && emit('change-goal-color', goal.id, color)

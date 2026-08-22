@@ -1,5 +1,5 @@
 .btn {
-  border-radius: 11px;
+  border-radius: calc(11px * var(--radius-scale));
   border: 1px solid transparent;
   font-weight: 600;
   padding: 10px 13px;

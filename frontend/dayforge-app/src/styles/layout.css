@@ -117,7 +117,7 @@ body,
 body {
   color: var(--text);
   background: var(--bg-base);
-  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  font-family: var(--font-ui, 'Manrope', 'Segoe UI', sans-serif);
   line-height: 1.45;
 }
 
@@ -132,7 +132,7 @@ body {
   border-right: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 92%, transparent);
   padding: 22px 16px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(var(--panel-blur, 8px));
 }
 
 /* Glow lives on the main content column (right of the sidebar) so it stays
@@ -141,6 +141,24 @@ body {
    the full grid column (no max-width) so the gradient reaches the right
    edge with no visible seam; .app-content__inner carries the readable
    max-width instead, on top of that background. */
+/* The appearance drawer takes a column of its own so it pushes the workspace
+   rather than covering it — until the viewport is too narrow to spare the
+   width, where it turns into an overlay instead. */
+.app-shell.is-appearance-open {
+  grid-template-columns: minmax(240px, 300px) 1fr minmax(320px, 360px);
+}
+
+.app-appearance {
+  border-left: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(var(--panel-blur, 8px));
+  padding: 18px 14px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow: hidden;
+}
+
 .app-content {
   padding: 24px;
   background:
@@ -167,8 +185,30 @@ body {
     radial-gradient(900px 900px at 105% 105%, var(--bg-blob-2), transparent 55%);
 }
 
+/* Below this the third column would squeeze the workspace, so the drawer
+   floats over the right edge instead. */
+@media (max-width: 1240px) {
+  .app-shell.is-appearance-open {
+    grid-template-columns: minmax(260px, 320px) 1fr;
+  }
+
+  .app-appearance {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(360px, 92vw);
+    z-index: 1200;
+    box-shadow: var(--shadow-lg);
+    background: var(--panel);
+  }
+}
+
 @media (max-width: 960px) {
   .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .app-shell.is-appearance-open {
     grid-template-columns: 1fr;
   }
 

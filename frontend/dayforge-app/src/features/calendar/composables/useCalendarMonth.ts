@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { ID, ISODate, Priority, TimeOfDay } from '../../../entities/types'
-import { TASK_STATUS } from '../../../entities/constants'
+import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   addMonthsToISODate,
@@ -10,8 +9,12 @@ import {
   startOfMonthISODate,
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
-import { occursOn } from '../../../composables/goalSpace/recurrence'
-import { durationMinutes } from './useCalendarGrid'
+import {
+  collectDayEvents,
+  groupRowsByDate,
+  scheduledMinutesOf,
+  type DayEvent,
+} from './useCalendarOccurrences'
 
 /** Six weeks always fit a month, so the grid never changes height. */
 const GRID_WEEKS = 6
@@ -20,16 +23,7 @@ const DAYS_PER_WEEK = 7
 /** Scheduled minutes at which a day is considered fully loaded. */
 const FULL_DAY_MINUTES = 8 * 60
 
-export type MonthEvent = {
-  key: string
-  title: string
-  startTime?: TimeOfDay
-  endTime?: TimeOfDay
-  priority: Priority
-  isDone: boolean
-  /** No row exists yet — projected from the template's recurrence rule. */
-  isProjected: boolean
-}
+export type MonthEvent = DayEvent
 
 export type MonthDayCell = {
   date: ISODate
@@ -89,67 +83,13 @@ export function useCalendarMonth(options: MonthOptions) {
     const mondayOffset = (firstWeekday + 6) % 7
     const gridStart = addDaysToISODate(monthStart, -mondayOffset)
 
-    const rowsByDate = new Map<ISODate, DailyTask[]>()
-    dailyTasks.forEach((row) => {
-      const bucket = rowsByDate.get(row.date)
-      if (bucket) bucket.push(row)
-      else rowsByDate.set(row.date, [row])
-    })
-
+    const rowsByDate = groupRowsByDate(dailyTasks)
     const cells: MonthDayCell[] = []
 
     for (let index = 0; index < GRID_WEEKS * DAYS_PER_WEEK; index += 1) {
       const date = addDaysToISODate(gridStart, index)
-      const rows = rowsByDate.get(date) ?? []
-      const materializedTemplateIds = new Set<ID>(
-        rows.map((row) => row.templateId),
-      )
-
-      const events: MonthEvent[] = rows.map((row) => ({
-        key: row.id,
-        title: row.title,
-        startTime: row.startTime,
-        endTime: row.endTime,
-        priority: row.priority,
-        isDone: row.status === TASK_STATUS.DONE,
-        isProjected: false,
-      }))
-
-      // Rows only exist for days the user has opened, so anything further out
-      // is projected straight from the recurrence rules. Without this the whole
-      // future half of the month would read as empty.
-      //
-      // `occursOn` is false for open tasks by design — they own one row that
-      // rolls forward, so they appear on today only. Projecting them would put
-      // every unfinished task on every future day, which made the whole month
-      // look booked.
-      templates.forEach((template) => {
-        if (materializedTemplateIds.has(template.id)) return
-        if (!occursOn(template, date)) return
-
-        events.push({
-          key: `${template.id}@${date}`,
-          title: template.title,
-          startTime: template.startTime,
-          endTime: template.endTime,
-          priority: template.priority,
-          isDone: false,
-          isProjected: true,
-        })
-      })
-
-      events.sort((a, b) =>
-        (a.startTime ?? '99:99').localeCompare(b.startTime ?? '99:99'),
-      )
-
-      const scheduledMinutes = events.reduce(
-        (total, event) =>
-          event.startTime
-            ? total + durationMinutes(event.startTime, event.endTime)
-            : total,
-        0,
-      )
-
+      const events = collectDayEvents({ templates, rowsByDate, date })
+      const scheduledMinutes = scheduledMinutesOf(events)
       const doneCount = events.filter((event) => event.isDone).length
 
       cells.push({

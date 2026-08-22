@@ -9,6 +9,8 @@ import {
 
 const props = defineProps<{
   task: DailyTask
+  /** Its project's colours, when the project has its own. */
+  themeVars?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -37,6 +39,7 @@ const { isLifted, onPointerDown } = usePressGesture({
   <div
     class="calendar-view__unscheduled-item"
     :class="[task.priority, { 'is-lifted': isLifted }]"
+    :style="themeVars"
     :draggable="!isCoarsePointer"
     @dragstart="emit('drag-start', $event, task.id)"
     @pointerdown="onPointerDown"

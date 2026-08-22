@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
+import type { GoalTheme } from '../../../entities/GoalEntity'
+import {
+  APPEARANCE_SECTION,
+  useAppearancePanel,
+} from '../../appearance/composables/useAppearancePanel'
 
 // Widen from readonly literal tuple to a plain string array for template binding.
 const colorPresets: string[] = [...GOAL_COLOR_PRESETS]
@@ -13,13 +18,15 @@ const props = defineProps<{
   projectCount: number
   taskCount: number
   showSettings: boolean
-  accentColor?: string
+  goalTheme?: GoalTheme
 }>()
 
 const emit = defineEmits<{
   (e: 'delete-goal'): void
   (e: 'change-color', color: string | undefined): void
 }>()
+
+const { open: openAppearance } = useAppearancePanel()
 
 const showMenu = ref(false)
 
@@ -46,6 +53,13 @@ function confirmDelete() {
   if (window.confirm(`Delete goal "${props.title}"? This cannot be undone.`)) {
     emit('delete-goal')
   }
+}
+
+/** The quick swatches only set the accent; the full palette — circles, frames,
+ *  surfaces — lives in the appearance sidebar. */
+function openProjectAppearance() {
+  closeMenu()
+  openAppearance(APPEARANCE_SECTION.PROJECT)
 }
 
 function swatchStyle(color: string): Record<string, string> {
@@ -77,13 +91,20 @@ function swatchStyle(color: string): Record<string, string> {
             v-for="color in colorPresets"
             :key="color"
             class="goal-settings__swatch"
-            :class="{ active: accentColor === color }"
+            :class="{ active: goalTheme?.accent === color }"
             :style="swatchStyle(color)"
             type="button"
             :aria-label="`Use color ${color}`"
             @click="pickColor(color)"
           ></button>
         </div>
+        <button
+          class="goal-settings__item"
+          type="button"
+          @click="openProjectAppearance"
+        >
+          More colours…
+        </button>
         <button class="goal-settings__item" type="button" @click="resetColor">
           Use theme default
         </button>

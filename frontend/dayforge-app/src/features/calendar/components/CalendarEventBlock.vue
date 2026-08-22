@@ -22,6 +22,8 @@ const props = defineProps<{
   topPx: number
   heightPx: number
   isDragging?: boolean
+  /** Its project's colours, when the project has its own. */
+  themeVars?: Record<string, string>
 }>()
 
 const emit = defineEmits<{
@@ -44,6 +46,7 @@ const blockRef = ref<HTMLElement | null>(null)
 // keep :style bound to a helper (not an inline object) to avoid vue-tsc CSSProperties false positives
 function blockStyle(top: number, height: number) {
   return {
+    ...(props.themeVars ?? {}),
     top: `${top}px`,
     height: `${Math.max(height, 20)}px`,
   }
