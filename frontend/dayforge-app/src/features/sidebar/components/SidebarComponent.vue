@@ -15,7 +15,8 @@ defineProps<{
   totalTaskCount: number
   themeStyle: ThemeStyle
   themeMode: ThemeMode
-  activeView: 'goals' | 'calendar' // NEW
+  activeView: 'goals' | 'calendar' | 'planned'
+  plannedCount: number
   notificationsSupported: boolean
   notificationsEnabled: boolean
 }>()
@@ -25,7 +26,7 @@ const emit = defineEmits<{
   (e: 'create-goal', title: string, description: string): void
   (e: 'change-theme-style', style: ThemeStyle): void
   (e: 'change-theme-mode', mode: ThemeMode): void
-  (e: 'select-view', view: 'goals' | 'calendar'): void // NEW
+  (e: 'select-view', view: 'goals' | 'calendar' | 'planned'): void
   (e: 'toggle-notifications'): void
   (e: 'delete-goal', goalId: ID): void
 }>()
@@ -161,6 +162,16 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
       @context-menu="openGoalContextMenu"
     />
     <p class="sidebar-caption">View</p>
+    <!-- Dated commitments sit outside the goals so opening a goal doesn't
+         surface unrelated appointments. -->
+    <button
+      class="nav-goal-btn"
+      :class="{ active: activeView === 'planned' }"
+      @click="emit('select-view', 'planned')"
+    >
+      <span>Planned tasks</span>
+      <span class="goal-count">{{ plannedCount }}</span>
+    </button>
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"

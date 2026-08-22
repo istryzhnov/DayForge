@@ -19,8 +19,8 @@ const {
   minDate,
   isWeekly,
   isCustomInterval,
-  repeatsUntil,
-  horizonDays,
+  isRepeating,
+  isAnnual,
   error,
   isValid,
   toggleWeekday,
@@ -96,11 +96,14 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
       </div>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
-      <p v-else-if="repeatsUntil" class="task-schedule__hint">
-        Repeats for {{ horizonDays }} days, until {{ repeatsUntil }}.
+      <p v-else-if="isAnnual" class="task-schedule__hint">
+        Comes round every year on this date — listed under Planned tasks.
+      </p>
+      <p v-else-if="isRepeating" class="task-schedule__hint">
+        Repeats from {{ date }} with no end date.
       </p>
       <p v-else class="task-schedule__hint">
-        Happens once on {{ date }} and only on that day.
+        Planned for {{ date }} — listed under Planned tasks.
       </p>
     </div>
   </ComposerToggleSection>

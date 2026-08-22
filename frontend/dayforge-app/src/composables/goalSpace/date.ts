@@ -35,6 +35,21 @@ export function daysBetweenISODates(from: ISODate, to: ISODate): number {
   return Math.round(diffMs / MS_PER_DAY)
 }
 
+/** First day of the month `isoDate` falls in. */
+export function startOfMonthISODate(isoDate: ISODate): ISODate {
+  const [year, month] = isoDate.split('-').map(Number)
+  return toLocalISODate(new Date(year, month - 1, 1))
+}
+
+/** Shift by whole months, clamping to the last valid day (Jan 31 + 1 → Feb 28). */
+export function addMonthsToISODate(isoDate: ISODate, delta: number): ISODate {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  const lastDayOfTarget = new Date(year, month - 1 + delta + 1, 0).getDate()
+  return toLocalISODate(
+    new Date(year, month - 1 + delta, Math.min(day, lastDayOfTarget)),
+  )
+}
+
 /** Day of week in `Date.getDay()` terms: 0 = Sunday. */
 export function weekdayOfISODate(isoDate: ISODate): number {
   return parseISODate(isoDate).getDay()

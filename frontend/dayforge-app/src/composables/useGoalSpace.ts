@@ -58,7 +58,19 @@ export function useGoalSpace() {
   }
 
   function loadFromStorageTasks() {
-    taskTemplates.value = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
+    const stored = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
+
+    // Repeats used to be capped at a 30-day horizon, written as an `endDate`.
+    // Occurrences are generated lazily, so that cap bought nothing and made
+    // long-running habits silently stop. Nothing in the UI sets a deliberate
+    // end date, so dropping it makes existing rules run indefinitely.
+    stored.forEach((template) => {
+      if (template.recurrence?.endDate) {
+        delete template.recurrence.endDate
+      }
+    })
+
+    taskTemplates.value = stored
   }
 
   function loadFromStorageDailyTasks() {
@@ -357,6 +369,29 @@ export function useGoalSpace() {
   }
 
   /**
+   * Check off a planned task from the "Planned tasks" list.
+   *
+   * Its row may not exist yet — a task planned for next week has no snapshot
+   * until that day is opened — so the row is materialized on demand.
+   */
+  function togglePlannedTask(templateId: ID, date: ISODate) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    ensureDailyTaskForTemplate({
+      taskTemplates: taskTemplates.value,
+      dailyTasks: dailyTasks.value,
+      template,
+      date,
+    })
+
+    const row = dailyTasks.value.find(
+      (item) => item.templateId === templateId && item.date === date,
+    )
+    if (row) toggleTaskDone(row.id)
+  }
+
+  /**
    * Promote a plain task into a project so it can group others.
    *
    * Only today's and future occurrences change: rewriting past rows would
@@ -404,6 +439,7 @@ export function useGoalSpace() {
     deleteTask,
     initializeStorage,
     toggleTaskDone,
+    togglePlannedTask,
     convertTaskToProject,
     attachTaskToProject,
     activeMajorTemplates,

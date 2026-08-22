@@ -1,7 +1,7 @@
 import { computed, onMounted } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal } from '../../entities/GoalEntity'
-import type { ID, Priority } from '../../entities/types'
+import type { ID, ISODate, Priority } from '../../entities/types'
 import type { MajorTaskOption, TaskSchedule } from '../../entities/TaskEntity'
 import { GOAL_STATUS } from '../../entities/constants'
 
@@ -56,6 +56,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.toggleTaskDone(dailyTaskId)
   }
 
+  function handleTogglePlanned(templateId: ID, date: ISODate) {
+    goalSpace.togglePlannedTask(templateId, date)
+  }
+
   function handleSetAsProject(templateId: ID) {
     goalSpace.convertTaskToProject(templateId)
   }
@@ -98,6 +102,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleAddSubTask,
     handleCreateGoal,
     handleToggleDone,
+    handleTogglePlanned,
     handleSetAsProject,
     handleAttachToProject,
     handleCreateAllModeMinor,

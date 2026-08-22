@@ -5,11 +5,12 @@ import type { ISODate, TimeOfDay } from '../../../entities/types'
 import {
   DAY_WINDOW,
   DEFAULT_TASK_DURATION_MINUTES,
-  RECURRENCE_HORIZON_DAYS,
   RECURRENCE_TYPE,
 } from '../../../entities/constants'
-import { addMinutesToTime, getTodayISODate } from '../../../composables/goalSpace/date'
-import { recurrenceHorizonEnd } from '../../../composables/goalSpace/recurrence'
+import {
+  addMinutesToTime,
+  getTodayISODate,
+} from '../../../composables/goalSpace/date'
 
 /** Repeat options offered in the composer (monthly/custom aren't exposed yet). */
 export const REPEAT_OPTIONS = [
@@ -17,6 +18,7 @@ export const REPEAT_OPTIONS = [
   { value: RECURRENCE_TYPE.DAILY, label: 'Every day' },
   { value: RECURRENCE_TYPE.CUSTOM, label: 'Every N days' },
   { value: RECURRENCE_TYPE.WEEKLY, label: 'On weekdays' },
+  { value: RECURRENCE_TYPE.YEARLY, label: 'Every year' },
 ] as const
 
 /**
@@ -66,10 +68,11 @@ export function useTaskScheduleState() {
   const isCustomInterval = computed(
     () => repeatType.value === RECURRENCE_TYPE.CUSTOM,
   )
-  const repeatsUntil = computed(() =>
-    repeatType.value === RECURRENCE_TYPE.NONE
-      ? null
-      : recurrenceHorizonEnd(date.value),
+  const isRepeating = computed(
+    () => repeatType.value !== RECURRENCE_TYPE.NONE,
+  )
+  const isAnnual = computed(
+    () => repeatType.value === RECURRENCE_TYPE.YEARLY,
   )
 
   const error = computed<string | null>(() => {
@@ -104,17 +107,19 @@ export function useTaskScheduleState() {
     if (!isEnabled.value || !isValid.value) return undefined
 
     const startDate = date.value
-    const endDate = recurrenceHorizonEnd(startDate)
 
+    // No end date: occurrences are computed from the rule when a day is opened,
+    // so an endless repeat costs nothing extra — only visited days are stored.
     const recurrence =
       repeatType.value === RECURRENCE_TYPE.NONE
         ? { type: RECURRENCE_TYPE.NONE, startDate }
+        : repeatType.value === RECURRENCE_TYPE.YEARLY
+          ? { type: RECURRENCE_TYPE.YEARLY, startDate }
         : repeatType.value === RECURRENCE_TYPE.WEEKLY
           ? {
               type: RECURRENCE_TYPE.WEEKLY,
               daysOfWeek: [...weekdays.value],
               startDate,
-              endDate,
             }
           : {
               // "Every day" and "every N days" are the same daily rule; only the
@@ -124,7 +129,6 @@ export function useTaskScheduleState() {
                 ? Math.max(1, Math.round(intervalDays.value))
                 : 1,
               startDate,
-              endDate,
             }
 
     return {
@@ -159,8 +163,8 @@ export function useTaskScheduleState() {
     minDate,
     isWeekly,
     isCustomInterval,
-    repeatsUntil,
-    horizonDays: RECURRENCE_HORIZON_DAYS,
+    isRepeating,
+    isAnnual,
     error,
     isValid,
     toggleWeekday,

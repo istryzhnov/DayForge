@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
+import type {
+  DailyTask,
+  MajorTaskOption,
+  TaskTemplate,
+} from '../../../entities/TaskEntity'
+import CalendarMonthView from './CalendarMonthView.vue'
 import type { ID, ISODate } from '../../../entities/types'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import CalendarEventBlock from './CalendarEventBlock.vue'
@@ -24,7 +29,18 @@ const props = defineProps<{
   tasks: DailyTask[]
   currentDate: ISODate
   projectOptions: MajorTaskOption[]
+  /** Whole-history rows and rules — the month view projects from both. */
+  dailyTasks: DailyTask[]
+  templates: TaskTemplate[]
 }>()
+
+type CalendarViewMode = 'day' | 'month'
+const viewMode = ref<CalendarViewMode>('day')
+
+function openDay(date: ISODate) {
+  emit('select-date', date)
+  viewMode.value = 'day'
+}
 
 const emit = defineEmits<{
   (e: 'prev-day'): void
@@ -42,6 +58,7 @@ const emit = defineEmits<{
   (e: 'toggle-task-done', taskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
+  (e: 'select-date', date: ISODate): void
 }>()
 
 const gridRef = ref<HTMLElement | null>(null)
@@ -239,6 +256,34 @@ function onTouchDrop(point: GesturePoint) {
 
 <template>
   <section class="calendar-view" :class="{ 'is-touch': isCoarsePointer }">
+    <div class="calendar-view__modes">
+      <button
+        class="theme-chip"
+        :class="{ active: viewMode === 'day' }"
+        type="button"
+        @click="viewMode = 'day'"
+      >
+        Day
+      </button>
+      <button
+        class="theme-chip"
+        :class="{ active: viewMode === 'month' }"
+        type="button"
+        @click="viewMode = 'month'"
+      >
+        Month
+      </button>
+    </div>
+
+    <CalendarMonthView
+      v-if="viewMode === 'month'"
+      :templates="templates"
+      :daily-tasks="dailyTasks"
+      :current-date="currentDate"
+      @open-day="openDay"
+    />
+
+    <template v-else>
     <header class="calendar-view__header">
       <button class="btn btn-ghost" type="button" @click="emit('prev-day')">
         ‹
@@ -390,5 +435,6 @@ function onTouchDrop(point: GesturePoint) {
           emit('attach-to-project', payload.templateId, payload.projectTemplateId)
       "
     />
+    </template>
   </section>
 </template>

@@ -4,6 +4,8 @@ import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import CalendarView from '../features/calendar/components/CalendarView.vue'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
+import PlannedTaskList from '../features/tasks/components/PlannedTaskList.vue'
+import { usePlannedTasks } from '../features/tasks/composables/usePlannedTasks'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import {
@@ -33,6 +35,7 @@ const {
   goToPreviousDay,
   goToNextDay,
   goToToday,
+  goToDate,
 } = goalSpace
 
 const {
@@ -41,6 +44,7 @@ const {
   handleAddSubTask,
   handleCreateGoal,
   handleToggleDone,
+  handleTogglePlanned,
   handleSetAsProject,
   handleAttachToProject,
   handleCreateAllModeMinor,
@@ -70,7 +74,14 @@ function handleToggleNotifications() {
   }
 }
 
-const activeView = ref<'goals' | 'calendar'>('goals')
+type ActiveView = 'goals' | 'calendar' | 'planned'
+const activeView = ref<ActiveView>('goals')
+
+const { plannedTasks, plannedCount } = usePlannedTasks({
+  getTemplates: () => taskTemplates.value,
+  getDailyTasks: () => dailyTasks.value,
+  getGoals: () => goals.value,
+})
 
 function handleThemeStyleChange(nextStyle: ThemeStyle) {
   setThemeStyle(nextStyle)
@@ -85,7 +96,7 @@ function handleSelectGoal(goalId: ID | null) {
   selectGoal(goalId)
 }
 
-function handleSelectView(view: 'goals' | 'calendar') {
+function handleSelectView(view: ActiveView) {
   activeView.value = view
 }
 
@@ -139,6 +150,7 @@ function handleToggleCalendarTaskDone(taskId: ID) {
         :theme-style="themeStyle"
         :theme-mode="themeMode"
         :active-view="activeView"
+        :planned-count="plannedCount"
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"
         @select-goal="handleSelectGoal"
@@ -167,12 +179,19 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           @add-task="handleAddTask"
           @add-subtask="handleAddSubTask"
           @toggle-done="handleToggleDone"
+          @toggle-planned="handleTogglePlanned"
           @set-as-project="handleSetAsProject"
           @create-all-mode-minor="handleCreateAllModeMinor"
           @edit-task="handleEditTask"
           @delete-task="handleDeleteTask"
           @delete-goal="handleDeleteGoal"
           @change-goal-color="handleChangeGoalColor"
+        />
+
+        <PlannedTaskList
+          v-else-if="activeView === 'planned'"
+          :tasks="plannedTasks"
+          @toggle="handleTogglePlanned"
         />
 
         <CalendarView
@@ -183,6 +202,9 @@ function handleToggleCalendarTaskDone(taskId: ID) {
           @next-day="goToNextDay"
           @today="goToToday"
           :project-options="majorTaskOptions"
+          :daily-tasks="dailyTasks"
+          :templates="taskTemplates"
+          @select-date="goToDate"
           @schedule-task="handleScheduleTask"
           @unschedule-task="unscheduleDailyTask"
           @create-task="handleCreateScheduledTask"
