@@ -7,7 +7,7 @@ import type {
   TaskStatus,
   TimeOfDay,
 } from './types'
-import { MAJOR_DECISION, TASK_KIND } from './constants'
+import { TASK_KIND } from './constants'
 
 export interface TaskTemplate {
   id: ID
@@ -42,8 +42,6 @@ export type TaskSchedule = {
   recurrence: RecurrenceRule
 }
 
-export type MajorDecision = (typeof MAJOR_DECISION)[keyof typeof MAJOR_DECISION]
-
 export interface DailyTask {
   id: ID
   date: ISODate
@@ -55,7 +53,6 @@ export interface DailyTask {
   tagIds: ID[]
   status: TaskStatus
   completedAt?: ISODateTime
-  majorDecision?: MajorDecision
   startTime?: TimeOfDay
   endTime?: TimeOfDay
 }

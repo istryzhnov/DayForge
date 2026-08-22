@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
+import type { TaskSchedule } from '../../../entities/TaskEntity'
 
 type TaskListActions = {
   onAddSubtask: (
@@ -9,10 +9,10 @@ type TaskListActions = {
     priority: Priority,
     schedule?: TaskSchedule,
   ) => void
-  onToggleMinor: (taskId: ID) => void
-  onResolveMajor: (taskId: ID, decision: MajorDecision) => void
+  onToggleDone: (taskId: ID) => void
   onEditTask: (templateId: ID, title: string) => void
   onDeleteTask: (templateId: ID) => void
+  onSetAsProject: (templateId: ID) => void
 }
 
 export function useTaskListState(actions: TaskListActions) {
@@ -32,12 +32,8 @@ export function useTaskListState(actions: TaskListActions) {
     activeParentId.value = null
   }
 
-  function toggleMinor(taskId: ID) {
-    actions.onToggleMinor(taskId)
-  }
-
-  function resolveMajor(taskId: ID, decision: MajorDecision) {
-    actions.onResolveMajor(taskId, decision)
+  function toggleDone(taskId: ID) {
+    actions.onToggleDone(taskId)
   }
 
   function editTask(templateId: ID, title: string) {
@@ -48,13 +44,17 @@ export function useTaskListState(actions: TaskListActions) {
     actions.onDeleteTask(templateId)
   }
 
+  function setAsProject(templateId: ID) {
+    actions.onSetAsProject(templateId)
+  }
+
   return {
     activeParentId,
     toggleParent,
     handleSubtaskSubmit,
-    toggleMinor,
-    resolveMajor,
+    toggleDone,
     editTask,
     deleteTask,
+    setAsProject,
   }
 }

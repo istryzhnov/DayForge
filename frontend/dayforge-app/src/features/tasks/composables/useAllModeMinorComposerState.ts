@@ -28,9 +28,18 @@ export function useAllModeMinorComposerState(
   actions: Actions,
   options: Options = {},
 ) {
+  const isAssignEnabled = ref(false)
   const selectedGoalId = ref<ID | ''>('')
   const selectedMajorId = ref<ID | ''>('')
   const minorTitle = ref('')
+
+  // Collapsing the section clears it, so a hidden select can never quietly
+  // apply a goal or project the user can no longer see.
+  watch(isAssignEnabled, (enabled) => {
+    if (enabled) return
+    selectedGoalId.value = ''
+    selectedMajorId.value = ''
+  })
 
   const filteredMajorTaskOptions = computed(() => {
     if (!selectedGoalId.value) return props.majorTaskOptions
@@ -68,6 +77,7 @@ export function useAllModeMinorComposerState(
   }
 
   return {
+    isAssignEnabled,
     selectedGoalId,
     selectedMajorId,
     minorTitle,

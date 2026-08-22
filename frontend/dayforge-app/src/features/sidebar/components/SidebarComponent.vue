@@ -3,6 +3,8 @@ import { onMounted, onUnmounted, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
+import SidebarGoalButton from './SidebarGoalButton.vue'
+import GoalContextMenu from './GoalContextMenu.vue'
 import { useSidebarState } from '../composables/useSidebarState'
 import type { ThemeMode, ThemeStyle } from '../../../composables/useTheme'
 
@@ -13,7 +15,8 @@ defineProps<{
   totalTaskCount: number
   themeStyle: ThemeStyle
   themeMode: ThemeMode
-  activeView: 'goals' | 'calendar' // NEW
+  activeView: 'goals' | 'calendar' | 'planned'
+  plannedCount: number
   notificationsSupported: boolean
   notificationsEnabled: boolean
 }>()
@@ -23,8 +26,9 @@ const emit = defineEmits<{
   (e: 'create-goal', title: string, description: string): void
   (e: 'change-theme-style', style: ThemeStyle): void
   (e: 'change-theme-mode', mode: ThemeMode): void
-  (e: 'select-view', view: 'goals' | 'calendar'): void // NEW
+  (e: 'select-view', view: 'goals' | 'calendar' | 'planned'): void
   (e: 'toggle-notifications'): void
+  (e: 'delete-goal', goalId: ID): void
 }>()
 
 const {
@@ -33,9 +37,15 @@ const {
   closeNewGoalForm,
   selectGoal,
   createGoal,
+  contextMenuGoal,
+  contextMenuPos,
+  openGoalContextMenu,
+  closeGoalContextMenu,
+  deleteGoalFromMenu,
 } = useSidebarState({
   onSelectGoal: (goalId) => emit('select-goal', goalId),
   onCreateGoal: (title, description) => emit('create-goal', title, description),
+  onDeleteGoal: (goalId) => emit('delete-goal', goalId),
 })
 
 const showSettings = ref(false)
@@ -131,28 +141,37 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
       </div>
     </div>
 
-    <p class="sidebar-caption">Goals</p>
+    <p class="sidebar-caption">Projects</p>
 
     <button
       class="nav-goal-btn"
       :class="{ active: activeGoalId === null }"
       @click="selectGoal(null)"
     >
-      <span>All Goals</span>
+      <span>All Projects</span>
       <span class="goal-count">{{ totalTaskCount }}</span>
     </button>
 
-    <button
+    <SidebarGoalButton
       v-for="goal in goals"
       :key="goal.id"
-      class="nav-goal-btn"
-      :class="{ active: goal.id === activeGoalId }"
-      @click="selectGoal(goal.id)"
-    >
-      <span>{{ goal.title }}</span>
-      <span class="goal-count">{{ taskCountByGoal[goal.id] ?? 0 }}</span>
-    </button>
+      :goal="goal"
+      :is-active="goal.id === activeGoalId"
+      :task-count="taskCountByGoal[goal.id] ?? 0"
+      @select="selectGoal(goal.id)"
+      @context-menu="openGoalContextMenu"
+    />
     <p class="sidebar-caption">View</p>
+    <!-- Dated commitments sit outside the goals so opening a goal doesn't
+         surface unrelated appointments. -->
+    <button
+      class="nav-goal-btn"
+      :class="{ active: activeView === 'planned' }"
+      @click="emit('select-view', 'planned')"
+    >
+      <span>Planned tasks</span>
+      <span class="goal-count">{{ plannedCount }}</span>
+    </button>
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
@@ -168,5 +187,14 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
         @cancel="closeNewGoalForm"
       />
     </div>
+
+    <GoalContextMenu
+      v-if="contextMenuGoal && contextMenuPos"
+      :x="contextMenuPos.x"
+      :y="contextMenuPos.y"
+      :goal-title="contextMenuGoal.title"
+      @delete="deleteGoalFromMenu"
+      @close="closeGoalContextMenu"
+    />
   </div>
 </template>

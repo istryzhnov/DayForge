@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
-import type { FlatTaskNode } from '../../../composables/useTaskTree'
+import type { TaskSchedule } from '../../../entities/TaskEntity'
+import type { TaskGroup } from '../../../composables/useTaskTree'
 import TaskList from '../../tasks/components/TaskList.vue'
 
 defineProps<{
-  nodes: FlatTaskNode[]
+  groups: TaskGroup[]
   isAllMode: boolean
 }>()
 
@@ -17,17 +17,18 @@ const emit = defineEmits<{
     priority: Priority,
     schedule?: TaskSchedule,
   ): void
-  (e: 'toggle-minor', dailyTaskId: ID): void
-  (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
-  (e: 'focus-major', dailyMajorTaskId: ID): void
+  (e: 'toggle-done', dailyTaskId: ID): void
+  (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'delete-task', templateId: ID): void
+  (e: 'set-as-project', templateId: ID): void
+  (e: 'quick-add', title: string): void
 }>()
 </script>
 
 <template>
   <TaskList
-    :nodes="nodes"
+    :groups="groups"
     :is-all-mode="isAllMode"
     @add-subtask="
       (
@@ -37,15 +38,13 @@ const emit = defineEmits<{
         schedule?: TaskSchedule,
       ) => emit('add-subtask', parentId, title, priority, schedule)
     "
-    @toggle-minor="(dailyTaskId: ID) => emit('toggle-minor', dailyTaskId)"
-    @resolve-major="
-      (dailyMajorTaskId: ID, decision: MajorDecision) =>
-        emit('resolve-major', dailyMajorTaskId, decision)
-    "
-    @focus-major="(majorId: ID) => emit('focus-major', majorId)"
+    @toggle-done="(dailyTaskId: ID) => emit('toggle-done', dailyTaskId)"
+    @focus-project="(taskId: ID) => emit('focus-project', taskId)"
     @edit-task="
       (templateId: ID, title: string) => emit('edit-task', templateId, title)
     "
     @delete-task="(templateId: ID) => emit('delete-task', templateId)"
+    @set-as-project="(templateId: ID) => emit('set-as-project', templateId)"
+    @quick-add="(title: string) => emit('quick-add', title)"
   />
 </template>

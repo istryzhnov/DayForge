@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ComposerToggleSection from './ComposerToggleSection.vue'
 import {
   MAX_TIME,
   MIN_TIME,
@@ -18,8 +19,8 @@ const {
   minDate,
   isWeekly,
   isCustomInterval,
-  repeatsUntil,
-  horizonDays,
+  isRepeating,
+  isAnnual,
   error,
   isValid,
   toggleWeekday,
@@ -32,13 +33,8 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
 </script>
 
 <template>
-  <div class="task-schedule">
-    <label class="task-schedule__toggle">
-      <input v-model="isEnabled" type="checkbox" />
-      <span>Schedule on the calendar</span>
-    </label>
-
-    <div v-if="isEnabled" class="task-schedule__body">
+  <ComposerToggleSection v-model="isEnabled" label="Schedule on the calendar">
+    <div class="task-schedule__fields">
       <div class="task-schedule__row">
         <label class="task-schedule__field">
           <span class="task-schedule__label">Date</span>
@@ -100,12 +96,15 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
       </div>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
-      <p v-else-if="repeatsUntil" class="task-schedule__hint">
-        Repeats for {{ horizonDays }} days, until {{ repeatsUntil }}.
+      <p v-else-if="isAnnual" class="task-schedule__hint">
+        Comes round every year on this date — listed under Planned tasks.
+      </p>
+      <p v-else-if="isRepeating" class="task-schedule__hint">
+        Repeats from {{ date }} with no end date.
       </p>
       <p v-else class="task-schedule__hint">
-        Happens once on {{ date }} and only on that day.
+        Planned for {{ date }} — listed under Planned tasks.
       </p>
     </div>
-  </div>
+  </ComposerToggleSection>
 </template>

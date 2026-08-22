@@ -4,8 +4,10 @@ import { useContextMenu } from '../../../composables/useContextMenu'
 const props = defineProps<{
   x: number
   y: number
-  canCheck: boolean
   isDone: boolean
+  canSetAsProject: boolean
+  canAddChild: boolean
+  isProject: boolean
 }>()
 
 const emit = defineEmits<{
@@ -13,6 +15,8 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'add-to-this'): void
   (e: 'toggle-check'): void
+  (e: 'set-as-project'): void
+  (e: 'show-habit'): void
   (e: 'close'): void
 }>()
 
@@ -37,7 +41,6 @@ const { menuPositionStyle } = useContextMenu({
       Edit
     </button>
     <button
-      v-if="canCheck"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -50,6 +53,20 @@ const { menuPositionStyle } = useContextMenu({
       {{ isDone ? 'Mark as not done' : 'Check it' }}
     </button>
     <button
+      v-if="canSetAsProject"
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('set-as-project')
+          emit('close')
+        }
+      "
+    >
+      Set as project
+    </button>
+    <button
+      v-if="canAddChild"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -60,6 +77,19 @@ const { menuPositionStyle } = useContextMenu({
       "
     >
       Add to this
+    </button>
+    <button
+      v-if="isProject"
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('show-habit')
+          emit('close')
+        }
+      "
+    >
+      Show habit
     </button>
     <button
       class="task-context-menu__item task-context-menu__item--soon"

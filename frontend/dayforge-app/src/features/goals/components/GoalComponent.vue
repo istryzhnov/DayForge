@@ -2,9 +2,9 @@
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
-  MajorDecision,
   MajorTaskOption,
   TaskSchedule,
+  TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, Priority } from '../../../entities/types'
 import GoalPanelHeader from './GoalPanelHeader.vue'
@@ -22,6 +22,10 @@ const props = defineProps<{
   goal: Goal | null
   goals: Goal[]
   tasks: DailyTask[]
+  /** Source of creation order — drives newest-first sorting. */
+  templates: TaskTemplate[]
+  /** Template just created, so its row can play the "added" highlight. */
+  newTemplateId: ID | null
   isAllMode: boolean
   majorTaskOptions: MajorTaskOption[]
   dailyTasks: DailyTask[]
@@ -37,8 +41,8 @@ const emit = defineEmits<{
     priority: Priority,
     schedule?: TaskSchedule,
   ): void
-  (e: 'toggle-minor', dailyTaskId: ID): void
-  (e: 'resolve-major', dailyMajorTaskId: ID, decision: MajorDecision): void
+  (e: 'toggle-done', dailyTaskId: ID): void
+  (e: 'set-as-project', templateId: ID): void
   (
     e: 'create-all-mode-minor',
     title: string,
@@ -53,30 +57,30 @@ const emit = defineEmits<{
 }>()
 
 const {
-  orderedFlatNodes,
+  taskGroups,
   totalCount,
-  majorCount,
-  subCount,
+  projectCount,
+  taskCount,
   panelTitle,
   panelDescription,
   submitTask,
   submitMinor,
   submitSubtask,
-  toggleMinor,
-  resolveMajor,
+  submitQuickAdd,
+  toggleDone,
   editTask,
   deleteTask,
+  setAsProject,
 } = useGoalPanelState(props, {
   onAddTask: (title, priority) => emit('add-task', title, priority),
   onAddSubtask: (parentTemplateId, title, priority, schedule) =>
     emit('add-subtask', parentTemplateId, title, priority, schedule),
-  onToggleMinor: (dailyTaskId) => emit('toggle-minor', dailyTaskId),
-  onResolveMajor: (dailyMajorTaskId, decision) =>
-    emit('resolve-major', dailyMajorTaskId, decision),
+  onToggleDone: (dailyTaskId) => emit('toggle-done', dailyTaskId),
   onCreateAllModeMinor: (title, goalId, majorId, schedule) =>
     emit('create-all-mode-minor', title, goalId, majorId, schedule),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
+  onSetAsProject: (templateId) => emit('set-as-project', templateId),
 })
 
 const selectedMajorDailyTaskId = ref<ID | null>(null)
@@ -117,8 +121,8 @@ const goalPanelStyle = computed(() =>
       :description="panelDescription"
       :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
       :total-count="totalCount"
-      :major-count="majorCount"
-      :sub-count="subCount"
+      :project-count="projectCount"
+      :task-count="taskCount"
       :show-settings="!isAllMode && !!goal"
       :accent-color="goal?.accentColor"
       @delete-goal="goal && emit('delete-goal', goal.id)"
@@ -139,32 +143,31 @@ const goalPanelStyle = computed(() =>
     />
 
     <GoalTasksZone
-      :nodes="orderedFlatNodes"
+      :groups="taskGroups"
       :is-all-mode="isAllMode"
       @add-subtask="
         (parentId, title, priority, schedule) =>
           submitSubtask(parentId, title, priority, schedule)
       "
-      @toggle-minor="(dailyTaskId) => toggleMinor(dailyTaskId)"
-      @resolve-major="
-        (dailyMajorTaskId, decision) => resolveMajor(dailyMajorTaskId, decision)
-      "
-      @focus-major="(majorId) => (selectedMajorDailyTaskId = majorId)"
+      @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
+      @focus-project="(taskId) => (selectedMajorDailyTaskId = taskId)"
       @edit-task="(templateId, title) => editTask(templateId, title)"
       @delete-task="(templateId) => deleteTask(templateId)"
+      @set-as-project="(templateId) => setAsProject(templateId)"
+      @quick-add="(title) => submitQuickAdd(title)"
     />
 
     <HabitCalendar
       :title="
         progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
-          ? 'Major habit'
+          ? 'Project habit'
           : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
             ? 'Goal habit'
             : 'All goals habit'
       "
       :subtitle="
         progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
-          ? 'Progress for selected major'
+          ? 'Progress for selected project'
           : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
             ? 'Progress for selected goal'
             : 'Progress across all goals'

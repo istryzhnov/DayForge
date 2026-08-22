@@ -18,6 +18,8 @@
   --minor: #23c7eb;
   --ring-core: #111a29;
   --ring-check: #0f190c;
+  /* Text drawn on a `--minor`-tinted surface (calendar event blocks). */
+  --on-minor: #0b1a20;
   --shadow-lg: 0 26px 54px rgba(0, 0, 0, 0.34);
   --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.22);
   --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.15);
@@ -41,6 +43,8 @@
   --minor: #1ea9cb;
   --ring-core: #f7fbff;
   --ring-check: #123013;
+  /* `--minor` is a saturated blue here — dark text on it is unreadable. */
+  --on-minor: #ffffff;
   --shadow-lg: 0 20px 46px rgba(22, 32, 51, 0.14);
   --shadow-md: 0 12px 28px rgba(22, 32, 51, 0.12);
   --shadow-sm: 0 6px 18px rgba(22, 32, 51, 0.09);
@@ -64,6 +68,8 @@
   --minor: #dddddd;
   --ring-core: #101011;
   --ring-check: #1f120a;
+  /* `--minor` is near-white here, so the text on it must stay dark. */
+  --on-minor: #141415;
   --shadow-lg: 0 22px 44px rgba(0, 0, 0, 0.32);
   --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.26);
   --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.22);
@@ -87,6 +93,8 @@
   --minor: #1d1d1d;
   --ring-core: #ffffff;
   --ring-check: #2a1709;
+  /* `--minor` is near-black here, so the text on it must be white. */
+  --on-minor: #ffffff;
   --shadow-lg: 0 18px 38px rgba(20, 20, 20, 0.12);
   --shadow-md: 0 10px 24px rgba(20, 20, 20, 0.09);
   --shadow-sm: 0 5px 12px rgba(20, 20, 20, 0.08);
@@ -145,12 +153,17 @@ body {
 }
 
 .app-content__inner {
+  margin: auto;
   max-width: 1100px;
 }
 
 :root[data-theme-style='minimal'][data-theme-mode='dark'] .app-content {
   background:
-    radial-gradient(2000px 1500px at -10% -18%, var(--bg-blob-1), transparent 65%),
+    radial-gradient(
+      2000px 1500px at -10% -18%,
+      var(--bg-blob-1),
+      transparent 65%
+    ),
     radial-gradient(900px 900px at 105% 105%, var(--bg-blob-2), transparent 55%);
 }
 

@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
-import type { MajorDecision, TaskSchedule } from '../../../entities/TaskEntity'
-import type { FlatTaskNode } from '../../../composables/useTaskTree'
-import {
-  MAJOR_DECISION,
-  PRIORITY,
-  TASK_STATUS,
-} from '../../../entities/constants'
+import type { TaskSchedule } from '../../../entities/TaskEntity'
+import type { TaskNode } from '../../../composables/useTaskTree'
+import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import TaskComposer from './TaskComposer.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
 
 const props = defineProps<{
-  node: FlatTaskNode
+  node: TaskNode
   isAllMode: boolean
   isActiveParent: boolean
-  isMinorDone: boolean
-  onToggleMinor: (taskId: ID) => void
-  onResolveMajor: (taskId: ID, decision: MajorDecision) => void
+  /** Rendered as the header of a project block rather than a standalone row. */
+  isProjectHeader?: boolean
+  /** Nested inside a project, so it can neither own children nor be promoted. */
+  isNested?: boolean
+  doneCount?: number
+  totalCount?: number
+  onToggleDone: (taskId: ID) => void
   onToggleParent: (taskId: ID) => void
   onSubmitSubtask: (
     parentTemplateId: ID,
@@ -28,15 +28,21 @@ const props = defineProps<{
     schedule?: TaskSchedule,
   ) => void
   onCancelSubtask: () => void
-  onFocusMajor: (dailyMajorTaskId: ID) => void
+  onFocusProject: (dailyTaskId: ID) => void
   onEditTask: (templateId: ID, title: string) => void
   onDeleteTask: (templateId: ID) => void
+  onSetAsProject: (templateId: ID) => void
 }>()
 
 const contextMenuPos = ref<{ x: number; y: number } | null>(null)
 const isEditing = ref(false)
 const editValue = ref(props.node.task.title)
 const titleInputRef = ref<HTMLInputElement | null>(null)
+
+const isProject = computed(() => props.node.task.priority === PRIORITY.MAJOR)
+const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
+// Only a top-level plain task can become a project — nesting stops at two levels.
+const canSetAsProject = computed(() => !isProject.value && !props.isNested)
 
 function openContextMenu(event: MouseEvent) {
   contextMenuPos.value = { x: event.clientX, y: event.clientY }
@@ -79,31 +85,27 @@ function cancelEditing() {
 <template>
   <div
     class="task-row"
-    :class="{ 'is-lifted': isLifted }"
-    :style="`padding-left: ${14 + node.depth * 16}px`"
+    :class="{
+      'is-lifted': isLifted,
+      'task-row--project': isProjectHeader,
+      'is-new': node.isNew,
+    }"
     @contextmenu.prevent="openContextMenu"
     @pointerdown="onPointerDown"
   >
     <div class="task-main">
       <button
-        v-if="node.task.priority === PRIORITY.MINOR"
         type="button"
         class="task-dot-check"
-        :class="{ 'is-done': node.task.status === TASK_STATUS.DONE }"
-        :aria-label="
-          node.task.status === TASK_STATUS.DONE
-            ? 'Mark as not done'
-            : 'Mark as done'
-        "
-        @click="onToggleMinor(node.task.id)"
+        :class="{
+          'is-done': isDone,
+          'task-dot-check--project': isProject,
+        }"
+        :aria-label="isDone ? 'Mark as not done' : 'Mark as done'"
+        @click="onToggleDone(node.task.id)"
       >
-        <span
-          v-if="node.task.status === TASK_STATUS.DONE"
-          class="task-dot-check__mark"
-          >✓</span
-        >
+        <span v-if="isDone" class="task-dot-check__mark">✓</span>
       </button>
-      <span v-else class="dot" :class="node.task.priority"></span>
 
       <div class="task-copy">
         <input
@@ -116,11 +118,7 @@ function cancelEditing() {
           @keydown.esc="cancelEditing"
           @blur="commitEditing"
         />
-        <span
-          v-else
-          class="task-title"
-          :class="{ 'task-done': node.task.status === TASK_STATUS.DONE }"
-        >
+        <span v-else class="task-title" :class="{ 'task-done': isDone }">
           {{ node.task.title }}
         </span>
 
@@ -129,52 +127,30 @@ function cancelEditing() {
             {{ node.goalTitle }}
           </span>
 
-          <span
-            v-if="node.task.priority === PRIORITY.MAJOR"
-            class="task-priority-chip"
-          >
-            {{ node.minorDone }} / {{ node.minorTotal }} done
+          <span v-if="isProjectHeader" class="task-priority-chip">
+            {{ doneCount }} / {{ totalCount }} done
           </span>
 
+          <!-- Repeating tasks only: a running tally of days completed. -->
           <span
-            v-if="node.task.priority === PRIORITY.MINOR && node.majorTitle"
-            class="major-inline-chip"
+            v-if="node.completedCount"
+            class="task-repeat-chip"
+            :title="`Completed ${node.completedCount} times`"
           >
-            {{ node.majorTitle }}
+            ✓ {{ node.completedCount }}
           </span>
         </div>
       </div>
     </div>
 
     <div class="actions">
-      <template
-        v-if="node.task.priority === PRIORITY.MAJOR && node.canResolveMajor"
-      >
-        <button
-          class="btn btn-ghost"
-          @click="onResolveMajor(node.task.id, MAJOR_DECISION.CONTINUE)"
-        >
-          Continue work
-        </button>
-        <button
-          class="btn btn-primary"
-          @click="onResolveMajor(node.task.id, MAJOR_DECISION.DONE)"
-        >
-          Close space
-        </button>
-        <button
-          v-if="node.task.priority === PRIORITY.MAJOR"
-          class="btn btn-ghost"
-          @click="onFocusMajor(node.task.id)"
-        >
-          Habit
-        </button>
-      </template>
+      <!-- Nested tasks can't own children, so the affordance would be a dead end. -->
       <button
+        v-if="!isNested"
         class="task-add-btn"
         type="button"
-        aria-label="Add subtask"
-        title="Add subtask"
+        aria-label="Add task to this"
+        title="Add task to this"
         @click="onToggleParent(node.task.id)"
       >
         +
@@ -186,12 +162,16 @@ function cancelEditing() {
     v-if="contextMenuPos"
     :x="contextMenuPos.x"
     :y="contextMenuPos.y"
-    :can-check="node.task.priority === PRIORITY.MINOR"
-    :is-done="node.task.status === TASK_STATUS.DONE"
+    :is-done="isDone"
+    :can-set-as-project="canSetAsProject"
+    :can-add-child="!isNested"
+    :is-project="isProject"
     @edit="startEditing"
     @delete="onDeleteTask(node.task.templateId)"
     @add-to-this="onToggleParent(node.task.id)"
-    @toggle-check="onToggleMinor(node.task.id)"
+    @toggle-check="onToggleDone(node.task.id)"
+    @set-as-project="onSetAsProject(node.task.templateId)"
+    @show-habit="onFocusProject(node.task.id)"
     @close="closeContextMenu"
   />
 

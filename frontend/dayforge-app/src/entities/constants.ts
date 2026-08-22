@@ -23,11 +23,6 @@ export const GOAL_STATUS = {
   ARCHIVED: 'archived',
 } as const
 
-export const MAJOR_DECISION = {
-  CONTINUE: 'continue',
-  DONE: 'done',
-} as const
-
 export const PROGRESS_SCOPE_TYPE = {
   ALL: 'all',
   GOAL: 'goal',
@@ -39,19 +34,26 @@ export const RECURRENCE_TYPE = {
   DAILY: 'daily',
   WEEKLY: 'weekly',
   MONTHLY: 'monthly',
+  YEARLY: 'yearly',
   CUSTOM: 'custom',
 } as const
 
-// A repeating task stops generating occurrences after this many days. Snapshots
-// are created lazily per visited day, so this caps how far a rule can ever grow
-// localStorage.
-export const RECURRENCE_HORIZON_DAYS = 30
+// How a task relates to the calendar. Derived from its recurrence rule rather
+// than stored, so there is one source of truth.
+export const TASK_KIND_BY_SCHEDULE = {
+  /** No date, no repeat — carries forward to today until done. */
+  OPEN: 'open',
+  /** Pinned to one date. */
+  PLANNED: 'planned',
+  /** Follows a repeat rule. */
+  RECURRING: 'recurring',
+} as const
 
 // The planning day window. Times outside it have nowhere to render on the
 // calendar grid, so schedule inputs are constrained to it too.
 export const DAY_WINDOW = {
-  START_HOUR: 6,
-  END_HOUR: 23,
+  START_HOUR: 0,
+  END_HOUR: 24,
 } as const
 
 export const DEFAULT_TASK_DURATION_MINUTES = 60

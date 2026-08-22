@@ -79,7 +79,9 @@
   font-size: 15px;
   font-weight: 700;
   line-height: 1;
-  color: var(--ring-check);
+  /* Sits on the ring's `--ring-core` centre, not on the accent fill, so it needs
+     the normal text colour — light on dark themes, dark on light ones. */
+  color: var(--text);
 }
 
 .habit-calendar__circle-value {
