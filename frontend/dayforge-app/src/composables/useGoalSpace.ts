@@ -254,7 +254,8 @@ export function useGoalSpace() {
     collectDescendants(templateId)
 
     const removedTitle =
-      taskTemplates.value.find((item) => item.id === templateId)?.title ?? 'Task'
+      taskTemplates.value.find((item) => item.id === templateId)?.title ??
+      'Task'
 
     // Captured before the filters run so the deletion can be reversed — there
     // is no other copy of this data once it leaves the arrays.
@@ -283,6 +284,52 @@ export function useGoalSpace() {
   }
 
   /**
+   * Retag a task with a goal, cascading to the rows the change may still
+   * affect.
+   *
+   * Only today's and future rows are rewritten — past days keep the goal they
+   * were completed under, so per-goal habit stats stay honest (the same rule as
+   * `deleteTask` and `convertTaskToProject`). Children follow their project,
+   * because a subtask inherits its parent's goal at creation.
+   */
+  function applyGoalToTask(template: TaskTemplate, goalId: ID | undefined) {
+    template.goalId = goalId
+    template.updatedAt = new Date().toISOString()
+
+    dailyTasks.value
+      .filter(
+        (row) =>
+          row.templateId === template.id && row.date >= currentDate.value,
+      )
+      .forEach((row) => {
+        row.goalId = goalId
+      })
+
+    taskTemplates.value
+      .filter((child) => child.parentTemplateId === template.id)
+      .forEach((child) => applyGoalToTask(child, goalId))
+  }
+
+  function assignTaskToGoal(templateId: ID, goalId: ID | undefined) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template || template.goalId === goalId) return
+
+    // A task inside a project belongs to that project's goal; moving it
+    // elsewhere means it leaves the project rather than sitting in a block that
+    // its own goal filter would hide it from.
+    if (template.parentTemplateId) {
+      const parent = taskTemplates.value.find(
+        (item) => item.id === template.parentTemplateId,
+      )
+      if (parent && parent.goalId !== goalId) {
+        attachTaskToProject(templateId, null)
+      }
+    }
+
+    applyGoalToTask(template, goalId)
+  }
+
+  /**
    * Move a task under a project, or detach it when `projectTemplateId` is null.
    *
    * Like `deleteTask` and `convertTaskToProject`, only today's and future rows
@@ -300,6 +347,14 @@ export function useGoalSpace() {
 
     template.parentTemplateId = project?.id
     template.updatedAt = new Date().toISOString()
+
+    // The project's goal wins. Without this the task keeps its old goal while
+    // hanging off a project in another one, and since the goal panel filters by
+    // goal before grouping by project, the row silently vanishes from the block
+    // it was just added to.
+    if (project && project.goalId !== template.goalId) {
+      applyGoalToTask(template, project.goalId)
+    }
 
     dailyTasks.value
       .filter(
@@ -465,6 +520,7 @@ export function useGoalSpace() {
     togglePlannedTask,
     convertTaskToProject,
     attachTaskToProject,
+    assignTaskToGoal,
     activeMajorTemplates,
     addMinorInAllMode,
     scheduleDailyTask,

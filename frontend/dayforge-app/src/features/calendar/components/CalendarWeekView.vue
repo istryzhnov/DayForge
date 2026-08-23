@@ -1,13 +1,23 @@
 <script setup lang="ts">
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { useCalendarWeek } from '../composables/useCalendarWeek'
 import {
-  DAY_START_HOUR,
-  GRID_HEIGHT_PX,
+  useCalendarWeek,
+  type PositionedEvent,
+} from '../composables/useCalendarWeek'
+import {
+  columnStyle,
+  gridHeightPx,
+  gridStyle,
+  hourLineStyle,
   HOURS,
-  PX_PER_MINUTE,
 } from '../composables/useCalendarGrid'
+import { useFormat } from '../../../composables/useFormat'
+
+const { formatTime } = useFormat()
+
+/** The breathing room a week column keeps on both sides. */
+const WEEK_INSET_PX = 2
 
 const props = defineProps<{
   templates: TaskTemplate[]
@@ -34,21 +44,13 @@ const {
   getCurrentDate: () => props.currentDate,
 })
 
-// keep :style bound to helpers (not inline objects) to avoid vue-tsc
-// CSSProperties false positives
-function gridStyle(heightPx: number) {
-  return { height: `${heightPx}px` }
-}
-
-function hourLineTop(hour: number) {
-  return { top: `${(hour - DAY_START_HOUR) * 60 * PX_PER_MINUTE}px` }
-}
-
-function eventStyle(top: number, height: number, goalId?: ID) {
+/** A block carries its project's colours first, then its position. */
+function eventStyle(event: PositionedEvent) {
   return {
-    ...(goalId ? (props.goalVarsById[goalId] ?? {}) : {}),
-    top: `${top}px`,
-    height: `${height}px`,
+    ...(event.goalId ? (props.goalVarsById[event.goalId] ?? {}) : {}),
+    ...columnStyle(event.slot, WEEK_INSET_PX),
+    top: `${event.topPx}px`,
+    height: `${event.heightPx}px`,
   }
 }
 </script>
@@ -79,12 +81,12 @@ function eventStyle(top: number, height: number, goalId?: ID) {
       <!-- Hour labels share the grid's geometry so rows line up across columns. -->
       <div class="calendar-week__hours">
         <div class="calendar-week__corner"></div>
-        <div class="calendar-week__hour-list" :style="gridStyle(GRID_HEIGHT_PX)">
+        <div class="calendar-week__hour-list" :style="gridStyle(gridHeightPx)">
           <div
             v-for="hour in HOURS"
             :key="hour"
             class="calendar-week__hour-label"
-            :style="hourLineTop(hour)"
+            :style="hourLineStyle(hour)"
           >
             {{ String(hour).padStart(2, '0') }}:00
           </div>
@@ -114,12 +116,12 @@ function eventStyle(top: number, height: number, goalId?: ID) {
             </span>
           </button>
 
-          <div class="calendar-week__grid" :style="gridStyle(GRID_HEIGHT_PX)">
+          <div class="calendar-week__grid" :style="gridStyle(gridHeightPx)">
             <div
               v-for="hour in HOURS"
               :key="hour"
               class="calendar-week__hour-line"
-              :style="hourLineTop(hour)"
+              :style="hourLineStyle(hour)"
             ></div>
 
             <button
@@ -131,11 +133,13 @@ function eventStyle(top: number, height: number, goalId?: ID) {
                 event.priority,
                 { 'is-done': event.isDone, 'is-projected': event.isProjected },
               ]"
-              :style="eventStyle(event.topPx, event.heightPx, event.goalId)"
+              :style="eventStyle(event)"
               :title="`${event.startTime} ${event.title}`"
               @click="emit('open-day', day.date)"
             >
-              <span class="week-event__time">{{ event.startTime }}</span>
+              <span class="week-event__time">{{
+                formatTime(event.startTime)
+              }}</span>
               <span class="week-event__title">{{ event.title }}</span>
             </button>
           </div>

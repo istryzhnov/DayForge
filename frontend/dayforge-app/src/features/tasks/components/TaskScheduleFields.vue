@@ -103,7 +103,7 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
         Repeats from {{ date }} with no end date.
       </p>
       <p v-else class="task-schedule__hint">
-        Planned for {{ date }} — listed under Planned tasks.
+        On the calendar for {{ date }} — also listed under Planned tasks.
       </p>
     </div>
   </ComposerToggleSection>

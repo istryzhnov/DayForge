@@ -120,6 +120,7 @@ export const MANAGED_CSS_VARS: string[] = [
   '--bg-blob-1',
   '--bg-blob-2',
   '--radius-scale',
+  '--density-scale',
   '--panel-blur',
   '--font-ui',
 ]
@@ -159,6 +160,18 @@ export const DENSITY = {
 } as const
 
 export type Density = (typeof DENSITY)[keyof typeof DENSITY]
+
+/**
+ * Spacing is scaled by a multiplier rather than by per-component overrides:
+ * the handful of paddings and gaps that carry the layout are written as
+ * `calc(Npx * var(--density-scale))`, so the responsive rules keep working
+ * instead of being trampled by a `[data-density]` selector.
+ */
+export const DENSITY_SCALE: Record<Density, number> = {
+  [DENSITY.COMPACT]: 0.8,
+  [DENSITY.COZY]: 1,
+  [DENSITY.ROOMY]: 1.2,
+}
 
 export const BACKGROUND_PATTERN = {
   NONE: 'none',
@@ -285,6 +298,7 @@ export function buildWorkspaceVars(
 ): Record<string, string> {
   return {
     '--radius-scale': String(workspace.radiusScale),
+    '--density-scale': String(DENSITY_SCALE[workspace.density]),
     '--panel-blur': `${workspace.blur}px`,
     '--font-ui': FONT_STACKS[workspace.font],
   }

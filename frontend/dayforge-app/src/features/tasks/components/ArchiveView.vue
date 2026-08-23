@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { ArchiveBlock } from '../composables/useArchive'
 import type { ISODate } from '../../../entities/types'
-import { parseISODate } from '../../../composables/goalSpace/date'
+import { useFormat } from '../../../composables/useFormat'
 
 defineProps<{
   blocks: ArchiveBlock[]
   totalDone: number
 }>()
 
+const { formatDate, formatTime } = useFormat()
+
 function dayLabel(date: ISODate) {
-  return parseISODate(date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-  })
+  return formatDate(date, { day: 'numeric', month: 'short' })
 }
 </script>
 
@@ -30,23 +29,21 @@ function dayLabel(date: ISODate) {
         <header class="archive-block__head">
           <span class="dot major"></span>
           <div class="archive-block__copy">
-            <strong class="archive-block__title">{{ block.projectTitle }}</strong>
+            <strong class="archive-block__title">{{
+              block.projectTitle
+            }}</strong>
             <span class="goal-inline-chip">{{ block.goalTitle }}</span>
           </div>
           <span class="task-repeat-chip">✓ {{ block.tasks.length }}</span>
         </header>
 
         <div class="archive-block__tasks">
-          <div
-            v-for="task in block.tasks"
-            :key="task.id"
-            class="archive-task"
-          >
+          <div v-for="task in block.tasks" :key="task.id" class="archive-task">
             <span class="archive-task__check">✓</span>
             <span class="archive-task__title">{{ task.title }}</span>
             <span class="archive-task__when">
               {{ dayLabel(task.date)
-              }}{{ task.startTime ? ` · ${task.startTime}` : '' }}
+              }}{{ task.startTime ? ` · ${formatTime(task.startTime)}` : '' }}
             </span>
           </div>
         </div>

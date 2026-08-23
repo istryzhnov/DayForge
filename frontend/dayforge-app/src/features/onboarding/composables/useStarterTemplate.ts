@@ -1,7 +1,10 @@
 import { computed, ref } from 'vue'
 import type { Priority, TimeOfDay } from '../../../entities/types'
 import { PRIORITY } from '../../../entities/constants'
-import { addMinutesToTime, getTodayISODate } from '../../../composables/goalSpace/date'
+import {
+  addMinutesToTime,
+  getTodayISODate,
+} from '../../../composables/goalSpace/date'
 
 export type StarterFocus = 'work' | 'study' | 'health' | 'balance'
 export type StarterStart = 'early' | 'standard' | 'late'
@@ -72,7 +75,11 @@ const BLUEPRINTS: Record<StarterFocus, Blueprint> = {
       { title: 'Read one chapter', offsetMinutes: 0, durationMinutes: 60 },
       { title: 'Practice problems', offsetMinutes: 90, durationMinutes: 60 },
       { title: 'Review notes', offsetMinutes: 240, durationMinutes: 30 },
-      { title: 'Summarise what I learned', offsetMinutes: 420, durationMinutes: 30 },
+      {
+        title: 'Summarise what I learned',
+        offsetMinutes: 420,
+        durationMinutes: 30,
+      },
     ],
   },
   health: {
@@ -83,7 +90,11 @@ const BLUEPRINTS: Record<StarterFocus, Blueprint> = {
       { title: 'Morning workout', offsetMinutes: 0, durationMinutes: 60 },
       { title: 'Walk outside', offsetMinutes: 180, durationMinutes: 30 },
       { title: 'Cook a proper meal', offsetMinutes: 330, durationMinutes: 45 },
-      { title: 'Stretch and wind down', offsetMinutes: 540, durationMinutes: 30 },
+      {
+        title: 'Stretch and wind down',
+        offsetMinutes: 540,
+        durationMinutes: 30,
+      },
     ],
   },
   balance: {
@@ -129,17 +140,15 @@ export function useStarterTemplate() {
       goalDescription: blueprint.goalDescription,
       projectTitle: blueprint.projectTitle,
       date: getTodayISODate(),
-      tasks: blueprint.tasks
-        .slice(0, BLOCK_COUNT[load.value])
-        .map((task) => {
-          const startTime = addMinutesToTime(dayStart, task.offsetMinutes)
-          return {
-            title: task.title,
-            priority: PRIORITY.MINOR as Priority,
-            startTime,
-            endTime: addMinutesToTime(startTime, task.durationMinutes),
-          }
-        }),
+      tasks: blueprint.tasks.slice(0, BLOCK_COUNT[load.value]).map((task) => {
+        const startTime = addMinutesToTime(dayStart, task.offsetMinutes)
+        return {
+          title: task.title,
+          priority: PRIORITY.MINOR as Priority,
+          startTime,
+          endTime: addMinutesToTime(startTime, task.durationMinutes),
+        }
+      }),
     }
   })
 

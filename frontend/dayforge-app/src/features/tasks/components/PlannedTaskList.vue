@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PlannedTask } from '../composables/usePlannedTasks'
 import type { ID, ISODate } from '../../../entities/types'
-import { parseISODate } from '../../../composables/goalSpace/date'
+import { useFormat } from '../../../composables/useFormat'
 
 defineProps<{
   tasks: PlannedTask[]
@@ -11,11 +11,10 @@ const emit = defineEmits<{
   (e: 'toggle', templateId: ID, date: ISODate): void
 }>()
 
+const { formatDate, formatTime } = useFormat()
+
 function dayLabel(date: ISODate) {
-  return parseISODate(date).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-  })
+  return formatDate(date, { day: 'numeric', month: 'short' })
 }
 </script>
 
@@ -63,11 +62,15 @@ function dayLabel(date: ISODate) {
                   Overdue · was due {{ dayLabel(task.date) }}
                 </template>
                 <template v-else-if="task.isToday">
-                  Today{{ task.startTime ? ` · ${task.startTime}` : '' }}
+                  Today{{
+                    task.startTime ? ` · ${formatTime(task.startTime)}` : ''
+                  }}
                 </template>
                 <template v-else>
                   {{ dayLabel(task.date)
-                  }}{{ task.startTime ? ` · ${task.startTime}` : '' }}
+                  }}{{
+                    task.startTime ? ` · ${formatTime(task.startTime)}` : ''
+                  }}
                 </template>
               </span>
 

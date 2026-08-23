@@ -38,7 +38,11 @@ function onContextMenu(event: MouseEvent) {
 <template>
   <button
     class="nav-goal-btn"
-    :class="{ active: isActive, 'is-lifted': isLifted, 'is-themed': !!themeVars }"
+    :class="{
+      active: isActive,
+      'is-lifted': isLifted,
+      'is-themed': !!themeVars,
+    }"
     :style="themeVars"
     @click="emit('select')"
     @contextmenu.prevent="onContextMenu"

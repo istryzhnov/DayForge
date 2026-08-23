@@ -6,19 +6,13 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import type { ID, Priority } from '../../../entities/types'
+import type { ID, ISODate, Priority } from '../../../entities/types'
+import { GOAL_STATUS } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
-import { useGoalPanelState } from '../composables/useGoalPanelState'
-import { computed, ref } from 'vue'
-import type { ProgressScope } from '../../../composables/useProgressMetrics'
-import { useProgressMetrics } from '../../../composables/useProgressMetrics'
 import HabitCalendar from './HabitCalendar.vue'
-import type { ISODate } from '../../../entities/types'
-import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
-import { useTheme } from '../../../composables/useTheme'
-import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
+import { useGoalPanelState } from '../composables/useGoalPanelState'
 
 const props = defineProps<{
   goal: Goal | null
@@ -35,7 +29,12 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'add-task', title: string, priority: Priority): void
+  (
+    e: 'add-task',
+    title: string,
+    priority: Priority,
+    schedule?: TaskSchedule,
+  ): void
   (
     e: 'add-subtask',
     parentTemplateId: ID,
@@ -65,6 +64,12 @@ const {
   taskCount,
   panelTitle,
   panelDescription,
+  todayProgress,
+  monthCells,
+  habitTitle,
+  habitSubtitle,
+  goalPanelStyle,
+  focusProject,
   submitTask,
   submitMinor,
   submitSubtask,
@@ -74,7 +79,8 @@ const {
   deleteTask,
   setAsProject,
 } = useGoalPanelState(props, {
-  onAddTask: (title, priority) => emit('add-task', title, priority),
+  onAddTask: (title, priority, schedule) =>
+    emit('add-task', title, priority, schedule),
   onAddSubtask: (parentTemplateId, title, priority, schedule) =>
     emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleDone: (dailyTaskId) => emit('toggle-done', dailyTaskId),
@@ -83,47 +89,6 @@ const {
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
-})
-
-const selectedMajorDailyTaskId = ref<ID | null>(null)
-const progressScope = computed<ProgressScope>(() => {
-  if (selectedMajorDailyTaskId.value) {
-    return {
-      type: PROGRESS_SCOPE_TYPE.MAJOR,
-      majorDailyTaskId: selectedMajorDailyTaskId.value,
-    }
-  }
-
-  if (!props.isAllMode && props.goal) {
-    return { type: PROGRESS_SCOPE_TYPE.GOAL, goalId: props.goal.id }
-  }
-
-  return { type: PROGRESS_SCOPE_TYPE.ALL }
-})
-const dailyTasksRef = computed(() => props.dailyTasks)
-const currentDateRef = computed(() => props.currentDate)
-
-const { todayProgress, monthCells } = useProgressMetrics(
-  dailyTasksRef as any,
-  currentDateRef as any,
-  progressScope as any,
-)
-
-const { themeMode, surfaces } = useTheme()
-
-/**
- * A project's colour has to reach further than `--accent`: the task circles,
- * the frames and the habit ring all read their own tokens, so the whole set is
- * derived from the project colour and carried by the panel.
- */
-const goalPanelStyle = computed(() => {
-  if (props.isAllMode || !props.goal?.theme) return undefined
-  const vars = buildGoalThemeVars(
-    props.goal.theme,
-    surfaces.value,
-    themeMode.value,
-  )
-  return Object.keys(vars).length > 0 ? vars : undefined
 })
 </script>
 
@@ -148,7 +113,9 @@ const goalPanelStyle = computed(() => {
       :is-all-mode="isAllMode"
       :goals="goals"
       :major-task-options="majorTaskOptions"
-      @add-task="(title, priority) => submitTask(title, priority)"
+      @add-task="
+        (title, priority, schedule) => submitTask(title, priority, schedule)
+      "
       @create-all-mode-minor="
         (title, goalId, majorId, schedule) =>
           submitMinor(title, goalId, majorId, schedule)
@@ -163,28 +130,16 @@ const goalPanelStyle = computed(() => {
           submitSubtask(parentId, title, priority, schedule)
       "
       @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
-      @focus-project="(taskId) => (selectedMajorDailyTaskId = taskId)"
+      @focus-project="focusProject"
       @edit-task="(templateId, title) => editTask(templateId, title)"
       @delete-task="(templateId) => deleteTask(templateId)"
       @set-as-project="(templateId) => setAsProject(templateId)"
-      @quick-add="(title) => submitQuickAdd(title)"
+      @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
     />
 
     <HabitCalendar
-      :title="
-        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
-          ? 'Project habit'
-          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
-            ? 'Goal habit'
-            : 'All goals habit'
-      "
-      :subtitle="
-        progressScope.type === PROGRESS_SCOPE_TYPE.MAJOR
-          ? 'Progress for selected project'
-          : progressScope.type === PROGRESS_SCOPE_TYPE.GOAL
-            ? 'Progress for selected goal'
-            : 'Progress across all goals'
-      "
+      :title="habitTitle"
+      :subtitle="habitSubtitle"
       :today-percent="todayProgress.percent"
       :cells="monthCells"
     />

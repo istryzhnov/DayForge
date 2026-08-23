@@ -2,7 +2,10 @@
 import { useTemplateRef } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import type { MajorTaskOption, TaskSchedule } from '../../../entities/TaskEntity'
+import type {
+  MajorTaskOption,
+  TaskSchedule,
+} from '../../../entities/TaskEntity'
 import { useAllModeMinorComposerState } from '../composables/useAllModeMinorComposerState'
 import ComposerToggleSection from './ComposerToggleSection.vue'
 import TaskScheduleFields from './TaskScheduleFields.vue'
@@ -22,9 +25,8 @@ const emit = defineEmits<{
   ): void
 }>()
 
-const scheduleFields = useTemplateRef<InstanceType<typeof TaskScheduleFields>>(
-  'scheduleFields',
-)
+const scheduleFields =
+  useTemplateRef<InstanceType<typeof TaskScheduleFields>>('scheduleFields')
 
 const {
   isAssignEnabled,

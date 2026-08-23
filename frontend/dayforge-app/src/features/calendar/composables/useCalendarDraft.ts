@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import {
-  DEFAULT_DURATION_MINUTES,
-  SNAP_MINUTES,
+  defaultDurationMinutes,
+  snapStepMinutes,
   clampMinutes,
   minutesFromClientY,
   timeFromMinutes,
@@ -79,7 +79,7 @@ export function useCalendarDraft(options: DraftOptions) {
     const minutes = minutesFromClientY(grid, event.clientY)
     draftRange.value.endMin = Math.max(
       minutes,
-      draftRange.value.startMin + SNAP_MINUTES,
+      draftRange.value.startMin + snapStepMinutes(),
     )
   }
 
@@ -101,7 +101,7 @@ export function useCalendarDraft(options: DraftOptions) {
     isDrawing = true
     draftRange.value = {
       startMin,
-      endMin: clampMinutes(startMin + DEFAULT_DURATION_MINUTES),
+      endMin: clampMinutes(startMin + defaultDurationMinutes()),
     }
 
     window.addEventListener('pointermove', onDrawMove)
@@ -121,7 +121,7 @@ export function useCalendarDraft(options: DraftOptions) {
     }
 
     const startMin = minutesFromClientY(grid, event.clientY)
-    openDraftAt(startMin, clampMinutes(startMin + DEFAULT_DURATION_MINUTES))
+    openDraftAt(startMin, clampMinutes(startMin + defaultDurationMinutes()))
   }
 
   return {

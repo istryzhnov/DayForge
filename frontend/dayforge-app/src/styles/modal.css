@@ -69,7 +69,7 @@
 
 .task-reminder-card__eyebrow {
   margin: 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--accent);
@@ -82,7 +82,7 @@
 
 .task-reminder-card__hint {
   margin: 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 

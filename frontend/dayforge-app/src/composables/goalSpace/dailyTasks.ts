@@ -3,6 +3,7 @@ import type { ID, ISODate } from '../../entities/types'
 import { TASK_KIND_BY_SCHEDULE, TASK_STATUS } from '../../entities/constants'
 import { createId, getTodayISODate } from './date'
 import { occursOn, scheduleKindOf } from './recurrence'
+import { useSettings } from '../useSettings'
 
 /**
  * An open task is a single row that follows the user forward: if it was not
@@ -20,8 +21,7 @@ export function carryOpenTasksForward(
   const openTemplateIds = new Set(
     taskTemplates
       .filter(
-        (template) =>
-          scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.OPEN,
+        (template) => scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.OPEN,
       )
       .map((template) => template.id),
   )
@@ -51,8 +51,9 @@ export function ensureTodaySnapshot(
   const today = getTodayISODate()
 
   // Only when the user is actually on today — navigating back through history
-  // must not drag unfinished work out of the past.
-  if (date === today) {
+  // must not drag unfinished work out of the past. Turning the setting off
+  // leaves an unfinished open task on the day it was made instead.
+  if (date === today && useSettings().settings.behavior.carryForward) {
     carryOpenTasksForward(taskTemplates, dailyTasks, today)
   }
 

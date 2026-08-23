@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import type { TaskSchedule } from '../../../entities/TaskEntity'
+import TaskScheduleFields from './TaskScheduleFields.vue'
+import { useTaskQuickAdd } from '../composables/useTaskQuickAdd'
 
 const emit = defineEmits<{
-  (e: 'submit', title: string): void
+  (e: 'submit', title: string, schedule?: TaskSchedule): void
 }>()
 
-const title = ref('')
-
-function submit() {
-  const trimmed = title.value.trim()
-  if (!trimmed) return
-  emit('submit', trimmed)
-  title.value = ''
-}
+const { title, submit } = useTaskQuickAdd({
+  onSubmit: (nextTitle, schedule) => emit('submit', nextTitle, schedule),
+})
 </script>
 
 <template>
   <!-- Shown instead of an empty-state message: with nothing to look at, the
        useful thing to offer is the one field needed to get started. -->
   <div class="task-quick-add">
-    <p class="task-quick-add__hint">Nothing planned yet — add your first task.</p>
+    <p class="task-quick-add__hint">
+      Nothing planned yet — add your first task.
+    </p>
     <div class="task-quick-add__row">
       <input
         v-model="title"
@@ -31,5 +30,7 @@ function submit() {
         Add task
       </button>
     </div>
+
+    <TaskScheduleFields ref="scheduleFields" />
   </div>
 </template>

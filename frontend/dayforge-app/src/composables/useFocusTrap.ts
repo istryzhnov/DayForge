@@ -34,7 +34,8 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
       container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
     ).filter(
       // Skip anything hidden — offsetParent is null for display:none subtrees.
-      (element) => element.offsetParent !== null || element === document.activeElement,
+      (element) =>
+        element.offsetParent !== null || element === document.activeElement,
     )
   }
 

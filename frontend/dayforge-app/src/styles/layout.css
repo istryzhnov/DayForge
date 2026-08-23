@@ -26,6 +26,18 @@
   --bg-blob-1: rgba(115, 255, 68, 0.12);
   --bg-blob-2: rgba(35, 199, 235, 0.1);
   --bg-base: linear-gradient(160deg, #0c111a 0%, #11192a 58%, #101827 100%);
+
+  /* Workspace shape and type. Theme-independent, so the three
+     [data-theme-style][data-theme-mode] blocks below don't restate them.
+     `--radius-scale` in particular must have a value here: every non-pill
+     corner is `calc(Npx * var(--radius-scale))`, and an undefined custom
+     property makes that calc invalid — square corners until JS applies the
+     theme, or forever if it never runs. */
+  --radius-scale: 1;
+  --density-scale: 1;
+  --text-scale: 1;
+  --panel-blur: 8px;
+  --font-ui: 'Manrope', 'Segoe UI', sans-serif;
 }
 
 :root[data-theme-style='vivid'][data-theme-mode='light'] {
@@ -135,20 +147,14 @@ body {
   backdrop-filter: blur(var(--panel-blur, 8px));
 }
 
-/* Glow lives on the main content column (right of the sidebar) so it stays
-   visible behind GoalComponent/CalendarView/future views instead of being
-   masked by the sidebar's own opaque panel background. .app-content spans
-   the full grid column (no max-width) so the gradient reaches the right
-   edge with no visible seam; .app-content__inner carries the readable
-   max-width instead, on top of that background. */
-/* The appearance drawer takes a column of its own so it pushes the workspace
+/* The settings drawer takes a column of its own so it pushes the workspace
    rather than covering it — until the viewport is too narrow to spare the
    width, where it turns into an overlay instead. */
-.app-shell.is-appearance-open {
+.app-shell.is-settings-open {
   grid-template-columns: minmax(240px, 300px) 1fr minmax(320px, 360px);
 }
 
-.app-appearance {
+.app-settings {
   border-left: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 94%, transparent);
   backdrop-filter: blur(var(--panel-blur, 8px));
@@ -159,8 +165,14 @@ body {
   overflow: hidden;
 }
 
+/* Glow lives on the main content column (right of the sidebar) so it stays
+   visible behind GoalComponent/CalendarView/future views instead of being
+   masked by the sidebar's own opaque panel background. .app-content spans
+   the full grid column (no max-width) so the gradient reaches the right
+   edge with no visible seam; .app-content__inner carries the readable
+   max-width instead, on top of that background. */
 .app-content {
-  padding: 24px;
+  padding: calc(24px * var(--density-scale));
   background:
     radial-gradient(
       1100px 650px at -10% -20%,
@@ -188,11 +200,11 @@ body {
 /* Below this the third column would squeeze the workspace, so the drawer
    floats over the right edge instead. */
 @media (max-width: 1240px) {
-  .app-shell.is-appearance-open {
+  .app-shell.is-settings-open {
     grid-template-columns: minmax(260px, 320px) 1fr;
   }
 
-  .app-appearance {
+  .app-settings {
     position: fixed;
     top: 0;
     right: 0;
@@ -208,7 +220,7 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .app-shell.is-appearance-open {
+  .app-shell.is-settings-open {
     grid-template-columns: 1fr;
   }
 
@@ -219,7 +231,7 @@ body {
   }
 
   .app-content {
-    padding: 12px;
+    padding: calc(12px * var(--density-scale));
   }
 
   .app-content__inner {

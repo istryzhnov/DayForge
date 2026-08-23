@@ -1,7 +1,10 @@
 import type { RecurrenceRule } from '../../entities/RecurrenceEntity'
 import type { TaskTemplate } from '../../entities/TaskEntity'
 import type { ISODate } from '../../entities/types'
-import { RECURRENCE_TYPE, TASK_KIND_BY_SCHEDULE } from '../../entities/constants'
+import {
+  RECURRENCE_TYPE,
+  TASK_KIND_BY_SCHEDULE,
+} from '../../entities/constants'
 import { daysBetweenISODates, weekdayOfISODate } from './date'
 
 export type ScheduleKind =

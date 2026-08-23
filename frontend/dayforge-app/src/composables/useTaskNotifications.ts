@@ -2,11 +2,16 @@ import { computed, ref, watch, type Ref } from 'vue'
 import type { DailyTask } from '../entities/TaskEntity'
 import { TASK_STATUS } from '../entities/constants'
 import { getTodayISODate } from './goalSpace/date'
+import { isWithinQuietHours, useSettings } from './useSettings'
 
 const NOTIFICATIONS_STORAGE_KEY = 'dayforge-notifications-enabled-v1'
-const FIVE_MINUTES_MS = 5 * 60 * 1000
 const CHECK_INTERVAL_MS = 15 * 1000
 const ALERT_LOOP_MS = 2500
+
+/** How far ahead of a task the reminder fires, as configured. */
+function leadWindowMs(): number {
+  return useSettings().settings.notifications.leadMinutes * 60 * 1000
+}
 
 type AudioContextCtor = typeof AudioContext
 
@@ -45,16 +50,21 @@ function ensureAudioContext(): AudioContext | null {
 
 // Two short beeps synthesized via Web Audio API — no audio asset needed.
 function playBeep() {
+  const { sound, volume } = useSettings().settings.notifications
+  if (!sound || volume <= 0) return
+
   const ctx = ensureAudioContext()
   if (!ctx) return
   const now = ctx.currentTime
+  // `exponentialRampToValueAtTime` can never reach 0, hence the tiny floor.
+  const peak = Math.max(0.0002, 0.35 * volume)
   ;[0, 0.22].forEach((offset) => {
     const oscillator = ctx.createOscillator()
     const gain = ctx.createGain()
     oscillator.type = 'sine'
     oscillator.frequency.setValueAtTime(880, now + offset)
     gain.gain.setValueAtTime(0.0001, now + offset)
-    gain.gain.exponentialRampToValueAtTime(0.35, now + offset + 0.02)
+    gain.gain.exponentialRampToValueAtTime(peak, now + offset + 0.02)
     gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.2)
     oscillator.connect(gain)
     gain.connect(ctx.destination)
@@ -66,6 +76,9 @@ function playBeep() {
 function startAlertLoop() {
   if (alertLoopId) return
   playBeep()
+  // A single chime is enough for some people; others want it insistent until
+  // they actually look at the screen.
+  if (!useSettings().settings.notifications.repeatAlert) return
   alertLoopId = window.setInterval(playBeep, ALERT_LOOP_MS)
 }
 
@@ -111,6 +124,14 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
   const today = getTodayISODate()
   const now = new Date()
 
+  // Inside quiet hours nothing is queued at all — deliberately not "queued and
+  // held back", which would dump the whole backlog the moment the window ends.
+  const { quietHours, quietFrom, quietTo } =
+    useSettings().settings.notifications
+  if (quietHours && isWithinQuietHours(now, quietFrom, quietTo)) return
+
+  const leadMs = leadWindowMs()
+
   for (const task of dailyTasks) {
     if (
       task.date !== today ||
@@ -127,7 +148,7 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
     start.setHours(hours, minutes, 0, 0)
     const diffMs = start.getTime() - now.getTime()
 
-    if (diffMs > 0 && diffMs <= FIVE_MINUTES_MS) {
+    if (diffMs > 0 && diffMs <= leadMs) {
       handledKeys.add(key)
       queueAlert(task)
     }

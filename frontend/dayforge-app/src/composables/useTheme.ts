@@ -83,14 +83,21 @@ function sanitizeWorkspace(input: unknown): WorkspaceSettings {
       ? Math.min(max, Math.max(min, value))
       : fallback
 
-  const oneOf = <T extends string>(value: unknown, allowed: readonly T[], fallback: T): T =>
-    allowed.includes(value as T) ? (value as T) : fallback
+  const oneOf = <T extends string>(
+    value: unknown,
+    allowed: readonly T[],
+    fallback: T,
+  ): T => (allowed.includes(value as T) ? (value as T) : fallback)
 
   return {
     radiusScale: clamp(raw.radiusScale, 0, 2, DEFAULT_WORKSPACE.radiusScale),
     glow: clamp(raw.glow, 0, 2.5, DEFAULT_WORKSPACE.glow),
     blur: clamp(raw.blur, 0, 24, DEFAULT_WORKSPACE.blur),
-    density: oneOf(raw.density, Object.values(DENSITY), DEFAULT_WORKSPACE.density),
+    density: oneOf(
+      raw.density,
+      Object.values(DENSITY),
+      DEFAULT_WORKSPACE.density,
+    ),
     pattern: oneOf(
       raw.pattern,
       Object.values(BACKGROUND_PATTERN),

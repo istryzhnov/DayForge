@@ -5,7 +5,6 @@ import {
   addDaysToISODate,
   addMonthsToISODate,
   getTodayISODate,
-  parseISODate,
   startOfMonthISODate,
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
@@ -15,13 +14,12 @@ import {
   scheduledMinutesOf,
   type DayEvent,
 } from './useCalendarOccurrences'
+import { useSettings } from '../../../composables/useSettings'
+import { useFormat } from '../../../composables/useFormat'
 
 /** Six weeks always fit a month, so the grid never changes height. */
 const GRID_WEEKS = 6
 const DAYS_PER_WEEK = 7
-
-/** Scheduled minutes at which a day is considered fully loaded. */
-const FULL_DAY_MINUTES = 8 * 60
 
 export type MonthEvent = DayEvent
 
@@ -45,16 +43,25 @@ type MonthOptions = {
   getCurrentDate: () => ISODate
 }
 
-function loadLevelFor(minutes: number, taskCount: number): number {
+/** `fullDayMinutes` is what the user calls a full day — the scale the cell
+ *  tint is measured against. */
+function loadLevelFor(
+  minutes: number,
+  taskCount: number,
+  fullDayMinutes: number,
+): number {
   if (taskCount === 0) return 0
   if (minutes === 0) return 1
-  const ratio = minutes / FULL_DAY_MINUTES
+  const ratio = minutes / fullDayMinutes
   if (ratio >= 1) return 4
   if (ratio >= 0.6) return 3
   return 2
 }
 
 export function useCalendarMonth(options: MonthOptions) {
+  const { settings } = useSettings()
+  const { formatMonth, weekdayLabels } = useFormat()
+
   // Which month is on screen. Follows `currentDate` until the user pages away.
   const monthAnchor = ref<ISODate | null>(null)
 
@@ -62,14 +69,7 @@ export function useCalendarMonth(options: MonthOptions) {
     () => monthAnchor.value ?? startOfMonthISODate(options.getCurrentDate()),
   )
 
-  const monthLabel = computed(() =>
-    parseISODate(anchor.value).toLocaleDateString('uk-UA', {
-      month: 'long',
-      year: 'numeric',
-    }),
-  )
-
-  const weekdayLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+  const monthLabel = computed(() => formatMonth(anchor.value))
 
   const days = computed<MonthDayCell[]>(() => {
     const templates = options.getTemplates()
@@ -78,10 +78,11 @@ export function useCalendarMonth(options: MonthOptions) {
     const monthStart = startOfMonthISODate(anchor.value)
     const monthNumber = Number(monthStart.split('-')[1])
 
-    // Grid starts on the Monday on or before the 1st (getDay: 0 = Sunday).
-    const firstWeekday = weekdayOfISODate(monthStart)
-    const mondayOffset = (firstWeekday + 6) % 7
-    const gridStart = addDaysToISODate(monthStart, -mondayOffset)
+    // The grid starts on the configured first day of the week, on or before
+    // the 1st (getDay: 0 = Sunday).
+    const weekStart = settings.calendar.weekStartsOn
+    const leadingDays = (weekdayOfISODate(monthStart) - weekStart + 7) % 7
+    const gridStart = addDaysToISODate(monthStart, -leadingDays)
 
     const rowsByDate = groupRowsByDate(dailyTasks)
     const cells: MonthDayCell[] = []
@@ -101,7 +102,11 @@ export function useCalendarMonth(options: MonthOptions) {
         totalCount: events.length,
         doneCount,
         scheduledMinutes,
-        loadLevel: loadLevelFor(scheduledMinutes, events.length),
+        loadLevel: loadLevelFor(
+          scheduledMinutes,
+          events.length,
+          settings.calendar.fullDayHours * 60,
+        ),
       })
     }
 

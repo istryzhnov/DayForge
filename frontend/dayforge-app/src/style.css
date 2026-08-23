@@ -5,3 +5,6 @@
 @import './styles/modal.css';
 @import './styles/habit-calendar.css';
 @import './styles/calendar-view.css';
+/* Last: its `data-pattern` rules rely on import order to outrank the
+   theme-specific `.app-content` background in layout.css. */
+@import './styles/settings.css';

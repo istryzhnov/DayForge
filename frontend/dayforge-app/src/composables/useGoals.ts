@@ -2,8 +2,9 @@ import { computed, ref, watch } from 'vue'
 import type { Goal, GoalTheme } from '../entities/GoalEntity'
 import type { ID } from '../entities/types'
 import { loadJson, GOALS_STORAGE_KEY } from './goalSpace/storage'
+import { useSettings } from './useSettings'
 
-type GoalsStoragePayload = {
+export type GoalsStoragePayload = {
   goals: Goal[]
   activeGoalId: ID | null
 }
@@ -78,25 +79,32 @@ export function useGoals() {
     })
   }
 
+  /**
+   * Opening a project on load is a preference: with it off, a fresh session
+   * starts on "All Projects" instead of silently scoping every list to
+   * whichever project happens to be first.
+   */
+  function selectInitialGoal() {
+    if (activeGoalId.value !== null) return
+    if (!useSettings().settings.behavior.autoSelectFirstGoal) return
+    if (goals.value.length === 0) return
+    activeGoalId.value = goals.value[0].id
+  }
+
   function loadFromStorage() {
     const stored = loadJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
 
     if (Array.isArray(stored)) {
       migrateGoalThemes(stored)
       goals.value = stored
-      if (goals.value.length > 0 && activeGoalId.value === null) {
-        activeGoalId.value = goals.value[0].id
-      }
+      selectInitialGoal()
       return
     }
 
     goals.value = stored.goals ?? []
     migrateGoalThemes(goals.value)
     activeGoalId.value = stored.activeGoalId ?? null
-
-    if (goals.value.length > 0 && activeGoalId.value === null) {
-      activeGoalId.value = goals.value[0].id
-    }
+    selectInitialGoal()
   }
 
   return {
