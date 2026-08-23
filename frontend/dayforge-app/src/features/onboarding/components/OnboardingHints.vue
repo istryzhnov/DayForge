@@ -46,7 +46,11 @@ const CONCEPTS = [
     </div>
 
     <div class="onboarding__cta">
-      <button class="btn btn-primary" type="button" @click="emit('open-starter')">
+      <button
+        class="btn btn-primary"
+        type="button"
+        @click="emit('open-starter')"
+      >
         Build my first day
       </button>
       <span class="onboarding__cta-hint">

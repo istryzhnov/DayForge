@@ -16,19 +16,19 @@
 
 .habit-calendar__title {
   margin: 0;
-  font-size: 21px;
+  font-size: calc(21px * var(--text-scale));
   letter-spacing: -0.02em;
 }
 
 .habit-calendar__subtitle {
   margin: 2px 0 0;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 
 .habit-calendar__value {
   color: var(--accent);
-  font-size: 28px;
+  font-size: calc(28px * var(--text-scale));
   line-height: 1;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .habit-calendar__weekday {
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 
@@ -76,7 +76,7 @@
 }
 
 .habit-calendar__check {
-  font-size: 15px;
+  font-size: calc(15px * var(--text-scale));
   font-weight: 700;
   line-height: 1;
   /* Sits on the ring's `--ring-core` centre, not on the accent fill, so it needs
@@ -85,7 +85,7 @@
 }
 
 .habit-calendar__circle-value {
-  font-size: 10px;
+  font-size: calc(10px * var(--text-scale));
   font-weight: 700;
   color: var(--text);
   line-height: 1;
@@ -93,7 +93,7 @@
 
 .habit-calendar__month {
   margin: 12px 0 8px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 
@@ -136,7 +136,7 @@
 
 .habit-calendar__day-number {
   grid-area: 1 / 1;
-  font-size: 9px;
+  font-size: calc(9px * var(--text-scale));
   font-weight: 700;
   color: var(--text);
   line-height: 1;
@@ -203,11 +203,11 @@
   }
 
   .habit-calendar__title {
-    font-size: 18px;
+    font-size: calc(18px * var(--text-scale));
   }
 
   .habit-calendar__value {
-    font-size: 24px;
+    font-size: calc(24px * var(--text-scale));
   }
 
   .habit-calendar__week {
@@ -219,7 +219,7 @@
   }
 
   .habit-calendar__weekday {
-    font-size: 11px;
+    font-size: calc(11px * var(--text-scale));
   }
 
   .habit-calendar__month-grid {

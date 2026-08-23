@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { normalizeHex } from '../../../composables/theme/color'
 import type { ColorSuggestion } from '../../../composables/theme/suggestions'
+import { useColorField } from '../composables/useColorField'
+import { swatchStyle, textValue } from '../../../composables/inputValue'
 
 const props = defineProps<{
   label: string
@@ -20,47 +20,26 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 
-const showSuggestions = ref(false)
-const hexDraft = ref<string | null>(null)
-
-// The native picker only speaks `#rrggbb`, so anything inherited from the
-// stylesheet (which may be an `rgb()` string) is normalised on the way in.
-const pickerValue = computed(() => normalizeHex(props.value, '#000000'))
-const hexValue = computed(() => hexDraft.value ?? pickerValue.value)
-
-function onPick(event: Event) {
-  const next = (event.target as HTMLInputElement).value
-  hexDraft.value = null
-  emit('update', next)
-}
-
-function onHexInput(event: Event) {
-  const raw = (event.target as HTMLInputElement).value
-  hexDraft.value = raw
-  const candidate = raw.startsWith('#') ? raw : `#${raw}`
-  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(candidate)) {
-    emit('update', normalizeHex(candidate, pickerValue.value))
-  }
-}
-
-function onHexBlur() {
-  hexDraft.value = null
-}
-
-function applySuggestion(suggestion: ColorSuggestion) {
-  hexDraft.value = null
-  emit('update', suggestion.color)
-}
-
-function swatchStyle(color: string) {
-  return { backgroundColor: color }
-}
+const {
+  showSuggestions,
+  pickerValue,
+  hexValue,
+  toggleSuggestions,
+  pickColor,
+  typeHex,
+  commitHex,
+  applySuggestion,
+} = useColorField(props, { onUpdate: (color) => emit('update', color) })
 </script>
 
 <template>
   <div class="color-field">
     <label class="color-field__swatch" :title="`Pick ${label}`">
-      <input type="color" :value="pickerValue" @input="onPick" />
+      <input
+        type="color"
+        :value="pickerValue"
+        @input="pickColor(textValue($event))"
+      />
       <span
         class="color-field__swatch-fill"
         :style="swatchStyle(pickerValue)"
@@ -81,14 +60,14 @@ function swatchStyle(color: string) {
           spellcheck="false"
           :value="hexValue"
           :aria-label="`${label} hex value`"
-          @input="onHexInput"
-          @blur="onHexBlur"
+          @input="typeHex(textValue($event))"
+          @blur="commitHex"
         />
         <button
           class="color-field__link"
           type="button"
           :aria-expanded="showSuggestions"
-          @click="showSuggestions = !showSuggestions"
+          @click="toggleSuggestions"
         >
           {{ showSuggestions ? 'Hide matches' : 'Matches' }}
         </button>

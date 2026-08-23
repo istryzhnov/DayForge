@@ -1,7 +1,10 @@
 import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import type { MajorTaskOption, TaskSchedule } from '../../../entities/TaskEntity'
+import type {
+  MajorTaskOption,
+  TaskSchedule,
+} from '../../../entities/TaskEntity'
 
 type Props = {
   goals: Goal[]

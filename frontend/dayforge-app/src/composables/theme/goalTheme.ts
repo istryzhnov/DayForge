@@ -10,8 +10,16 @@
  * object the goal panel can carry.
  */
 
-import type { Goal, GoalTheme } from '../../entities/GoalEntity'
-import { contrastRatio, lighten, mix, readableTextOn, rotateHue, toHsl, withAlpha } from './color'
+import type { GoalTheme } from '../../entities/GoalEntity'
+import {
+  contrastRatio,
+  lighten,
+  mix,
+  readableTextOn,
+  rotateHue,
+  toHsl,
+  withAlpha,
+} from './color'
 import type { ThemeMode } from './tokens'
 
 /** The theme values a project tints — read from the live document, so a project
@@ -46,14 +54,6 @@ function fitToMode(color: string, mode: ThemeMode): string {
   return color
 }
 
-export function goalThemeAccent(goal: Goal | null | undefined): string | undefined {
-  return goal?.theme?.accent
-}
-
-export function hasGoalTheme(goal: Goal | null | undefined): boolean {
-  return Boolean(goal?.theme?.accent)
-}
-
 /**
  * Every custom property a project overrides. Returns an empty object when the
  * project has no colour of its own, so the panel simply inherits the theme.
@@ -66,7 +66,10 @@ export function buildGoalThemeVars(
   const accent = theme?.accent
   if (!accent) return {}
 
-  const intensity = Math.min(Math.max(theme?.intensity ?? DEFAULT_GOAL_INTENSITY, 0), 1)
+  const intensity = Math.min(
+    Math.max(theme?.intensity ?? DEFAULT_GOAL_INTENSITY, 0),
+    1,
+  )
   const minor = theme?.minor ?? accent
   const major = theme?.major ?? fitToMode(rotateHue(accent, 150), mode)
 

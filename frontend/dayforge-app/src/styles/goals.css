@@ -10,7 +10,7 @@
   gap: 10px;
   margin-bottom: 6px;
   color: var(--text);
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
 }
 
 .sidebar-settings {
@@ -70,15 +70,6 @@
   transform: rotate(20deg);
 }
 
-.sidebar-settings .theme-panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 220px;
-  z-index: 1100;
-  box-shadow: var(--shadow-lg);
-}
-
 .brand-dot {
   width: 14px;
   height: 14px;
@@ -89,20 +80,10 @@
 
 .sidebar-caption {
   margin: 8px 6px 4px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
-}
-
-.theme-panel {
-  border: 1px solid var(--line);
-  border-radius: calc(14px * var(--radius-scale));
-  padding: 8px;
-  background: var(--panel-layer);
-}
-.theme-panel .sidebar-caption {
-  margin-top: 0;
 }
 
 .theme-panel__group {
@@ -121,7 +102,7 @@
   color: var(--muted);
   border-radius: calc(10px * var(--radius-scale));
   padding: 8px 10px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   font-weight: 600;
   cursor: pointer;
 }
@@ -160,10 +141,17 @@
   border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
 }
 
+/* A project with colours of its own wears them here too, so the list reads as
+   the same set of projects the panels do. An inset shadow rather than a border,
+   so a themed row still lines up with an unthemed one. */
+.nav-goal-btn.is-themed {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 80%, transparent);
+}
+
 .goal-count {
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: calc(12px * var(--text-scale));
   background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
   color: var(--muted);
 }
@@ -178,7 +166,7 @@
 
 .goal-panel {
   display: grid;
-  gap: 16px;
+  gap: calc(16px * var(--density-scale));
 }
 
 .goal-panel-header {
@@ -232,7 +220,7 @@
 
 .goal-settings__label {
   margin: 0;
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -269,7 +257,7 @@
   text-align: left;
   padding: 8px 6px;
   border-radius: calc(8px * var(--radius-scale));
-  font-size: 13px;
+  font-size: calc(13px * var(--text-scale));
   cursor: pointer;
 }
 
@@ -309,7 +297,7 @@
 .goal-context-menu__title {
   margin: 0;
   padding: 2px 6px;
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -326,7 +314,7 @@
 .goal-panel-header h2 {
   margin: 0;
   color: var(--text);
-  font-size: 32px;
+  font-size: calc(32px * var(--text-scale));
   letter-spacing: -0.02em;
 }
 
@@ -343,7 +331,7 @@
   padding: 6px 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
 }
 
 .goal-kpi-row {
@@ -355,7 +343,7 @@
 .kpi {
   border: 1px solid var(--line);
   border-radius: calc(14px * var(--radius-scale));
-  padding: 12px;
+  padding: calc(12px * var(--density-scale));
   background: var(--panel-layer);
   box-shadow: var(--shadow-sm);
 }
@@ -363,7 +351,7 @@
 .kpi h3 {
   margin: 0;
   color: var(--muted);
-  font-size: 11px;
+  font-size: calc(11px * var(--text-scale));
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -372,7 +360,7 @@
 .kpi p {
   margin: 4px 0 0;
   color: var(--text);
-  font-size: 20px;
+  font-size: calc(20px * var(--text-scale));
   font-weight: 700;
 }
 
@@ -417,7 +405,7 @@
 
 @media (max-width: 960px) {
   .goal-panel-header h2 {
-    font-size: 28px;
+    font-size: calc(28px * var(--text-scale));
   }
 
   .goal-kpi-row {
@@ -444,7 +432,7 @@
   }
 
   .goal-panel-header h2 {
-    font-size: 30px;
+    font-size: calc(30px * var(--text-scale));
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.1;
@@ -452,7 +440,7 @@
 
   .goal-panel-header p {
     margin-top: 4px;
-    font-size: 13px;
+    font-size: calc(13px * var(--text-scale));
   }
 
   .goal-kpi-row {
@@ -469,13 +457,13 @@
   }
 
   .kpi h3 {
-    font-size: 9px;
+    font-size: calc(9px * var(--text-scale));
     letter-spacing: 0.06em;
   }
 
   .kpi p {
     margin-top: 2px;
-    font-size: 20px;
+    font-size: calc(20px * var(--text-scale));
   }
 
   .goal-status {
@@ -492,7 +480,7 @@
     padding: 12px;
     border-radius: calc(12px * var(--radius-scale));
     /* iOS zooms the page when a focused field is under 16px. */
-    font-size: 16px;
+    font-size: max(16px, calc(16px * var(--text-scale)));
   }
 
   .composer-toggle-btn,
@@ -507,7 +495,7 @@
 
   .goal-settings__item {
     padding: 11px 8px;
-    font-size: 14px;
+    font-size: calc(14px * var(--text-scale));
   }
 
   .goal-context-menu {

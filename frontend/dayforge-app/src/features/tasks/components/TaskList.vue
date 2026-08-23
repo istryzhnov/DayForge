@@ -24,7 +24,7 @@ const emit = defineEmits<{
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
-  (e: 'quick-add', title: string): void
+  (e: 'quick-add', title: string, schedule?: TaskSchedule): void
 }>()
 
 const {
@@ -104,5 +104,11 @@ function groupKey(group: TaskGroup) {
     </template>
   </div>
 
-  <TaskQuickAdd v-else @submit="(title: string) => emit('quick-add', title)" />
+  <TaskQuickAdd
+    v-else
+    @submit="
+      (title: string, schedule?: TaskSchedule) =>
+        emit('quick-add', title, schedule)
+    "
+  />
 </template>

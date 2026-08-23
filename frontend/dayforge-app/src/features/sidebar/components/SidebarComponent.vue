@@ -1,14 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import NewGoalComponent from './NewGoalComponent.vue'
 import SidebarGoalButton from './SidebarGoalButton.vue'
 import GoalContextMenu from './GoalContextMenu.vue'
 import { useSidebarState } from '../composables/useSidebarState'
+import { useSettings } from '../../../composables/useSettings'
 import {
-  APPEARANCE_SECTION,
-  useAppearancePanel,
-} from '../../appearance/composables/useAppearancePanel'
+  SETTINGS_SECTION,
+  useSettingsPanel,
+} from '../../settings/composables/useSettingsPanel'
 
 defineProps<{
   goals: Goal[]
@@ -27,10 +29,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'select-goal', goalId: ID | null): void
   (e: 'create-goal', title: string, description: string): void
-  (
-    e: 'select-view',
-    view: 'goals' | 'calendar' | 'planned' | 'archive',
-  ): void
+  (e: 'select-view', view: 'goals' | 'calendar' | 'planned' | 'archive'): void
   (e: 'toggle-notifications'): void
   (e: 'delete-goal', goalId: ID): void
 }>()
@@ -53,9 +52,13 @@ const {
 })
 
 // The theme controls used to live in a dropdown here; they now open the
-// appearance sidebar on the right, which has room for the whole palette.
-const { isOpen: isAppearanceOpen, toggle: toggleAppearance } =
-  useAppearancePanel()
+// settings sidebar on the right, which has room for the whole palette and for
+// everything else that is configurable.
+const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
+
+// The tooltip quotes the configured lead time rather than a fixed "5 min".
+const { settings } = useSettings()
+const leadMinutes = computed(() => settings.notifications.leadMinutes)
 </script>
 
 <template>
@@ -75,7 +78,7 @@ const { isOpen: isAppearanceOpen, toggle: toggleAppearance } =
         "
         :title="
           notificationsEnabled
-            ? 'Reminders on: alerts 5 min before a task starts'
+            ? `Reminders on: alerts ${leadMinutes} min before a task starts`
             : 'Enable sound reminders for upcoming tasks'
         "
         @click="emit('toggle-notifications')"
@@ -85,11 +88,11 @@ const { isOpen: isAppearanceOpen, toggle: toggleAppearance } =
       <div class="sidebar-settings">
         <button
           class="sidebar-settings__trigger"
-          :class="{ 'is-active': isAppearanceOpen }"
+          :class="{ 'is-active': isSettingsOpen }"
           type="button"
-          aria-label="Appearance settings"
-          title="Theme, colours and workspace"
-          @click="toggleAppearance(APPEARANCE_SECTION.PRESETS)"
+          aria-label="Settings"
+          title="Theme, colours, planner and data"
+          @click="toggleSettings(SETTINGS_SECTION.THEME)"
         >
           ⚙
         </button>

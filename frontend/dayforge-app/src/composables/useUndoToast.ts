@@ -1,7 +1,14 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useSettings } from './useSettings'
 
-/** How long a destructive action stays reversible. */
-const UNDO_WINDOW_MS = 9000
+/**
+ * How long a destructive action stays reversible. Read from settings on every
+ * offer rather than captured once, so a change to the window applies to the
+ * next delete instead of the next reload.
+ */
+const undoWindowMs = computed(
+  () => useSettings().settings.behavior.undoWindowSeconds * 1000,
+)
 
 type PendingUndo = {
   id: number
@@ -37,7 +44,7 @@ export function useUndoToast() {
     timerId = window.setTimeout(() => {
       if (pending.value?.id === offeredId) pending.value = null
       timerId = undefined
-    }, UNDO_WINDOW_MS)
+    }, undoWindowMs.value)
   }
 
   function performUndo() {
@@ -52,5 +59,11 @@ export function useUndoToast() {
     pending.value = null
   }
 
-  return { pending, offerUndo, performUndo, dismissUndo, undoWindowMs: UNDO_WINDOW_MS }
+  return {
+    pending,
+    offerUndo,
+    performUndo,
+    dismissUndo,
+    undoWindowMs,
+  }
 }

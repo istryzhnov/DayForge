@@ -1,14 +1,10 @@
 import { ref } from 'vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import { PRIORITY } from '../../../entities/constants'
+import { useSettings } from '../../../composables/useSettings'
 
 type TaskComposerActions = {
-  onSubmit: (
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) => void
+  onSubmit: (title: string, priority: Priority, schedule?: TaskSchedule) => void
   onCancel?: () => void
 }
 
@@ -28,7 +24,9 @@ export function useTaskComposerState(
 ) {
   const title = ref('')
   // Everything starts as a plain task; projects only come from promotion.
-  const priority = ref<Priority>(PRIORITY.MINOR)
+  const priority = ref<Priority>(
+    useSettings().settings.behavior.defaultPriority,
+  )
 
   function submit() {
     if (options.isAllMode) return

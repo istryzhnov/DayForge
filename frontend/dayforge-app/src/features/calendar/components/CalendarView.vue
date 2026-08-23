@@ -1,30 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
 import type {
   DailyTask,
   MajorTaskOption,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
+import type { Goal } from '../../../entities/GoalEntity'
+import type { ID, ISODate } from '../../../entities/types'
+import { TASK_STATUS } from '../../../entities/constants'
 import CalendarMonthView from './CalendarMonthView.vue'
 import CalendarWeekView from './CalendarWeekView.vue'
-import type { ID, ISODate } from '../../../entities/types'
-import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
-import type { GesturePoint } from '../../../composables/usePressGesture'
 import {
-  DAY_START_HOUR,
-  GRID_HEIGHT_PX,
+  gridHeightPx,
+  gridStyle,
+  hourLineStyle,
   HOURS,
-  PX_PER_MINUTE,
-  minutesFromDayStart,
+  pxPerMinute,
 } from '../composables/useCalendarGrid'
-import { useCalendarDragDrop } from '../composables/useCalendarDragDrop'
-import { useCalendarDraft } from '../composables/useCalendarDraft'
-import { useCalendarSelection } from '../composables/useCalendarSelection'
+import { useCalendarDayView } from '../composables/useCalendarDayView'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -33,17 +29,10 @@ const props = defineProps<{
   /** Whole-history rows and rules — the month view projects from both. */
   dailyTasks: DailyTask[]
   templates: TaskTemplate[]
+  goals: Goal[]
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
 }>()
-
-type CalendarViewMode = 'day' | 'week' | 'month'
-const viewMode = ref<CalendarViewMode>('day')
-
-function openDay(date: ISODate) {
-  emit('select-date', date)
-  viewMode.value = 'day'
-}
 
 const emit = defineEmits<{
   (e: 'prev-day'): void
@@ -61,205 +50,60 @@ const emit = defineEmits<{
   (e: 'toggle-task-done', taskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
+  (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
   (e: 'select-date', date: ISODate): void
 }>()
 
-const gridRef = ref<HTMLElement | null>(null)
-const unscheduledRef = ref<HTMLElement | null>(null)
-const isCoarsePointer = useIsCoarsePointer()
-
-// Only pinned over the viewport on the mobile layout; on desktop it is a normal
-// side column and shouldn't shrink the auto-scroll zone.
-function bottomInset() {
-  if (!isCoarsePointer.value) return 0
-  const element = unscheduledRef.value
-  if (!element || getComputedStyle(element).position !== 'fixed') return 0
-  return element.getBoundingClientRect().height
-}
-
-const scheduledTasks = computed(() =>
-  props.tasks.filter((task) => task.startTime && task.endTime),
-)
-/**
- * What still needs a slot on the grid. Excludes projects (containers, not
- * things you drop on a time) and anything already finished — a completed task
- * has nothing left to schedule. Done tasks that *are* scheduled stay on the
- * grid as a record of the day.
- */
-const unscheduledTasks = computed(() =>
-  props.tasks.filter(
-    (task) =>
-      !task.startTime &&
-      task.priority !== PRIORITY.MAJOR &&
-      task.status !== TASK_STATUS.DONE,
-  ),
-)
-
-const dateLabel = computed(() =>
-  new Date(`${props.currentDate}T00:00:00`).toLocaleDateString('uk-UA', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }),
-)
-
 const {
+  viewMode,
+  isCoarsePointer,
+  openDay,
+  dateLabel,
+  scheduledTasks,
+  unscheduledTasks,
+  incomingPreview,
+  selectedProjectTemplateId,
   selectedTask,
   contextMenuTask,
   contextMenuPos,
-  isContextMenuOpen,
   openDetails,
   closeDetails,
   openContextMenu,
   closeContextMenu,
-} = useCalendarSelection({ getTasks: () => props.tasks })
-
-const {
   touchDrag,
   draggingTaskId,
   onDragStartFromList,
   onBlockDragStart,
   onGridDragOver,
   onGridDrop,
-  beginTouchDrag,
-  updateTouchDrag,
-  endTouchDrag,
   cancelTouchDrag,
-} = useCalendarDragDrop({
-  getGridElement: () => gridRef.value,
-  findTask: (taskId) => props.tasks.find((task) => task.id === taskId),
-  onSchedule: (payload) => emit('schedule-task', payload),
-  getBottomInset: bottomInset,
-})
-
-const {
   draftRange,
   showDraftForm,
   draftTitle,
   onGridPointerDown,
-  onGridTap,
   submitDraft,
   cancelDraft,
-} = useCalendarDraft({
-  getGridElement: () => gridRef.value,
-  isCoarsePointer: () => isCoarsePointer.value,
-  // A tap that dismisses an open menu shouldn't also start a new task.
-  canStartDraft: () => !isContextMenuOpen.value,
+  topPxFor,
+  heightPxFor,
+  columnStyleFor,
+  previewStyle,
+  themeVarsFor,
+  onBlockTouchLift,
+  onUnscheduledTouchLift,
+  onTouchMove,
+  onTouchDrop,
+  onResize,
+  onGridClick,
+  toggleContextMenuTaskDone,
+  unscheduleAndClose,
+  updateTimeAndClose,
+} = useCalendarDayView(props, {
+  onSchedule: (payload) => emit('schedule-task', payload),
+  onUnschedule: (taskId) => emit('unschedule-task', taskId),
   onCreate: (payload) => emit('create-task', payload),
+  onToggleDone: (taskId) => emit('toggle-task-done', taskId),
+  onSelectDate: (date) => emit('select-date', date),
 })
-
-/** The dragged task previews at the finger's position rather than its stored time. */
-function topPxFor(task: DailyTask) {
-  const preview = touchDrag.value
-  const startMin =
-    preview?.taskId === task.id
-      ? preview.startMin
-      : minutesFromDayStart(task.startTime!)
-  return startMin * PX_PER_MINUTE
-}
-
-function heightPxFor(task: DailyTask) {
-  const startMin = minutesFromDayStart(task.startTime!)
-  const endMin = minutesFromDayStart(task.endTime!)
-  return (endMin - startMin) * PX_PER_MINUTE
-}
-
-/** An unscheduled task being dragged in has no block yet, so preview a floating one. */
-const incomingPreview = computed(() => {
-  const preview = touchDrag.value
-  if (!preview?.isNewlyScheduled) return null
-
-  const task = props.tasks.find((item) => item.id === preview.taskId)
-  if (!task) return null
-
-  return {
-    title: task.title,
-    priority: task.priority,
-    top: preview.startMin * PX_PER_MINUTE,
-    height: preview.durationMin * PX_PER_MINUTE,
-  }
-})
-
-function previewStyle(top: number, height: number) {
-  return { top: `${top}px`, height: `${Math.max(height, 20)}px` }
-}
-
-function onBlockTouchLift(payload: { taskId: ID; grabOffsetMinutes: number }) {
-  closeContextMenu()
-  beginTouchDrag(payload.taskId, payload.grabOffsetMinutes)
-}
-
-function onUnscheduledTouchLift(taskId: ID) {
-  closeContextMenu()
-  beginTouchDrag(taskId, 0)
-}
-
-function onResize(payload: { taskId: ID; endTime: string }) {
-  const task = props.tasks.find((item) => item.id === payload.taskId)
-  if (!task?.startTime) return
-  emit('schedule-task', {
-    taskId: task.id,
-    startTime: task.startTime,
-    endTime: payload.endTime,
-  })
-}
-
-function handleToggleTaskDone() {
-  const taskId = contextMenuTask.value?.id
-  if (taskId) emit('toggle-task-done', taskId)
-}
-
-/** The select works in template ids, but the row only stores its parent row id. */
-const selectedProjectTemplateId = computed(() => {
-  const parentRowId = selectedTask.value?.parentDailyTaskId
-  if (!parentRowId) return null
-  return (
-    props.tasks.find((task) => task.id === parentRowId)?.templateId ?? null
-  )
-})
-
-function handleUnschedule(taskId: ID) {
-  emit('unschedule-task', taskId)
-  closeDetails()
-}
-
-function handleUpdateTime(payload: {
-  taskId: ID
-  startTime: string
-  endTime: string
-}) {
-  emit('schedule-task', payload)
-  closeDetails()
-}
-
-function onGridClick(event: MouseEvent) {
-  if (isContextMenuOpen.value) {
-    closeContextMenu()
-    return
-  }
-  onGridTap(event)
-}
-
-function hourLineTop(hour: number) {
-  return { top: `${(hour - DAY_START_HOUR) * 60 * PX_PER_MINUTE}px` }
-}
-
-function gridStyle(heightPx: number) {
-  return { height: `${heightPx}px` }
-}
-
-/** A task carries its project colour onto the grid. */
-function themeVarsFor(goalId: ID | undefined) {
-  return goalId ? props.goalVarsById[goalId] : undefined
-}
-
-function onTouchMove(point: GesturePoint) {
-  updateTouchDrag(point)
-}
-
-function onTouchDrop(point: GesturePoint) {
-  endTouchDrag(point)
-}
 </script>
 
 <template>
@@ -310,159 +154,173 @@ function onTouchDrop(point: GesturePoint) {
     />
 
     <template v-else>
-    <header class="calendar-view__header">
-      <button class="btn btn-ghost" type="button" @click="emit('prev-day')">
-        ‹
-      </button>
-      <div class="calendar-view__date">
-        <strong>{{ dateLabel }}</strong>
-        <button class="btn btn-ghost" type="button" @click="emit('today')">
-          Today
+      <header class="calendar-view__header">
+        <button class="btn btn-ghost" type="button" @click="emit('prev-day')">
+          ‹
         </button>
-      </div>
-      <button class="btn btn-ghost" type="button" @click="emit('next-day')">
-        ›
-      </button>
-    </header>
+        <div class="calendar-view__date">
+          <strong>{{ dateLabel }}</strong>
+          <button class="btn btn-ghost" type="button" @click="emit('today')">
+            Today
+          </button>
+        </div>
+        <button class="btn btn-ghost" type="button" @click="emit('next-day')">
+          ›
+        </button>
+      </header>
 
-    <div class="calendar-view__body">
-      <div class="calendar-view__grid-wrap">
-        <div class="calendar-view__hours">
+      <div class="calendar-view__body">
+        <div class="calendar-view__grid-wrap">
+          <div class="calendar-view__hours">
+            <div
+              v-for="hour in HOURS"
+              :key="hour"
+              class="calendar-view__hour-label"
+            >
+              {{ String(hour).padStart(2, '0') }}:00
+            </div>
+          </div>
+
           <div
-            v-for="hour in HOURS"
-            :key="hour"
-            class="calendar-view__hour-label"
+            ref="gridRef"
+            class="calendar-view__grid"
+            :class="{ 'is-dragging': touchDrag }"
+            :style="gridStyle(gridHeightPx)"
+            @pointerdown="onGridPointerDown"
+            @click="onGridClick"
+            @dragover="onGridDragOver"
+            @drop="onGridDrop"
           >
-            {{ String(hour).padStart(2, '0') }}:00
+            <div
+              v-for="hour in HOURS"
+              :key="hour"
+              class="calendar-view__hour-line"
+              :style="hourLineStyle(hour)"
+            ></div>
+
+            <CalendarEventBlock
+              v-for="task in scheduledTasks"
+              :key="task.id"
+              :task="task"
+              :top-px="topPxFor(task)"
+              :height-px="heightPxFor(task)"
+              :is-dragging="draggingTaskId === task.id"
+              :theme-vars="themeVarsFor(task.goalId)"
+              :column-style="columnStyleFor(task)"
+              @select="openDetails"
+              @drag-start="onBlockDragStart"
+              @resize="onResize"
+              @context-menu="openContextMenu"
+              @touch-lift="onBlockTouchLift"
+              @touch-move="onTouchMove"
+              @touch-drop="onTouchDrop"
+              @touch-cancel="cancelTouchDrag"
+            />
+
+            <div
+              v-if="incomingPreview"
+              class="cal-event cal-event--preview"
+              :class="incomingPreview.priority"
+              :style="previewStyle(incomingPreview.top, incomingPreview.height)"
+            >
+              <span class="cal-event__title">{{ incomingPreview.title }}</span>
+            </div>
+
+            <div
+              v-if="draftRange"
+              class="calendar-view__draft"
+              :style="
+                previewStyle(
+                  draftRange.startMin * pxPerMinute(),
+                  (draftRange.endMin - draftRange.startMin) * pxPerMinute(),
+                )
+              "
+            >
+              <form
+                v-if="showDraftForm"
+                class="calendar-view__draft-form"
+                @submit.prevent="submitDraft"
+              >
+                <input
+                  v-model="draftTitle"
+                  type="text"
+                  placeholder="Task title"
+                  autofocus
+                  @keydown.esc="cancelDraft"
+                />
+                <div class="calendar-view__draft-actions">
+                  <button type="submit" class="btn btn-primary">Add</button>
+                  <button
+                    type="button"
+                    class="btn btn-ghost"
+                    @click="cancelDraft"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
 
-        <div
-          ref="gridRef"
-          class="calendar-view__grid"
-          :class="{ 'is-dragging': touchDrag }"
-          :style="gridStyle(GRID_HEIGHT_PX)"
-          @pointerdown="onGridPointerDown"
-          @click="onGridClick"
-          @dragover="onGridDragOver"
-          @drop="onGridDrop"
-        >
-          <div
-            v-for="hour in HOURS"
-            :key="hour"
-            class="calendar-view__hour-line"
-            :style="hourLineTop(hour)"
-          ></div>
-
-          <CalendarEventBlock
-            v-for="task in scheduledTasks"
+        <aside ref="unscheduledRef" class="calendar-view__unscheduled">
+          <p class="sidebar-caption">Unscheduled</p>
+          <CalendarUnscheduledItem
+            v-for="task in unscheduledTasks"
             :key="task.id"
             :task="task"
-            :top-px="topPxFor(task)"
-            :height-px="heightPxFor(task)"
-            :is-dragging="draggingTaskId === task.id"
             :theme-vars="themeVarsFor(task.goalId)"
-            @select="openDetails"
-            @drag-start="onBlockDragStart"
-            @resize="onResize"
-            @context-menu="openContextMenu"
-            @touch-lift="onBlockTouchLift"
+            @drag-start="onDragStartFromList"
+            @touch-lift="onUnscheduledTouchLift"
             @touch-move="onTouchMove"
             @touch-drop="onTouchDrop"
             @touch-cancel="cancelTouchDrag"
+            @context-menu="openContextMenu"
           />
-
-          <div
-            v-if="incomingPreview"
-            class="cal-event cal-event--preview"
-            :class="incomingPreview.priority"
-            :style="previewStyle(incomingPreview.top, incomingPreview.height)"
-          >
-            <span class="cal-event__title">{{ incomingPreview.title }}</span>
-          </div>
-
-          <div
-            v-if="draftRange"
-            class="calendar-view__draft"
-            :style="
-              previewStyle(
-                draftRange.startMin * PX_PER_MINUTE,
-                (draftRange.endMin - draftRange.startMin) * PX_PER_MINUTE,
-              )
-            "
-          >
-            <form
-              v-if="showDraftForm"
-              class="calendar-view__draft-form"
-              @submit.prevent="submitDraft"
-            >
-              <input
-                v-model="draftTitle"
-                type="text"
-                placeholder="Task title"
-                autofocus
-                @keydown.esc="cancelDraft"
-              />
-              <div class="calendar-view__draft-actions">
-                <button type="submit" class="btn btn-primary">Add</button>
-                <button type="button" class="btn btn-ghost" @click="cancelDraft">
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          <p v-if="!unscheduledTasks.length" class="calendar-view__empty-hint">
+            Nothing left to schedule
+          </p>
+        </aside>
       </div>
 
-      <aside ref="unscheduledRef" class="calendar-view__unscheduled">
-        <p class="sidebar-caption">Unscheduled</p>
-        <CalendarUnscheduledItem
-          v-for="task in unscheduledTasks"
-          :key="task.id"
-          :task="task"
-          :theme-vars="themeVarsFor(task.goalId)"
-          @drag-start="onDragStartFromList"
-          @touch-lift="onUnscheduledTouchLift"
-          @touch-move="onTouchMove"
-          @touch-drop="onTouchDrop"
-          @touch-cancel="cancelTouchDrag"
-          @context-menu="openContextMenu"
-        />
-        <p v-if="!unscheduledTasks.length" class="calendar-view__empty-hint">
-          Nothing left to schedule
-        </p>
-      </aside>
-    </div>
+      <p v-if="isCoarsePointer" class="calendar-view__touch-hint">
+        Tap an empty slot to add · hold a task to move it or open its menu
+      </p>
 
-    <p v-if="isCoarsePointer" class="calendar-view__touch-hint">
-      Tap an empty slot to add · hold a task to move it or open its menu
-    </p>
+      <CalendarTaskContextMenu
+        v-if="contextMenuTask && contextMenuPos"
+        :x="contextMenuPos.x"
+        :y="contextMenuPos.y"
+        :is-done="contextMenuTask.status === TASK_STATUS.DONE"
+        @toggle-check="toggleContextMenuTaskDone"
+        @close="closeContextMenu"
+      />
 
-    <CalendarTaskContextMenu
-      v-if="contextMenuTask && contextMenuPos"
-      :x="contextMenuPos.x"
-      :y="contextMenuPos.y"
-      :is-done="contextMenuTask.status === TASK_STATUS.DONE"
-      @toggle-check="handleToggleTaskDone"
-      @close="closeContextMenu"
-    />
-
-    <EventDetailsPanel
-      v-if="selectedTask"
-      :task="selectedTask"
-      :project-options="projectOptions"
-      :current-project-id="selectedProjectTemplateId"
-      @close="closeDetails"
-      @unschedule="handleUnschedule"
-      @update-time="handleUpdateTime"
-      @update-title="
-        (payload) => emit('edit-task', payload.templateId, payload.title)
-      "
-      @update-project="
-        (payload) =>
-          emit('attach-to-project', payload.templateId, payload.projectTemplateId)
-      "
-    />
+      <EventDetailsPanel
+        v-if="selectedTask"
+        :task="selectedTask"
+        :project-options="projectOptions"
+        :current-project-id="selectedProjectTemplateId"
+        :goals="goals"
+        :current-goal-id="selectedTask.goalId ?? null"
+        @close="closeDetails"
+        @unschedule="unscheduleAndClose"
+        @update-time="updateTimeAndClose"
+        @update-title="
+          (payload) => emit('edit-task', payload.templateId, payload.title)
+        "
+        @update-goal="
+          (payload) => emit('assign-goal', payload.templateId, payload.goalId)
+        "
+        @update-project="
+          (payload) =>
+            emit(
+              'attach-to-project',
+              payload.templateId,
+              payload.projectTemplateId,
+            )
+        "
+      />
     </template>
   </section>
 </template>

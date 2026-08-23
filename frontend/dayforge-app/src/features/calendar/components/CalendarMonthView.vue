@@ -5,6 +5,9 @@ import {
   useCalendarMonth,
   type MonthDayCell,
 } from '../composables/useCalendarMonth'
+import { useFormat } from '../../../composables/useFormat'
+
+const { formatTime } = useFormat()
 
 const props = defineProps<{
   templates: TaskTemplate[]
@@ -108,7 +111,7 @@ function hiddenCount(day: MonthDayCell) {
             ]"
           >
             <span v-if="event.startTime" class="calendar-month__event-time">
-              {{ event.startTime }}
+              {{ formatTime(event.startTime) }}
             </span>
             {{ event.title }}
           </span>

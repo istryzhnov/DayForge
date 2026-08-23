@@ -1,10 +1,23 @@
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal, GoalTheme } from '../../entities/GoalEntity'
 import type { ID, ISODate, Priority } from '../../entities/types'
 import type { MajorTaskOption, TaskSchedule } from '../../entities/TaskEntity'
-import { GOAL_STATUS, PRIORITY } from '../../entities/constants'
+import {
+  GOAL_STATUS,
+  PRIORITY,
+  RECURRENCE_TYPE,
+} from '../../entities/constants'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
+import { useTheme } from '../../composables/useTheme'
+import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
+import { useTaskNotifications } from '../../composables/useTaskNotifications'
+import { useSettings } from '../../composables/useSettings'
+import { useDataTransfer } from '../../features/settings/composables/useDataTransfer'
+import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTasks'
+import { useArchive } from '../../features/tasks/composables/useArchive'
+
+export type ActiveView = 'goals' | 'calendar' | 'planned' | 'archive'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 
@@ -27,9 +40,92 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.initializeStorage()
   })
 
-  function handleAddTask(title: string, priority: Priority) {
+  // --- which pane is on screen -------------------------------------------
+
+  const { settings } = useSettings()
+  const activeView = ref<ActiveView>(settings.behavior.startView)
+
+  function selectView(view: ActiveView) {
+    activeView.value = view
+  }
+
+  /** Choosing a project always means "show me that project". */
+  function selectGoal(goalId: ID | null) {
+    activeView.value = 'goals'
+    goalSpace.selectGoal(goalId)
+  }
+
+  // A brand new install: nothing to look at, so explain the model instead.
+  const isFirstRun = computed(
+    () =>
+      goalSpace.goals.value.length === 0 &&
+      goalSpace.taskTemplates.value.length === 0,
+  )
+  const showStarter = ref(false)
+
+  function openStarter() {
+    showStarter.value = true
+  }
+
+  function closeStarter() {
+    showStarter.value = false
+  }
+
+  const plannedView = usePlannedTasks({
+    getTemplates: () => goalSpace.taskTemplates.value,
+    getDailyTasks: () => goalSpace.dailyTasks.value,
+    getGoals: () => goalSpace.goals.value,
+  })
+
+  const archiveView = useArchive({
+    getTemplates: () => goalSpace.taskTemplates.value,
+    getDailyTasks: () => goalSpace.dailyTasks.value,
+    getGoals: () => goalSpace.goals.value,
+  })
+
+  const tasksForCurrentDate = computed(() =>
+    goalSpace.dailyTasks.value.filter(
+      (task) => task.date === goalSpace.currentDate.value,
+    ),
+  )
+
+  // --- reminders, colours and backups ------------------------------------
+
+  const notifications = useTaskNotifications(goalSpace.dailyTasks)
+
+  function toggleNotifications() {
+    if (notifications.enabled.value) {
+      notifications.disableNotifications()
+      return
+    }
+    void notifications.enableNotifications()
+  }
+
+  const { themeMode } = useTheme()
+
+  /**
+   * A project's colour has to travel with its tasks outside its own panel — the
+   * sidebar row and the calendar blocks belong to shared chrome, so they take
+   * the accent-only variant that leaves surrounding surfaces alone.
+   */
+  const goalVarsById = computed(() => {
+    const result: Record<ID, Record<string, string>> = {}
+    goalSpace.goals.value.forEach((goal) => {
+      const vars = buildGoalAccentVars(goal.theme, themeMode.value)
+      if (Object.keys(vars).length > 0) result[goal.id] = vars
+    })
+    return result
+  })
+
+  const dataTransfer = useDataTransfer(goalSpace)
+
+  function handleAddTask(
+    title: string,
+    priority: Priority,
+    schedule?: TaskSchedule,
+  ) {
     if (!goalSpace.activeGoal.value) return
-    goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority)
+    goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
   }
 
   function handleAddSubTask(
@@ -83,7 +179,11 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     if (!project) return
 
     plan.tasks.forEach((task) => {
-      const created = goalSpace.addSubTask(project.id, task.title, PRIORITY.MINOR)
+      const created = goalSpace.addSubTask(
+        project.id,
+        task.title,
+        PRIORITY.MINOR,
+      )
       if (!created) return
 
       const row = goalSpace.dailyTasks.value.find(
@@ -105,11 +205,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.convertTaskToProject(templateId)
   }
 
-  function handleAttachToProject(
-    templateId: ID,
-    projectTemplateId: ID | null,
-  ) {
+  function handleAttachToProject(templateId: ID, projectTemplateId: ID | null) {
     goalSpace.attachTaskToProject(templateId, projectTemplateId)
+  }
+
+  function handleAssignTaskToGoal(templateId: ID, goalId: ID | undefined) {
+    goalSpace.assignTaskToGoal(templateId, goalId)
   }
 
   function handleCreateAllModeMinor(
@@ -141,7 +242,62 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalTheme(goalId, theme)
   }
 
+  /**
+   * Drawn straight onto the calendar grid, so it is dated to the day in view
+   * and inherits the configured default kind.
+   */
+  function handleCreateScheduledTask(payload: {
+    title: string
+    startTime: string
+    endTime: string
+  }) {
+    goalSpace.addTask(
+      goalSpace.activeGoalId.value ?? undefined,
+      payload.title,
+      settings.behavior.defaultPriority,
+      {
+        date: goalSpace.currentDate.value,
+        startTime: payload.startTime,
+        endTime: payload.endTime,
+        recurrence: {
+          type: RECURRENCE_TYPE.NONE,
+          startDate: goalSpace.currentDate.value,
+        },
+      },
+    )
+  }
+
+  function handleApplyStarter(plan: StarterPlan) {
+    applyStarterPlan(plan)
+    closeStarter()
+  }
+
   return {
+    activeView,
+    selectView,
+    selectGoal,
+    isFirstRun,
+    showStarter,
+    openStarter,
+    closeStarter,
+    handleApplyStarter,
+    tasksForCurrentDate,
+    goalVarsById,
+    plannedTasks: plannedView.plannedTasks,
+    plannedCount: plannedView.plannedCount,
+    archiveBlocks: archiveView.blocks,
+    totalDone: archiveView.totalDone,
+    notificationsSupported: notifications.isSupported,
+    notificationsEnabled: notifications.enabled,
+    activeAlert: notifications.activeAlert,
+    pendingCount: notifications.pendingCount,
+    acknowledgeAlert: notifications.acknowledgeAlert,
+    toggleNotifications,
+    dataStats: dataTransfer.stats,
+    exportData: dataTransfer.exportToFile,
+    importData: dataTransfer.importBackup,
+    clearData: dataTransfer.clearEverything,
+    handleCreateScheduledTask,
     majorTaskOptions,
     handleAddTask,
     handleAddSubTask,
@@ -151,6 +307,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     applyStarterPlan,
     handleSetAsProject,
     handleAttachToProject,
+    handleAssignTaskToGoal,
     handleCreateAllModeMinor,
     handleEditTask,
     handleDeleteTask,

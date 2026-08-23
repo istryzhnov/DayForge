@@ -3,8 +3,7 @@ import type { Goal } from '../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
-import { isRepeating, scheduleKindOf } from './goalSpace/recurrence'
-import { TASK_KIND_BY_SCHEDULE } from '../entities/constants'
+import { isRepeating } from './goalSpace/recurrence'
 
 export type TaskNode = {
   task: DailyTask
@@ -91,21 +90,12 @@ export function useTaskTree(props: TaskTreeProps) {
       return completionsByTemplate.get(task.templateId) ?? 0
     }
 
-    // Planned tasks live in their own sidebar view, so they must not also show
-    // up inside a goal when their date comes around.
-    const plannedTemplateIds = new Set(
-      props.templates
-        .filter(
-          (template) =>
-            scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.PLANNED,
-        )
-        .map((template) => template.id),
-    )
-    const listedTasks = props.tasks.filter(
-      (task) => !plannedTemplateIds.has(task.templateId),
-    )
-
-    const projects = listedTasks
+    // Dated tasks are listed like any other work on the day they fall on. Rows
+    // only exist for the dates a task actually occurs, so a commitment shows up
+    // in its goal on its own day and nowhere else — and the KPI counts above
+    // the list (which always counted every row) finally agree with it. The
+    // "Planned tasks" view still gathers those tasks across days.
+    const projects = props.tasks
       .filter((task) => task.priority === PRIORITY.MAJOR)
       .sort(byNewestFirst)
 
@@ -115,7 +105,7 @@ export function useTaskTree(props: TaskTreeProps) {
     projects.forEach((project) => {
       // Newest first inside the project too, so a task added to it appears at
       // the top of that block rather than buried under older ones.
-      const children = listedTasks
+      const children = props.tasks
         .filter((task) => task.parentDailyTaskId === project.id)
         .sort(byNewestFirst)
 
@@ -150,7 +140,7 @@ export function useTaskTree(props: TaskTreeProps) {
     })
 
     // Tasks that don't belong to any visible project stand on their own.
-    listedTasks
+    props.tasks
       .filter(
         (task) => task.priority !== PRIORITY.MAJOR && !nestedIds.has(task.id),
       )

@@ -11,15 +11,20 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'submit', title: string, priority: Priority, schedule?: TaskSchedule): void
+  (
+    e: 'submit',
+    title: string,
+    priority: Priority,
+    schedule?: TaskSchedule,
+  ): void
   (e: 'cancel'): void
 }>()
 
-// Only subtasks are schedulable: a major task is an umbrella resolved once its
-// minors are done, not something performed at a given time.
-const scheduleFields = useTemplateRef<InstanceType<typeof TaskScheduleFields>>(
-  'scheduleFields',
-)
+// Anything a composer can create can be put on the calendar — a top-level
+// task as much as a subtask. The block collapses itself, so an unscheduled
+// task still costs one field and one Enter.
+const scheduleFields =
+  useTemplateRef<InstanceType<typeof TaskScheduleFields>>('scheduleFields')
 
 const { title, submit, cancel } = useTaskComposerState(
   {
@@ -56,6 +61,6 @@ const { title, submit, cancel } = useTaskComposerState(
       </button>
     </div>
 
-    <TaskScheduleFields v-if="isSubtask" ref="scheduleFields" />
+    <TaskScheduleFields ref="scheduleFields" />
   </template>
 </template>

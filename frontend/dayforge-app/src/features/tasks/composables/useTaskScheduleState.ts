@@ -2,11 +2,8 @@ import { computed, ref, watch } from 'vue'
 import type { RecurrenceType } from '../../../entities/RecurrenceEntity'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { ISODate, TimeOfDay } from '../../../entities/types'
-import {
-  DAY_WINDOW,
-  DEFAULT_TASK_DURATION_MINUTES,
-  RECURRENCE_TYPE,
-} from '../../../entities/constants'
+import { DAY_WINDOW, RECURRENCE_TYPE } from '../../../entities/constants'
+import { useSettings } from '../../../composables/useSettings'
 import {
   addMinutesToTime,
   getTodayISODate,
@@ -42,38 +39,41 @@ function pad(value: number) {
 export const MIN_TIME: TimeOfDay = `${pad(DAY_WINDOW.START_HOUR)}:00`
 export const MAX_TIME: TimeOfDay = `${pad(DAY_WINDOW.END_HOUR)}:00`
 
-const DEFAULT_START_TIME: TimeOfDay = '09:00'
-
 export function useTaskScheduleState() {
+  const { settings } = useSettings()
+
+  // The starting hour and block length a new task is offered with — the same
+  // defaults the calendar draws with.
+  const defaultStart = () => settings.calendar.defaultStartTime
+  const defaultEnd = () =>
+    addMinutesToTime(defaultStart(), settings.calendar.defaultDurationMinutes)
+
   const isEnabled = ref(false)
   const date = ref<ISODate>(getTodayISODate())
-  const startTime = ref<TimeOfDay>(DEFAULT_START_TIME)
-  const endTime = ref<TimeOfDay>(
-    addMinutesToTime(DEFAULT_START_TIME, DEFAULT_TASK_DURATION_MINUTES),
-  )
+  const startTime = ref<TimeOfDay>(defaultStart())
+  const endTime = ref<TimeOfDay>(defaultEnd())
   const repeatType = ref<RecurrenceType>(RECURRENCE_TYPE.NONE)
   const intervalDays = ref(2)
   const weekdays = ref<number[]>([])
 
   const minDate = getTodayISODate()
 
-  // Picking a start implies a default hour-long block; the user can still
+  // Picking a start implies a block of the default length; the user can still
   // override the end afterwards.
   watch(startTime, (next) => {
     if (!next) return
-    endTime.value = addMinutesToTime(next, DEFAULT_TASK_DURATION_MINUTES)
+    endTime.value = addMinutesToTime(
+      next,
+      settings.calendar.defaultDurationMinutes,
+    )
   })
 
   const isWeekly = computed(() => repeatType.value === RECURRENCE_TYPE.WEEKLY)
   const isCustomInterval = computed(
     () => repeatType.value === RECURRENCE_TYPE.CUSTOM,
   )
-  const isRepeating = computed(
-    () => repeatType.value !== RECURRENCE_TYPE.NONE,
-  )
-  const isAnnual = computed(
-    () => repeatType.value === RECURRENCE_TYPE.YEARLY,
-  )
+  const isRepeating = computed(() => repeatType.value !== RECURRENCE_TYPE.NONE)
+  const isAnnual = computed(() => repeatType.value === RECURRENCE_TYPE.YEARLY)
 
   const error = computed<string | null>(() => {
     if (!isEnabled.value) return null
@@ -115,21 +115,21 @@ export function useTaskScheduleState() {
         ? { type: RECURRENCE_TYPE.NONE, startDate }
         : repeatType.value === RECURRENCE_TYPE.YEARLY
           ? { type: RECURRENCE_TYPE.YEARLY, startDate }
-        : repeatType.value === RECURRENCE_TYPE.WEEKLY
-          ? {
-              type: RECURRENCE_TYPE.WEEKLY,
-              daysOfWeek: [...weekdays.value],
-              startDate,
-            }
-          : {
-              // "Every day" and "every N days" are the same daily rule; only the
-              // interval differs.
-              type: RECURRENCE_TYPE.DAILY,
-              interval: isCustomInterval.value
-                ? Math.max(1, Math.round(intervalDays.value))
-                : 1,
-              startDate,
-            }
+          : repeatType.value === RECURRENCE_TYPE.WEEKLY
+            ? {
+                type: RECURRENCE_TYPE.WEEKLY,
+                daysOfWeek: [...weekdays.value],
+                startDate,
+              }
+            : {
+                // "Every day" and "every N days" are the same daily rule; only the
+                // interval differs.
+                type: RECURRENCE_TYPE.DAILY,
+                interval: isCustomInterval.value
+                  ? Math.max(1, Math.round(intervalDays.value))
+                  : 1,
+                startDate,
+              }
 
     return {
       date: startDate,
@@ -142,11 +142,8 @@ export function useTaskScheduleState() {
   function reset() {
     isEnabled.value = false
     date.value = getTodayISODate()
-    startTime.value = DEFAULT_START_TIME
-    endTime.value = addMinutesToTime(
-      DEFAULT_START_TIME,
-      DEFAULT_TASK_DURATION_MINUTES,
-    )
+    startTime.value = defaultStart()
+    endTime.value = defaultEnd()
     repeatType.value = RECURRENCE_TYPE.NONE
     intervalDays.value = 2
     weekdays.value = []

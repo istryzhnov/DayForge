@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
 import type { GoalTheme } from '../../../entities/GoalEntity'
-import {
-  APPEARANCE_SECTION,
-  useAppearancePanel,
-} from '../../appearance/composables/useAppearancePanel'
-
-// Widen from readonly literal tuple to a plain string array for template binding.
-const colorPresets: string[] = [...GOAL_COLOR_PRESETS]
+import { useGoalHeaderMenu } from '../composables/useGoalHeaderMenu'
+import { swatchStyle } from '../../../composables/inputValue'
 
 const props = defineProps<{
   title: string
@@ -26,45 +19,18 @@ const emit = defineEmits<{
   (e: 'change-color', color: string | undefined): void
 }>()
 
-const { open: openAppearance } = useAppearancePanel()
-
-const showMenu = ref(false)
-
-function toggleMenu() {
-  showMenu.value = !showMenu.value
-}
-
-function closeMenu() {
-  showMenu.value = false
-}
-
-function pickColor(color: string) {
-  emit('change-color', color)
-  closeMenu()
-}
-
-function resetColor() {
-  emit('change-color', undefined)
-  closeMenu()
-}
-
-function confirmDelete() {
-  closeMenu()
-  if (window.confirm(`Delete goal "${props.title}"? This cannot be undone.`)) {
-    emit('delete-goal')
-  }
-}
-
-/** The quick swatches only set the accent; the full palette — circles, frames,
- *  surfaces — lives in the appearance sidebar. */
-function openProjectAppearance() {
-  closeMenu()
-  openAppearance(APPEARANCE_SECTION.PROJECT)
-}
-
-function swatchStyle(color: string): Record<string, string> {
-  return { backgroundColor: color }
-}
+const {
+  colorPresets,
+  showMenu,
+  toggleMenu,
+  pickColor,
+  resetColor,
+  openProjectAppearance,
+  confirmDelete,
+} = useGoalHeaderMenu(props, {
+  onChangeColor: (color) => emit('change-color', color),
+  onDeleteGoal: () => emit('delete-goal'),
+})
 </script>
 
 <template>

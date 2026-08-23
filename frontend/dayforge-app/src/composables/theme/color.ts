@@ -62,11 +62,6 @@ export function parseColor(input: string | undefined | null): Rgb | null {
   return null
 }
 
-/** True when a string is something the colour maths below can work with. */
-export function isColor(input: string | undefined | null): boolean {
-  return parseColor(input) !== null
-}
-
 export function toHex(rgb: Rgb): string {
   const channel = (value: number) =>
     Math.round(clamp(value, 0, 255))
@@ -76,7 +71,10 @@ export function toHex(rgb: Rgb): string {
 }
 
 /** Normalises any supported input to `#rrggbb`, or returns the fallback. */
-export function normalizeHex(input: string | undefined, fallback = '#000000'): string {
+export function normalizeHex(
+  input: string | undefined,
+  fallback = '#000000',
+): string {
   const rgb = parseColor(input)
   return rgb ? toHex(rgb) : fallback
 }
@@ -213,5 +211,7 @@ export function isLight(color: string): boolean {
 export function readableTextOn(color: string): string {
   const dark = mix(color, '#000000', 0.14)
   const light = mix(color, '#ffffff', 0.06)
-  return contrastRatio(color, dark) >= contrastRatio(color, light) ? dark : light
+  return contrastRatio(color, dark) >= contrastRatio(color, light)
+    ? dark
+    : light
 }

@@ -335,18 +335,21 @@ export function suggestedModeFor(color: string): {
   if (s <= 12) {
     return {
       mode: 'dark',
-      reason: 'Near-neutral colours look deliberate in a dark, minimal workspace.',
+      reason:
+        'Near-neutral colours look deliberate in a dark, minimal workspace.',
     }
   }
 
   return l > 55
     ? {
         mode: 'dark',
-        reason: 'A little lighter than mid-tone — it separates best from a dark surface.',
+        reason:
+          'A little lighter than mid-tone — it separates best from a dark surface.',
       }
     : {
         mode: 'light',
-        reason: 'A little darker than mid-tone — it separates best from a light surface.',
+        reason:
+          'A little darker than mid-tone — it separates best from a light surface.',
       }
 }
 
@@ -357,14 +360,15 @@ export interface ContrastReport {
 }
 
 /** Plain-language contrast feedback for a colour drawn on a surface. */
-export function contrastReport(
-  color: string,
-  surface: string,
-): ContrastReport {
+export function contrastReport(color: string, surface: string): ContrastReport {
   const ratio = Math.round(contrastRatio(color, surface) * 10) / 10
 
   if (ratio >= 4.5) {
-    return { ratio, level: 'good', message: `Contrast ${ratio}:1 — comfortable.` }
+    return {
+      ratio,
+      level: 'good',
+      message: `Contrast ${ratio}:1 — comfortable.`,
+    }
   }
   if (ratio >= 3) {
     return {

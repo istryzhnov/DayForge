@@ -13,13 +13,18 @@ import {
   scheduledMinutesOf,
   type DayEvent,
 } from './useCalendarOccurrences'
-import { PX_PER_MINUTE, minutesFromDayStart } from './useCalendarGrid'
+import { pxPerMinute, minutesFromDayStart } from './useCalendarGrid'
+import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
+import { useSettings } from '../../../composables/useSettings'
+import { useFormat } from '../../../composables/useFormat'
 
 const DAYS_PER_WEEK = 7
 
 export type PositionedEvent = DayEvent & {
   topPx: number
   heightPx: number
+  /** Absent when nothing else shares these hours. */
+  slot?: OverlapSlot
 }
 
 export type WeekDayColumn = {
@@ -42,18 +47,26 @@ type WeekOptions = {
   getCurrentDate: () => ISODate
 }
 
-/** Monday on or before the given date (getDay: 0 = Sunday). */
-export function startOfWeek(date: ISODate): ISODate {
-  const mondayOffset = (weekdayOfISODate(date) + 6) % 7
-  return addDaysToISODate(date, -mondayOffset)
+/**
+ * The first day of the week containing `date`, honouring the configured week
+ * start (getDay: 0 = Sunday, 1 = Monday).
+ */
+export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
+  const offset = (weekdayOfISODate(date) - weekStartsOn + 7) % 7
+  return addDaysToISODate(date, -offset)
 }
 
 export function useCalendarWeek(options: WeekOptions) {
+  const { settings } = useSettings()
+  const { locale } = useFormat()
+
   // Follows `currentDate` until the user pages to another week.
   const weekAnchor = ref<ISODate | null>(null)
 
   const anchor = computed(
-    () => weekAnchor.value ?? startOfWeek(options.getCurrentDate()),
+    () =>
+      weekAnchor.value ??
+      startOfWeek(options.getCurrentDate(), settings.calendar.weekStartsOn),
   )
 
   const days = computed<WeekDayColumn[]>(() => {
@@ -65,23 +78,39 @@ export function useCalendarWeek(options: WeekOptions) {
       const date = addDaysToISODate(anchor.value, index)
       const events = collectDayEvents({ templates, rowsByDate, date })
 
-      const scheduled = events
+      const timed = events
         .filter((event) => event.startTime)
         .map((event) => {
           const startMin = minutesFromDayStart(event.startTime!)
-          const endMin = event.endTime
-            ? minutesFromDayStart(event.endTime)
-            : startMin + 60
           return {
-            ...event,
-            topPx: startMin * PX_PER_MINUTE,
-            heightPx: Math.max((endMin - startMin) * PX_PER_MINUTE, 18),
+            event,
+            startMin,
+            endMin: event.endTime
+              ? minutesFromDayStart(event.endTime)
+              : startMin + 60,
           }
         })
 
+      // Each day column gets its own columns, so a busy Monday doesn't
+      // narrow the blocks on Tuesday.
+      const slots = layoutOverlaps(
+        timed.map((item) => ({
+          id: item.event.key,
+          startMin: item.startMin,
+          endMin: item.endMin,
+        })),
+      )
+
+      const scheduled = timed.map(({ event, startMin, endMin }) => ({
+        ...event,
+        topPx: startMin * pxPerMinute(),
+        heightPx: Math.max((endMin - startMin) * pxPerMinute(), 18),
+        slot: slots.get(event.key),
+      }))
+
       return {
         date,
-        weekdayLabel: parseISODate(date).toLocaleDateString('en-GB', {
+        weekdayLabel: parseISODate(date).toLocaleDateString(locale.value, {
           weekday: 'short',
         }),
         dayNumber: Number(date.split('-')[2]),
@@ -100,11 +129,11 @@ export function useCalendarWeek(options: WeekOptions) {
     const end = parseISODate(addDaysToISODate(anchor.value, 6))
     const sameMonth = start.getMonth() === end.getMonth()
 
-    const startText = start.toLocaleDateString('en-GB', {
+    const startText = start.toLocaleDateString(locale.value, {
       day: 'numeric',
       ...(sameMonth ? {} : { month: 'short' }),
     })
-    const endText = end.toLocaleDateString('en-GB', {
+    const endText = end.toLocaleDateString(locale.value, {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -132,7 +161,10 @@ export function useCalendarWeek(options: WeekOptions) {
 
   /** Jump to the week containing the real today, not the selected day's week. */
   function goToThisWeek() {
-    weekAnchor.value = startOfWeek(getTodayISODate())
+    weekAnchor.value = startOfWeek(
+      getTodayISODate(),
+      settings.calendar.weekStartsOn,
+    )
   }
 
   return {

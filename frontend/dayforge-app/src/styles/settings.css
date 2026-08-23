@@ -1,0 +1,761 @@
+/* Appearance sidebar: the panel that lives in the `.app-settings` column
+   (see layout.css), plus the workspace-wide rules driven by the
+   `data-pattern` / `data-motion` attributes `useTheme` writes on <html>. */
+
+.settings-panel {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 10px;
+}
+
+.settings-panel__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.settings-panel__head strong {
+  font-size: calc(17px * var(--text-scale));
+}
+
+.settings-panel__head p {
+  margin: 2px 0 0;
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
+}
+
+.settings-panel__close {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.settings-panel__close:hover {
+  color: var(--text);
+  border-color: var(--line-soft);
+}
+
+/* Six sections wrap into two rows rather than squeezing into one — the labels
+   have to stay readable at 300px. */
+.settings-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.settings-tabs .theme-chip {
+  padding: 7px 4px;
+  font-size: calc(11px * var(--text-scale));
+  text-align: center;
+}
+
+.theme-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* The only scrolling region — the head and tabs stay put while a long colour
+   list moves under them. */
+.settings-panel__body {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  margin-right: -4px;
+}
+
+.settings-section {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding-bottom: 20px;
+}
+
+.settings-section__intro,
+.settings-group-hint {
+  margin: 0;
+  font-size: calc(12px * var(--text-scale));
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.settings-group-hint {
+  margin-top: -6px;
+}
+
+.settings-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.settings-reset {
+  margin-top: 6px;
+  justify-self: start;
+}
+
+/* --- mode advice ---------------------------------------------------------- */
+
+.settings-advice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 2px 0 0;
+  padding: 10px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  font-size: calc(12px * var(--text-scale));
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.settings-advice.is-match {
+  border-style: solid;
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--panel-soft) 60%, transparent);
+}
+
+.settings-advice__dot {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  margin-top: 3px;
+  border-radius: 999px;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* --- palette presets ------------------------------------------------------ */
+
+.settings-presets {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-preset {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+  text-align: left;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.settings-preset:hover {
+  border-color: var(--line-soft);
+  background: color-mix(in srgb, var(--panel-soft) 85%, transparent);
+}
+
+.settings-preset.active {
+  border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+
+.settings-preset__dots {
+  grid-row: 1 / 3;
+  display: grid;
+  grid-template-columns: repeat(2, 12px);
+  gap: 3px;
+}
+
+.settings-preset__dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.settings-preset strong {
+  font-size: calc(13px * var(--text-scale));
+}
+
+.settings-preset em {
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+/* --- sliders -------------------------------------------------------------- */
+
+.settings-slider {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+}
+
+.settings-slider > span {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+}
+
+.settings-slider em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+.settings-slider small {
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.settings-slider input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* --- switches, selects and plain fields ------------------------------------ */
+
+.settings-toggle {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  cursor: pointer;
+}
+
+.settings-toggle input[type='checkbox'] {
+  margin: 2px 0 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.settings-toggle span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.settings-toggle strong {
+  font-size: calc(13px * var(--text-scale));
+}
+
+.settings-toggle em,
+.settings-select em {
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.settings-select {
+  display: grid;
+  gap: 4px;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+}
+
+.settings-select select,
+.settings-times input {
+  font-family: inherit;
+  font-size: calc(13px * var(--text-scale));
+  padding: 7px 8px;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel);
+  color: var(--text);
+}
+
+.settings-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-times label {
+  display: grid;
+  gap: 4px;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+}
+
+.settings-stats {
+  display: grid;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.settings-stats em {
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+}
+
+.settings-action {
+  width: 100%;
+}
+
+.settings-action--danger {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+}
+
+.settings-action--danger:hover {
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  color: var(--danger);
+}
+
+/* The real input stays in the DOM for its file dialog, but the button above it
+   is what the user sees. */
+.settings-file {
+  display: none;
+}
+
+.settings-message {
+  margin: 0;
+  font-size: calc(12px * var(--text-scale));
+  padding: 8px 10px;
+  border-radius: calc(10px * var(--radius-scale));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
+}
+
+.settings-message.is-error {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+}
+
+/* --- colour field --------------------------------------------------------- */
+
+.color-field {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+}
+
+/* The native picker is kept in the layout (so it stays clickable and
+   keyboard-reachable) but drawn as our own round swatch on top of it. */
+.color-field__swatch {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+}
+
+.color-field__swatch input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-field__swatch-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--text) 16%, transparent);
+  box-shadow: var(--shadow-sm);
+  pointer-events: none;
+}
+
+.color-field__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.color-field__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-field__label {
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+}
+
+.color-field__badge {
+  font-size: calc(9px * var(--text-scale));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.color-field__desc {
+  margin: 0;
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.color-field__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-field__hex {
+  width: 92px;
+  padding: 5px 8px;
+  font-family: inherit;
+  font-size: calc(12px * var(--text-scale));
+  border: 1px solid var(--line);
+  border-radius: calc(9px * var(--radius-scale));
+  background: var(--panel);
+  color: var(--text);
+}
+
+.color-field__hex:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+}
+
+.color-field__link {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.color-field__link:hover {
+  text-decoration: underline;
+}
+
+.color-field__link--reset {
+  color: var(--muted);
+}
+
+.color-field__contrast {
+  margin: 0;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+}
+
+.color-field__contrast.is-ok {
+  color: color-mix(in srgb, var(--major) 70%, var(--text));
+}
+
+.color-field__contrast.is-poor {
+  color: var(--danger);
+}
+
+.color-field__suggestions {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.color-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  text-align: left;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: calc(10px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.color-suggestion:hover {
+  border-color: var(--line);
+  background: var(--panel);
+}
+
+.color-suggestion__dot {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.color-suggestion__text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.color-suggestion__text strong {
+  font-size: calc(12px * var(--text-scale));
+}
+
+.color-suggestion__text em {
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.35;
+  color: var(--muted);
+}
+
+/* --- project colours ------------------------------------------------------ */
+
+.settings-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.settings-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.settings-swatch:hover {
+  transform: scale(1.1);
+}
+
+.settings-swatch.active {
+  border-color: var(--text);
+}
+
+/* Deliberately built from the same tokens a themed goal panel overrides, so it
+   previews exactly what the project will look like — circles and frames
+   included, which is the part a bare accent swatch never showed. */
+.settings-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--panel);
+}
+
+.settings-preview__dot {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 2px solid;
+}
+
+.settings-preview__dot--project {
+  border-color: var(--major);
+  background: color-mix(in srgb, var(--major) 22%, transparent);
+}
+
+.settings-preview__dot--task {
+  border-color: var(--minor);
+  background: color-mix(in srgb, var(--minor) 22%, transparent);
+}
+
+.settings-preview__card {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel-soft);
+}
+
+.settings-preview__btn {
+  flex: 0 0 auto;
+  padding: 5px 10px;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 600;
+  border-radius: calc(9px * var(--radius-scale));
+  color: var(--ring-check);
+  background: var(--accent);
+}
+
+/* --- workspace-wide switches ---------------------------------------------- */
+
+/* Controls don't inherit the document font, so the typeface setting would
+   otherwise stop at body text. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Background patterns. The doubled class matches the specificity of
+   `:root[data-theme-style='minimal'][data-theme-mode='dark'] .app-content` in
+   layout.css and wins on import order. There is deliberately no rule for
+   `glow` — that is the designed default already living in layout.css — and the
+   pattern layers restate the glow so switching pattern doesn't remove it. */
+:root[data-pattern='none'] .app-content.app-content {
+  background: none;
+}
+
+:root[data-pattern='grid'] .app-content.app-content {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--line) 60%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 34px 34px,
+    linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--line) 60%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 34px 34px,
+    radial-gradient(
+      1100px 650px at -10% -20%,
+      var(--bg-blob-1),
+      transparent 50%
+    ),
+    radial-gradient(900px 700px at 110% 10%, var(--bg-blob-2), transparent 50%);
+}
+
+:root[data-pattern='dots'] .app-content.app-content {
+  background:
+    radial-gradient(
+        color-mix(in srgb, var(--line-soft) 65%, transparent) 1.5px,
+        transparent 1.6px
+      )
+      0 0 / 22px 22px,
+    radial-gradient(
+      1100px 650px at -10% -20%,
+      var(--bg-blob-1),
+      transparent 50%
+    ),
+    radial-gradient(900px 700px at 110% 10%, var(--bg-blob-2), transparent 50%);
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  transition: none !important;
+  animation: none !important;
+  scroll-behavior: auto !important;
+}
+
+/* --- reading comfort ------------------------------------------------------- */
+
+/* Roomier hit areas. Deliberately a short, hand-picked list of the controls
+   that are actually fiddly on a phone rather than a blanket rule. */
+:root[data-targets='large'] .nav-goal-btn,
+:root[data-targets='large'] .btn {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+:root[data-targets='large'] .task-dot-check,
+:root[data-targets='large'] .dot {
+  width: 34px;
+  height: 34px;
+}
+
+:root[data-targets='large'] .sidebar-settings__trigger,
+:root[data-targets='large'] .sidebar-notify-trigger,
+:root[data-targets='large'] .goal-settings__trigger,
+:root[data-targets='large'] .settings-panel__close {
+  width: 42px;
+  height: 42px;
+}
+
+:root[data-targets='large'] .task-add-btn,
+:root[data-targets='large'] .goal-settings__item,
+:root[data-targets='large'] .settings-toggle {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+/* Firmer edges and opaque surfaces. Translucency is the first thing to go:
+   a panel that lets the glow through is exactly what low-contrast vision
+   struggles to separate from the canvas. */
+:root[data-contrast='high'] {
+  --line: var(--line-soft);
+}
+
+:root[data-contrast='high'] .app-sidebar,
+:root[data-contrast='high'] .app-settings,
+:root[data-contrast='high'] .task-row,
+:root[data-contrast='high'] .kpi,
+:root[data-contrast='high'] .goal-form-card,
+:root[data-contrast='high'] .settings-toggle,
+:root[data-contrast='high'] .settings-slider,
+:root[data-contrast='high'] .settings-stats,
+:root[data-contrast='high'] .color-field {
+  background: var(--panel);
+  border-color: var(--line-soft);
+}
+
+:root[data-contrast='high'] .app-content {
+  background: none;
+}
+
+:root[data-contrast='high'] .muted,
+:root[data-contrast='high'] .sidebar-caption,
+:root[data-contrast='high'] .settings-group-hint {
+  color: color-mix(in srgb, var(--muted) 55%, var(--text));
+}
+
+:root[data-contrast='high'] :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .app-settings {
+    width: 100vw;
+    height: 100dvh;
+    padding: 14px 12px;
+    border-left: none;
+  }
+
+  .settings-tabs .theme-chip {
+    font-size: calc(12px * var(--text-scale));
+    padding: 9px 4px;
+  }
+
+  /* iOS zooms the page when a focused field is under 16px. */
+  .color-field__hex,
+  .settings-slider input[type='range'] {
+    font-size: max(16px, calc(16px * var(--text-scale)));
+  }
+}

@@ -22,7 +22,7 @@ const emit = defineEmits<{
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
-  (e: 'quick-add', title: string): void
+  (e: 'quick-add', title: string, schedule?: TaskSchedule): void
 }>()
 </script>
 
@@ -45,6 +45,9 @@ const emit = defineEmits<{
     "
     @delete-task="(templateId: ID) => emit('delete-task', templateId)"
     @set-as-project="(templateId: ID) => emit('set-as-project', templateId)"
-    @quick-add="(title: string) => emit('quick-add', title)"
+    @quick-add="
+      (title: string, schedule?: TaskSchedule) =>
+        emit('quick-add', title, schedule)
+    "
   />
 </template>

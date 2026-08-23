@@ -106,8 +106,9 @@ const { focus, start, load, plan } = useStarterTemplate()
           </div>
         </div>
         <p class="starter__note">
-          Creates the goal “{{ plan.goalTitle }}” with the project
-          “{{ plan.projectTitle }}”. You can change or delete any of it.
+          Creates the goal “{{ plan.goalTitle }}” with the project “{{
+            plan.projectTitle
+          }}”. You can change or delete any of it.
         </p>
       </section>
 
