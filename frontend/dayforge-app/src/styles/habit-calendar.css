@@ -50,11 +50,22 @@
   color: var(--muted);
 }
 
+/* Registering the property is what lets the arc sweep instead of jumping: an
+   unregistered custom property is an opaque string to the browser, so there is
+   nothing for it to interpolate between two conic-gradient stops. */
+@property --progress {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
+
 .habit-calendar__circle {
   --size: 38px;
   --ring-fill: var(--accent);
   --track: color-mix(in srgb, var(--line) 72%, transparent);
   --progress: 0%;
+  position: relative;
+  transition: --progress 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   width: var(--size);
   height: var(--size);
   border-radius: 999px;
@@ -171,6 +182,79 @@
 .habit-calendar__circle.is-complete,
 .habit-calendar__day.is-complete {
   --ring-fill: var(--accent);
+}
+
+/* --- finishing a day ------------------------------------------------------
+
+   Played only when a day *crosses* into 100% (see `useHabitCalendar`), never
+   on mount — otherwise every already-finished day would pop on each render. */
+
+.habit-calendar__circle.is-celebrating {
+  animation: habit-ring-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* The ring that flies off outwards. On a pseudo-element so it doesn't fight
+   the circle's own inset shadow. */
+.habit-calendar__circle.is-celebrating::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  border: 2px solid var(--accent);
+  animation: habit-ring-pulse 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+.habit-calendar__circle.is-celebrating .habit-calendar__check {
+  animation: habit-check-in 0.42s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes habit-ring-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes habit-ring-pulse {
+  from {
+    opacity: 0.85;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+
+@keyframes habit-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.3) rotate(-25deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* The in-app Motion setting already covers this via `data-motion`; this is for
+   people who set it at the OS level and never open the panel. */
+@media (prefers-reduced-motion: reduce) {
+  .habit-calendar__circle {
+    transition: none;
+  }
+
+  .habit-calendar__circle.is-celebrating,
+  .habit-calendar__circle.is-celebrating::after,
+  .habit-calendar__circle.is-celebrating .habit-calendar__check {
+    animation: none;
+  }
 }
 
 .lv-0 {

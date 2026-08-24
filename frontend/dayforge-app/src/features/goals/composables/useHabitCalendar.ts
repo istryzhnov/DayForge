@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, onScopeDispose, ref, watch } from 'vue'
 import type { HabitDayCell } from '../../../composables/useProgressMetrics'
 import {
   addDaysToISODate,
@@ -66,6 +66,57 @@ export function useHabitCalendar(props: HabitProps) {
     })
   })
 
+  // --- finishing a day ----------------------------------------------------
+
+  /** Long enough for the pop and the outward ring, and no longer. */
+  const CELEBRATION_MS = 650
+
+  const celebrating = ref(new Set<string>())
+  const lastPercentByDate = new Map<string, number>()
+  const timers = new Map<string, number>()
+
+  function celebrate(date: string) {
+    celebrating.value.add(date)
+    window.clearTimeout(timers.get(date))
+    timers.set(
+      date,
+      window.setTimeout(() => {
+        celebrating.value.delete(date)
+        timers.delete(date)
+      }, CELEBRATION_MS),
+    )
+  }
+
+  /**
+   * The animation belongs to the *moment* a day is finished, so it fires on the
+   * crossing into 100% and nowhere else. Without the `previous === undefined`
+   * guard every already-finished day would pop again on each mount, and without
+   * the `previous >= 100` one it would replay whenever the list re-rendered.
+   */
+  watch(
+    weekCells,
+    (cells) => {
+      cells.forEach((cell) => {
+        const previous = lastPercentByDate.get(cell.date)
+        lastPercentByDate.set(cell.date, cell.percent)
+
+        if (previous === undefined || previous >= 100) return
+        if (cell.percent < 100) return
+        celebrate(cell.date)
+      })
+    },
+    { immediate: true },
+  )
+
+  onScopeDispose(() => {
+    timers.forEach((id) => window.clearTimeout(id))
+    timers.clear()
+  })
+
+  function isCelebrating(date: string) {
+    return celebrating.value.has(date)
+  }
+
   /** Heat-map bucket for a day's completion share. */
   function levelClass(percent: number) {
     if (percent <= 0) return 'lv-0'
@@ -88,5 +139,5 @@ export function useHabitCalendar(props: HabitProps) {
     return { '--progress': `${Math.max(0, Math.min(100, percent))}%` }
   }
 
-  return { weekCells, levelClass, progressState, progressStyle }
+  return { weekCells, isCelebrating, levelClass, progressState, progressStyle }
 }
