@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted } from 'vue'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { useTheme } from '../../../composables/useTheme'
+import SettingsMenu from './SettingsMenu.vue'
 import ThemeSection from './ThemeSection.vue'
 import ColorsSection from './ColorsSection.vue'
 import WorkspaceSection from './WorkspaceSection.vue'
-import PlannerSection from './PlannerSection.vue'
+import RemindersSection from './RemindersSection.vue'
+import CalendarSection from './CalendarSection.vue'
+import BehaviorSection from './BehaviorSection.vue'
+import FormatSection from './FormatSection.vue'
 import DataSection from './DataSection.vue'
 import ProjectThemeEditor from './ProjectThemeEditor.vue'
-import {
-  SETTINGS_SECTION,
-  useSettingsPanel,
-  type SettingsSection,
-} from '../composables/useSettingsPanel'
+import { sectionMeta, useSettingsPanel } from '../composables/useSettingsPanel'
 
 const props = defineProps<{
   activeGoal: Goal | null
@@ -36,19 +36,22 @@ const emit = defineEmits<{
   (e: 'open-starter'): void
 }>()
 
-const { activeSection, close } = useSettingsPanel()
+const { activeSection, openSection, back, close, escape } = useSettingsPanel()
 // Only the per-project editor needs live theme state here; every other section
 // reads what it needs itself.
 const { themeMode, surfaces, effectivePalette } = useTheme()
 
-const sections: { id: SettingsSection; label: string }[] = [
-  { id: SETTINGS_SECTION.THEME, label: 'Theme' },
-  { id: SETTINGS_SECTION.COLORS, label: 'Colours' },
-  { id: SETTINGS_SECTION.PROJECT, label: 'Project' },
-  { id: SETTINGS_SECTION.WORKSPACE, label: 'Workspace' },
-  { id: SETTINGS_SECTION.PLANNER, label: 'Planner' },
-  { id: SETTINGS_SECTION.DATA, label: 'Data' },
-]
+/** The header is either the panel's own title or the open section's. */
+const heading = computed(() => {
+  if (activeSection.value === null) {
+    return {
+      title: 'Settings',
+      description: 'Everything you can change, grouped by what it touches.',
+    }
+  }
+  const meta = sectionMeta(activeSection.value)
+  return { title: meta.label, description: meta.description }
+})
 
 function handleGoalTheme(theme: GoalTheme | undefined) {
   if (!props.activeGoal) return
@@ -56,7 +59,7 @@ function handleGoalTheme(theme: GoalTheme | undefined) {
 }
 
 function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') close()
+  if (event.key === 'Escape') escape()
 }
 
 onMounted(() => document.addEventListener('keydown', onKeydown))
@@ -66,9 +69,18 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 <template>
   <section class="settings-panel" aria-label="Settings">
     <header class="settings-panel__head">
-      <div>
-        <strong>Settings</strong>
-        <p>Make the workspace look and behave the way you want.</p>
+      <button
+        v-if="activeSection !== null"
+        class="settings-panel__back"
+        type="button"
+        aria-label="Back to all settings"
+        @click="back"
+      >
+        ‹
+      </button>
+      <div class="settings-panel__title">
+        <strong>{{ heading.title }}</strong>
+        <p>{{ heading.description }}</p>
       </div>
       <button
         class="settings-panel__close"
@@ -80,33 +92,33 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
       </button>
     </header>
 
-    <nav class="settings-tabs">
-      <button
-        v-for="section in sections"
-        :key="section.id"
-        class="theme-chip"
-        :class="{ active: activeSection === section.id }"
-        type="button"
-        :disabled="section.id === 'project' && !activeGoal"
-        @click="activeSection = section.id"
-      >
-        {{ section.label }}
-      </button>
-    </nav>
-
     <div class="settings-panel__body">
-      <ThemeSection v-if="activeSection === 'theme'" />
+      <SettingsMenu
+        v-if="activeSection === null"
+        :active-goal="activeGoal"
+        :notifications-enabled="notificationsEnabled"
+        :data-stats="dataStats"
+        @open="openSection"
+      />
+
+      <ThemeSection v-else-if="activeSection === 'theme'" />
 
       <ColorsSection v-else-if="activeSection === 'colors'" />
 
       <WorkspaceSection v-else-if="activeSection === 'workspace'" />
 
-      <PlannerSection
-        v-else-if="activeSection === 'planner'"
+      <RemindersSection
+        v-else-if="activeSection === 'reminders'"
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"
         @toggle-notifications="emit('toggle-notifications')"
       />
+
+      <CalendarSection v-else-if="activeSection === 'calendar'" />
+
+      <BehaviorSection v-else-if="activeSection === 'behavior'" />
+
+      <FormatSection v-else-if="activeSection === 'format'" />
 
       <DataSection
         v-else-if="activeSection === 'data'"

@@ -7,10 +7,7 @@ import SidebarGoalButton from './SidebarGoalButton.vue'
 import GoalContextMenu from './GoalContextMenu.vue'
 import { useSidebarState } from '../composables/useSidebarState'
 import { useSettings } from '../../../composables/useSettings'
-import {
-  SETTINGS_SECTION,
-  useSettingsPanel,
-} from '../../settings/composables/useSettingsPanel'
+import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 
 defineProps<{
   goals: Goal[]
@@ -92,7 +89,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
           type="button"
           aria-label="Settings"
           title="Theme, colours, planner and data"
-          @click="toggleSettings(SETTINGS_SECTION.THEME)"
+          @click="toggleSettings()"
         >
           ⚙
         </button>

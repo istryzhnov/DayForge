@@ -5,8 +5,8 @@
 .settings-panel {
   height: 100%;
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: 10px;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
 }
 
 .settings-panel__head {
@@ -47,18 +47,36 @@
   border-color: var(--line-soft);
 }
 
-/* Six sections wrap into two rows rather than squeezing into one — the labels
-   have to stay readable at 300px. */
-.settings-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+.settings-panel__title {
+  min-width: 0;
 }
 
-.settings-tabs .theme-chip {
-  padding: 7px 4px;
-  font-size: calc(11px * var(--text-scale));
-  text-align: center;
+/* Sits where the back arrow of a phone settings app would: left of the title,
+   only while a section is open. */
+.settings-panel__back {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: calc(18px * var(--text-scale));
+  line-height: 1;
+  padding-bottom: 3px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.settings-panel__back:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  transform: translateX(-2px);
 }
 
 .theme-chip:disabled {
@@ -66,8 +84,97 @@
   cursor: not-allowed;
 }
 
-/* The only scrolling region — the head and tabs stay put while a long colour
-   list moves under them. */
+/* --- the menu -------------------------------------------------------------
+
+   A list of rows rather than a strip of tabs: the column is ~320px wide and
+   the number of things to configure only grows. Each row carries what it is
+   currently set to, so the menu answers most questions on its own. */
+
+.settings-menu {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  padding-bottom: 20px;
+}
+
+.settings-menu__group {
+  display: grid;
+  gap: 4px;
+}
+
+.settings-menu__group .sidebar-caption {
+  margin: 0 6px 2px;
+}
+
+.settings-menu__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid transparent;
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.settings-menu__row:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  background: color-mix(in srgb, var(--panel-soft) 85%, transparent);
+  transform: translateX(2px);
+}
+
+.settings-menu__row:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-menu__icon {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  font-size: calc(14px * var(--text-scale));
+}
+
+.settings-menu__text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.settings-menu__text strong {
+  font-size: calc(13px * var(--text-scale));
+}
+
+/* The current value. Truncated rather than wrapped so every row is one height
+   and the list stays scannable. */
+.settings-menu__text em {
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-menu__chevron {
+  color: var(--muted);
+  font-size: calc(18px * var(--text-scale));
+  line-height: 1;
+}
+
+/* The only scrolling region — the header stays put while a long section
+   moves under it. */
 .settings-panel__body {
   overflow-y: auto;
   overflow-x: hidden;
@@ -748,9 +855,9 @@ textarea {
     border-left: none;
   }
 
-  .settings-tabs .theme-chip {
-    font-size: calc(12px * var(--text-scale));
-    padding: 9px 4px;
+  /* Roomier rows: on a phone this list is thumb-driven. */
+  .settings-menu__row {
+    padding: 13px 12px;
   }
 
   /* iOS zooms the page when a focused field is under 16px. */

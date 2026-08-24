@@ -9,7 +9,7 @@ const props = defineProps<{
   todayPercent: number
 }>()
 
-const { weekCells, levelClass, progressState, progressStyle } =
+const { weekCells, isCelebrating, levelClass, progressState, progressStyle } =
   useHabitCalendar(props)
 </script>
 
@@ -36,7 +36,10 @@ const { weekCells, levelClass, progressState, progressStyle } =
           :class="[
             levelClass(cell.percent),
             progressState(cell.percent),
-            { 'is-today': cell.isToday },
+            {
+              'is-today': cell.isToday,
+              'is-celebrating': isCelebrating(cell.date),
+            },
           ]"
           :style="progressStyle(cell.percent)"
           :title="`${cell.label}: ${cell.percent}% (${cell.done}/${cell.total})`"
