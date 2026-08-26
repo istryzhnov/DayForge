@@ -4,20 +4,6 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import { useUndoToast } from '../../../composables/useUndoToast'
 
-/**
- * Moving the whole workspace in and out of a file.
- *
- * Import and "clear everything" write straight into the live refs rather than
- * rewriting `localStorage` and reloading: the storage watchers persist the new
- * arrays for us, and — more importantly — the previous contents stay in memory,
- * so both actions can be handed to `useUndoToast` like every other destructive
- * action in the app.
- *
- * Note for later: when `goalSpace/backup.ts` lands, the JSON shape below is the
- * only thing this file owns — swapping the reader/writer for `useBackup` is a
- * one-line change in each function.
- */
-
 const BACKUP_FORMAT = 'dayforge-backup'
 const BACKUP_VERSION = 1
 
@@ -150,9 +136,6 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     goalSpace.dailyTasks.value = backup.dailyTasks
     goalSpace.selectGoal(backup.goals[0]?.id ?? null)
 
-    // The theme and preferences are owned by their own composables, which read
-    // storage once on startup — so they are written back and picked up on the
-    // next load rather than forced in here.
     if (backup.theme !== undefined) {
       localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(backup.theme))
     }

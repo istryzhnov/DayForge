@@ -47,10 +47,6 @@ type WeekOptions = {
   getCurrentDate: () => ISODate
 }
 
-/**
- * The first day of the week containing `date`, honouring the configured week
- * start (getDay: 0 = Sunday, 1 = Monday).
- */
 export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
   const offset = (weekdayOfISODate(date) - weekStartsOn + 7) % 7
   return addDaysToISODate(date, -offset)
@@ -91,8 +87,6 @@ export function useCalendarWeek(options: WeekOptions) {
           }
         })
 
-      // Each day column gets its own columns, so a busy Monday doesn't
-      // narrow the blocks on Tuesday.
       const slots = layoutOverlaps(
         timed.map((item) => ({
           id: item.event.key,

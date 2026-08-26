@@ -3,11 +3,6 @@ defineProps<{
   label: string
 }>()
 
-/**
- * A checkbox that reveals a panel of optional composer fields. Shared so the
- * schedule block and the goal/project block stay visually identical instead of
- * drifting apart as two copies.
- */
 const isEnabled = defineModel<boolean>({ required: true })
 </script>
 

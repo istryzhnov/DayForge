@@ -17,10 +17,6 @@ export type TaskNode = {
   completedCount?: number
 }
 
-/**
- * A project that actually groups something renders as its own block; a project
- * with no children behaves exactly like a plain task, so it is emitted as one.
- */
 export type TaskGroup =
   | {
       kind: 'project'
@@ -54,8 +50,6 @@ export function useTaskTree(props: TaskTreeProps) {
       return goalTitleById.get(task.goalId) ?? 'Unknown Goal'
     }
 
-    // Templates are appended on creation, so their index *is* creation order —
-    // no timestamp parsing needed, and it stays stable for same-millisecond adds.
     const createdRank = new Map(
       props.templates.map((template, index) => [template.id, index]),
     )
@@ -64,14 +58,9 @@ export function useTaskTree(props: TaskTreeProps) {
     // Newest first, so a task the user just added lands at the top of its list.
     const byNewestFirst = (a: DailyTask, b: DailyTask) => rankOf(b) - rankOf(a)
 
-    // Driven by a ref rather than a wall-clock check: `DailyTask` objects are
-    // shared by reference, so many updates re-render without re-running this
-    // computed, and a timestamp comparison would go stale unpredictably.
     const isRecentlyCreated = (task: DailyTask) =>
       props.newTemplateId !== null && task.templateId === props.newTemplateId
 
-    // Only repeating tasks get a tally — for a one-off it would never say
-    // anything but 0 or 1.
     const repeatingTemplateIds = new Set(
       props.templates.filter(isRepeating).map((template) => template.id),
     )
@@ -90,11 +79,6 @@ export function useTaskTree(props: TaskTreeProps) {
       return completionsByTemplate.get(task.templateId) ?? 0
     }
 
-    // Dated tasks are listed like any other work on the day they fall on. Rows
-    // only exist for the dates a task actually occurs, so a commitment shows up
-    // in its goal on its own day and nowhere else — and the KPI counts above
-    // the list (which always counted every row) finally agree with it. The
-    // "Planned tasks" view still gathers those tasks across days.
     const projects = props.tasks
       .filter((task) => task.priority === PRIORITY.MAJOR)
       .sort(byNewestFirst)
@@ -103,8 +87,6 @@ export function useTaskTree(props: TaskTreeProps) {
     const nestedIds = new Set<string>()
 
     projects.forEach((project) => {
-      // Newest first inside the project too, so a task added to it appears at
-      // the top of that block rather than buried under older ones.
       const children = props.tasks
         .filter((task) => task.parentDailyTaskId === project.id)
         .sort(byNewestFirst)
@@ -156,9 +138,6 @@ export function useTaskTree(props: TaskTreeProps) {
         })
       })
 
-    // Projects and loose tasks are interleaved by creation rather than kept in
-    // separate sections, otherwise a brand-new plain task would still sit below
-    // every existing project block instead of at the top.
     return groups.sort((a, b) => {
       const taskOf = (group: TaskGroup) =>
         group.kind === 'project' ? group.project.task : group.node.task

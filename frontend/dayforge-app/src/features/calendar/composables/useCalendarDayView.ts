@@ -15,16 +15,6 @@ import { useCalendarDragDrop } from './useCalendarDragDrop'
 import { useCalendarDraft } from './useCalendarDraft'
 import { useCalendarSelection } from './useCalendarSelection'
 
-/**
- * Everything the day view does, so `CalendarView.vue` only has to render it.
- *
- * The four composables underneath it stay separate on purpose — geometry, drag
- * and drop, drafting and selection are independently testable concerns. This
- * one wires them to each other and to the props/emits of the view: which tasks
- * land on the grid, where each block sits, and which of the four owns a given
- * pointer event.
- */
-
 /** The breathing room the day strip keeps on both sides. */
 const GRID_INSET_PX = 6
 
@@ -57,8 +47,6 @@ export function useCalendarDayView(
   actions: DayViewActions,
 ) {
   const viewMode = ref<CalendarViewMode>('day')
-  // Bound by name to `ref="gridRef"` / `ref="unscheduledRef"` in the template,
-  // the same way `useContextMenu` reaches its root element.
   const gridRef = useTemplateRef<HTMLElement>('gridRef')
   const unscheduledRef = useTemplateRef<HTMLElement>('unscheduledRef')
   const isCoarsePointer = useIsCoarsePointer()
@@ -70,8 +58,6 @@ export function useCalendarDayView(
     viewMode.value = 'day'
   }
 
-  // Only pinned over the viewport on the mobile layout; on desktop it is a
-  // normal side column and shouldn't shrink the auto-scroll zone.
   function bottomInset() {
     if (!isCoarsePointer.value) return 0
     const element = unscheduledRef.value
@@ -85,12 +71,6 @@ export function useCalendarDayView(
     props.tasks.filter((task) => task.startTime && task.endTime),
   )
 
-  /**
-   * What still needs a slot on the grid. Excludes projects (containers, not
-   * things you drop on a time) and anything already finished — a completed task
-   * has nothing left to schedule. Done tasks that *are* scheduled stay on the
-   * grid as a record of the day.
-   */
   const unscheduledTasks = computed(() =>
     props.tasks.filter(
       (task) =>
@@ -135,11 +115,6 @@ export function useCalendarDayView(
     return (endMin - startMin) * pxPerMinute()
   }
 
-  /**
-   * Columns for blocks sharing the same hours. Measured from the stored times
-   * rather than the drag preview, so the neighbours of a block being dragged
-   * hold still instead of reshuffling under the finger.
-   */
   const overlapSlots = computed(() =>
     layoutOverlaps(
       scheduledTasks.value.map((task) => ({

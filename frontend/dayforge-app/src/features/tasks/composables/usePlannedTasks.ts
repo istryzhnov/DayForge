@@ -9,10 +9,6 @@ import {
   nextPlannedDateOf,
 } from '../../../composables/goalSpace/recurrence'
 
-/**
- * A dated commitment (dentist, birthday). Shown in its own view rather than
- * inside a goal, so opening "Sport" doesn't surface unrelated appointments.
- */
 export type PlannedTask = {
   templateId: ID
   dailyTaskId: ID | null
@@ -33,11 +29,6 @@ type PlannedOptions = {
 }
 
 export function usePlannedTasks(options: PlannedOptions) {
-  /**
-   * Built from templates rather than the open day's rows: a task planned for
-   * next week has no row yet, and an overdue one has its row stranded in the
-   * past where nothing would surface it.
-   */
   const plannedTasks = computed<PlannedTask[]>(() => {
     const today = getTodayISODate()
     const goalTitleById = new Map(
@@ -56,8 +47,6 @@ export function usePlannedTasks(options: PlannedOptions) {
         )
         const isDone = row?.status === TASK_STATUS.DONE
 
-        // A finished commitment leaves the list once its day has passed, but
-        // stays visible on the day itself so checking it off registers.
         if (isDone && date !== today) return []
 
         return [

@@ -18,8 +18,6 @@ const emit = defineEmits<{
 
 const isCoarsePointer = useIsCoarsePointer()
 
-// Extracted into its own component so every goal owns its gesture instance —
-// a single recognizer shared across the v-for would fire for the wrong row.
 const { isLifted, onPointerDown } = usePressGesture({
   isEnabled: () => isCoarsePointer.value,
   onLift: (point) =>

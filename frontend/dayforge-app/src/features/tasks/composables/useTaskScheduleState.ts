@@ -18,10 +18,6 @@ export const REPEAT_OPTIONS = [
   { value: RECURRENCE_TYPE.YEARLY, label: 'Every year' },
 ] as const
 
-/**
- * Displayed Monday-first to match the habit calendar, while the stored values
- * stay in `Date.getDay()` terms (0 = Sunday).
- */
 export const WEEKDAY_OPTIONS = [
   { value: 1, label: 'Mon' },
   { value: 2, label: 'Tue' },
@@ -42,8 +38,6 @@ export const MAX_TIME: TimeOfDay = `${pad(DAY_WINDOW.END_HOUR)}:00`
 export function useTaskScheduleState() {
   const { settings } = useSettings()
 
-  // The starting hour and block length a new task is offered with — the same
-  // defaults the calendar draws with.
   const defaultStart = () => settings.calendar.defaultStartTime
   const defaultEnd = () =>
     addMinutesToTime(defaultStart(), settings.calendar.defaultDurationMinutes)
@@ -58,8 +52,6 @@ export function useTaskScheduleState() {
 
   const minDate = getTodayISODate()
 
-  // Picking a start implies a block of the default length; the user can still
-  // override the end afterwards.
   watch(startTime, (next) => {
     if (!next) return
     endTime.value = addMinutesToTime(
@@ -108,8 +100,6 @@ export function useTaskScheduleState() {
 
     const startDate = date.value
 
-    // No end date: occurrences are computed from the rule when a day is opened,
-    // so an endless repeat costs nothing extra — only visited days are stored.
     const recurrence =
       repeatType.value === RECURRENCE_TYPE.NONE
         ? { type: RECURRENCE_TYPE.NONE, startDate }
@@ -122,8 +112,6 @@ export function useTaskScheduleState() {
                 startDate,
               }
             : {
-                // "Every day" and "every N days" are the same daily rule; only the
-                // interval differs.
                 type: RECURRENCE_TYPE.DAILY,
                 interval: isCustomInterval.value
                   ? Math.max(1, Math.round(intervalDays.value))

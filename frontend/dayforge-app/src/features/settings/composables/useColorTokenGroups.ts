@@ -9,14 +9,6 @@ import {
   suggestionsFor,
 } from '../../../composables/theme/suggestions'
 
-/**
- * The nine editable colours, grouped and annotated for the Colours tab.
- *
- * Only colours that are *drawn on* a surface get a readability note: a panel or
- * a border is meant to sit a step away from its background, so scoring those
- * against a text-contrast threshold would report the design itself as broken.
- */
-
 const GROUPS: { id: ColorTokenMeta['group']; label: string; hint: string }[] = [
   {
     id: 'primary',

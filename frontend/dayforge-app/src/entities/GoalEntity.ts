@@ -1,11 +1,5 @@
 import type { GoalStatus, ID, ISODateTime } from './types'
 
-/**
- * A project's own colours. Only `accent` is required for a project to look
- * themed — borders, surfaces, circles and check marks are derived from it (see
- * `composables/theme/goalTheme.ts`); the rest of the fields are hand overrides
- * for people who want to place each colour themselves.
- */
 export interface GoalTheme {
   accent?: string
   /** Project rows and their circles. Defaults to a near-complement of accent. */
@@ -27,9 +21,5 @@ export interface Goal {
   updatedAt: ISODateTime
   /** Full per-project palette overriding the global theme inside its panel. */
   theme?: GoalTheme
-  /**
-   * @deprecated Superseded by `theme`. Still read on load so goals coloured
-   * before per-project theming existed keep their colour.
-   */
   accentColor?: string
 }

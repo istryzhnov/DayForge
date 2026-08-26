@@ -44,11 +44,6 @@ export function useGoalSpace() {
   const dailyTasks = ref<DailyTask[]>([])
   const currentDate = ref<ISODate>(getTodayISODate())
 
-  /**
-   * The template just created, so its row can play a one-off highlight. Held in
-   * a ref (rather than derived from `createdAt`) so clearing it is a reactive
-   * change that reliably re-renders the list.
-   */
   const lastCreatedTemplateId = ref<ID | null>(null)
   let highlightTimerId: number | undefined
 
@@ -64,10 +59,6 @@ export function useGoalSpace() {
   function loadFromStorageTasks() {
     const stored = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
 
-    // Repeats used to be capped at a 30-day horizon, written as an `endDate`.
-    // Occurrences are generated lazily, so that cap bought nothing and made
-    // long-running habits silently stop. Nothing in the UI sets a deliberate
-    // end date, so dropping it makes existing rules run indefinitely.
     stored.forEach((template) => {
       if (template.recurrence?.endDate) {
         delete template.recurrence.endDate
@@ -165,8 +156,6 @@ export function useGoalSpace() {
     taskTemplates.value.push(newTask)
     markRecentlyCreated(newTask.id)
 
-    // A scheduled task materializes on its own date rather than today — for a
-    // future date, today is simply not one of its occurrences.
     ensureDailyTaskForTemplate({
       taskTemplates: taskTemplates.value,
       dailyTasks: dailyTasks.value,
@@ -211,8 +200,6 @@ export function useGoalSpace() {
     priority: Priority = PRIORITY.MINOR,
     schedule?: TaskSchedule,
   ) {
-    // Anything that gains children is a project by definition, so giving a plain
-    // task a subtask promotes it rather than leaving a task that groups others.
     convertTaskToProject(parentTemplateId)
 
     return createTask({
@@ -257,8 +244,6 @@ export function useGoalSpace() {
       taskTemplates.value.find((item) => item.id === templateId)?.title ??
       'Task'
 
-    // Captured before the filters run so the deletion can be reversed — there
-    // is no other copy of this data once it leaves the arrays.
     const removedTemplates = taskTemplates.value.filter((item) =>
       idsToRemove.has(item.id),
     )
@@ -270,8 +255,6 @@ export function useGoalSpace() {
     taskTemplates.value = taskTemplates.value.filter(
       (item) => !idsToRemove.has(item.id),
     )
-    // Keep past days untouched so historical habit-calendar stats stay accurate;
-    // only drop today's/future instances of the removed template(s).
     dailyTasks.value = dailyTasks.value.filter(
       (item) =>
         !idsToRemove.has(item.templateId) || item.date < currentDate.value,
@@ -283,15 +266,6 @@ export function useGoalSpace() {
     })
   }
 
-  /**
-   * Retag a task with a goal, cascading to the rows the change may still
-   * affect.
-   *
-   * Only today's and future rows are rewritten — past days keep the goal they
-   * were completed under, so per-goal habit stats stay honest (the same rule as
-   * `deleteTask` and `convertTaskToProject`). Children follow their project,
-   * because a subtask inherits its parent's goal at creation.
-   */
   function applyGoalToTask(template: TaskTemplate, goalId: ID | undefined) {
     template.goalId = goalId
     template.updatedAt = new Date().toISOString()
@@ -314,9 +288,6 @@ export function useGoalSpace() {
     const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template || template.goalId === goalId) return
 
-    // A task inside a project belongs to that project's goal; moving it
-    // elsewhere means it leaves the project rather than sitting in a block that
-    // its own goal filter would hide it from.
     if (template.parentTemplateId) {
       const parent = taskTemplates.value.find(
         (item) => item.id === template.parentTemplateId,
@@ -329,13 +300,6 @@ export function useGoalSpace() {
     applyGoalToTask(template, goalId)
   }
 
-  /**
-   * Move a task under a project, or detach it when `projectTemplateId` is null.
-   *
-   * Like `deleteTask` and `convertTaskToProject`, only today's and future rows
-   * are rewritten — past days keep the grouping they were completed under.
-   * Projects are excluded because nesting is capped at two levels.
-   */
   function attachTaskToProject(templateId: ID, projectTemplateId: ID | null) {
     const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template || template.priority === PRIORITY.MAJOR) return
@@ -348,10 +312,6 @@ export function useGoalSpace() {
     template.parentTemplateId = project?.id
     template.updatedAt = new Date().toISOString()
 
-    // The project's goal wins. Without this the task keeps its old goal while
-    // hanging off a project in another one, and since the goal panel filters by
-    // goal before grouping by project, the row silently vanishes from the block
-    // it was just added to.
     if (project && project.goalId !== template.goalId) {
       applyGoalToTask(template, project.goalId)
     }
@@ -367,8 +327,6 @@ export function useGoalSpace() {
           return
         }
 
-        // The project may not have a row on that date yet — create it so the
-        // task has something to hang off.
         ensureDailyTaskForTemplate({
           taskTemplates: taskTemplates.value,
           dailyTasks: dailyTasks.value,
@@ -430,8 +388,6 @@ export function useGoalSpace() {
     ),
   )
 
-  // Every task closes the same way, projects included — a project is a grouping
-  // container, not a task with its own lifecycle.
   function toggleTaskDone(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
     if (!task) return
@@ -445,12 +401,6 @@ export function useGoalSpace() {
     task.completedAt = new Date().toISOString()
   }
 
-  /**
-   * Check off a planned task from the "Planned tasks" list.
-   *
-   * Its row may not exist yet — a task planned for next week has no snapshot
-   * until that day is opened — so the row is materialized on demand.
-   */
   function togglePlannedTask(templateId: ID, date: ISODate) {
     const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template) return
@@ -468,14 +418,6 @@ export function useGoalSpace() {
     if (row) toggleTaskDone(row.id)
   }
 
-  /**
-   * Promote a plain task into a project so it can group others.
-   *
-   * Only today's and future occurrences change: rewriting past rows would
-   * restate history the habit calendar already counted (same rule as
-   * `deleteTask`). Nesting is capped at two levels, so a task that already sits
-   * inside a project cannot become one.
-   */
   function convertTaskToProject(templateId: ID) {
     const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template) return

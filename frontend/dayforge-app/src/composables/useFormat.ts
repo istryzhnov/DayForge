@@ -3,13 +3,6 @@ import type { ISODate, TimeOfDay } from '../entities/types'
 import { parseISODate } from './goalSpace/date'
 import { CLOCK_FORMAT, useSettings } from './useSettings'
 
-/**
- * One place that knows how dates and times are written.
- *
- * They used to be formatted inline with a hard-coded `uk-UA` in three separate
- * files, which meant the calendar spoke Ukrainian while every label around it
- * was English, and no single edit could change that.
- */
 export function useFormat() {
   const { settings } = useSettings()
 
@@ -45,11 +38,6 @@ export function useFormat() {
     return `${hour12}:${String(minutes).padStart(2, '0')} ${suffix}`
   }
 
-  /**
-   * Weekday names in the user's locale, ordered from their first day of the
-   * week — the labels used to be a hard-coded Ukrainian array that silently
-   * assumed Monday.
-   */
   const weekdayLabels = computed(() => {
     const start = settings.calendar.weekStartsOn
     // 2024-01-07 is a Sunday, so adding the weekday index lands on that day.

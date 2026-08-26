@@ -54,8 +54,6 @@ export function useGoals() {
   function updateGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
     const goal = goals.value.find((item) => item.id === goalId)
     if (!goal) return
-    // An empty theme is the same as none — keep the stored shape clean so a
-    // project either has colours or plainly doesn't.
     goal.theme = theme && Object.keys(theme).length > 0 ? theme : undefined
     goal.updatedAt = new Date().toISOString()
   }
@@ -79,11 +77,6 @@ export function useGoals() {
     })
   }
 
-  /**
-   * Opening a project on load is a preference: with it off, a fresh session
-   * starts on "All Projects" instead of silently scoping every list to
-   * whichever project happens to be first.
-   */
   function selectInitialGoal() {
     if (activeGoalId.value !== null) return
     if (!useSettings().settings.behavior.autoSelectFirstGoal) return

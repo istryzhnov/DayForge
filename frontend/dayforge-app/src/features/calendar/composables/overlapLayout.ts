@@ -1,25 +1,3 @@
-/**
- * Side-by-side placement for blocks that share the same hours.
- *
- * Absolutely positioned blocks all sit in the same strip, so two tasks at the
- * same time used to be drawn on top of each other and the lower one was simply
- * invisible. This splits every run of overlapping blocks into columns, the way
- * a calendar app does it.
- *
- * Three steps:
- *
- * 1. **Cluster.** Blocks are grouped while they keep touching: A overlaps B and
- *    B overlaps C puts all three in one cluster even if A and C never meet.
- *    Columns are counted per cluster, so a busy morning doesn't squeeze a lone
- *    afternoon task.
- * 2. **Column.** Inside a cluster each block takes the first column whose last
- *    block has already finished.
- * 3. **Widen.** A block then grows rightwards over any columns that hold
- *    nothing during its own hours — otherwise three blocks where only two ever
- *    overlap would leave a permanent third of the strip empty.
- *
- * Pure functions: no Vue, no DOM, no settings.
- */
 
 export type TimeSpan = {
   id: string

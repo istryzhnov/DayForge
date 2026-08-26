@@ -103,11 +103,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   const { themeMode } = useTheme()
 
-  /**
-   * A project's colour has to travel with its tasks outside its own panel — the
-   * sidebar row and the calendar blocks belong to shared chrome, so they take
-   * the accent-only variant that leaves surrounding surfaces alone.
-   */
   const goalVarsById = computed(() => {
     const result: Record<ID, Record<string, string>> = {}
     goalSpace.goals.value.forEach((goal) => {
@@ -153,14 +148,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.toggleTaskDone(dailyTaskId)
   }
 
-  /**
-   * Turn a starter answer set into a real first day.
-   *
-   * The blocks are created as ordinary open tasks and then placed on the
-   * calendar, rather than as dated one-offs: a one-off would file itself under
-   * Planned tasks, and these are today's work, not appointments. Being open
-   * also means anything left unfinished follows the user forward.
-   */
   function applyStarterPlan(plan: StarterPlan) {
     const now = new Date().toISOString()
     const goalId = `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
@@ -242,10 +229,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalTheme(goalId, theme)
   }
 
-  /**
-   * Drawn straight onto the calendar grid, so it is dated to the day in view
-   * and inherits the configured default kind.
-   */
   function handleCreateScheduledTask(payload: {
     title: string
     startTime: string

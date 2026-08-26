@@ -24,13 +24,6 @@ type DraftOptions = {
   onCreate: (payload: CreateTaskPayload) => void
 }
 
-/**
- * Creating a task directly on the grid.
- *
- * With a mouse the range is drawn by pressing and dragging. On touch that
- * gesture belongs to page scrolling, so a tap drops a default-length block at
- * the tapped time instead — either way the user confirms via the title form.
- */
 export function useCalendarDraft(options: DraftOptions) {
   const draftRange = ref<DraftRange | null>(null)
   const showDraftForm = ref(false)

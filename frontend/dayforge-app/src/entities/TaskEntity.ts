@@ -18,11 +18,7 @@ export interface TaskTemplate {
   parentTemplateId?: ID
   order: number
   tagIds: ID[]
-  // Absent means "occurs every day" — the behavior every task had before
-  // scheduling existed, so untouched templates keep working unchanged.
   recurrence?: RecurrenceRule
-  // Planned time of day each occurrence inherits when its snapshot is created.
-  // Moving a single day's block on the calendar edits that DailyTask only.
   startTime?: TimeOfDay
   endTime?: TimeOfDay
   isActive: boolean

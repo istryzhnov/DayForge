@@ -37,8 +37,6 @@ const emit = defineEmits<{
 }>()
 
 const { activeSection, openSection, back, close, escape } = useSettingsPanel()
-// Only the per-project editor needs live theme state here; every other section
-// reads what it needs itself.
 const { themeMode, surfaces, effectivePalette } = useTheme()
 
 /** The header is either the panel's own title or the open section's. */

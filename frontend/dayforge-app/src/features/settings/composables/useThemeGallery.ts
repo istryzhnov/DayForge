@@ -6,10 +6,6 @@ import {
 } from '../../../composables/theme/tokens'
 import { suggestedModeFor } from '../../../composables/theme/suggestions'
 
-/**
- * The ready-made looks: style, mode, curated palettes, and the nudge about
- * which mode the current accent belongs in.
- */
 export function useThemeGallery() {
   const theme = useTheme()
 
@@ -21,8 +17,6 @@ export function useThemeGallery() {
   /** The four dots on a preset card: accent, projects, tasks, canvas. */
   function presetDots(preset: PalettePreset): string[] {
     if (Object.keys(preset.colors).length === 0) {
-      // The two built-ins carry no overrides, so their swatches are the
-      // designed values from `layout.css`.
       return preset.mode === 'dark'
         ? ['#73ff44', '#ff7a2f', '#23c7eb', '#0c111a']
         : ['#34b531', '#ff7a2f', '#1ea9cb', '#eef3fb']

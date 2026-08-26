@@ -28,11 +28,6 @@ type DragDropOptions = {
   getGridElement: () => HTMLElement | null
   findTask: (taskId: ID) => DailyTask | undefined
   onSchedule: (payload: SchedulePayload) => void
-  /**
-   * Height of any UI pinned over the bottom of the viewport (the mobile
-   * unscheduled bar). Without it, a chip lifted from that bar sits inside the
-   * bottom auto-scroll zone and the page runs away the moment it is picked up.
-   */
   getBottomInset?: () => number
 }
 
@@ -40,15 +35,6 @@ type DragDropOptions = {
 const AUTO_SCROLL_EDGE_PX = 72
 const AUTO_SCROLL_STEP_PX = 12
 
-/**
- * Owns both drag-and-drop paths for the day grid:
- *
- * - desktop: HTML5 native drag events (`dragstart`/`dragover`/`drop`)
- * - touch: pointer-driven dragging fed by `usePressGesture`
- *
- * Both funnel into the same `scheduleAt` so a task lands identically however it
- * was moved. Kept out of the component so the view only wires handlers up.
- */
 export function useCalendarDragDrop(options: DragDropOptions) {
   const grabOffsetMinutes = ref(0)
   const touchDrag = ref<TouchDragPreview | null>(null)
@@ -109,11 +95,6 @@ export function useCalendarDragDrop(options: DragDropOptions) {
     }
   }
 
-  /**
-   * The day grid is taller than a phone screen, so a drag has to be able to
-   * reach times that are off-screen. Holding near the top/bottom edge scrolls
-   * the page and keeps the preview following the finger's new grid position.
-   */
   function updateAutoScroll(point: GesturePoint) {
     stopAutoScroll()
 

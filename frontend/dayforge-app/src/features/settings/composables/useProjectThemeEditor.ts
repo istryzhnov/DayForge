@@ -14,17 +14,6 @@ import {
 } from '../../../composables/theme/tokens'
 import { suggestionsFor } from '../../../composables/theme/suggestions'
 
-/**
- * The per-project palette editor.
- *
- * Two things make this more than a colour picker. The fields show the
- * *derived* values, not the stored ones, because a project usually only has an
- * accent and everything else is computed from it — those derived colours are
- * exactly what used to stay stubbornly default. And the suggestions are
- * generated against the project's own palette, so "complement" means the
- * complement of this project's colour rather than the global accent's.
- */
-
 /** The colour fields a project can override by hand. */
 export type GoalThemeColorKey = 'major' | 'minor' | 'line' | 'surface'
 

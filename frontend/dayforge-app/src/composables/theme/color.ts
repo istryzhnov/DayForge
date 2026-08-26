@@ -1,10 +1,3 @@
-/**
- * Pure colour maths shared by the appearance panel and the per-project themes.
- *
- * Everything here works on plain CSS colour strings so results can be written
- * straight into custom properties. Only formats that actually appear in
- * `layout.css` need parsing: hex and `rgb()`/`rgba()`.
- */
 
 export interface Rgb {
   r: number
@@ -204,10 +197,6 @@ export function isLight(color: string): boolean {
   return relativeLuminance(color) > 0.42
 }
 
-/**
- * Text that stays readable on a filled surface — the check mark inside a
- * completed circle, the label on a calendar block.
- */
 export function readableTextOn(color: string): string {
   const dark = mix(color, '#000000', 0.14)
   const light = mix(color, '#ffffff', 0.06)

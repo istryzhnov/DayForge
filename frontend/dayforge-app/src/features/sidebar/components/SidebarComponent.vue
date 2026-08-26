@@ -48,9 +48,6 @@ const {
   onDeleteGoal: (goalId) => emit('delete-goal', goalId),
 })
 
-// The theme controls used to live in a dropdown here; they now open the
-// settings sidebar on the right, which has room for the whole palette and for
-// everything else that is configurable.
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
 
 // The tooltip quotes the configured lead time rather than a fixed "5 min".

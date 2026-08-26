@@ -2,15 +2,6 @@ import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
 import { PRIORITY } from '../entities/constants'
 
-/**
- * Everything the user can configure that is *not* a colour.
- *
- * Kept apart from `useTheme` on purpose: that composable's whole job is writing
- * CSS custom properties onto `<html>`, while these are plain preferences that
- * other composables read. Only the accessibility group touches the document,
- * and it does so through the same token/attribute mechanism as the theme.
- */
-
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
 export const START_VIEW = {
@@ -29,11 +20,6 @@ export const CLOCK_FORMAT = {
 
 export type ClockFormat = (typeof CLOCK_FORMAT)[keyof typeof CLOCK_FORMAT]
 
-/**
- * Date formatting only — the interface text itself is still English. The two
- * used to disagree: dates were hard-coded to `uk-UA` in three different files
- * while every label around them was in English.
- */
 export const LOCALE_OPTIONS = [
   { id: 'uk-UA', label: 'Українська' },
   { id: 'en-GB', label: 'English (UK)' },
@@ -306,11 +292,6 @@ function sanitize(input: unknown): AppSettings {
   }
 }
 
-/**
- * The accessibility group is the only one with a visual side, so it goes onto
- * the document the same way the theme does: a scale token plus two attributes
- * that `settings.css` reacts to.
- */
 function applyToDocument() {
   const root = document.documentElement
   root.style.setProperty(
@@ -360,11 +341,6 @@ function minutesOfDay(time: TimeOfDay): number {
   return hours * 60 + minutes
 }
 
-/**
- * Quiet hours normally wrap past midnight (22:00 → 08:00), so the window is
- * "outside the gap" rather than "inside the range" whenever `from` is later
- * than `to`.
- */
 export function isWithinQuietHours(
   date: Date,
   from: TimeOfDay,

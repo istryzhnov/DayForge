@@ -3,17 +3,6 @@ import { DAY_WINDOW } from '../../../entities/constants'
 import { useSettings } from '../../../composables/useSettings'
 import type { OverlapSlot } from './overlapLayout'
 
-/**
- * Pure geometry for the day/week grid.
- *
- * The day window stays 00:00–24:00 deliberately: a narrower window would leave
- * tasks scheduled outside it with nowhere to render, so nothing configurable
- * touches it. Zoom, snapping and the default block length *are* user settings,
- * and are read live rather than frozen at import time — `pxPerMinute()` and
- * friends are functions so a change in the settings panel reaches every
- * computed that calls them.
- */
-
 export const DAY_START_HOUR = DAY_WINDOW.START_HOUR
 export const DAY_END_HOUR = DAY_WINDOW.END_HOUR
 
@@ -75,12 +64,6 @@ export function minutesFromClientY(
   return clampMinutes(snapMinutes(rawMinutes))
 }
 
-// --- style helpers ------------------------------------------------------
-//
-// Bound as functions rather than inline objects, which vue-tsc reports as
-// CSSProperties mismatches — and shared so the day and week grids cannot
-// drift apart on the arithmetic.
-
 export function gridStyle(heightPx: number) {
   return { height: `${heightPx}px` }
 }
@@ -92,11 +75,6 @@ export function hourLineStyle(hour: number) {
 /** Gap between two blocks sharing the same hours, so the seam is visible. */
 const COLUMN_GAP_PX = 3
 
-/**
- * Where a block sits across the strip once overlaps have been split into
- * columns. `insetPx` is the breathing room the strip keeps on both sides, so a
- * lone block lands exactly where it did before any of this existed.
- */
 export function columnStyle(slot: OverlapSlot | undefined, insetPx: number) {
   const full = `calc(100% - ${insetPx * 2}px)`
   if (!slot || slot.columns === 1) {

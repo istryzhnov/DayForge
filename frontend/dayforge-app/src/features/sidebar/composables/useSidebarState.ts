@@ -24,10 +24,6 @@ export function useSidebarState(actions: SidebarActions) {
     contextMenuPos.value = null
   }
 
-  /**
-   * Deleting a goal also drops its tasks — including past days the habit
-   * calendar counted — so it asks first, matching the goal settings menu.
-   */
   function deleteGoalFromMenu() {
     const goal = contextMenuGoal.value
     closeGoalContextMenu()

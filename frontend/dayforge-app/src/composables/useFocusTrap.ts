@@ -16,12 +16,6 @@ type FocusTrapOptions = {
   onEscape?: () => void
 }
 
-/**
- * Keeps keyboard focus inside a dialog: tabbing past the last control wraps to
- * the first, and Shift+Tab off the first wraps to the last. Without this, Tab
- * walks straight out of the panel and into the page behind it, leaving the
- * dialog open but unreachable.
- */
 export function useFocusTrap(options: FocusTrapOptions = {}) {
   const trapRef = useTemplateRef<HTMLElement>(FOCUS_TRAP_REF)
   let previouslyFocused: HTMLElement | null = null
@@ -54,8 +48,6 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
     const last = focusable[focusable.length - 1]
     const active = document.activeElement
 
-    // Focus sitting outside the dialog (or on the container itself) restarts
-    // the cycle rather than escaping into the page.
     if (!trapRef.value?.contains(active)) {
       event.preventDefault()
       first.focus()

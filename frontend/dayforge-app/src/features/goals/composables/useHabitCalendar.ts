@@ -8,14 +8,6 @@ import {
 import { useFormat } from '../../../composables/useFormat'
 import { useSettings } from '../../../composables/useSettings'
 
-/**
- * The week strip under a goal panel.
- *
- * Built by walking the seven days around today rather than by taking the last
- * seven cells: days with no rows have no cell at all, and a strip that skipped
- * them would silently misalign the weekday labels.
- */
-
 export type HabitWeekCell = {
   label: string
   date: string
@@ -87,12 +79,6 @@ export function useHabitCalendar(props: HabitProps) {
     )
   }
 
-  /**
-   * The animation belongs to the *moment* a day is finished, so it fires on the
-   * crossing into 100% and nowhere else. Without the `previous === undefined`
-   * guard every already-finished day would pop again on each mount, and without
-   * the `previous >= 100` one it would replay whenever the list re-rendered.
-   */
   watch(
     weekCells,
     (cells) => {

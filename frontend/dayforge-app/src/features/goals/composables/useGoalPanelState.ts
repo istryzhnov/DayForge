@@ -108,11 +108,6 @@ export function useGoalPanelState(
 
   const { themeMode, surfaces } = useTheme()
 
-  /**
-   * A project's colour has to reach further than `--accent`: the task circles,
-   * the frames and the habit ring all read their own tokens, so the whole set
-   * is derived from the project colour and carried by the panel element.
-   */
   const goalPanelStyle = computed(() => {
     if (props.isAllMode || !props.goal?.theme) return undefined
     const vars = buildGoalThemeVars(
@@ -149,10 +144,6 @@ export function useGoalPanelState(
     actions.onAddSubtask(parentTemplateId, title, priority, schedule)
   }
 
-  /**
-   * The empty-state field only asks for a title, so it creates a plain task —
-   * scoped to the open goal, or unassigned in All Goals.
-   */
   function submitQuickAdd(title: string, schedule?: TaskSchedule) {
     if (props.isAllMode) {
       actions.onCreateAllModeMinor(title, undefined, undefined, schedule)

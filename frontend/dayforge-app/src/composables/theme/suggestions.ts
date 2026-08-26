@@ -1,13 +1,3 @@
-/**
- * "Which colour goes with this one?"
- *
- * Picking nine colours from scratch is a design job, not a settings job, so
- * every field in the appearance panel can offer companions derived from the
- * rest of the palette: a complement for the colour that must stand apart, an
- * analogous hue for the one that should belong, a surface tinted by the accent.
- * The suggestions change when the surface does, which is the point — a green
- * that sings on charcoal is unreadable on paper.
- */
 
 import {
   contrastRatio,
@@ -307,10 +297,6 @@ export function suggestionsFor(
   }
 }
 
-/**
- * Which mode a colour lives happiest in — used to nudge the user when they pick
- * a neon for a white canvas, or a deep navy for a dark one.
- */
 export function suggestedModeFor(color: string): {
   mode: ThemeMode
   reason: string

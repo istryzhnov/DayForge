@@ -1,11 +1,6 @@
 import { computed, ref } from 'vue'
 import { useSettings } from './useSettings'
 
-/**
- * How long a destructive action stays reversible. Read from settings on every
- * offer rather than captured once, so a change to the window applies to the
- * next delete instead of the next reload.
- */
 const undoWindowMs = computed(
   () => useSettings().settings.behavior.undoWindowSeconds * 1000,
 )
@@ -16,8 +11,6 @@ type PendingUndo = {
   restore: () => void
 }
 
-// Module-level so any composable can offer an undo and a single toast anywhere
-// in the app renders it — the same singleton pattern as useTaskNotifications.
 const pending = ref<PendingUndo | null>(null)
 let timerId: number | undefined
 let nextId = 0
@@ -30,11 +23,6 @@ function clearTimer() {
 }
 
 export function useUndoToast() {
-  /**
-   * Offer to reverse something that just happened. Only one offer is live at a
-   * time; a second action supersedes the first rather than queueing, so the
-   * button always undoes what the user just did.
-   */
   function offerUndo(label: string, restore: () => void) {
     clearTimer()
     nextId += 1

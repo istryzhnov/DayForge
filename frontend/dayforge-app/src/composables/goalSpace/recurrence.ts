@@ -10,12 +10,6 @@ import { daysBetweenISODates, weekdayOfISODate } from './date'
 export type ScheduleKind =
   (typeof TASK_KIND_BY_SCHEDULE)[keyof typeof TASK_KIND_BY_SCHEDULE]
 
-/**
- * Does a rule produce an occurrence on `date`?
- *
- * ISO date strings compare correctly with `<`/`>` because they are
- * zero-padded and big-endian, so the window checks need no parsing.
- */
 export function matchesRecurrence(
   rule: RecurrenceRule,
   date: ISODate,
@@ -53,20 +47,9 @@ export function matchesRecurrence(
   }
 }
 
-/**
- * How a template relates to the calendar — the axis that decides where it is
- * listed and which days it can appear on.
- *
- * - `open`: no date, no repeat. One row that carries forward to today until it
- *   is done. Never projected onto other days.
- * - `planned`: pinned to a single date (a dentist appointment, a birthday).
- * - `recurring`: follows its rule for as long as the rule runs.
- */
 export function scheduleKindOf(template: TaskTemplate): ScheduleKind {
   if (!template.recurrence) return TASK_KIND_BY_SCHEDULE.OPEN
 
-  // A yearly rule is a dated commitment that simply comes round again — a
-  // birthday belongs beside the dentist appointment, not in today's work list.
   if (
     template.recurrence.type === RECURRENCE_TYPE.NONE ||
     template.recurrence.type === RECURRENCE_TYPE.YEARLY
@@ -82,12 +65,6 @@ export function isAnnual(template: TaskTemplate): boolean {
   return template.recurrence?.type === RECURRENCE_TYPE.YEARLY
 }
 
-/**
- * The date a planned task is next due.
- *
- * One-offs keep their original date even once it has passed — that is what
- * makes them overdue. An annual one rolls to the next time it comes round.
- */
 export function nextPlannedDateOf(
   template: TaskTemplate,
   today: ISODate,
@@ -107,13 +84,6 @@ export function nextPlannedDateOf(
     : (`${Number(thisYear) + 1}-${monthDay}` as ISODate)
 }
 
-/**
- * Whether a template should be snapshotted onto `date`.
- *
- * Open tasks answer `false` for every date: they are not occurrences, they are
- * a single row that rolls forward, so projecting them would put an unfinished
- * task on every future day forever.
- */
 export function occursOn(template: TaskTemplate, date: ISODate): boolean {
   if (scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.OPEN) return false
   return matchesRecurrence(template.recurrence!, date)
