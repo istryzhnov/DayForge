@@ -1,3 +1,7 @@
 # Claude Code knowledge base (local only)
 CLAUDE.md
 .claude/
+
+# Local env
+.env
+.env.local

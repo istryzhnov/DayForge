@@ -1,4 +1,12 @@
 node_modules
 dist
 .git
-npm-debug.log
+.gitignore
+.vscode
+npm-debug.log*
+*.log
+.env
+.env.*
+Dockerfile
+.dockerignore
+README*.md

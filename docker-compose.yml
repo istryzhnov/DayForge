@@ -1,12 +1,79 @@
+# DayForge — development stack (hot reload).
+#   docker compose up --build
+# Ports come from .env; see .env.example for the defaults.
+name: dayforge
+
 services:
-frontend:
-build:
-context: ./frontend/dayforge-app
-dockerfile: Dockerfile
-ports:
-  - '5173:5173'
+  db:
+    image: postgres:17.11-alpine3.24@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-dayforge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dayforge}
+      POSTGRES_DB: ${POSTGRES_DB:-dayforge}
+    ports:
+      # Bound to loopback only: reachable from this machine and from other
+      # containers, but never from the local network.
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # *.sql / *.sh here run once, on an empty data volume
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-dayforge} -d ${POSTGRES_DB:-dayforge}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    # Explicit tag: dev and prod build different stages, so they must not
+    # overwrite each other's image.
+    image: dayforge-frontend:dev
+    build:
+      context: ./frontend/dayforge-app
+      dockerfile: Dockerfile
+      target: dev
+    restart: unless-stopped
+    # Left on all interfaces on purpose, so the dev server can be opened from a
+    # phone on the same Wi-Fi. Prefix with 127.0.0.1: to lock it down.
+    ports:
+      - '${FRONTEND_PORT:-5173}:5173'
+    volumes:
+      - ./frontend/dayforge-app:/app
+      # Anonymous volume: keeps the image's node_modules from being shadowed by
+      # the host bind mount above.
+      - /app/node_modules
+    environment:
+      # File watching over bind mounts (macOS / Windows / some filesystems)
+      CHOKIDAR_USEPOLLING: 'true'
+    security_opt:
+      - no-new-privileges:true
+
+  # ---------------------------------------------------------------
+  # Node.js backend — uncomment when ./backend exists.
+  # Also uncomment the /api/ block in frontend/dayforge-app/nginx.conf.
+  # ---------------------------------------------------------------
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     target: dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - '127.0.0.1:${BACKEND_PORT:-3000}:3000'
+  #   volumes:
+  #     - ./backend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     NODE_ENV: development
+  #     PORT: 3000
+  #     DATABASE_URL: postgres://${POSTGRES_USER:-dayforge}:${POSTGRES_PASSWORD:-dayforge}@db:5432/${POSTGRES_DB:-dayforge}
+  #   security_opt:
+  #     - no-new-privileges:true
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
 volumes:
-  - ./frontend/dayforge-app:/app
-  - /app/node_modules
-environment:
-  - CHOKIDAR_USEPOLLING=true
+  db-data:
