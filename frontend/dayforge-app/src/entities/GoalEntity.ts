@@ -22,4 +22,8 @@ export interface Goal {
   /** Full per-project palette overriding the global theme inside its panel. */
   theme?: GoalTheme
   accentColor?: string
+  /** What an hour on this project is worth; falls back to the global rate. */
+  hourlyRate?: number
+  /** Set only on a buried copy; a project in the live list never carries it. */
+  deletedAt?: ISODateTime
 }
