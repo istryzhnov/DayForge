@@ -1,5 +1,6 @@
 import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
+import type { TimerSettings } from '../entities/TimerEntity'
 import { PRIORITY } from '../entities/constants'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
@@ -80,12 +81,22 @@ export interface AccessibilitySettings {
   highContrast: boolean
 }
 
+export const CURRENCY_OPTIONS = [
+  { id: 'USD', label: 'USD $' },
+  { id: 'EUR', label: 'EUR €' },
+  { id: 'UAH', label: 'UAH ₴' },
+  { id: 'GBP', label: 'GBP £' },
+  { id: 'PLN', label: 'PLN zł' },
+  { id: 'CAD', label: 'CAD $' },
+] as const
+
 export interface AppSettings {
   notifications: NotificationSettings
   calendar: CalendarSettings
   behavior: BehaviorSettings
   format: FormatSettings
   accessibility: AccessibilitySettings
+  timer: TimerSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -121,6 +132,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
     textScale: 1,
     largeTargets: false,
     highContrast: false,
+  },
+  timer: {
+    focusMinutes: 25,
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+    longBreakEvery: 4,
+    autoStartBreaks: true,
+    autoStartFocus: false,
+    defaultCountdownMinutes: 25,
+    sound: true,
+    hourlyRate: 0,
+    currency: 'USD',
   },
 }
 
@@ -171,6 +194,7 @@ function sanitize(input: unknown): AppSettings {
   const format = (raw.format ?? {}) as Partial<FormatSettings>
   const accessibility = (raw.accessibility ??
     {}) as Partial<AccessibilitySettings>
+  const timer = (raw.timer ?? {}) as Partial<TimerSettings>
 
   return {
     notifications: {
@@ -289,6 +313,53 @@ function sanitize(input: unknown): AppSettings {
         defaults.accessibility.highContrast,
       ),
     },
+    timer: {
+      focusMinutes: clampNumber(
+        timer.focusMinutes,
+        1,
+        180,
+        defaults.timer.focusMinutes,
+      ),
+      shortBreakMinutes: clampNumber(
+        timer.shortBreakMinutes,
+        1,
+        60,
+        defaults.timer.shortBreakMinutes,
+      ),
+      longBreakMinutes: clampNumber(
+        timer.longBreakMinutes,
+        1,
+        120,
+        defaults.timer.longBreakMinutes,
+      ),
+      longBreakEvery: clampNumber(
+        timer.longBreakEvery,
+        2,
+        12,
+        defaults.timer.longBreakEvery,
+      ),
+      autoStartBreaks: asBoolean(
+        timer.autoStartBreaks,
+        defaults.timer.autoStartBreaks,
+      ),
+      autoStartFocus: asBoolean(
+        timer.autoStartFocus,
+        defaults.timer.autoStartFocus,
+      ),
+      defaultCountdownMinutes: clampNumber(
+        timer.defaultCountdownMinutes,
+        1,
+        240,
+        defaults.timer.defaultCountdownMinutes,
+      ),
+      sound: asBoolean(timer.sound, defaults.timer.sound),
+      hourlyRate: clampNumber(timer.hourlyRate, 0, 100000, defaults.timer.hourlyRate),
+      currency: oneOf(
+        timer.currency,
+        CURRENCY_OPTIONS.map((option) => option.id),
+        defaults.timer.currency,
+      ),
+    },
   }
 }
 
@@ -312,6 +383,7 @@ function assign(next: AppSettings) {
   settings.behavior = next.behavior
   settings.format = next.format
   settings.accessibility = next.accessibility
+  settings.timer = next.timer
 }
 
 function initialize() {
