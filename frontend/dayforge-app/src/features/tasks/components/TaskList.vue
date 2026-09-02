@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import type { TaskGroup } from '../../../composables/useTaskTree'
+import type { TaskGroup, TaskNode } from '../../../composables/useTaskTree'
+import { PRIORITY } from '../../../entities/constants'
 import { useTaskListState } from '../composables/useTaskListState'
+import {
+  DROP_ZONE_ROOT,
+  useTaskDrag,
+  type TaskDropPayload,
+} from '../composables/useTaskDrag'
 import TaskListItem from './TaskListItem.vue'
 import TaskQuickAdd from './TaskQuickAdd.vue'
 
@@ -22,10 +28,29 @@ const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
+  (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
+  (e: 'move-task', templateId: ID): void
+  (e: 'move-task-to', payload: TaskDropPayload): void
   (e: 'quick-add', title: string, schedule?: TaskSchedule): void
 }>()
+
+const drag = useTaskDrag({ onMove: (payload) => emit('move-task-to', payload) })
+
+function dropEdge(node: TaskNode) {
+  if (drag.dropRowId.value !== node.task.templateId) return null
+  return drag.dropAbove.value ? 'above' : 'below'
+}
+
+function rowDrag(node: TaskNode, parentZone: string) {
+  return drag.forRow({
+    templateId: node.task.templateId,
+    title: node.task.title,
+    parentZone,
+  })
+}
 
 const {
   activeParentId,
@@ -33,15 +58,23 @@ const {
   handleSubtaskSubmit,
   toggleDone,
   editTask,
+  scheduleTask,
+  setTaskRate,
   deleteTask,
   setAsProject,
+  moveTask,
 } = useTaskListState({
   onAddSubtask: (parentTemplateId, title, priority, schedule) =>
     emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleDone: (taskId) => emit('toggle-done', taskId),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onScheduleTask: (templateId, schedule) =>
+    emit('schedule-task', templateId, schedule),
+  onSetTaskRate: (templateId, hourlyRate) =>
+    emit('set-task-rate', templateId, hourlyRate),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
+  onMoveTask: (templateId) => emit('move-task', templateId),
 })
 
 function sharedHandlers() {
@@ -51,8 +84,11 @@ function sharedHandlers() {
     onSubmitSubtask: handleSubtaskSubmit,
     onCancelSubtask: () => (activeParentId.value = null),
     onEditTask: editTask,
+    onScheduleTask: scheduleTask,
+    onSetTaskRate: setTaskRate,
     onDeleteTask: deleteTask,
     onSetAsProject: setAsProject,
+    onMoveTask: moveTask,
   }
 }
 
@@ -62,10 +98,24 @@ function groupKey(group: TaskGroup) {
 </script>
 
 <template>
-  <div v-if="groups.length" class="task-list">
+  <!-- Dropping outside any project block takes a task out of its project. -->
+  <div
+    v-if="groups.length"
+    class="task-list"
+    :class="{ 'is-drop-target': drag.dropZone.value === DROP_ZONE_ROOT }"
+    :data-drop-zone="DROP_ZONE_ROOT"
+  >
     <template v-for="group in groups" :key="groupKey(group)">
       <!-- A project that actually groups something gets its own block. -->
-      <div v-if="group.kind === 'project'" class="task-project">
+      <div
+        v-if="group.kind === 'project'"
+        class="task-project"
+        :class="{
+          'is-drop-target':
+            drag.dropZone.value === group.project.task.templateId,
+        }"
+        :data-drop-zone="group.project.task.templateId"
+      >
         <TaskListItem
           :node="group.project"
           :is-all-mode="isAllMode"
@@ -73,6 +123,9 @@ function groupKey(group: TaskGroup) {
           :is-project-header="true"
           :done-count="group.doneCount"
           :total-count="group.totalCount"
+          :child-template-ids="
+            group.children.map((child) => child.task.templateId)
+          "
           :on-focus-project="(id: ID) => emit('focus-project', id)"
           v-bind="sharedHandlers()"
         />
@@ -86,6 +139,9 @@ function groupKey(group: TaskGroup) {
             :is-active-parent="activeParentId === child.task.id"
             :is-nested="true"
             :on-focus-project="(id: ID) => emit('focus-project', id)"
+            :drag="rowDrag(child, group.project.task.templateId)"
+            :is-dragging="drag.draggingId.value === child.task.templateId"
+            :drop-edge="dropEdge(child)"
             v-bind="sharedHandlers()"
           />
         </div>
@@ -97,9 +153,38 @@ function groupKey(group: TaskGroup) {
         :is-all-mode="isAllMode"
         :is-active-parent="activeParentId === group.node.task.id"
         :on-focus-project="(id: ID) => emit('focus-project', id)"
+        :drag="
+          group.node.task.priority === PRIORITY.MAJOR
+            ? undefined
+            : rowDrag(group.node, DROP_ZONE_ROOT)
+        "
+        :is-dragging="drag.draggingId.value === group.node.task.templateId"
+        :drop-edge="dropEdge(group.node)"
         v-bind="sharedHandlers()"
       />
     </template>
+
+    <!-- Nothing else inside the list is free space, so taking a task out of a
+         project needs a target of its own. -->
+    <div
+      v-if="drag.draggingId.value && drag.dragParentZone.value !== DROP_ZONE_ROOT"
+      class="task-drop-out"
+      :class="{ 'is-drop-target': drag.dropZone.value === DROP_ZONE_ROOT }"
+      :data-drop-zone="DROP_ZONE_ROOT"
+    >
+      Drop here to take it out of the project
+    </div>
+
+    <div
+      v-if="drag.draggingId.value"
+      class="task-drag-ghost"
+      :style="{
+        left: `${drag.pointer.value.x}px`,
+        top: `${drag.pointer.value.y}px`,
+      }"
+    >
+      {{ drag.dragTitle.value }}
+    </div>
   </div>
 
   <TaskQuickAdd
