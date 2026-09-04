@@ -397,6 +397,44 @@
   color: var(--text);
 }
 
+.settings-field {
+  display: grid;
+  gap: 4px;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+}
+
+.settings-field input,
+.settings-field textarea {
+  font-family: inherit;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 400;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel);
+  color: var(--text);
+}
+
+.settings-field textarea {
+  min-height: 60px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+/* Sub-sections reuse .settings-section, whose own bottom padding would stack. */
+.settings-section .settings-section {
+  padding-bottom: 0;
+}
+
+.settings-danger {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
 .settings-times {
   display: flex;
   flex-wrap: wrap;
@@ -799,7 +837,6 @@ textarea {
 
 :root[data-targets='large'] .sidebar-settings__trigger,
 :root[data-targets='large'] .sidebar-notify-trigger,
-:root[data-targets='large'] .goal-settings__trigger,
 :root[data-targets='large'] .settings-panel__close {
   width: 42px;
   height: 42px;
@@ -807,6 +844,7 @@ textarea {
 
 :root[data-targets='large'] .task-add-btn,
 :root[data-targets='large'] .goal-settings__item,
+:root[data-targets='large'] .goal-settings-btn,
 :root[data-targets='large'] .settings-toggle {
   padding-top: 12px;
   padding-bottom: 12px;
@@ -849,7 +887,8 @@ textarea {
 
 @media (max-width: 720px) {
   .app-settings {
-    width: 100vw;
+    left: 0;
+    width: auto;
     height: 100dvh;
     padding: 14px 12px;
     border-left: none;
@@ -861,6 +900,9 @@ textarea {
   }
 
   /* iOS zooms the page when a focused field is under 16px. */
+  .settings-field input,
+  .settings-field textarea,
+  .settings-times input,
   .color-field__hex,
   .settings-slider input[type='range'] {
     font-size: max(16px, calc(16px * var(--text-scale)));

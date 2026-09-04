@@ -1,0 +1,189 @@
+/* One look for every dropdown and checkbox, whatever panel it sits in. The
+   per-panel selectors are listed so their own `background` shorthand cannot
+   wipe the chevron out. */
+
+select,
+.settings-select select,
+.settings-times select,
+.event-details__field select,
+.task-schedule__field select,
+.composer-assign__field select,
+.goal-form-card select,
+.timer-field select,
+.timer-view__picker {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--panel-soft);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%239caec3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  background-size: 11px 7px;
+  padding: 10px 34px 10px 13px;
+  font-size: calc(14px * var(--text-scale));
+  border: 1px solid var(--line);
+  border-radius: calc(7px * var(--radius-scale));
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+:root[data-theme-mode='light'] select,
+:root[data-theme-mode='light'] .timer-view__picker {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235f6f88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+select:hover,
+.timer-view__picker:hover {
+  border-color: var(--line-soft);
+  background-color: color-mix(in srgb, var(--panel-soft) 80%, var(--panel));
+}
+
+select:focus-visible,
+.settings-select select:focus,
+.event-details__field select:focus,
+.task-schedule__field select:focus,
+.timer-field select:focus,
+.timer-view__picker:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@media (max-width: 720px) {
+  select,
+  .settings-select select,
+  .settings-times select,
+  .event-details__field select,
+  .task-schedule__field select,
+  .composer-assign__field select,
+  .goal-form-card select,
+  .timer-field select,
+  .timer-view__picker {
+    font-size: max(16px, calc(16px * var(--text-scale)));
+  }
+}
+
+select:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* The popup is drawn by the browser, so it only takes plain colours. */
+select option,
+select optgroup {
+  background: var(--panel);
+  color: var(--text);
+}
+
+select optgroup {
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* --- checkboxes ---------------------------------------------------------- */
+
+input[type='checkbox'],
+.settings-toggle input[type='checkbox'],
+.composer-section__toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: calc(15px * var(--text-scale));
+  height: calc(15px * var(--text-scale));
+  border: 1px solid var(--line-soft);
+  border-radius: calc(4px * var(--radius-scale));
+  background: var(--panel-soft);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+input[type='checkbox']::before {
+  content: '';
+  width: calc(9px * var(--text-scale));
+  height: calc(9px * var(--text-scale));
+  transform: scale(0);
+  transition: transform 0.12s ease-out;
+  background: var(--ring-check);
+  /* A tick drawn by clipping the square, so it scales with the box. */
+  clip-path: polygon(
+    14% 46%,
+    0 60%,
+    39% 100%,
+    100% 22%,
+    85% 8%,
+    39% 70%
+  );
+}
+
+input[type='checkbox']:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line-soft));
+}
+
+input[type='checkbox']:checked {
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--line));
+}
+
+input[type='checkbox']:checked::before {
+  transform: scale(1);
+}
+
+input[type='checkbox']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+input[type='checkbox']:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* --- touch hit areas ----------------------------------------------------- */
+
+@media (pointer: coarse) {
+  .theme-chip {
+    min-height: 40px;
+  }
+
+  .calendar-view__header > .btn,
+  .calendar-week__header > .btn,
+  .calendar-month__header > .btn {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .sidebar-settings__trigger,
+  .sidebar-notify-trigger,
+  .settings-panel__back,
+  .settings-panel__close {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .event-details__close,
+  .undo-toast__close,
+  .timer-view__unlink,
+  .timer-entry__action {
+    min-width: 40px;
+    min-height: 40px;
+  }
+
+  .timer-widget__expand {
+    min-width: 40px;
+    min-height: 40px;
+    margin: -11px -8px -11px 0;
+  }
+
+  .settings-swatch {
+    min-width: 36px;
+    min-height: 36px;
+  }
+}
