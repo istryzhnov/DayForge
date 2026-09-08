@@ -8,10 +8,19 @@ const props = defineProps<{
   canSetAsProject: boolean
   canAddChild: boolean
   isProject: boolean
+  /** Only a task without a parent can pick a new home. */
+  canMove: boolean
+  /** Already on the calendar, so the entry offers to change it instead. */
+  isScheduled: boolean
+  /** Billing at its own rate, so the entry offers to change it instead. */
+  hasOwnRate: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'edit'): void
+  (e: 'schedule'): void
+  (e: 'set-rate'): void
+  (e: 'move'): void
   (e: 'delete'): void
   (e: 'add-to-this'): void
   (e: 'toggle-check'): void
@@ -53,6 +62,19 @@ const { menuPositionStyle } = useContextMenu({
       {{ isDone ? 'Mark as not done' : 'Check it' }}
     </button>
     <button
+      v-if="canMove"
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('move')
+          emit('close')
+        }
+      "
+    >
+      Move to…
+    </button>
+    <button
       v-if="canSetAsProject"
       class="task-context-menu__item"
       type="button"
@@ -92,12 +114,28 @@ const { menuPositionStyle } = useContextMenu({
       Show habit
     </button>
     <button
-      class="task-context-menu__item task-context-menu__item--soon"
+      class="task-context-menu__item"
       type="button"
-      disabled
-      title="Coming soon"
+      @click="
+        () => {
+          emit('schedule')
+          emit('close')
+        }
+      "
     >
-      Set timer <span class="task-context-menu__badge">Soon</span>
+      {{ isScheduled ? 'Change the time' : 'Add to calendar' }}
+    </button>
+    <button
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('set-rate')
+          emit('close')
+        }
+      "
+    >
+      {{ hasOwnRate ? 'Change the rate…' : 'Set rate…' }}
     </button>
     <div class="task-context-menu__divider"></div>
     <button
