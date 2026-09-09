@@ -1,5 +1,8 @@
-import { computed, ref, watch } from 'vue'
-import type { RecurrenceType } from '../../../entities/RecurrenceEntity'
+import { computed, nextTick, ref, watch } from 'vue'
+import type {
+  RecurrenceRule,
+  RecurrenceType,
+} from '../../../entities/RecurrenceEntity'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { ISODate, TimeOfDay } from '../../../entities/types'
 import { DAY_WINDOW, RECURRENCE_TYPE } from '../../../entities/constants'
@@ -52,7 +55,12 @@ export function useTaskScheduleState() {
 
   const minDate = getTodayISODate()
 
+  // Loading an existing task sets both times at once, which must not trip the
+  // "a new start moves the end along" convenience below.
+  let suppressEndSync = false
+
   watch(startTime, (next) => {
+    if (suppressEndSync) return
     if (!next) return
     endTime.value = addMinutesToTime(
       next,
@@ -127,6 +135,54 @@ export function useTaskScheduleState() {
     }
   }
 
+  /** Fills the fields from a task that already exists, for editing it. */
+  function load(
+    template: {
+      startTime?: TimeOfDay
+      endTime?: TimeOfDay
+      recurrence?: RecurrenceRule
+    },
+    options: { enable?: boolean } = {},
+  ) {
+    const rule = template.recurrence
+    const hasTimes = Boolean(template.startTime && template.endTime)
+
+    suppressEndSync = true
+    startTime.value = template.startTime ?? defaultStart()
+    endTime.value = template.endTime ?? defaultEnd()
+    void nextTick(() => {
+      suppressEndSync = false
+    })
+
+    // A rule that started in the past would fail validation, and editing one
+    // means "from here on" anyway.
+    const startDate = rule?.startDate ?? minDate
+    date.value = startDate < minDate ? minDate : startDate
+
+    isEnabled.value = options.enable || hasTimes || Boolean(rule)
+
+    if (!rule || rule.type === RECURRENCE_TYPE.NONE) {
+      repeatType.value = RECURRENCE_TYPE.NONE
+      return
+    }
+
+    if (rule.type === RECURRENCE_TYPE.WEEKLY) {
+      repeatType.value = RECURRENCE_TYPE.WEEKLY
+      weekdays.value = [...(rule.daysOfWeek ?? [])]
+      return
+    }
+
+    if (rule.type === RECURRENCE_TYPE.DAILY) {
+      const interval = Math.max(1, rule.interval ?? 1)
+      repeatType.value =
+        interval > 1 ? RECURRENCE_TYPE.CUSTOM : RECURRENCE_TYPE.DAILY
+      intervalDays.value = interval
+      return
+    }
+
+    repeatType.value = rule.type
+  }
+
   function reset() {
     isEnabled.value = false
     date.value = getTodayISODate()
@@ -154,6 +210,7 @@ export function useTaskScheduleState() {
     isValid,
     toggleWeekday,
     buildSchedule,
+    load,
     reset,
   }
 }

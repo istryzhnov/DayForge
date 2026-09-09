@@ -25,11 +25,12 @@ const {
   isValid,
   toggleWeekday,
   buildSchedule,
+  load,
   reset,
 } = useTaskScheduleState()
 
 // The owning composer reads the payload on submit and clears it afterwards.
-defineExpose({ buildSchedule, reset, isValid, isEnabled })
+defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
 </script>
 
 <template>
