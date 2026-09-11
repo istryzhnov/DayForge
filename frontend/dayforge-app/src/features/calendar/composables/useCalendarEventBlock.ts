@@ -17,17 +17,6 @@ import {
   timeFromMinutes,
 } from './useCalendarGrid'
 
-/**
- * One block on the day grid: how it is picked up, resized and styled.
- *
- * Both input paths live here so they cannot drift apart — a mouse drags the
- * block through the browser's native drag events, while touch goes through
- * `usePressGesture` (press → hold → lift). The resize handle is a third path
- * again: it captures the pointer itself and must suppress the native drag for
- * as long as it holds it, or the browser starts dragging the block instead of
- * resizing it.
- */
-
 type BlockProps = {
   task: DailyTask
   themeVars?: Record<string, string>
@@ -62,8 +51,6 @@ export function useCalendarEventBlock(
     () => !isCoarsePointer.value && !isResizing.value,
   )
 
-  // Bound as a helper rather than an inline object literal, which vue-tsc
-  // reports as a CSSProperties mismatch.
   function blockStyle(top: number, height: number) {
     return {
       ...(props.themeVars ?? {}),
@@ -152,9 +139,6 @@ export function useCalendarEventBlock(
 
     function onUp() {
       isResizing.value = false
-      // Released on the next tick: the browser fires its `dragstart` right
-      // after `pointerup`, and lifting the guard synchronously would let that
-      // one through.
       setTimeout(() => {
         blockNativeDrag.value = false
       }, 0)

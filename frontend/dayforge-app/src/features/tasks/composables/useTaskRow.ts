@@ -5,14 +5,6 @@ import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
 
-/**
- * One task row: renaming in place, and the two ways its menu opens.
- *
- * Touch has no right-click, so a long press opens the same menu. The row isn't
- * draggable, so the menu opens as soon as the press registers rather than
- * waiting for the finger to lift.
- */
-
 type TaskRowProps = {
   node: TaskNode
   isNested?: boolean
@@ -31,8 +23,6 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
 
   const isProject = computed(() => props.node.task.priority === PRIORITY.MAJOR)
   const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
-  // Only a top-level plain task can become a project — nesting stops at two
-  // levels.
   const canSetAsProject = computed(() => !isProject.value && !props.isNested)
 
   const isCoarsePointer = useIsCoarsePointer()

@@ -1,12 +1,3 @@
-/**
- * The vocabulary of the appearance panel: which CSS custom properties a user
- * may repaint, what each one is called in plain words, and how the rest of the
- * palette is derived from the handful of colours they actually pick.
- *
- * Deriving is what keeps a custom colour from looking half-applied — choosing
- * an accent also repaints the soft tint behind it, the check mark drawn on top
- * of it and the glow behind the workspace.
- */
 
 import { darken, lighten, mix, readableTextOn, withAlpha } from './color'
 
@@ -161,12 +152,6 @@ export const DENSITY = {
 
 export type Density = (typeof DENSITY)[keyof typeof DENSITY]
 
-/**
- * Spacing is scaled by a multiplier rather than by per-component overrides:
- * the handful of paddings and gaps that carry the layout are written as
- * `calc(Npx * var(--density-scale))`, so the responsive rules keep working
- * instead of being trampled by a `[data-density]` selector.
- */
 export const DENSITY_SCALE: Record<Density, number> = {
   [DENSITY.COMPACT]: 0.8,
   [DENSITY.COZY]: 1,
@@ -223,12 +208,6 @@ function stripEmpty(palette: ThemePalette): ThemePalette {
   return result
 }
 
-/**
- * Turns the colours a user picked into the full set of custom properties the
- * stylesheets read. A token is only emitted when its source colour was actually
- * customised, so an untouched theme keeps the hand-tuned values from
- * `layout.css` instead of a flattened, computed approximation of them.
- */
 export function buildPaletteVars(
   custom: ThemePalette,
   base: ResolvedPalette,
@@ -276,14 +255,10 @@ export function buildPaletteVars(
       : darken(picked.line, 10)
   }
 
-  // Captions have to follow the text colour, or a repainted theme leaves them
-  // stranded at the old contrast.
   if (picked.text && !picked.muted) {
     vars['--muted'] = mix(effective.text, effective.panel, 0.62)
   }
 
-  // The glow belongs to the workspace rather than to one colour, so it is
-  // rewritten whenever the user moved the slider or repainted its sources.
   if (workspace.glow !== 1 || picked.accent || picked.minor) {
     vars['--bg-blob-1'] = withAlpha(effective.accent, 0.12 * workspace.glow)
     vars['--bg-blob-2'] = withAlpha(effective.minor, 0.1 * workspace.glow)

@@ -43,8 +43,6 @@ type MonthOptions = {
   getCurrentDate: () => ISODate
 }
 
-/** `fullDayMinutes` is what the user calls a full day — the scale the cell
- *  tint is measured against. */
 function loadLevelFor(
   minutes: number,
   taskCount: number,
@@ -78,8 +76,6 @@ export function useCalendarMonth(options: MonthOptions) {
     const monthStart = startOfMonthISODate(anchor.value)
     const monthNumber = Number(monthStart.split('-')[1])
 
-    // The grid starts on the configured first day of the week, on or before
-    // the 1st (getDay: 0 = Sunday).
     const weekStart = settings.calendar.weekStartsOn
     const leadingDays = (weekdayOfISODate(monthStart) - weekStart + 7) % 7
     const gridStart = addDaysToISODate(monthStart, -leadingDays)
@@ -142,10 +138,6 @@ export function useCalendarMonth(options: MonthOptions) {
     monthAnchor.value = startOfMonthISODate(date)
   }
 
-  /**
-   * Jump to the month containing the real today — not the month of whatever day
-   * happens to be selected, which is what a plain anchor reset would do.
-   */
   function goToTodayMonth() {
     monthAnchor.value = startOfMonthISODate(getTodayISODate())
   }

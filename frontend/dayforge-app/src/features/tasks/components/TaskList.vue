@@ -56,8 +56,6 @@ function sharedHandlers() {
   }
 }
 
-// `<template v-for>` must carry the key itself — putting it on the v-if/v-else
-// branches instead makes Vue drop entries.
 function groupKey(group: TaskGroup) {
   return group.kind === 'project' ? group.project.task.id : group.node.task.id
 }

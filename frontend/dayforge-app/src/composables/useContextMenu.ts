@@ -13,15 +13,6 @@ const VIEWPORT_MARGIN_PX = 8
 const ESTIMATED_MENU_WIDTH_PX = 200
 const ESTIMATED_MENU_HEIGHT_PX = 160
 
-/**
- * Shared behavior for the pointer-positioned context menus: dismiss on outside
- * press or Escape, and clamp the anchor so the menu never opens off-screen —
- * which is easy to hit on a phone, where a long-press near the right edge would
- * otherwise push the menu out of view.
- *
- * Dismissal listens on `pointerdown` rather than `mousedown` so touch and mouse
- * behave identically.
- */
 export function useContextMenu(options: ContextMenuOptions) {
   const menuRef = useTemplateRef<HTMLElement>(CONTEXT_MENU_REF)
 

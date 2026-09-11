@@ -1,17 +1,5 @@
 import { ref } from 'vue'
 
-/**
- * Navigation for the settings column.
- *
- * The panel is a menu that drills into one section at a time rather than a row
- * of tabs: a 320px column fits maybe four chips, and the list of things a user
- * can configure only ever grows. A list of labelled rows takes new entries
- * without redesigning anything, and each row can show its current value, so the
- * menu itself answers most questions without being opened.
- *
- * `activeSection === null` means the menu itself is on screen.
- */
-
 export const SETTINGS_SECTION = {
   THEME: 'theme',
   COLORS: 'colors',
@@ -123,9 +111,6 @@ export function sectionMeta(id: SettingsSection): SettingsSectionMeta {
   )
 }
 
-// Module-level so the ⚙ in the left sidebar and the "More colours" entry on a
-// project both drive the one panel — the same singleton pattern as
-// `useUndoToast`.
 const isOpen = ref(false)
 const activeSection = ref<SettingsSection | null>(null)
 

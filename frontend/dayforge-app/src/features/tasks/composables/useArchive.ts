@@ -45,9 +45,6 @@ export function useArchive(options: ArchiveOptions) {
     const grouped = new Map<string, ArchiveBlock>()
 
     done.forEach((row) => {
-      // The row's own parent pointer only covers its day, and the template may
-      // be gone entirely (deleting a task keeps its past rows), so fall back to
-      // the ungrouped block rather than dropping the record.
       const template = templateById.get(row.templateId)
       const project = template?.parentTemplateId
         ? templateById.get(template.parentTemplateId)

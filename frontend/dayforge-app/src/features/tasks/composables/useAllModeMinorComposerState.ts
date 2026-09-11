@@ -36,8 +36,6 @@ export function useAllModeMinorComposerState(
   const selectedMajorId = ref<ID | ''>('')
   const minorTitle = ref('')
 
-  // Collapsing the section clears it, so a hidden select can never quietly
-  // apply a goal or project the user can no longer see.
   watch(isAssignEnabled, (enabled) => {
     if (enabled) return
     selectedGoalId.value = ''

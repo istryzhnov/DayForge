@@ -20,9 +20,6 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
-// Anything a composer can create can be put on the calendar — a top-level
-// task as much as a subtask. The block collapses itself, so an unscheduled
-// task still costs one field and one Enter.
 const scheduleFields =
   useTemplateRef<InstanceType<typeof TaskScheduleFields>>('scheduleFields')
 

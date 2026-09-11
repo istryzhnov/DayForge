@@ -29,12 +29,6 @@ const themeMode = ref<ThemeMode>('dark')
 const palette = ref<ThemePalette>({})
 const workspace = ref<WorkspaceSettings>({ ...DEFAULT_WORKSPACE })
 
-/**
- * Bumped after every write to the document. Reading a custom property is a DOM
- * read, not a reactive one, so anything derived from the live theme — the
- * per-project colours, the suggestion engine — depends on this counter to know
- * when to look again.
- */
 const themeRevision = ref(0)
 
 let initialized = false
@@ -128,8 +122,6 @@ function applyThemeToDocument() {
   root.dataset.pattern = workspace.value.pattern
   root.dataset.motion = workspace.value.motion
 
-  // Clear first so the base palette is read from the stylesheet rather than
-  // from the previous run's own output.
   MANAGED_CSS_VARS.forEach((name) => root.style.removeProperty(name))
 
   const base = readBasePalette()

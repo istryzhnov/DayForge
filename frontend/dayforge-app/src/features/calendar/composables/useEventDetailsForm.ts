@@ -3,17 +3,6 @@ import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { PRIORITY } from '../../../entities/constants'
 
-/**
- * The edit form behind a calendar block.
- *
- * Every field is a draft until Save, so a half-typed title never reaches the
- * store. The goal and project fields are the interesting pair: a project
- * belongs to a goal, so the project list is filtered by whichever goal is
- * selected *right now*, and switching goal clears a project that no longer
- * belongs — otherwise Save would quietly file the task under a project from
- * the goal it just left.
- */
-
 type DetailsProps = {
   task: DailyTask
   projectOptions: MajorTaskOption[]
@@ -92,8 +81,6 @@ export function useEventDetailsForm(
       actions.onUpdateTitle({ templateId, title: trimmed })
     }
 
-    // Goal first: attaching to a project adopts that project's goal, so the
-    // project decision has to be the one that lands last.
     if ((goalId.value || '') !== (props.currentGoalId ?? '')) {
       actions.onUpdateGoal({ templateId, goalId: goalId.value || undefined })
     }

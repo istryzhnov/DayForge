@@ -5,14 +5,6 @@ import { createId, getTodayISODate } from './date'
 import { occursOn, scheduleKindOf } from './recurrence'
 import { useSettings } from '../useSettings'
 
-/**
- * An open task is a single row that follows the user forward: if it was not
- * finished on an earlier day, it becomes today's. Without this an unfinished
- * task is stranded on the day it was created and silently disappears — and
- * creating a fresh row per day instead would pile up dead `todo` rows.
- *
- * Completed rows stay on the day they were completed, so history is intact.
- */
 export function carryOpenTasksForward(
   taskTemplates: TaskTemplate[],
   dailyTasks: DailyTask[],
@@ -34,15 +26,6 @@ export function carryOpenTasksForward(
   })
 }
 
-/**
- * Materialize every template that occurs on `date`.
- *
- * Deliberately not short-circuited on "the day already has rows": a task
- * scheduled ahead of time creates a single row for a future date, and bailing
- * out here would mean that when the user finally navigates to that day, every
- * other template is skipped and their day looks empty except for that one task.
- * `ensureDailyTaskForTemplate` is idempotent per template, so re-running is safe.
- */
 export function ensureTodaySnapshot(
   taskTemplates: TaskTemplate[],
   dailyTasks: DailyTask[],
@@ -50,9 +33,6 @@ export function ensureTodaySnapshot(
 ) {
   const today = getTodayISODate()
 
-  // Only when the user is actually on today — navigating back through history
-  // must not drag unfinished work out of the past. Turning the setting off
-  // leaves an unfinished open task on the day it was made instead.
   if (date === today && useSettings().settings.behavior.carryForward) {
     carryOpenTasksForward(taskTemplates, dailyTasks, today)
   }
@@ -60,9 +40,6 @@ export function ensureTodaySnapshot(
   taskTemplates.forEach((template) => {
     const kind = scheduleKindOf(template)
 
-    // An open task owns exactly one row for its whole life, wherever that row
-    // currently sits; `occursOn` is false for it, so this is the only path that
-    // can create one.
     if (kind === TASK_KIND_BY_SCHEDULE.OPEN) {
       if (date !== today) return
       const alreadyExists = dailyTasks.some(
@@ -110,8 +87,6 @@ export function ensureDailyTaskForTemplate({
       )
 
       if (parentTemplate) {
-        // Created regardless of the parent's own recurrence: a subtask on this
-        // date needs a parent row to hang off.
         ensureDailyTaskForTemplate({
           taskTemplates,
           dailyTasks,
@@ -138,8 +113,6 @@ export function ensureDailyTaskForTemplate({
     parentDailyTaskId,
     tagIds: [],
     completedAt: undefined,
-    // Each occurrence inherits the template's planned time, which is what puts
-    // a repeating task on the calendar without any further action.
     startTime: template.startTime,
     endTime: template.endTime,
   }

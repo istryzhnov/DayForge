@@ -28,18 +28,6 @@ function toPoint(event: PointerEvent): GesturePoint {
   return { x: event.clientX, y: event.clientY }
 }
 
-/**
- * Recognizes the touch gesture used across DayForge for items that are both
- * draggable and have a context menu:
- *
- *   press → (hold) → lift → move → release  = drag & drop
- *   press → (hold) → lift → release in place = context menu
- *   press → move before the lift             = aborted, page scrolls normally
- *
- * Requiring the lift before any dragging is what keeps the gesture compatible
- * with a vertically scrolling page: a quick swipe scrolls, a deliberate hold
- * grabs the item. Mirrors the long-press-to-rearrange behavior of native apps.
- */
 export function usePressGesture(options: PressGestureOptions) {
   const longPressMs = options.longPressMs ?? DEFAULT_LONG_PRESS_MS
   const moveTolerancePx = options.moveTolerancePx ?? DEFAULT_MOVE_TOLERANCE_PX
@@ -52,17 +40,10 @@ export function usePressGesture(options: PressGestureOptions) {
   let activePointerId: number | null = null
   let captureTarget: HTMLElement | null = null
 
-  // While lifted we must stop the browser from scrolling. A non-passive
-  // touchmove listener is the only reliable way to do that once the gesture
-  // has already begun.
   function blockTouchScroll(event: TouchEvent) {
     if (isLifted.value) event.preventDefault()
   }
 
-  // Touch browsers replay a lifted gesture as a synthetic mousedown/mouseup/click
-  // sequence. Swallow all three: the click would re-trigger the element's own
-  // handler, and the mousedown would reach outside-click handlers — instantly
-  // dismissing the context menu this very gesture just opened.
   const SYNTHETIC_MOUSE_EVENTS = ['mousedown', 'mouseup', 'click'] as const
 
   function swallowSyntheticMouseEvents() {
@@ -81,8 +62,6 @@ export function usePressGesture(options: PressGestureOptions) {
     SYNTHETIC_MOUSE_EVENTS.forEach((type) =>
       window.addEventListener(type, handler, true),
     )
-    // If the browser emits no compatibility events, drop the listeners rather
-    // than leaking them into the next unrelated interaction.
     window.setTimeout(removeHandlers, 500)
   }
 
@@ -159,8 +138,6 @@ export function usePressGesture(options: PressGestureOptions) {
 
   function onPointerDown(event: PointerEvent) {
     if (options.isEnabled && !options.isEnabled()) return
-    // Only the primary contact — ignore multi-touch (pinch/zoom) and secondary
-    // mouse buttons, which have their own contextmenu path.
     if (!event.isPrimary || event.button !== 0) return
 
     teardown()

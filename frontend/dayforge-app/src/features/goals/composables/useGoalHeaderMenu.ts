@@ -5,14 +5,6 @@ import {
   useSettingsPanel,
 } from '../../settings/composables/useSettingsPanel'
 
-/**
- * The ⚙ menu on a goal panel: the quick colour swatches, the way into the full
- * palette, and delete.
- *
- * The swatches only set the accent — everything else a project can recolour
- * lives in the settings sidebar, which this opens straight on the right tab.
- */
-
 type GoalHeaderProps = {
   title: string
 }

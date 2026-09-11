@@ -15,8 +15,6 @@ function leadWindowMs(): number {
 
 type AudioContextCtor = typeof AudioContext
 
-// Module-level (singleton) state so enabling once in the morning keeps
-// working app-wide for the rest of the day, regardless of the active view.
 const isSupported = typeof window !== 'undefined' && 'Notification' in window
 const permission = ref<NotificationPermission>(
   isSupported ? Notification.permission : 'denied',
@@ -76,8 +74,6 @@ function playBeep() {
 function startAlertLoop() {
   if (alertLoopId) return
   playBeep()
-  // A single chime is enough for some people; others want it insistent until
-  // they actually look at the screen.
   if (!useSettings().settings.notifications.repeatAlert) return
   alertLoopId = window.setInterval(playBeep, ALERT_LOOP_MS)
 }
@@ -124,8 +120,6 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
   const today = getTodayISODate()
   const now = new Date()
 
-  // Inside quiet hours nothing is queued at all — deliberately not "queued and
-  // held back", which would dump the whole backlog the moment the window ends.
   const { quietHours, quietFrom, quietTo } =
     useSettings().settings.notifications
   if (quietHours && isWithinQuietHours(now, quietFrom, quietTo)) return
@@ -155,8 +149,6 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
   }
 }
 
-// A stored permission grant doesn't unlock audio after a fresh page load —
-// browsers require a fresh user gesture, so unlock silently on first interaction.
 function unlockAudioOnFirstInteraction() {
   const handler = () => {
     ensureAudioContext()
@@ -202,8 +194,6 @@ function initialize(dailyTasks: Ref<DailyTask[]>) {
   )
 }
 
-// Must be called from a user gesture (click) so the browser allows the
-// permission prompt and unlocks audio playback for later, unattended checks.
 async function enableNotifications() {
   ensureAudioContext()
   if (isSupported && Notification.permission === 'default') {
@@ -218,12 +208,6 @@ function disableNotifications() {
   enabled.value = false
 }
 
-/**
- * Global, app-wide task-start reminders. Enable once and it keeps checking
- * for the rest of the day (persisted across reloads) no matter which view is
- * active. Call this once from a long-lived root component — all callers
- * share the same singleton state.
- */
 export function useTaskNotifications(dailyTasks: Ref<DailyTask[]>) {
   initialize(dailyTasks)
 

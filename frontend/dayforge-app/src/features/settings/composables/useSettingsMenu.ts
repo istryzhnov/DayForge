@@ -15,14 +15,6 @@ import {
   START_VIEW_OPTIONS,
 } from './settingsOptions'
 
-/**
- * The rows of the settings menu, each carrying what it is currently set to.
- *
- * The summaries are the point of the menu: "Reminders — On · 15 min before"
- * answers the question most people opened the panel to ask, without them
- * having to go in and read the controls.
- */
-
 export type SettingsMenuRow = {
   id: SettingsSection
   icon: string

@@ -3,8 +3,6 @@ import { useUndoToast } from '../composables/useUndoToast'
 
 const { pending, performUndo, dismissUndo, undoWindowMs } = useUndoToast()
 
-// keep :style bound to a helper (not an inline object) to avoid vue-tsc
-// CSSProperties false positives
 function timerStyle(durationMs: number) {
   return { animationDuration: `${durationMs}ms` }
 }

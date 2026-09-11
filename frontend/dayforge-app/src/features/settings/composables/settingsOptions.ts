@@ -18,13 +18,6 @@ import {
 import { PRIORITY } from '../../../entities/constants'
 import type { Priority } from '../../../entities/types'
 
-/**
- * The choices each settings control offers, and the words used for them.
- *
- * Static data, kept out of the section components so those stay markup: the
- * templates loop over these lists instead of hard-coding a button per value.
- */
-
 export type SettingOption<T> = { id: T; label: string }
 
 /** Minutes, shared by the reminder lead time and the grid's snapping. */

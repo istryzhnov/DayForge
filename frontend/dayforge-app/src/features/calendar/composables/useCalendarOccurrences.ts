@@ -30,17 +30,6 @@ export function groupRowsByDate(rows: DailyTask[]): Map<ISODate, DailyTask[]> {
   return byDate
 }
 
-/**
- * Everything happening on one date, ordered by start time.
- *
- * Rows only exist for days the user has opened, so anything further out is
- * projected from the recurrence rules — without that, the future reads as
- * empty. `occursOn` is false for open tasks by design: they own a single row
- * that rolls forward, and projecting them would put every unfinished task on
- * every future day.
- *
- * Shared by the month and week views so the two can't drift apart.
- */
 export function collectDayEvents({
   templates,
   rowsByDate,

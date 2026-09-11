@@ -1,5 +1,3 @@
-// Single source of truth for domain literal values.
-// Import these instead of typing raw strings ('minor', 'done', etc.) to avoid typos.
 
 export const PRIORITY = {
   MAJOR: 'major',
@@ -38,8 +36,6 @@ export const RECURRENCE_TYPE = {
   CUSTOM: 'custom',
 } as const
 
-// How a task relates to the calendar. Derived from its recurrence rule rather
-// than stored, so there is one source of truth.
 export const TASK_KIND_BY_SCHEDULE = {
   /** No date, no repeat — carries forward to today until done. */
   OPEN: 'open',
@@ -49,8 +45,6 @@ export const TASK_KIND_BY_SCHEDULE = {
   RECURRING: 'recurring',
 } as const
 
-// The planning day window. Times outside it have nowhere to render on the
-// calendar grid, so schedule inputs are constrained to it too.
 export const DAY_WINDOW = {
   START_HOUR: 0,
   END_HOUR: 24,

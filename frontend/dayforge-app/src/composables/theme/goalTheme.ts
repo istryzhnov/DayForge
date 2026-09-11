@@ -1,14 +1,3 @@
-/**
- * A project's own paint job.
- *
- * Setting `--accent` alone only recolours the things that literally reference
- * the accent — buttons and rings — which is why a repainted project used to
- * keep default-blue task circles and default-grey frames. A project colour is
- * only convincing when the whole token set moves with it, so this module
- * derives borders, surfaces, circles and check marks from the one colour the
- * user picked (plus whatever they overrode by hand) and hands back a style
- * object the goal panel can carry.
- */
 
 import type { GoalTheme } from '../../entities/GoalEntity'
 import {
@@ -22,8 +11,6 @@ import {
 } from './color'
 import type { ThemeMode } from './tokens'
 
-/** The theme values a project tints — read from the live document, so a project
- *  colour layers on top of whatever global theme is active. */
 export interface ThemeSurfaces {
   panel: string
   panelSoft: string
@@ -36,8 +23,6 @@ export interface ThemeSurfaces {
 /** How far the project colour is allowed to bleed into panels and frames. */
 export const DEFAULT_GOAL_INTENSITY = 0.5
 
-/** The check mark sits on filled task, project and accent circles alike, so it
- *  needs the shade that survives all three. */
 function markColorFor(fills: string[]): string {
   const dark = '#0d0f14'
   const light = '#ffffff'
@@ -54,10 +39,6 @@ function fitToMode(color: string, mode: ThemeMode): string {
   return color
 }
 
-/**
- * Every custom property a project overrides. Returns an empty object when the
- * project has no colour of its own, so the panel simply inherits the theme.
- */
 export function buildGoalThemeVars(
   theme: GoalTheme | undefined,
   surfaces: ThemeSurfaces,
@@ -73,8 +54,6 @@ export function buildGoalThemeVars(
   const minor = theme?.minor ?? accent
   const major = theme?.major ?? fitToMode(rotateHue(accent, 150), mode)
 
-  // Frames take a firmer tint than surfaces: a border that only shifts by a few
-  // percent still reads as "the default grey one".
   const frameMix = 0.14 + 0.3 * intensity
   const surfaceMix = 0.03 + 0.1 * intensity
 
@@ -100,9 +79,6 @@ export function buildGoalThemeVars(
   }
 }
 
-/** The lighter touch used where a project appears inside shared chrome — the
- *  sidebar row, a calendar block — where repainting the surface would fight
- *  with its neighbours. */
 export function buildGoalAccentVars(
   theme: GoalTheme | undefined,
   mode: ThemeMode,

@@ -7,10 +7,6 @@ type SelectionOptions = {
   getTasks: () => DailyTask[]
 }
 
-/**
- * Which task the day grid currently has "open": either the details panel or
- * the context menu. They are mutually exclusive — opening one closes the other.
- */
 export function useCalendarSelection(options: SelectionOptions) {
   const selectedTaskId = ref<ID | null>(null)
   const contextMenuTaskId = ref<ID | null>(null)
@@ -44,8 +40,6 @@ export function useCalendarSelection(options: SelectionOptions) {
   function openContextMenu(payload: { taskId: ID; x: number; y: number }) {
     const task = options.getTasks().find((item) => item.id === payload.taskId)
 
-    // Only minor tasks expose a check/uncheck action, so a menu for anything
-    // else would be empty.
     if (!task || task.priority !== PRIORITY.MINOR) {
       closeContextMenu()
       return

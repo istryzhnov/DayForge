@@ -1,14 +1,6 @@
 import { ref, useTemplateRef } from 'vue'
 import { parseBackupFile } from './useDataTransfer'
 
-/**
- * Choosing a backup file and deciding whether it is one.
- *
- * The file is validated *before* it is handed on, so a wrong pick never reaches
- * the store and the message can say precisely what was wrong with it: not JSON
- * at all, or JSON that isn't a DayForge backup.
- */
-
 export type BackupFileMessage = {
   text: string
   tone: 'ok' | 'error'
