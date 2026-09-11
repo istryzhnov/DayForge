@@ -3,6 +3,7 @@ import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskGroup } from '../../../composables/useTaskTree'
 import TaskList from '../../tasks/components/TaskList.vue'
+import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 
 defineProps<{
   groups: TaskGroup[]
@@ -20,8 +21,12 @@ const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
+  (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
+  (e: 'move-task', templateId: ID): void
+  (e: 'move-task-to', payload: TaskDropPayload): void
   (e: 'quick-add', title: string, schedule?: TaskSchedule): void
 }>()
 </script>
@@ -43,8 +48,18 @@ const emit = defineEmits<{
     @edit-task="
       (templateId: ID, title: string) => emit('edit-task', templateId, title)
     "
+    @schedule-task="
+      (templateId: ID, schedule: TaskSchedule | null) =>
+        emit('schedule-task', templateId, schedule)
+    "
+    @set-task-rate="
+      (templateId: ID, hourlyRate: number | undefined) =>
+        emit('set-task-rate', templateId, hourlyRate)
+    "
     @delete-task="(templateId: ID) => emit('delete-task', templateId)"
     @set-as-project="(templateId: ID) => emit('set-as-project', templateId)"
+    @move-task="(templateId: ID) => emit('move-task', templateId)"
+    @move-task-to="(payload: TaskDropPayload) => emit('move-task-to', payload)"
     @quick-add="
       (title: string, schedule?: TaskSchedule) =>
         emit('quick-add', title, schedule)
