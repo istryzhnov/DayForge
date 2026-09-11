@@ -130,6 +130,22 @@
     transform 0.1s ease;
 }
 
+/* Icon and label travel together, so the count stays pinned to the right. */
+.nav-goal-btn__main {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.nav-goal-btn__icon {
+  width: calc(18px * var(--text-scale));
+  text-align: center;
+  font-size: calc(14px * var(--text-scale));
+  line-height: 1;
+  opacity: 0.85;
+}
+
 .nav-goal-btn:hover {
   transform: translateY(-1px);
   background: color-mix(in srgb, var(--panel-soft) 75%, transparent);
@@ -176,79 +192,41 @@
   gap: 16px;
 }
 
-.goal-settings {
-  position: relative;
+.goal-panel-header__aside {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.goal-settings__trigger {
-  width: 34px;
-  height: 34px;
+.goal-settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--muted);
+  font-family: inherit;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  display: grid;
-  place-items: center;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
-    transform 0.15s ease;
+    background 0.15s ease;
 }
 
-.goal-settings__trigger:hover {
+.goal-settings-btn:hover {
   color: var(--text);
   border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
-  transform: rotate(20deg);
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-soft));
 }
 
-.goal-settings__menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: 220px;
-  z-index: 1100;
-  border: 1px solid var(--line);
-  border-radius: calc(14px * var(--radius-scale));
-  padding: 10px;
-  background: var(--panel);
-  box-shadow: var(--shadow-lg);
-  display: grid;
-  gap: 8px;
-  animation: task-context-menu-in 0.12s ease;
-}
-
-.goal-settings__label {
-  margin: 0;
-  font-size: calc(11px * var(--text-scale));
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-.goal-settings__palette {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.goal-settings__swatch {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.12s ease;
-}
-
-.goal-settings__swatch:hover {
-  transform: scale(1.1);
-}
-
-.goal-settings__swatch.active {
-  border-color: var(--text);
-}
-
+/* Shared by the goal context menu, which is the only popover left here. */
 .goal-settings__item {
   appearance: none;
   border: none;
@@ -278,8 +256,8 @@
   background: var(--line);
 }
 
-/* Same look as .goal-settings__menu, but positioned at the pointer instead of
-   anchored to a trigger. Reuses the goal-settings item styles below it. */
+/* Positioned at the pointer rather than anchored to a trigger. Reuses the
+   .goal-settings__item styles above it. */
 .goal-context-menu {
   position: fixed;
   z-index: 1200;
@@ -304,6 +282,20 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Shelved, not gone: listed under the collapsed Archived group. */
+.nav-goal-btn.is-archived {
+  opacity: 0.6;
+}
+
+.nav-goal-btn.is-archived:hover {
+  opacity: 1;
+}
+
+.sidebar-archived-toggle {
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
 }
 
 /* Held long enough on touch to open the menu. */
@@ -427,8 +419,13 @@
   }
 
   .goal-panel-header {
+    flex-wrap: wrap;
     align-items: center;
     gap: 12px;
+  }
+
+  .goal-panel-header__aside {
+    justify-content: flex-start;
   }
 
   .goal-panel-header h2 {
@@ -487,10 +484,6 @@
   .composer-collapsible__close {
     justify-self: stretch;
     width: 100%;
-  }
-
-  .goal-settings__menu {
-    width: min(260px, calc(100vw - 32px));
   }
 
   .goal-settings__item {
