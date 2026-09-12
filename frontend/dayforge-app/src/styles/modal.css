@@ -18,12 +18,16 @@
 
 .modal-card {
   position: relative;
-  background: var(--panel-layer);
+  /* The layer is a translucent sheen, so it needs a solid panel underneath or
+     the page shows straight through the card. */
+  background: var(--panel-layer), var(--panel);
   border: 1px solid var(--line);
   border-radius: calc(18px * var(--radius-scale));
   padding: 24px;
   width: 90%;
   max-width: 400px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   display: grid;
   gap: 12px;
   box-shadow: var(--shadow-lg);
