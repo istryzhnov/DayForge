@@ -1,3 +1,6 @@
 # Claude Code knowledge base (local only)
 CLAUDE.md
 .claude/
+
+# Local secrets and overrides
+.env

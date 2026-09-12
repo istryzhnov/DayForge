@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:sync": "tsc -p tsconfig.verify.json && node -e \"require('node:fs').writeFileSync('.verify-out/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && node .verify-out/sync/verify.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "vue": "3.5.34"
   },
   "devDependencies": {
