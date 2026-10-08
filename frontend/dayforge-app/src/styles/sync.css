@@ -1,0 +1,183 @@
+/* The quiet corner of the sidebar. In the ordinary case — signed in, nothing
+   waiting — none of this is on screen at all. */
+
+.sync-status {
+  margin-top: 4px;
+  font-size: calc(11px * var(--text-scale));
+}
+
+.sync-status__body {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+}
+
+button.sync-status__body {
+  cursor: pointer;
+}
+
+button.sync-status__body:hover,
+button.sync-status__body:focus-visible {
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--panel-soft) 70%, transparent);
+  color: var(--text);
+}
+
+.sync-status__dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.sync-status__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sync-status__count {
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 50px;
+  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Working: a slow pulse, never a spinner — it is not worth that much attention. */
+.sync-status.is-syncing .sync-status__dot {
+  background: var(--accent);
+  animation: sync-pulse 1.4s ease-in-out infinite;
+}
+
+.sync-status.is-offline .sync-status__dot {
+  background: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+/* The one state worth noticing, because retrying will not clear it. */
+.sync-status.is-error .sync-status__body {
+  color: var(--danger);
+}
+
+.sync-status.is-error .sync-status__dot {
+  background: var(--danger);
+}
+
+@keyframes sync-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+:root[data-motion='reduced'] .sync-status.is-syncing .sync-status__dot {
+  animation: none;
+  opacity: 0.8;
+}
+
+/* --- Account section in settings ------------------------------------- */
+
+.account-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel-soft) 70%, transparent);
+}
+
+.account-identity__avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--panel-soft);
+}
+
+.account-identity__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.account-identity__text strong,
+.account-identity__text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-identity__text span {
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+.account-state {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
+}
+
+.account-failures {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+  font-size: calc(12px * var(--text-scale));
+}
+
+.account-failures ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  color: var(--muted);
+}
+
+.snapshot-list {
+  display: grid;
+  gap: 8px;
+}
+
+.snapshot-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: calc(12px * var(--text-scale));
+}
+
+.snapshot-row__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  margin-right: auto;
+}
+
+.snapshot-row__text em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: calc(11px * var(--text-scale));
+}
