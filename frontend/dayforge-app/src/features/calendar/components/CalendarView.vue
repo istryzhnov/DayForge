@@ -21,6 +21,7 @@ import {
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import { useCalendarDayView } from '../composables/useCalendarDayView'
+import { useCalendarNow } from '../composables/useCalendarNow'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -104,6 +105,8 @@ const {
   onToggleDone: (taskId) => emit('toggle-task-done', taskId),
   onSelectDate: (date) => emit('select-date', date),
 })
+
+const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
 </script>
 
 <template>
@@ -197,6 +200,14 @@ const {
               class="calendar-view__hour-line"
               :style="hourLineStyle(hour)"
             ></div>
+
+            <template v-if="isToday">
+              <div
+                class="cal-past-shade"
+                :style="{ height: `${nowTopPx}px` }"
+              ></div>
+              <div class="cal-now-line" :style="{ top: `${nowTopPx}px` }"></div>
+            </template>
 
             <CalendarEventBlock
               v-for="task in scheduledTasks"

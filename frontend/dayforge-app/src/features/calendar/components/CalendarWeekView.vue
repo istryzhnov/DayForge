@@ -13,6 +13,7 @@ import {
   HOURS,
 } from '../composables/useCalendarGrid'
 import { useFormat } from '../../../composables/useFormat'
+import { useCalendarNow } from '../composables/useCalendarNow'
 
 const { formatTime } = useFormat()
 
@@ -43,6 +44,8 @@ const {
   getDailyTasks: () => props.dailyTasks,
   getCurrentDate: () => props.currentDate,
 })
+
+const { nowTopPx } = useCalendarNow(() => props.currentDate)
 
 /** A block carries its project's colours first, then its position. */
 function eventStyle(event: PositionedEvent) {
@@ -123,6 +126,14 @@ function eventStyle(event: PositionedEvent) {
               class="calendar-week__hour-line"
               :style="hourLineStyle(hour)"
             ></div>
+
+            <template v-if="day.isToday">
+              <div
+                class="cal-past-shade"
+                :style="{ height: `${nowTopPx}px` }"
+              ></div>
+              <div class="cal-now-line" :style="{ top: `${nowTopPx}px` }"></div>
+            </template>
 
             <button
               v-for="event in day.scheduled"
