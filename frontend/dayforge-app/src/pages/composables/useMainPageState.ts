@@ -378,6 +378,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalRate(goalId, hourlyRate)
   }
 
+  function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
+    goalSpace.updateGoalIcon(goalId, icon)
+  }
+
   function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
     goalSpace.updateGoalTheme(goalId, theme)
   }
@@ -467,6 +471,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalStatus,
     handleChangeGoalRate,
     handleChangeGoalTheme,
+    handleChangeGoalIcon,
     handleSetTaskRate,
   }
 }

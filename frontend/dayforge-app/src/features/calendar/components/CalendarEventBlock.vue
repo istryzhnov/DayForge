@@ -3,6 +3,10 @@ import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import type { GesturePoint } from '../../../composables/usePressGesture'
 import { useCalendarEventBlock } from '../composables/useCalendarEventBlock'
+import ProjectIcon from '../../goals/components/ProjectIcon.vue'
+
+/** Below this height the icon would crowd out the title, so it is dropped. */
+const MIN_ICON_HEIGHT_PX = 28
 
 const props = defineProps<{
   task: DailyTask
@@ -11,6 +15,8 @@ const props = defineProps<{
   isDragging?: boolean
   /** Its project's colours, when the project has its own. */
   themeVars?: Record<string, string>
+  /** The project's icon id, drawn before the title. */
+  icon?: string
   /** Left/width once overlapping blocks have been split into columns. */
   columnStyle?: Record<string, string>
 }>()
@@ -71,6 +77,11 @@ const {
     <span class="cal-event__time">
       {{ formatTime(task.startTime) }}–{{ formatTime(task.endTime) }}
     </span>
+    <ProjectIcon
+      v-if="icon && heightPx >= MIN_ICON_HEIGHT_PX"
+      class="cal-event__icon"
+      :icon="icon"
+    />
     <span class="cal-event__title">{{ task.title }}</span>
     <div
       class="cal-event__resize-handle"

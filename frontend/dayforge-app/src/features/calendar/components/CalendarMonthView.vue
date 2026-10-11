@@ -6,6 +6,7 @@ import {
   type MonthDayCell,
 } from '../composables/useCalendarMonth'
 import { useFormat } from '../../../composables/useFormat'
+import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 
 const { formatTime } = useFormat()
 
@@ -15,6 +16,7 @@ const props = defineProps<{
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
+  goalIconById: Record<ID, string>
 }>()
 
 const emit = defineEmits<{
@@ -113,6 +115,11 @@ function hiddenCount(day: MonthDayCell) {
             <span v-if="event.startTime" class="calendar-month__event-time">
               {{ formatTime(event.startTime) }}
             </span>
+            <ProjectIcon
+              v-if="event.goalId && goalIconById[event.goalId]"
+              class="calendar-month__event-icon"
+              :icon="goalIconById[event.goalId]"
+            />
             {{ event.title }}
           </span>
 

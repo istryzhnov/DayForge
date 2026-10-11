@@ -6,6 +6,7 @@ import TaskComposer from './TaskComposer.vue'
 import TaskInlineEditor from './TaskInlineEditor.vue'
 import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
+import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
@@ -105,6 +106,11 @@ const {
         @click="onToggleDone(node.task.id)"
       >
         <span v-if="isDone" class="task-dot-check__mark">✓</span>
+        <ProjectIcon
+          v-else-if="node.goalIcon"
+          class="task-dot-check__icon"
+          :icon="node.goalIcon"
+        />
       </button>
 
       <div class="task-copy">

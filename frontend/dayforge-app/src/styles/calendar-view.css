@@ -180,6 +180,13 @@
   opacity: 0.8;
 }
 
+.calendar-month__event-icon {
+  margin-right: 3px;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
 .calendar-month__event-time {
   color: var(--muted);
   margin-right: 3px;
@@ -338,6 +345,14 @@
   }
 }
 
+.cal-event__icon {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 1em;
+  height: 1em;
+  font-size: calc(13px * var(--text-scale));
+}
+
 /* Takes the remaining width and truncates, so a long name never pushes the
    time out of the block. */
 .cal-event__title {
@@ -405,6 +420,13 @@
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease;
+}
+
+.calendar-view__unscheduled-icon {
+  margin-right: 6px;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
 }
 
 .calendar-view__unscheduled-item:hover {
@@ -890,6 +912,14 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+}
+
+.week-event__icon {
+  margin-right: 3px;
+  width: 1em;
+  height: 1em;
+  font-size: calc(10px * var(--text-scale));
+  vertical-align: -0.125em;
 }
 
 .week-event.major {

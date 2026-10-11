@@ -17,10 +17,7 @@ import ProfileModal from '../features/profile/components/ProfileModal.vue'
 import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
-import {
-  SETTINGS_SECTION,
-  useSettingsPanel,
-} from '../features/settings/composables/useSettingsPanel'
+import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
 
 const goalSpace = useGoalSpace()
 
@@ -92,16 +89,13 @@ const {
   handleChangeGoalDetails,
   handleChangeGoalStatus,
   handleChangeGoalTheme,
+  handleChangeGoalIcon,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
 
-const { isOpen: isSettingsOpen, open: openSettings } = useSettingsPanel()
+const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
-
-function openTimerSettings() {
-  openSettings(SETTINGS_SECTION.TIMER)
-}
 </script>
 
 <template>
@@ -196,7 +190,7 @@ function openTimerSettings() {
           :goals="goals"
           :templates="taskTemplates"
           :daily-tasks="dailyTasks"
-          @open-rate-settings="openTimerSettings"
+          @change-goal-rate="handleChangeGoalRate"
         />
 
         <TimerView
@@ -247,6 +241,7 @@ function openTimerSettings() {
         :data-stats="dataStats"
         @change-goal-theme="handleChangeGoalTheme"
         @change-goal-rate="handleChangeGoalRate"
+        @change-goal-icon="handleChangeGoalIcon"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"
         @delete-goal="handleDeleteGoal"

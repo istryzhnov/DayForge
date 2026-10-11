@@ -2,7 +2,8 @@ import { computed, ref, watch } from 'vue'
 import type { Goal, GoalTheme } from '../entities/GoalEntity'
 import type { GoalStatus, ID } from '../entities/types'
 import { GOAL_STATUS } from '../entities/constants'
-import { loadJson, GOALS_STORAGE_KEY } from './goalSpace/storage'
+import { GOALS_STORAGE_KEY } from './goalSpace/storage'
+import { readJson, writeJson } from '../lib/storage'
 import { useSettings } from './useSettings'
 import { useTombstones } from './useTombstones'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
@@ -24,7 +25,7 @@ export function useGoals() {
         goals: goals.value,
         activeGoalId: activeGoalId.value,
       }
-      localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(payload))
+      writeJson(GOALS_STORAGE_KEY, payload)
     },
     { deep: true },
   )
@@ -101,6 +102,15 @@ export function useGoals() {
     goal.updatedAt = new Date().toISOString()
   }
 
+  /** An absent icon means the project shows no icon. */
+  function updateGoalIcon(goalId: ID, icon: string | undefined) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+
+    goal.icon = icon || undefined
+    goal.updatedAt = new Date().toISOString()
+  }
+
   /** An absent rate means "bill this project at the global rate". */
   function updateGoalRate(goalId: ID, hourlyRate: number | undefined) {
     const goal = goals.value.find((item) => item.id === goalId)
@@ -136,7 +146,7 @@ export function useGoals() {
   }
 
   function loadFromStorage() {
-    const stored = loadJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
+    const stored = readJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
 
     if (Array.isArray(stored)) {
       migrateGoals(stored)
@@ -164,6 +174,7 @@ export function useGoals() {
     updateGoalStatus,
     updateGoalTheme,
     updateGoalRate,
+    updateGoalIcon,
     loadFromStorage,
   }
 }

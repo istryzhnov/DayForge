@@ -30,6 +30,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'change-goal-theme', goalId: ID, theme: GoalTheme | undefined): void
   (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
+  (e: 'change-goal-icon', goalId: ID, icon: string | undefined): void
   (
     e: 'change-goal-details',
     goalId: ID,
@@ -68,6 +69,11 @@ function handleGoalTheme(theme: GoalTheme | undefined) {
 function handleGoalRate(hourlyRate: number | undefined) {
   if (!props.activeGoal) return
   emit('change-goal-rate', props.activeGoal.id, hourlyRate)
+}
+
+function handleGoalIcon(icon: string | undefined) {
+  if (!props.activeGoal) return
+  emit('change-goal-icon', props.activeGoal.id, icon)
 }
 
 function handleGoalDetails(title: string, description: string) {
@@ -166,6 +172,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         @update-status="handleGoalStatus"
         @update-theme="handleGoalTheme"
         @update-rate="handleGoalRate"
+        @update-icon="handleGoalIcon"
         @delete="handleGoalDelete"
       />
 

@@ -19,6 +19,8 @@ export type TaskNode = {
   completedCount?: number
   /** The project's hourly rate, which a task without its own one bills at. */
   goalRate?: number
+  /** The project's icon id, drawn in the completion circle. */
+  goalIcon?: string
 }
 
 export type TaskGroup =
@@ -61,6 +63,15 @@ export function useTaskTree(props: TaskTreeProps) {
     function goalRateOf(task: DailyTask) {
       if (!task.goalId) return undefined
       return goalRateById.get(task.goalId)
+    }
+
+    const goalIconById = new Map(
+      props.goals.map((goal) => [goal.id, goal.icon]),
+    )
+
+    function goalIconOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalIconById.get(task.goalId)
     }
 
     const templateById = new Map(
@@ -115,6 +126,7 @@ export function useTaskTree(props: TaskTreeProps) {
         template: templateById.get(project.templateId),
         goalTitle: goalTitleOf(project),
         goalRate: goalRateOf(project),
+        goalIcon: goalIconOf(project),
         isNew: isRecentlyCreated(project),
         completedCount: completedCountOf(project),
       }
@@ -132,6 +144,7 @@ export function useTaskTree(props: TaskTreeProps) {
           template: templateById.get(child.templateId),
           goalTitle: goalTitleOf(child),
           goalRate: goalRateOf(child),
+          goalIcon: goalIconOf(child),
           projectTitle: project.title,
           isNew: isRecentlyCreated(child),
           completedCount: completedCountOf(child),
@@ -155,6 +168,7 @@ export function useTaskTree(props: TaskTreeProps) {
             template: templateById.get(task.templateId),
             goalTitle: goalTitleOf(task),
             goalRate: goalRateOf(task),
+            goalIcon: goalIconOf(task),
             isNew: isRecentlyCreated(task),
             completedCount: completedCountOf(task),
           },

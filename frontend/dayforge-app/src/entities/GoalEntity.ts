@@ -24,6 +24,8 @@ export interface Goal {
   accentColor?: string
   /** What an hour on this project is worth; falls back to the global rate. */
   hourlyRate?: number
+  /** Id from the built-in project icon set; absent means no icon. */
+  icon?: string
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

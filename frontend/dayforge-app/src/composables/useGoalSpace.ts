@@ -18,12 +18,8 @@ import { useUndoToast } from './useUndoToast'
 /** How long a freshly created task keeps its "just added" highlight. */
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
-import {
-  bindStorage,
-  DAILY_TASKS_STORAGE_KEY,
-  loadJson,
-  TASKS_STORAGE_KEY,
-} from './goalSpace/storage'
+import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
+import { bindStorage, readJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
   ensureTodaySnapshot,
@@ -47,6 +43,7 @@ export function useGoalSpace() {
     updateGoalStatus,
     updateGoalTheme,
     updateGoalRate,
+    updateGoalIcon,
     restoreGoal,
     loadFromStorage,
   } = useGoals()
@@ -87,7 +84,7 @@ export function useGoalSpace() {
   function loadFromStorageTasks() {
     const stored = keepLive(
       SYNC_TABLE.TASK_TEMPLATES,
-      loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, []),
+      readJson<TaskTemplate[]>(TASKS_STORAGE_KEY, []),
     )
 
     stored.forEach((template) => {
@@ -103,7 +100,7 @@ export function useGoalSpace() {
     dailyTasks.value = migrateDailyTasks(
       keepLive(
         SYNC_TABLE.DAILY_TASKS,
-        loadJson<DailyTask[]>(DAILY_TASKS_STORAGE_KEY, []),
+        readJson<DailyTask[]>(DAILY_TASKS_STORAGE_KEY, []),
       ),
     )
   }
@@ -652,6 +649,7 @@ export function useGoalSpace() {
     updateGoalStatus: setGoalStatus,
     updateGoalTheme,
     updateGoalRate,
+    updateGoalIcon,
     addTask,
     addSubTask,
     editTaskTitle,

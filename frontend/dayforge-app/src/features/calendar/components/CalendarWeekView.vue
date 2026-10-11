@@ -14,11 +14,13 @@ import {
 } from '../composables/useCalendarGrid'
 import { useFormat } from '../../../composables/useFormat'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 
 const { formatTime } = useFormat()
 
 /** The breathing room a week column keeps on both sides. */
 const WEEK_INSET_PX = 2
+const WEEK_ICON_MIN_HEIGHT_PX = 24
 
 const props = defineProps<{
   templates: TaskTemplate[]
@@ -26,6 +28,7 @@ const props = defineProps<{
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
+  goalIconById: Record<ID, string>
 }>()
 
 const emit = defineEmits<{
@@ -46,6 +49,10 @@ const {
 })
 
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
+
+function iconFor(goalId: ID | undefined) {
+  return goalId ? props.goalIconById[goalId] : undefined
+}
 
 /** A block carries its project's colours first, then its position. */
 function eventStyle(event: PositionedEvent) {
@@ -151,7 +158,16 @@ function eventStyle(event: PositionedEvent) {
               <span class="week-event__time">{{
                 formatTime(event.startTime)
               }}</span>
-              <span class="week-event__title">{{ event.title }}</span>
+              <span class="week-event__title">
+                <ProjectIcon
+                  v-if="
+                    iconFor(event.goalId) &&
+                    event.heightPx >= WEEK_ICON_MIN_HEIGHT_PX
+                  "
+                  class="week-event__icon"
+                  :icon="iconFor(event.goalId)"
+                />{{ event.title }}
+              </span>
             </button>
           </div>
 

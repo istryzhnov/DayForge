@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type {
   DailyTask,
   MajorTaskOption,
@@ -107,6 +108,18 @@ const {
 })
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
+
+const goalIconById = computed(() => {
+  const result: Record<ID, string> = {}
+  props.goals.forEach((goal) => {
+    if (goal.icon) result[goal.id] = goal.icon
+  })
+  return result
+})
+
+function iconFor(goalId: ID | undefined) {
+  return goalId ? goalIconById.value[goalId] : undefined
+}
 </script>
 
 <template>
@@ -144,6 +157,7 @@ const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
       :daily-tasks="dailyTasks"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -153,6 +167,7 @@ const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
       :daily-tasks="dailyTasks"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -217,6 +232,7 @@ const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
               :height-px="heightPxFor(task)"
               :is-dragging="draggingTaskId === task.id"
               :theme-vars="themeVarsFor(task.goalId)"
+              :icon="iconFor(task.goalId)"
               :column-style="columnStyleFor(task)"
               @select="openDetails"
               @drag-start="onBlockDragStart"
@@ -281,6 +297,7 @@ const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
             :key="task.id"
             :task="task"
             :theme-vars="themeVarsFor(task.goalId)"
+            :icon="iconFor(task.goalId)"
             @drag-start="onDragStartFromList"
             @touch-lift="onUnscheduledTouchLift"
             @touch-move="onTouchMove"

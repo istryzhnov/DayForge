@@ -3,6 +3,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { GoalStatus } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { GOAL_STATUS_HINTS, GOAL_STATUS_OPTIONS } from './settingsOptions'
+import { PROJECT_ICONS } from '../../goals/icons/projectIcons'
 
 type ProjectSectionProps = {
   goal: Goal
@@ -11,6 +12,7 @@ type ProjectSectionProps = {
 type ProjectSectionActions = {
   onUpdateDetails: (title: string, description: string) => void
   onUpdateStatus: (status: GoalStatus) => void
+  onUpdateIcon: (icon: string | undefined) => void
   onDelete: () => void
 }
 
@@ -54,6 +56,14 @@ export function useProjectSection(
     actions.onUpdateStatus(next)
   }
 
+  const iconOptions = PROJECT_ICONS
+  const icon = computed(() => props.goal.icon)
+
+  function setIcon(next: string | undefined) {
+    if (next === props.goal.icon) return
+    actions.onUpdateIcon(next)
+  }
+
   function confirmDelete() {
     const confirmed = window.confirm(
       `Delete "${props.goal.title}" with all of its tasks? This cannot be undone.`,
@@ -70,6 +80,9 @@ export function useProjectSection(
     status,
     statusHint,
     setStatus,
+    iconOptions,
+    icon,
+    setIcon,
     confirmDelete,
   }
 }
