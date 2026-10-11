@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
-import { useTimerWidget } from '../composables/useTimerWidget'
+import { useTimerView } from '../composables/useTimerView'
 
 const emit = defineEmits<{ (e: 'open-timer'): void }>()
 
@@ -15,10 +15,10 @@ const {
   primaryLabel,
   canStop,
   canSkip,
-  primary,
+  resumeOrStart,
   stop,
   skipPhase,
-} = useTimerWidget()
+} = useTimerView()
 </script>
 
 <template>
@@ -49,7 +49,7 @@ const {
       :primary-label="primaryLabel"
       :can-stop="canStop"
       :can-skip="canSkip"
-      @primary="primary"
+      @primary="resumeOrStart"
       @stop="stop"
       @skip="skipPhase"
     />

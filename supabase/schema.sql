@@ -74,14 +74,14 @@ $$;
 
 -- 2. The row tables --------------------------------------------------------
 
--- The four are identical, so they are built from one description rather than
+-- They are identical, so they are built from one description rather than
 -- copied four times and left to drift apart.
 do $$
 declare
   target text;
 begin
   for target in
-    select unnest(array['goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings'])
+    select unnest(array['goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings', 'active_timer'])
   loop
     execute format($fmt$
       create table if not exists public.%I (
@@ -153,13 +153,13 @@ create table if not exists public.deletions (
   synced_at  timestamptz not null default now(),
   primary key (user_id, table_name, row_id),
   constraint deletions_table_name_known check (
-    table_name in ('goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings')
+    table_name in ('goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings', 'active_timer')
   )
 );
 
 alter table public.deletions drop constraint if exists deletions_table_name_known;
 alter table public.deletions add constraint deletions_table_name_known check (
-  table_name in ('goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings')
+  table_name in ('goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings', 'active_timer')
 );
 
 grant select, insert, update, delete on public.deletions to authenticated;
@@ -213,7 +213,7 @@ begin
   end if;
 
   for target in
-    select unnest(array['goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings', 'deletions'])
+    select unnest(array['goals', 'task_templates', 'daily_tasks', 'time_entries', 'settings', 'active_timer', 'deletions'])
   loop
     if not exists (
       select 1

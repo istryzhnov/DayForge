@@ -7,13 +7,14 @@ import {
   indexedDbSnapshotBackend,
   type SnapshotStore,
 } from '../sync/snapshots'
-import { readJsonSafe, writeJsonSafe } from '../sync/persist'
+import { readJson, writeJson } from '../lib/storage'
 import type { OutboxState } from '../sync/outbox'
 import { SYNC_TABLES, type AppliedRecord, type SyncTransport } from '../sync/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAuth } from './useAuth'
 import { useTombstones } from './useTombstones'
 import { createSettingsCollection } from './settingsSync'
+import { createTimerCollection } from './timerSync'
 
 const OUTBOX_STORAGE_KEY = 'dayforge-sync-outbox-v1'
 const META_STORAGE_KEY = 'dayforge-sync-meta-v1'
@@ -71,16 +72,16 @@ const engine = createSyncEngine({
     sweep: tombstoneStore.sweep,
   },
   outboxPersistence: {
-    read: () => readJsonSafe<OutboxState | null>(OUTBOX_STORAGE_KEY, null),
-    write: (state) => writeJsonSafe(OUTBOX_STORAGE_KEY, state),
+    read: () => readJson<OutboxState | null>(OUTBOX_STORAGE_KEY, null),
+    write: (state) => writeJson(OUTBOX_STORAGE_KEY, state),
   },
   metaPersistence: {
-    read: () => readJsonSafe<SyncMeta | null>(META_STORAGE_KEY, null),
-    write: (meta) => writeJsonSafe(META_STORAGE_KEY, meta),
+    read: () => readJson<SyncMeta | null>(META_STORAGE_KEY, null),
+    write: (meta) => writeJson(META_STORAGE_KEY, meta),
   },
   ringLogPersistence: {
-    read: () => readJsonSafe<AppliedRecord[] | null>(RING_LOG_STORAGE_KEY, null),
-    write: (records) => writeJsonSafe(RING_LOG_STORAGE_KEY, records),
+    read: () => readJson<AppliedRecord[] | null>(RING_LOG_STORAGE_KEY, null),
+    write: (records) => writeJson(RING_LOG_STORAGE_KEY, records),
   },
 })
 
@@ -189,7 +190,11 @@ export function useSync() {
     backup: () => unknown,
   ) {
     buildBackup = backup
-    engine.register([...collections, createSettingsCollection()])
+    engine.register([
+      ...collections,
+      createSettingsCollection(),
+      createTimerCollection(),
+    ])
 
     if (initialized) return
     initialized = true
@@ -202,9 +207,6 @@ export function useSync() {
     status: engine.status,
     retryDead: engine.retryDead,
     discardDead: engine.discardDead,
-    flush: () => engine.flush(),
-    pull: () => engine.sync(),
-    syncNow: () => engine.sync(),
     deadLetters: () => engine.outbox.dead,
     log: () => engine.log.entries,
     snapshots,

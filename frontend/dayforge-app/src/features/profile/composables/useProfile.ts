@@ -1,4 +1,4 @@
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useSync } from '../../../composables/useSync'
 import { useFormat } from '../../../composables/useFormat'
@@ -54,6 +54,23 @@ export function useProfile() {
     return `${auth.displayName.value} · ${stateLabel.value}`
   })
 
+  const logCopied = ref(false)
+  let logCopiedResetId: number | undefined
+
+  async function copyLog() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(sync.log(), null, 2))
+    } catch {
+      return
+    }
+
+    logCopied.value = true
+    window.clearTimeout(logCopiedResetId)
+    logCopiedResetId = window.setTimeout(() => {
+      logCopied.value = false
+    }, 2000)
+  }
+
   async function signIn() {
     await auth.signInWithGoogle()
   }
@@ -73,6 +90,8 @@ export function useProfile() {
     triggerTitle,
     signIn,
     signOut,
+    copyLog,
+    logCopied,
     retryDead: sync.retryDead,
     discardDead: sync.discardDead,
   }

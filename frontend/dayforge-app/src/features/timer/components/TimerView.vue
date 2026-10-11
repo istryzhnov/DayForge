@@ -10,6 +10,7 @@ import TimerModePicker from './TimerModePicker.vue'
 import TimeEntryList from './TimeEntryList.vue'
 import TimeTotals from './TimeTotals.vue'
 import TimeEntryEditor from './TimeEntryEditor.vue'
+import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
 
@@ -53,7 +54,6 @@ function saveAsTask() {
   newTaskTitle.value = ''
 }
 
-/** Empty means "leave it unattached", anything else books the time there. */
 function pickTask(event: Event) {
   const templateId = (event.target as HTMLSelectElement).value
   if (!templateId) {
@@ -136,26 +136,27 @@ function closeEditor() {
           </optgroup>
         </select>
 
-        <form
+        <DisclosureSection
           v-if="canNameSession"
+          label="Or save as a new task"
           class="timer-view__save"
-          @submit.prevent="saveAsTask"
         >
-          <span class="timer-view__or">or</span>
-          <input
-            v-model="newTaskTitle"
-            type="text"
-            placeholder="What are you working on?"
-            aria-label="Name this session"
-          />
-          <button
-            class="btn btn-ghost"
-            type="submit"
-            :disabled="!newTaskTitle.trim()"
-          >
-            Save as new task
-          </button>
-        </form>
+          <form class="timer-view__save-form" @submit.prevent="saveAsTask">
+            <input
+              v-model="newTaskTitle"
+              type="text"
+              placeholder="What are you working on?"
+              aria-label="Name this session"
+            />
+            <button
+              class="btn btn-ghost"
+              type="submit"
+              :disabled="!newTaskTitle.trim()"
+            >
+              Save as new task
+            </button>
+          </form>
+        </DisclosureSection>
       </div>
 
       <p v-if="hint" class="timer-view__hint">{{ hint }}</p>

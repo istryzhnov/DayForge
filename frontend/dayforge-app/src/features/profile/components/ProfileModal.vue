@@ -17,6 +17,8 @@ const {
   failures,
   signIn,
   signOut,
+  copyLog,
+  logCopied,
   retryDead,
   discardDead,
 } = useProfile()
@@ -151,6 +153,14 @@ const {
         <p v-if="auth.error.value" class="settings-message is-error">
           {{ auth.error.value }}
         </p>
+
+        <button
+          class="btn btn-ghost settings-action"
+          type="button"
+          @click="copyLog"
+        >
+          {{ logCopied ? 'Copied' : 'Copy sync log' }}
+        </button>
 
         <button
           class="btn btn-ghost settings-action settings-action--danger"

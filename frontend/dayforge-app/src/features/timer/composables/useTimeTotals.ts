@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
-import type { TaskTotal } from '../../../composables/timer/entries'
+import { totalsByTask, type TaskTotal } from '../../../composables/timer/entries'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { totalsByTask } from '../../../composables/timer/entries'
 import { formatShortDuration } from '../../../composables/timer/format'
 
 export const TOTALS_RANGE = {
