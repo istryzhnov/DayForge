@@ -99,3 +99,16 @@
     box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent);
   }
 }
+
+.project-rates__row {
+  display: grid;
+  gap: 6px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.project-rates__name {
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  color: var(--text);
+}

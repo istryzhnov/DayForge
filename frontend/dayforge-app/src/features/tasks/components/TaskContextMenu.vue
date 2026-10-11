@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useContextMenu } from '../../../composables/useContextMenu'
+import DisclosureSection from '../../../components/DisclosureSection.vue'
 
 const props = defineProps<{
   x: number
@@ -62,58 +63,6 @@ const { menuPositionStyle } = useContextMenu({
       {{ isDone ? 'Mark as not done' : 'Check it' }}
     </button>
     <button
-      v-if="canMove"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('move')
-          emit('close')
-        }
-      "
-    >
-      Move to…
-    </button>
-    <button
-      v-if="canSetAsProject"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('set-as-project')
-          emit('close')
-        }
-      "
-    >
-      Set as project
-    </button>
-    <button
-      v-if="canAddChild"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('add-to-this')
-          emit('close')
-        }
-      "
-    >
-      Add to this
-    </button>
-    <button
-      v-if="isProject"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('show-habit')
-          emit('close')
-        }
-      "
-    >
-      Show habit
-    </button>
-    <button
       class="task-context-menu__item"
       type="button"
       @click="
@@ -125,18 +74,72 @@ const { menuPositionStyle } = useContextMenu({
     >
       {{ isScheduled ? 'Change the time' : 'Add to calendar' }}
     </button>
-    <button
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('set-rate')
-          emit('close')
-        }
-      "
-    >
-      {{ hasOwnRate ? 'Change the rate…' : 'Set rate…' }}
-    </button>
+    <DisclosureSection label="More" class="task-context-menu__more">
+      <button
+        v-if="canMove"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('move')
+            emit('close')
+          }
+        "
+      >
+        Move to…
+      </button>
+      <button
+        v-if="canSetAsProject"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('set-as-project')
+            emit('close')
+          }
+        "
+      >
+        Set as project
+      </button>
+      <button
+        v-if="canAddChild"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('add-to-this')
+            emit('close')
+          }
+        "
+      >
+        Add to this
+      </button>
+      <button
+        v-if="isProject"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('show-habit')
+            emit('close')
+          }
+        "
+      >
+        Show habit
+      </button>
+      <button
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('set-rate')
+            emit('close')
+          }
+        "
+      >
+        {{ hasOwnRate ? 'Change the rate…' : 'Set rate…' }}
+      </button>
+    </DisclosureSection>
     <div class="task-context-menu__divider"></div>
     <button
       class="task-context-menu__item task-context-menu__item--danger"

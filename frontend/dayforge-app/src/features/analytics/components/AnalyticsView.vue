@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
+import { ref } from 'vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import type { ID } from '../../../entities/types'
 import DayBarChart from './DayBarChart.vue'
 import ProjectShareChart from './ProjectShareChart.vue'
+import ProjectRatesDialog from './ProjectRatesDialog.vue'
+import HabitMonthSection from './HabitMonthSection.vue'
 import {
   PERIOD_OPTIONS,
   useTimerAnalytics,
@@ -15,8 +19,10 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'open-rate-settings'): void
+  (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
 }>()
+
+const isRatesOpen = ref(false)
 
 const {
   period,
@@ -105,7 +111,7 @@ const {
         v-else
         class="analytics__card analytics__card--action"
         type="button"
-        @click="emit('open-rate-settings')"
+        @click="isRatesOpen = true"
       >
         <span class="analytics__card-label">Earned</span>
         <strong class="analytics__card-value">Set an hourly rate</strong>
@@ -231,5 +237,18 @@ const {
         </div>
       </template>
     </template>
+
+    <HabitMonthSection
+      :goals="goals"
+      :templates="templates"
+      :daily-tasks="dailyTasks"
+    />
+
+    <ProjectRatesDialog
+      v-if="isRatesOpen"
+      :goals="goals"
+      @update-rate="(goalId, rate) => emit('change-goal-rate', goalId, rate)"
+      @close="isRatesOpen = false"
+    />
   </section>
 </template>
