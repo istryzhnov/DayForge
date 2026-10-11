@@ -1,5 +1,5 @@
 import { computed, ref, watch } from 'vue'
-import type { ID, ISODate } from '../entities/types'
+import type { ID } from '../entities/types'
 import type {
   TimeEntry,
   TimeEntryDraft,
@@ -7,7 +7,7 @@ import type {
 } from '../entities/TimerEntity'
 import { TIMER_MODE, TIME_ENTRY_SOURCE } from '../entities/constants'
 import { createId, getTodayISODate } from './goalSpace/date'
-import { loadJson } from './goalSpace/storage'
+import { readJson, writeJson } from '../lib/storage'
 import { useTombstones } from './useTombstones'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 import {
@@ -15,8 +15,6 @@ import {
   groupByDay,
   sortByStart,
   totalForDay,
-  totalForGoal,
-  totalForTask,
   totalForTaskOnDate,
   totalForTasks,
 } from './timer/entries'
@@ -44,10 +42,7 @@ function sanitize(input: unknown): TimeEntry[] {
 }
 
 function persist() {
-  localStorage.setItem(
-    TIME_ENTRIES_STORAGE_KEY,
-    JSON.stringify(entries.value),
-  )
+  writeJson(TIME_ENTRIES_STORAGE_KEY, entries.value)
 }
 
 function initialize() {
@@ -58,7 +53,7 @@ function initialize() {
   // out of the list *and* its burial recorded, so the deletion still travels.
   entries.value = useTombstones().keepLive(
     SYNC_TABLE.TIME_ENTRIES,
-    sanitize(loadJson<unknown>(TIME_ENTRIES_STORAGE_KEY, [])),
+    sanitize(readJson<unknown>(TIME_ENTRIES_STORAGE_KEY, [])),
   )
 
   watch(entries, persist, { deep: true })
@@ -80,12 +75,17 @@ function initialize() {
 export function useTimeEntries() {
   initialize()
 
+  /**
+   * The id comes from the stretch itself: two devices that both watch a
+   * countdown run out record the same row, and sync folds them into one.
+   */
   function addDrafts(drafts: TimeEntryDraft[]) {
-    if (drafts.length === 0) return
-    entries.value = [
-      ...entries.value,
-      ...drafts.map((draft) => entryFromDraft(draft, createId('entry'))),
-    ]
+    const known = new Set(entries.value.map((entry) => entry.id))
+    const fresh = drafts
+      .map((draft) => entryFromDraft(draft, `entry-${draft.sessionId}-${draft.startedAt}`))
+      .filter((entry) => !known.has(entry.id))
+    if (fresh.length === 0) return
+    entries.value = [...entries.value, ...fresh]
   }
 
   function addManual(entry: {
@@ -151,15 +151,6 @@ export function useTimeEntries() {
     entries.value = entries.value.filter((item) => item.id !== id)
   }
 
-  function restoreEntry(id: ID): TimeEntry | null {
-    const row = useTombstones().exhume(SYNC_TABLE.TIME_ENTRIES, id)
-    if (!row) return null
-
-    const entry = row as unknown as TimeEntry
-    entries.value = [...entries.value, entry]
-    return entry
-  }
-
   const days = computed(() => groupByDay(entries.value))
   const recent = computed(() => sortByStart(entries.value))
   const todayTotalMs = computed(() =>
@@ -176,12 +167,8 @@ export function useTimeEntries() {
     assignSessionToTask,
     updateEntry,
     removeEntry,
-    restoreEntry,
-    totalForTask: (taskId: ID) => totalForTask(entries.value, taskId),
     totalForTasks: (taskIds: ID[]) => totalForTasks(entries.value, taskIds),
     totalForTaskToday: (taskId: ID) =>
       totalForTaskOnDate(entries.value, taskId, getTodayISODate()),
-    totalForGoal: (goalId: ID) => totalForGoal(entries.value, goalId),
-    totalForDate: (date: ISODate) => totalForDay(entries.value, date),
   }
 }

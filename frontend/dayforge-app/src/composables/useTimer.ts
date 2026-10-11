@@ -7,7 +7,7 @@ import type {
 } from '../entities/TimerEntity'
 import { TIMER_MODE, TIMER_STATUS } from '../entities/constants'
 import { createId } from './goalSpace/date'
-import { loadJson } from './goalSpace/storage'
+import { readJson, writeJson } from '../lib/storage'
 import { useSettings } from './useSettings'
 import { useTimeEntries } from './useTimeEntries'
 import { playBeep, unlockAudioOnFirstInteraction } from './alertSound'
@@ -26,6 +26,7 @@ import {
   type TransitionResult,
 } from './timer/machine'
 import { MINUTE_MS, PHASE_LABELS } from './timer/pomodoro'
+import { mustRecordBeforeAdopting } from './timer/remote'
 import { formatDuration } from './timer/format'
 
 export const ACTIVE_TIMER_STORAGE_KEY = 'dayforge-timer-active-v1'
@@ -38,6 +39,9 @@ const now = ref(Date.now())
 
 /** Last sitting that recorded time without a task, still waiting for a name. */
 const unnamedSessionId = ref<ID | null>(null)
+
+/** The sitting this device last closed, so another device can tell its stop from a rival start. */
+const closedSessionId = ref<ID>('')
 
 let tickId: number | undefined
 let expiryId: number | undefined
@@ -129,6 +133,9 @@ function apply(result: TransitionResult) {
   if (result.entries.length > 0 && !closing.task) {
     unnamedSessionId.value = closing.sessionId
   }
+  if (closing.sessionId && closing.sessionId !== result.timer.sessionId) {
+    closedSessionId.value = closing.sessionId
+  }
 
   timer.value = result.timer
   now.value = Date.now()
@@ -153,13 +160,13 @@ function initialize() {
   if (initialized) return
   initialized = true
 
-  timer.value = sanitize(loadJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null))
+  timer.value = sanitize(readJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null))
   unlockAudioOnFirstInteraction()
 
   watch(
     timer,
     (value) => {
-      localStorage.setItem(ACTIVE_TIMER_STORAGE_KEY, JSON.stringify(value))
+      writeJson(ACTIVE_TIMER_STORAGE_KEY, value)
     },
     { deep: true },
   )
@@ -181,6 +188,30 @@ function initialize() {
 
   sync()
   schedule()
+}
+
+export function readActiveTimer(): { timer: ActiveTimer; closedSessionId: ID } {
+  initialize()
+  return { timer: timer.value, closedSessionId: closedSessionId.value }
+}
+
+/**
+ * Takes the timer another device left behind. A sitting of our own that the
+ * other side never saw is stopped and recorded first, as starting a second
+ * timer does on one device; one the other side closed is simply let go.
+ */
+export function applyRemoteTimer(raw: unknown, remoteClosedSessionId: ID) {
+  initialize()
+  const incoming = sanitize(raw)
+
+  if (mustRecordBeforeAdopting(timer.value, incoming, remoteClosedSessionId)) {
+    dispatch({ type: 'stop' })
+  }
+
+  timer.value = incoming
+  closedSessionId.value = remoteClosedSessionId
+  schedule()
+  sync()
 }
 
 export function useTimer() {

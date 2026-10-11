@@ -1,5 +1,5 @@
 import { useSettings, DEFAULT_SETTINGS, type AppSettings } from './useSettings'
-import { readJsonSafe, writeJsonSafe } from '../sync/persist'
+import { readJson, writeJson } from '../lib/storage'
 import { stableStringify } from '../sync/diff'
 import type { SyncCollection } from '../sync/engine'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
@@ -42,7 +42,7 @@ function isStamp(value: unknown): value is SettingsStamp {
 export function createSettingsCollection(): SyncCollection {
   const { settings, update } = useSettings()
 
-  const stored = readJsonSafe<unknown>(SETTINGS_SYNC_STORAGE_KEY, null)
+  const stored = readJson<unknown>(SETTINGS_SYNC_STORAGE_KEY, null)
   let stamp: SettingsStamp
   if (isStamp(stored)) {
     stamp = stored
@@ -53,7 +53,7 @@ export function createSettingsCollection(): SyncCollection {
       signature,
       updatedAt: customised ? new Date().toISOString() : undefined,
     }
-    writeJsonSafe(SETTINGS_SYNC_STORAGE_KEY, stamp)
+    writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
   }
 
   function read(): SyncedRow[] {
@@ -61,7 +61,7 @@ export function createSettingsCollection(): SyncCollection {
     const signature = stableStringify(payload)
     if (signature !== stamp.signature) {
       stamp = { signature, updatedAt: new Date().toISOString() }
-      writeJsonSafe(SETTINGS_SYNC_STORAGE_KEY, stamp)
+      writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
     }
 
     const row: SyncedRow = { id: SETTINGS_ROW_ID, ...payload }
@@ -83,7 +83,7 @@ export function createSettingsCollection(): SyncCollection {
       signature: stableStringify(pick(settings)),
       updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : stamp.updatedAt,
     }
-    writeJsonSafe(SETTINGS_SYNC_STORAGE_KEY, stamp)
+    writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
   }
 
   return {

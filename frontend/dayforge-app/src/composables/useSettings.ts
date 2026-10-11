@@ -2,6 +2,7 @@ import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
 import { PRIORITY } from '../entities/constants'
+import { readJson, writeJson } from '../lib/storage'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -391,8 +392,8 @@ function initialize() {
   initialized = true
 
   try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
-    if (raw) assign(sanitize(JSON.parse(raw)))
+    const stored = readJson<unknown>(SETTINGS_STORAGE_KEY, null)
+    if (stored) assign(sanitize(stored))
   } catch {
     // Malformed settings fall back to the defaults already in place.
   }
@@ -401,7 +402,7 @@ function initialize() {
     settings,
     () => {
       applyToDocument()
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+      writeJson(SETTINGS_STORAGE_KEY, settings)
     },
     { deep: true, immediate: true },
   )

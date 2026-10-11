@@ -1,6 +1,6 @@
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import type { ID } from '../entities/types'
-import { readJsonSafe, writeJsonSafe } from '../sync/persist'
+import { readJson, writeJson } from '../lib/storage'
 import {
   addTombstones,
   makeTombstones,
@@ -9,7 +9,6 @@ import {
   restampForRestore,
   sweepTombstones,
 } from '../sync/tombstoneRules'
-import { indexTombstones } from '../sync/merge'
 import type { SyncedRow, TableName, Tombstone } from '../sync/types'
 
 export const TOMBSTONES_STORAGE_KEY = 'dayforge-tombstones-v1'
@@ -32,7 +31,7 @@ function initialize() {
   if (initialized) return
   initialized = true
 
-  const stored = readJsonSafe<unknown>(TOMBSTONES_STORAGE_KEY, [])
+  const stored = readJson<unknown>(TOMBSTONES_STORAGE_KEY, [])
   const list = Array.isArray(stored) ? stored.filter(isTombstone) : []
   // Anything older than the window is dropped on the way in, so the list
   // cannot grow without bound.
@@ -40,7 +39,7 @@ function initialize() {
 
   watch(
     tombstones,
-    (value) => writeJsonSafe(TOMBSTONES_STORAGE_KEY, value),
+    (value) => writeJson(TOMBSTONES_STORAGE_KEY, value),
     { deep: true },
   )
 }
@@ -53,8 +52,6 @@ function initialize() {
  */
 export function useTombstones() {
   initialize()
-
-  const index = computed(() => indexTombstones(tombstones.value))
 
   function bury(table: TableName, rows: SyncedRow[]) {
     if (rows.length === 0) return
@@ -94,12 +91,6 @@ export function useTombstones() {
     return live
   }
 
-  function isBuried(table: TableName, id: ID): boolean {
-    return tombstones.value.some(
-      (stone) => stone.table === table && stone.id === id,
-    )
-  }
-
   function merge(incoming: Tombstone[]) {
     if (incoming.length === 0) return
     tombstones.value = addTombstones(tombstones.value, incoming)
@@ -112,12 +103,10 @@ export function useTombstones() {
 
   return {
     tombstones,
-    index,
     bury,
     exhume,
     exhumeAll,
     keepLive,
-    isBuried,
     merge,
     sweep,
   }

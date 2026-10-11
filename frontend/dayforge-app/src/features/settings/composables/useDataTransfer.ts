@@ -11,6 +11,7 @@ import {
 import { TOMBSTONES_STORAGE_KEY } from '../../../composables/useTombstones'
 import { restampForRestore } from '../../../sync/tombstoneRules'
 import type { SyncedRow } from '../../../sync/types'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
 
 /**
  * Rows coming out of a file or a snapshot are stamped as a current edit. With an
@@ -23,9 +24,15 @@ function restampAll<T>(rows: T[]): T[] {
   )
 }
 
-/** A deleted row has no business coming back out of a backup. */
-function withoutDeleted<T extends { deletedAt?: string }>(rows: T[]): T[] {
-  return rows.filter((row) => row.deletedAt === undefined)
+/** A deleted row has no business coming back out of a backup, nor does junk. */
+function withoutDeleted<T extends { deletedAt?: string }>(rows: unknown[]): T[] {
+  return rows.filter(
+    (row): row is T =>
+      isRecord(row) &&
+      typeof row.id === 'string' &&
+      row.id !== '' &&
+      row.deletedAt === undefined,
+  )
 }
 
 const BACKUP_FORMAT = 'dayforge-backup'
@@ -76,11 +83,11 @@ export function parseBackupFile(input: unknown): BackupFile | null {
       typeof input.exportedAt === 'string'
         ? input.exportedAt
         : new Date().toISOString(),
-    goals: withoutDeleted(input.goals as Goal[]),
-    taskTemplates: withoutDeleted(input.taskTemplates as TaskTemplate[]),
-    dailyTasks: withoutDeleted(input.dailyTasks as DailyTask[]),
+    goals: withoutDeleted<Goal>(input.goals),
+    taskTemplates: withoutDeleted<TaskTemplate>(input.taskTemplates),
+    dailyTasks: withoutDeleted<DailyTask>(input.dailyTasks),
     timeEntries: Array.isArray(input.timeEntries)
-      ? withoutDeleted(input.timeEntries as TimeEntry[])
+      ? withoutDeleted<TimeEntry>(input.timeEntries)
       : [],
     theme: input.theme,
     settings: input.settings,
@@ -152,7 +159,7 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `dayforge-${new Date().toISOString().slice(0, 10)}.json`
+    link.download = `dayforge-${getTodayISODate()}.json`
     document.body.append(link)
     link.click()
     link.remove()

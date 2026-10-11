@@ -18,6 +18,7 @@ import {
   type WorkspaceSettings,
 } from './theme/tokens'
 import type { ThemeSurfaces } from './theme/goalTheme'
+import { readJson, writeJson } from '../lib/storage'
 
 export type { ThemeMode, ThemeStyle } from './theme/tokens'
 
@@ -107,7 +108,7 @@ function sanitizePalette(input: unknown): ThemePalette {
   const result: ThemePalette = {}
   for (const token of COLOR_TOKENS) {
     const value = raw[token.key]
-    if (typeof value === 'string' && value.trim()) {
+    if (typeof value === 'string' && CSS.supports('color', value.trim())) {
       result[token.key] = value.trim()
     }
   }
@@ -138,15 +139,12 @@ function applyThemeToDocument() {
 }
 
 function persist() {
-  localStorage.setItem(
-    THEME_STORAGE_KEY,
-    JSON.stringify({
-      style: themeStyle.value,
-      mode: themeMode.value,
-      colors: palette.value,
-      workspace: workspace.value,
-    }),
-  )
+  writeJson(THEME_STORAGE_KEY, {
+    style: themeStyle.value,
+    mode: themeMode.value,
+    colors: palette.value,
+    workspace: workspace.value,
+  })
 }
 
 function initializeTheme() {
@@ -154,14 +152,13 @@ function initializeTheme() {
   initialized = true
 
   try {
-    const raw = localStorage.getItem(THEME_STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw) as {
-        style?: ThemeStyle
-        mode?: ThemeMode
-        colors?: unknown
-        workspace?: unknown
-      }
+    const parsed = readJson<{
+      style?: ThemeStyle
+      mode?: ThemeMode
+      colors?: unknown
+      workspace?: unknown
+    } | null>(THEME_STORAGE_KEY, null)
+    if (parsed) {
 
       if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
       if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
