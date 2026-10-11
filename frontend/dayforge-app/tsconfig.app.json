@@ -10,8 +10,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
-  // The sync harness runs in node, not the browser, and is checked by
-  // tsconfig.verify.json instead.
-  "exclude": ["src/sync/verify.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
 }

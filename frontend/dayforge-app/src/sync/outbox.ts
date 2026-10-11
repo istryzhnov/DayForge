@@ -54,7 +54,6 @@ export interface Outbox {
   drop(table: TableName, rowId: ID): void
   readonly pending: readonly Mutation[]
   readonly dead: readonly Mutation[]
-  readonly inFlightCount: number
   /** Everything not yet acknowledged by the server. */
   readonly queued: number
   readonly lastError: string | null
@@ -298,9 +297,6 @@ export function createOutbox(deps: OutboxDeps): Outbox {
     },
     get dead() {
       return dead
-    },
-    get inFlightCount() {
-      return inFlight.length
     },
     get queued() {
       return pending.length + inFlight.length

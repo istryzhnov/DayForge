@@ -7,13 +7,17 @@ export const SYNC_TABLE = {
   DAILY_TASKS: 'daily_tasks',
   TIME_ENTRIES: 'time_entries',
   SETTINGS: 'settings',
+  ACTIVE_TIMER: 'active_timer',
 } as const
 
 export type TableName = (typeof SYNC_TABLE)[keyof typeof SYNC_TABLE]
 
 export const SYNC_TABLES: TableName[] = Object.values(SYNC_TABLE)
 
-export const OPTIONAL_SYNC_TABLES: TableName[] = [SYNC_TABLE.SETTINGS]
+export const OPTIONAL_SYNC_TABLES: TableName[] = [
+  SYNC_TABLE.SETTINGS,
+  SYNC_TABLE.ACTIVE_TIMER,
+]
 
 /** A row as it travels: the app's own shape plus the stamps sync needs. */
 export interface SyncedRow {

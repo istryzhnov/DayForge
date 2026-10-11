@@ -38,6 +38,8 @@ export interface SyncMeta {
   /** Accounts whose first-login merge has already happened. */
   migrated: string[]
   localDirty?: boolean
+  /** The account the pending queue was built for. */
+  queueOwner?: string
 }
 
 export interface MetaPersistence {
@@ -175,6 +177,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       return
     }
 
+    claimQueue(deps.userId() as string)
     restampUnstamped(shadow, result.changes, result.shadow)
     shadows.set(collection.table, result.shadow)
 
@@ -192,6 +195,20 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         typeof updatedAt === 'string' ? updatedAt : new Date(deps.now()).toISOString(),
       )
     })
+  }
+
+  /**
+   * A queue left by another account never reaches this one. The local rows
+   * still hold those edits, so a full merge on the next pull settles them.
+   */
+  function claimQueue(userId: string) {
+    if (meta.queueOwner === userId) return
+    if (meta.queueOwner !== undefined && outbox.pending.length > 0) {
+      outbox.pending.forEach((mutation) => outbox.drop(mutation.table, mutation.rowId))
+      meta = { ...meta, localDirty: true }
+    }
+    meta = { ...meta, queueOwner: userId }
+    persistMeta()
   }
 
   function previousStamp(serialised: string | undefined): unknown {
@@ -436,6 +453,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     if (!deps.isOnline()) return
 
     deps.tombstones.sweep()
+    claimQueue(userId)
 
     if (meta.migrated.includes(userId)) {
       collections.forEach(syncCollection)
@@ -456,10 +474,15 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
       if (remoteCount > 0 && localCount > 0) {
         // Both sides have history. Quietly keep a copy before merging them.
-        await deps.snapshots.save(
-          'Before the first merge with this account',
-          deps.buildBackup(),
-        )
+        // A full storage must not hold the account's sync hostage.
+        try {
+          await deps.snapshots.save(
+            'Before the first merge with this account',
+            deps.buildBackup(),
+          )
+        } catch (error) {
+          console.warn('Pre-merge snapshot failed', error)
+        }
       }
 
       deps.tombstones.merge(remote.tombstones)
@@ -478,6 +501,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       })
 
       meta = {
+        ...meta,
         localDirty: false,
         cursors:
           remote.cursor === null
@@ -500,7 +524,6 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     await outbox.flush()
   }
 
-  /** Signing out leaves the local data alone; only the account's queue goes. */
   async function sync(): Promise<void> {
     if (deps.userId() === null || deps.transport() === null) return
     if (!gateOpen) {
@@ -511,6 +534,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     await outbox.flush()
   }
 
+  /** Signing out leaves the local data and the queue alone; the next sign-in decides. */
   function onSignedOut() {
     gateOpen = false
     outbox.cancelScheduledFlush()

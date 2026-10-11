@@ -229,6 +229,10 @@ export function createSupabaseTransport(
     return results
   }
 
+  function quoteFilter(value: string): string {
+    return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+  }
+
   async function pullTable(
     table: TableName,
     userId: string,
@@ -237,15 +241,26 @@ export function createSupabaseTransport(
     const collected: SyncedRow[] = []
     let cursor: string | null = null
 
-    for (let page = 0; ; page += 1) {
+    let last: StoredRow | null = null
+
+    for (;;) {
       let query = client
         .from(table)
         .select('id, updated_at, data')
         .eq('user_id', userId)
         .order('updated_at', { ascending: true })
-        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+        .order('id', { ascending: true })
+        .limit(PAGE_SIZE)
 
-      if (since !== null) query = query.gt('updated_at', since)
+      // Keyset paging: offsets shift when a row changes mid-pull and skip rows.
+      if (last !== null) {
+        const at = quoteFilter(last.updated_at)
+        query = query.or(
+          `updated_at.gt.${at},and(updated_at.eq.${at},id.gt.${quoteFilter(last.id)})`,
+        )
+      } else if (since !== null) {
+        query = query.gt('updated_at', since)
+      }
 
       const { data, error } = await query
       if (error) {
@@ -266,6 +281,7 @@ export function createSupabaseTransport(
       })
 
       if (rows.length < PAGE_SIZE) break
+      last = rows[rows.length - 1]
     }
 
     return { rows: collected, cursor }
@@ -275,17 +291,29 @@ export function createSupabaseTransport(
     userId: string,
     since: string | null,
   ): Promise<{ tombstones: Tombstone[]; cursor: string | null }> {
-    let query = client
-      .from(DELETIONS_TABLE)
-      .select('table_name, row_id, deleted_at, synced_at')
-      .eq('user_id', userId)
+    const fetched: StoredDeletion[] = []
 
-    if (since !== null) query = query.gt('synced_at', since)
+    for (let page = 0; ; page += 1) {
+      let query = client
+        .from(DELETIONS_TABLE)
+        .select('table_name, row_id, deleted_at, synced_at')
+        .eq('user_id', userId)
+        .order('synced_at', { ascending: true })
+        .order('table_name', { ascending: true })
+        .order('row_id', { ascending: true })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
-    const { data, error } = await query
-    if (error) throw new Error(errorMessage(error))
+      if (since !== null) query = query.gt('synced_at', since)
 
-    const stored = ((data ?? []) as StoredDeletion[]).filter((row) =>
+      const { data, error } = await query
+      if (error) throw new Error(errorMessage(error))
+
+      const rows = (data ?? []) as StoredDeletion[]
+      fetched.push(...rows)
+      if (rows.length < PAGE_SIZE) break
+    }
+
+    const stored = fetched.filter((row) =>
       (SYNC_TABLES as string[]).includes(row.table_name),
     )
 

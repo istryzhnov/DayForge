@@ -20,9 +20,10 @@ export function getSupabase(): SupabaseClient | null {
       // The session is kept so a reload does not ask for Google again.
       persistSession: true,
       autoRefreshToken: true,
-      // There is no router: the tokens arrive in the URL and are cleared from
-      // it here, leaving the single page exactly where it started.
+      // There is no router: a one-time code arrives in the URL and is swapped
+      // for a session here, so tokens never sit in the address bar or history.
       detectSessionInUrl: true,
+      flowType: 'pkce',
       storageKey: 'dayforge-auth-v1',
     },
   })

@@ -9,40 +9,44 @@
  * It touches no browser API and no network, so it runs in plain node.
  */
 import { ref, type Ref } from 'vue'
-import { createSyncEngine, type SyncCollection } from './engine'
+import { createSyncEngine, type SyncCollection } from '../../src/sync/engine'
 import {
   createFakeServer,
   createFakeTransport,
+  createMemorySnapshotBackend,
   serverCount,
   serverHas,
   serverRow,
   type FakeServer,
 } from './fakeTransport'
-import { diffRows, snapshotRows, stableStringify } from './diff'
-import { createOutbox } from './outbox'
+import { diffRows, snapshotRows, stableStringify } from '../../src/sync/diff'
+import { createOutbox } from '../../src/sync/outbox'
 import {
   indexTombstones,
   mergeCollection,
   mergeIncoming,
   mergeRow,
-} from './merge'
+} from '../../src/sync/merge'
 import {
   addTombstones,
   makeTombstones,
   partitionLive,
   restampForRestore,
   sweepTombstones,
-} from './tombstoneRules'
-import { carryOpenTasksForward } from '../composables/goalSpace/dailyTasks'
-import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
-import { createMemorySnapshotBackend, createSnapshotStore } from './snapshots'
+} from '../../src/sync/tombstoneRules'
+import { carryOpenTasksForward } from '../../src/composables/goalSpace/dailyTasks'
+import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
+import { createSnapshotStore } from '../../src/sync/snapshots'
+import { createIdleTimer } from '../../src/composables/timer/machine'
+import { mustRecordBeforeAdopting } from '../../src/composables/timer/remote'
+import { TIMER_STATUS } from '../../src/entities/constants'
 import {
   SYNC_TABLE,
   type Mutation,
   type SyncedRow,
   type TableName,
   type Tombstone,
-} from './types'
+} from '../../src/sync/types'
 
 let failures = 0
 let checks = 0
@@ -523,10 +527,12 @@ interface Device {
   templates: Ref<SyncedRow[]>
   rows: Ref<SyncedRow[]>
   entries: Ref<SyncedRow[]>
+  timer: Ref<SyncedRow[]>
   engine: ReturnType<typeof createSyncEngine>
   tombstones: ReturnType<typeof createMemoryTombstones>
   online: { value: boolean }
   signedIn: { value: boolean }
+  account: { value: string }
   failing: { value: boolean }
   snapshots: ReturnType<typeof createSnapshotStore>
   backend: ReturnType<typeof createMemorySnapshotBackend>
@@ -537,8 +543,10 @@ function createDevice(name: string, server: FakeServer, userId: string): Device 
   const templates = ref<SyncedRow[]>([])
   const rows = ref<SyncedRow[]>([])
   const entries = ref<SyncedRow[]>([])
+  const timer = ref<SyncedRow[]>([])
   const online = { value: true }
   const signedIn = { value: true }
+  const account = { value: userId }
   const failing = { value: false }
   const tombstones = createMemoryTombstones()
   const backend = createMemorySnapshotBackend()
@@ -581,11 +589,19 @@ function createDevice(name: string, server: FakeServer, userId: string): Device 
         entries.value = next
       },
     },
+    {
+      table: SYNC_TABLE.ACTIVE_TIMER,
+      track: () => timer.value,
+      read: () => timer.value,
+      write: (next) => {
+        timer.value = next
+      },
+    },
   ]
 
   const engine = createSyncEngine({
     transport: () => transport,
-    userId: () => (signedIn.value ? userId : null),
+    userId: () => (signedIn.value ? account.value : null),
     isSignedOut: () => !signedIn.value,
     now: () => Date.now(),
     setTimer: (fn, ms) => setTimeout(fn, ms),
@@ -617,10 +633,12 @@ function createDevice(name: string, server: FakeServer, userId: string): Device 
     templates,
     rows,
     entries,
+    timer,
     engine,
     tombstones,
     online,
     signedIn,
+    account,
     failing,
     snapshots,
     backend,
@@ -890,26 +908,26 @@ async function verifyTwoDevices() {
   )
   check(
     'the phone ends up with both projects',
-    (phone.goals.value).length === 2,
+    phone.goals.value.length === 2,
     phone.goals.value,
   )
   check('and the server has both', serverCount(server, SYNC_TABLE.GOALS) === 2)
   check(
     'the phone also received the laptop day row',
-    (phone.rows.value).length === 1,
+    phone.rows.value.length === 1,
   )
 
   await laptop.engine.pull()
   check(
     'the laptop picks up the project made on the phone',
-    (laptop.goals.value).length === 2,
+    laptop.goals.value.length === 2,
   )
 
   // The same day row, edited differently on each device while both are offline.
   laptop.online.value = false
   phone.online.value = false
 
-  const laptopRow = (laptop.rows.value).find(
+  const laptopRow = laptop.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
   if (laptopRow) {
@@ -919,7 +937,7 @@ async function verifyTwoDevices() {
     laptopRow.fieldsAt = { status: iso(7000) }
   }
 
-  const phoneRow = (phone.rows.value).find(
+  const phoneRow = phone.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
   if (phoneRow) {
@@ -941,7 +959,7 @@ async function verifyTwoDevices() {
   await phone.engine.pull()
   await laptop.engine.pull()
 
-  const settled = (laptop.rows.value).find(
+  const settled = laptop.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
   check('the tick made on the laptop survived', settled?.status === 'done', settled)
@@ -951,7 +969,7 @@ async function verifyTwoDevices() {
   // has to reach the server before the phone can see it.
   await laptop.engine.flush()
   await phone.engine.pull()
-  const onPhone = (phone.rows.value).find(
+  const onPhone = phone.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
   check('both devices agree on the result', onPhone?.status === 'done' && onPhone?.startTime === '14:00', onPhone)
@@ -960,10 +978,10 @@ async function verifyTwoDevices() {
   const deletedAt = iso(9000)
   laptop.tombstones.bury(
     SYNC_TABLE.TASK_TEMPLATES,
-    (laptop.templates.value).filter((row) => row.id === 'task-report'),
+    laptop.templates.value.filter((row) => row.id === 'task-report'),
     deletedAt,
   )
-  laptop.templates.value = (laptop.templates.value).filter(
+  laptop.templates.value = laptop.templates.value.filter(
     (row) => row.id !== 'task-report',
   )
   await settle()
@@ -977,14 +995,14 @@ async function verifyTwoDevices() {
   await phone.engine.pull()
   check(
     'the other device drops the deleted task',
-    (phone.templates.value).some((row) => row.id === 'task-report') === false,
+    phone.templates.value.some((row) => row.id === 'task-report') === false,
     phone.templates.value,
   )
 
   await laptop.engine.pull()
   check(
     'and the deleting device is not handed it back',
-    (laptop.templates.value).some((row) => row.id === 'task-report') === false,
+    laptop.templates.value.some((row) => row.id === 'task-report') === false,
     laptop.templates.value,
   )
 
@@ -1014,7 +1032,7 @@ async function verifyTwoDevices() {
   await settle()
   await laptop.engine.flush()
   await phone.engine.pull()
-  check('history reaches the other device', (phone.entries.value).length === 1)
+  check('history reaches the other device', phone.entries.value.length === 1)
 
   const snapshots = await phone.snapshots.list()
   check('the snapshot is retrievable for a restore', snapshots.length === 1)
@@ -1193,6 +1211,172 @@ async function verifyEverydayRoutine() {
   )
 }
 
+async function verifyAccountSwitch() {
+  section('Another account on the same device')
+
+  const server = createFakeServer()
+  const laptop = createDevice('laptop', server, 'user-a')
+  await laptop.engine.sync()
+
+  laptop.online.value = false
+  laptop.goals.value = [
+    { id: 'goal-a', title: 'Account A, offline', updatedAt: new Date().toISOString() },
+  ]
+  await settle()
+  check('the offline edit waits in the queue', laptop.engine.status.value.queued === 1)
+
+  laptop.signedIn.value = false
+  laptop.engine.onSignedOut()
+  check('signing out keeps the queue', laptop.engine.status.value.queued === 1)
+
+  laptop.account.value = 'user-b'
+  laptop.signedIn.value = true
+  laptop.goals.value = [
+    ...laptop.goals.value,
+    { id: 'goal-b', title: 'Account B, offline', updatedAt: new Date().toISOString() },
+  ]
+  await settle()
+  check(
+    "the next account starts its own queue",
+    laptop.engine.status.value.queued === 1 &&
+      laptop.engine.outbox.pending.every((mutation) => mutation.rowId === 'goal-b'),
+    laptop.engine.outbox.pending,
+  )
+
+  laptop.online.value = true
+  await laptop.engine.sync()
+  check(
+    'the local rows still reach the server through the merge',
+    serverHas(server, SYNC_TABLE.GOALS, 'goal-a') &&
+      serverHas(server, SYNC_TABLE.GOALS, 'goal-b'),
+  )
+}
+
+async function verifyActiveTimer() {
+  section('The running timer follows you between devices')
+
+  const server = createFakeServer()
+  const laptop = createDevice('laptop', server, 'user-timer')
+  const phone = createDevice('phone', server, 'user-timer')
+  await laptop.engine.sync()
+  await phone.engine.sync()
+
+  const startedAt = Date.now()
+  laptop.timer.value = [
+    {
+      id: 'active-timer',
+      sessionId: 'session-1',
+      mode: 'stopwatch',
+      status: TIMER_STATUS.RUNNING,
+      startedAt,
+      accumulatedMs: 0,
+      completedFocusCount: 0,
+      closedSessionId: '',
+      updatedAt: new Date().toISOString(),
+    },
+  ]
+  await settle()
+  await phone.engine.sync()
+  check(
+    'a timer started on the laptop is running on the phone',
+    phone.timer.value[0]?.status === TIMER_STATUS.RUNNING &&
+      phone.timer.value[0]?.startedAt === startedAt,
+    phone.timer.value,
+  )
+
+  await new Promise((resolve) => setTimeout(resolve, 2))
+  phone.timer.value = [
+    {
+      ...phone.timer.value[0],
+      status: TIMER_STATUS.PAUSED,
+      startedAt: null,
+      accumulatedMs: 1000,
+      updatedAt: new Date().toISOString(),
+    },
+  ]
+  await settle()
+  await laptop.engine.sync()
+  check(
+    'pausing on the phone pauses it on the laptop',
+    laptop.timer.value[0]?.status === TIMER_STATUS.PAUSED,
+    laptop.timer.value,
+  )
+
+  const tablet = createDevice('tablet', server, 'user-timer')
+  tablet.timer.value = [
+    {
+      id: 'active-timer',
+      ...createIdleTimer(),
+      closedSessionId: '',
+    },
+  ]
+  await settle()
+  await tablet.engine.sync()
+  check(
+    "a fresh device's idle timer does not stop the paused one",
+    tablet.timer.value[0]?.status === TIMER_STATUS.PAUSED &&
+      serverRow(server, SYNC_TABLE.ACTIVE_TIMER, 'active-timer')?.status ===
+        TIMER_STATUS.PAUSED,
+    tablet.timer.value,
+  )
+
+  section('Who records a sitting when devices disagree')
+
+  const running = {
+    ...createIdleTimer(),
+    sessionId: 'mine',
+    status: TIMER_STATUS.RUNNING,
+    startedAt: Date.now(),
+  }
+  check(
+    'the other device carrying on with the same sitting: nothing to record',
+    !mustRecordBeforeAdopting(running, { ...running, status: TIMER_STATUS.PAUSED }, ''),
+  )
+  check(
+    'the other device stopped this sitting: it already recorded it',
+    !mustRecordBeforeAdopting(running, createIdleTimer(), 'mine'),
+  )
+  check(
+    'the other device started a rival sitting: record ours first',
+    mustRecordBeforeAdopting(running, { ...running, sessionId: 'theirs' }, ''),
+  )
+  check(
+    'nothing running here: just adopt',
+    !mustRecordBeforeAdopting(createIdleTimer(), { ...running, sessionId: 'theirs' }, ''),
+  )
+
+  section('A countdown that ran out on both devices')
+
+  const stretch = {
+    id: 'entry-session-2-1700000000000',
+    sessionId: 'session-2',
+    startedAt: new Date(1_700_000_000_000).toISOString(),
+    endedAt: new Date(1_700_001_500_000).toISOString(),
+    mode: 'countdown',
+    source: 'timer',
+  }
+  laptop.entries.value = [
+    ...laptop.entries.value,
+    { ...stretch, updatedAt: new Date().toISOString() },
+  ]
+  phone.entries.value = [
+    ...phone.entries.value,
+    { ...stretch, updatedAt: new Date().toISOString() },
+  ]
+  await settle()
+  await laptop.engine.sync()
+  await phone.engine.sync()
+  await laptop.engine.sync()
+  const copies = (list: SyncedRow[]) => list.filter((row) => row.id === stretch.id).length
+  check(
+    'it is recorded once, not twice',
+    serverCount(server, SYNC_TABLE.TIME_ENTRIES) === 1 &&
+      copies(laptop.entries.value) === 1 &&
+      copies(phone.entries.value) === 1,
+    { server: serverCount(server, SYNC_TABLE.TIME_ENTRIES) },
+  )
+}
+
 async function verifySnapshotRetention() {
   section('Snapshot retention')
 
@@ -1221,6 +1405,8 @@ async function main() {
   verifyCarryForward()
   await verifyTwoDevices()
   await verifyEverydayRoutine()
+  await verifyAccountSwitch()
+  await verifyActiveTimer()
   await verifySnapshotRetention()
 
   console.log(`\n${checks - failures}/${checks} checks passed`)

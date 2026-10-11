@@ -1,4 +1,6 @@
 node_modules
 dist
-.git
-npm-debug.log
+.verify-out
+.env
+.env.*
+*.local

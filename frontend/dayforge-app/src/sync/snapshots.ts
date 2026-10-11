@@ -21,8 +21,6 @@ export const SNAPSHOT_KEEP = 3
 export interface SnapshotStore {
   save(reason: string, payload: unknown): Promise<SnapshotRecord | null>
   list(): Promise<SnapshotRecord[]>
-  get(id: string): Promise<SnapshotRecord | null>
-  remove(id: string): Promise<void>
 }
 
 export function createSnapshotStore(backend: SnapshotBackend): SnapshotStore {
@@ -57,20 +55,7 @@ export function createSnapshotStore(backend: SnapshotBackend): SnapshotStore {
     }
   }
 
-  async function get(id: string) {
-    const all = await list()
-    return all.find((record) => record.id === id) ?? null
-  }
-
-  async function remove(id: string) {
-    try {
-      await backend.remove(id)
-    } catch {
-      // Nothing useful to do.
-    }
-  }
-
-  return { save, list, get, remove }
+  return { save, list }
 }
 
 const DB_NAME = 'dayforge-sync'
@@ -131,21 +116,4 @@ export const indexedDbSnapshotBackend: SnapshotBackend = {
   async remove(id) {
     await runTransaction('readwrite', (store) => store.delete(id))
   },
-}
-
-/** Used where there is no IndexedDB, and by the tests. */
-export function createMemorySnapshotBackend(): SnapshotBackend {
-  let records: SnapshotRecord[] = []
-
-  return {
-    async put(record) {
-      records = [record, ...records.filter((item) => item.id !== record.id)]
-    },
-    async list() {
-      return [...records].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
-    },
-    async remove(id) {
-      records = records.filter((record) => record.id !== id)
-    },
-  }
 }

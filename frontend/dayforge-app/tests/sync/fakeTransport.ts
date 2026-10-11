@@ -1,4 +1,5 @@
-import type { ID } from '../entities/types'
+import type { ID } from '../../src/entities/types'
+import type { SnapshotBackend, SnapshotRecord } from '../../src/sync/snapshots'
 import {
   SYNC_TABLES,
   type Mutation,
@@ -8,7 +9,7 @@ import {
   type SyncTransport,
   type TableName,
   type Tombstone,
-} from './types'
+} from '../../src/sync/types'
 
 /** What the server keeps: the row, plus its own stamp for the pull cursor. */
 interface StoredRow {
@@ -191,6 +192,22 @@ export function createFakeTransport(
         })),
         cursor,
       }
+    },
+  }
+}
+
+export function createMemorySnapshotBackend(): SnapshotBackend {
+  let records: SnapshotRecord[] = []
+
+  return {
+    async put(record) {
+      records = [record, ...records.filter((item) => item.id !== record.id)]
+    },
+    async list() {
+      return [...records].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    },
+    async remove(id) {
+      records = records.filter((record) => record.id !== id)
     },
   }
 }
