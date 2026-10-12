@@ -64,6 +64,7 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
   })
 
   function openContextMenu(event: MouseEvent) {
+    if (isCoarsePointer.value) return
     contextMenuPos.value = { x: event.clientX, y: event.clientY }
   }
 

@@ -175,6 +175,7 @@
 
 .task-row.is-draggable {
   cursor: grab;
+  -webkit-touch-callout: none;
 }
 
 .task-row.is-dragging {
@@ -499,6 +500,56 @@ body.is-dragging-task {
   height: 1px;
   background: var(--line);
   margin: 4px 0;
+}
+
+.task-context-menu__more {
+  gap: 2px;
+}
+
+.task-context-menu__more > .disclosure__summary {
+  justify-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: calc(8px * var(--radius-scale));
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 400;
+  color: var(--text);
+}
+
+.task-context-menu__more > .disclosure__summary:hover {
+  background: color-mix(in srgb, var(--panel-soft) 90%, transparent);
+}
+
+.task-context-menu__more > .disclosure__summary:focus-visible {
+  outline-offset: -2px;
+  border-radius: calc(8px * var(--radius-scale));
+}
+
+.task-context-menu__more > .disclosure__summary::before {
+  display: none;
+}
+
+.task-context-menu__more > .disclosure__summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.task-context-menu__more[open] > .disclosure__summary::after {
+  transform: rotate(-135deg);
+}
+
+.task-context-menu__more > .disclosure__body {
+  gap: 2px;
+  padding-left: 12px;
 }
 
 /* Shared "checkbox reveals a panel" block, used by the schedule fields and the
@@ -842,6 +893,13 @@ body.is-dragging-task {
   /* Comfortable tap targets in the long-press menu. */
   .task-context-menu__item {
     padding: 12px 12px;
+    font-size: calc(14px * var(--text-scale));
+  }
+
+  .task-context-menu__more > .disclosure__summary {
+    min-height: 40px;
+    padding: 12px 12px;
+    box-sizing: border-box;
     font-size: calc(14px * var(--text-scale));
   }
 
