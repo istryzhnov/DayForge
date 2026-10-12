@@ -33,7 +33,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'select-goal', goalId: ID | null): void
-  (e: 'create-goal', title: string, description: string): void
+  (e: 'create-goal', title: string, description: string, color: string): void
   (e: 'select-view', view: ActiveView): void
   (e: 'toggle-notifications'): void
   (e: 'delete-goal', goalId: ID): void
@@ -59,7 +59,8 @@ const {
     emit('select-goal', goalId)
     closeMobileNav()
   },
-  onCreateGoal: (title, description) => emit('create-goal', title, description),
+  onCreateGoal: (title, description, color) =>
+    emit('create-goal', title, description, color),
   onDeleteGoal: (goalId) => emit('delete-goal', goalId),
 })
 
@@ -243,7 +244,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
 
     <TimerWidget @open-timer="chooseView('timer')" />
     <div class="sidebar-actions">
-      <button @click="openNewGoalForm" class="btn btn-primary">New Goal</button>
+      <button @click="openNewGoalForm" class="btn btn-primary">New Project</button>
       <NewGoalComponent
         v-if="showNewGoalForm"
         @submit="createGoal"

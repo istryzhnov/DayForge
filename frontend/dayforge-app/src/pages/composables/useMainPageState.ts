@@ -241,7 +241,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
   }
 
-  function handleCreateGoal(title: string, description: string) {
+  function handleCreateGoal(title: string, description: string, color: string) {
     const now = new Date().toISOString()
     goalSpace.createGoal({
       id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -250,6 +250,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       status: GOAL_STATUS.ACTIVE,
       createdAt: now,
       updatedAt: now,
+      theme: { accent: color },
     })
   }
 

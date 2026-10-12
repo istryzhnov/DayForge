@@ -164,10 +164,6 @@
     visibility: visible;
   }
 
-  .app-sidebar:has(.new-goal-modal) {
-    z-index: 1500;
-  }
-
   :root[data-motion='reduced'] .app-sidebar,
   :root[data-motion='reduced'] .mobile-nav-backdrop-enter-active,
   :root[data-motion='reduced'] .mobile-nav-backdrop-leave-active {

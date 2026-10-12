@@ -10,7 +10,7 @@ type SidebarProps = {
 
 type SidebarActions = {
   onSelectGoal: (goalId: ID | null) => void
-  onCreateGoal: (title: string, description: string) => void
+  onCreateGoal: (title: string, description: string, color: string) => void
   onDeleteGoal: (goalId: ID) => void
 }
 
@@ -73,8 +73,8 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     actions.onSelectGoal(goalId)
   }
 
-  function createGoal(title: string, description: string) {
-    actions.onCreateGoal(title, description)
+  function createGoal(title: string, description: string, color: string) {
+    actions.onCreateGoal(title, description, color)
     closeNewGoalForm()
   }
 
