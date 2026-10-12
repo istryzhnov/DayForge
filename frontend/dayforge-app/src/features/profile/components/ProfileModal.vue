@@ -12,8 +12,7 @@ const {
   status,
   initial,
   avatarUrl,
-  stateLabel,
-  lastSynced,
+  syncSummary,
   failures,
   signIn,
   signOut,
@@ -116,17 +115,17 @@ const {
         </div>
 
         <div class="profile-sync" :class="`is-${status.state}`">
-          <span class="profile-sync__dot" aria-hidden="true"></span>
-          <span class="profile-sync__text">
-            <strong>{{ stateLabel }}</strong>
-            <span>last saved {{ lastSynced }}</span>
-          </span>
+          <span
+            class="sync-dot profile-sync__dot"
+            :class="`is-${status.state}`"
+            aria-hidden="true"
+          ></span>
+          <span class="profile-sync__text">{{ syncSummary }}</span>
         </div>
 
         <p v-if="status.queued > 0" class="settings-group-hint">
-          {{ status.queued }} change{{ status.queued === 1 ? '' : 's' }} still
-          to go up. Nothing is lost while they wait — they are stored here and
-          sent when they can be.
+          Nothing is lost while they wait. They are stored here and sent once
+          there is a connection.
         </p>
 
         <div v-if="failures.length > 0" class="account-failures">

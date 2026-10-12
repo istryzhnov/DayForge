@@ -17,24 +17,9 @@ export function useProfile() {
 
   const avatarUrl = computed(() => auth.user.value?.avatarUrl ?? null)
 
-  const stateLabel = computed(() => {
-    switch (status.value.state) {
-      case 'off':
-        return 'Not syncing'
-      case 'syncing':
-        return 'Saving…'
-      case 'offline':
-        return 'Offline'
-      case 'error':
-        return 'Needs a look'
-      default:
-        return 'Up to date'
-    }
-  })
-
   const lastSynced = computed(() => {
     const at = status.value.lastSyncedAt
-    if (!at) return 'not yet'
+    if (!at) return null
     return new Date(at).toLocaleString(locale.value, {
       day: 'numeric',
       month: 'short',
@@ -44,6 +29,23 @@ export function useProfile() {
     })
   })
 
+  const syncSummary = computed(() => {
+    const { state, queued, deadLettered } = status.value
+    switch (state) {
+      case 'off':
+        return 'Not syncing'
+      case 'syncing':
+        return 'Syncing…'
+      case 'offline':
+        if (queued === 0) return 'Offline'
+        return `Offline · ${queued} ${queued === 1 ? 'change' : 'changes'} waiting`
+      case 'error':
+        return `Sync error · ${deadLettered} refused`
+      default:
+        return lastSynced.value ? `Synced · ${lastSynced.value}` : 'Synced'
+    }
+  })
+
   const failures = computed(() => {
     void status.value.deadLettered
     return sync.deadLetters()
@@ -51,7 +53,7 @@ export function useProfile() {
 
   const triggerTitle = computed(() => {
     if (!auth.isSignedIn.value) return 'Profile · signed out'
-    return `${auth.displayName.value} · ${stateLabel.value}`
+    return `${auth.displayName.value} · ${syncSummary.value}`
   })
 
   const logCopied = ref(false)
@@ -84,8 +86,7 @@ export function useProfile() {
     status,
     initial,
     avatarUrl,
-    stateLabel,
-    lastSynced,
+    syncSummary,
     failures,
     triggerTitle,
     signIn,

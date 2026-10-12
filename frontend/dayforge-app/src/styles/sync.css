@@ -9,7 +9,6 @@
 .sync-status__body {
   display: flex;
   align-items: center;
-  gap: 7px;
   width: 100%;
   padding: 5px 8px;
   border: 1px solid transparent;
@@ -31,46 +30,36 @@ button.sync-status__body:focus-visible {
   color: var(--text);
 }
 
-.sync-status__dot {
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--muted);
-}
-
 .sync-status__label {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.sync-status__count {
-  margin-left: auto;
-  padding: 1px 6px;
-  border-radius: 50px;
-  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
-  font-variant-numeric: tabular-nums;
-}
-
-/* Working: a slow pulse, never a spinner — it is not worth that much attention. */
-.sync-status.is-syncing .sync-status__dot {
-  background: var(--accent);
-  animation: sync-pulse 1.4s ease-in-out infinite;
-}
-
-.sync-status.is-offline .sync-status__dot {
-  background: var(--muted);
-  box-shadow: inset 0 0 0 1px var(--line);
-}
-
-/* The one state worth noticing, because retrying will not clear it. */
 .sync-status.is-error .sync-status__body {
   color: var(--danger);
 }
 
-.sync-status.is-error .sync-status__dot {
+/* The one state every surface shows the same way: a neutral dot while all is
+   well, orange when changes are waiting on a connection, red when the server
+   refused something. Sizing and placement belong to whichever surface holds it. */
+.sync-dot {
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.sync-dot.is-offline {
+  background: var(--major);
+}
+
+.sync-dot.is-error {
   background: var(--danger);
+}
+
+/* Working: a slow pulse that only starts after a couple of seconds, so a quick
+   save never makes anything blink. */
+.sync-dot.is-syncing {
+  animation: sync-pulse 1.4s ease-in-out 2s infinite;
 }
 
 @keyframes sync-pulse {
@@ -83,9 +72,14 @@ button.sync-status__body:focus-visible {
   }
 }
 
-:root[data-motion='reduced'] .sync-status.is-syncing .sync-status__dot {
+@media (prefers-reduced-motion: reduce) {
+  .sync-dot.is-syncing {
+    animation: none;
+  }
+}
+
+:root[data-motion='reduced'] .sync-dot.is-syncing {
   animation: none;
-  opacity: 0.8;
 }
 
 /* --- Account section in settings ------------------------------------- */
