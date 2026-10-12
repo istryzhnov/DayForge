@@ -1,5 +1,6 @@
 import type { ID, ISODateTime } from '../entities/types'
 import type { SyncedRow, TableName, Tombstone } from './types'
+import { DAILY_FIELD_GROUPS } from './merge'
 
 /**
  * How long a deletion is remembered. It has to outlive any plausible stretch
@@ -60,12 +61,35 @@ export function removeTombstone(
 /**
  * A row coming back from an undo needs a stamp newer than its own burial, or
  * the next merge would read the deletion as the later word and bury it again.
- * Per-field stamps are dropped so every field falls back to the fresh one.
+ * Per-field stamps fall back to that fresh one, except group stamps this build
+ * does not know: those mean a newer build wrote the row, so every group is
+ * stamped with the same moment and the restore wins each of them.
  */
 export function restampForRestore(row: SyncedRow): SyncedRow {
-  const restored: SyncedRow = { ...row, updatedAt: new Date().toISOString() }
+  const now = new Date().toISOString()
+  const restored: SyncedRow = { ...row, updatedAt: now }
   delete restored.deletedAt
-  delete restored.fieldsAt
+
+  const known = Object.values(DAILY_FIELD_GROUPS) as string[]
+  const stamps = row.fieldsAt
+  const unknown =
+    typeof stamps === 'object' && stamps !== null
+      ? Object.keys(stamps).filter((group) => !known.includes(group))
+      : []
+
+  if (unknown.length === 0) {
+    delete restored.fieldsAt
+    return restored
+  }
+
+  const fresh: Record<string, string> = {}
+  known.forEach((group) => {
+    fresh[group] = now
+  })
+  unknown.forEach((group) => {
+    fresh[group] = now
+  })
+  restored.fieldsAt = fresh
   return restored
 }
 

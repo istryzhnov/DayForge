@@ -3,19 +3,17 @@ import { readJson, writeJson } from '../lib/storage'
 import { stableStringify } from '../sync/diff'
 import type { SyncCollection } from '../sync/engine'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
+import {
+  heldFromRow,
+  isPlainObject,
+  SYNCED_SECTIONS,
+  withHeld,
+  type SyncedSection,
+} from './settingsRow'
 
 const SETTINGS_SYNC_STORAGE_KEY = 'dayforge-settings-sync-v1'
+const SETTINGS_HELD_STORAGE_KEY = 'dayforge-settings-sync-held-v1'
 const SETTINGS_ROW_ID = 'settings'
-
-const SYNCED_SECTIONS = [
-  'notifications',
-  'calendar',
-  'behavior',
-  'format',
-  'timer',
-] as const satisfies ReadonlyArray<keyof AppSettings>
-
-type SyncedSection = (typeof SYNCED_SECTIONS)[number]
 
 interface SettingsStamp {
   signature: string
@@ -37,6 +35,11 @@ function isStamp(value: unknown): value is SettingsStamp {
     typeof candidate.signature === 'string' &&
     (candidate.updatedAt === undefined || typeof candidate.updatedAt === 'string')
   )
+}
+
+function readHeld(): Record<string, unknown> {
+  const stored = readJson<unknown>(SETTINGS_HELD_STORAGE_KEY, null)
+  return isPlainObject(stored) ? stored : {}
 }
 
 export function createSettingsCollection(): SyncCollection {
@@ -64,7 +67,10 @@ export function createSettingsCollection(): SyncCollection {
       writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
     }
 
-    const row: SyncedRow = { id: SETTINGS_ROW_ID, ...payload }
+    const row: SyncedRow = {
+      id: SETTINGS_ROW_ID,
+      ...withHeld(payload, readHeld()),
+    }
     if (stamp.updatedAt !== undefined) row.updatedAt = stamp.updatedAt
     return [row]
   }
@@ -72,6 +78,11 @@ export function createSettingsCollection(): SyncCollection {
   function write(rows: SyncedRow[]) {
     const row = rows.find((item) => item.id === SETTINGS_ROW_ID)
     if (!row) return
+
+    writeJson(
+      SETTINGS_HELD_STORAGE_KEY,
+      heldFromRow(row, SYNCED_SECTIONS, DEFAULT_SETTINGS),
+    )
 
     SYNCED_SECTIONS.forEach((section) => {
       const value = row[section]

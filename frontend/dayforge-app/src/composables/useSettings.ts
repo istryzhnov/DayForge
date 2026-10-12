@@ -186,22 +186,31 @@ function asTime(value: unknown, fallback: TimeOfDay): TimeOfDay {
     : fallback
 }
 
-/** Stored settings are user-editable JSON, so every field is re-validated. */
+/** A section as stored, or nothing if it is not an object. */
+function asSection<T>(value: unknown): Partial<T> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Partial<T>)
+    : {}
+}
+
+/**
+ * Stored settings are user-editable JSON, so every known field is re-validated.
+ * Fields a newer version added are carried along untouched.
+ */
 function sanitize(input: unknown): AppSettings {
   const raw = (input ?? {}) as Partial<AppSettings>
   const defaults = DEFAULT_SETTINGS
 
-  const notifications = (raw.notifications ??
-    {}) as Partial<NotificationSettings>
-  const calendar = (raw.calendar ?? {}) as Partial<CalendarSettings>
-  const behavior = (raw.behavior ?? {}) as Partial<BehaviorSettings>
-  const format = (raw.format ?? {}) as Partial<FormatSettings>
-  const accessibility = (raw.accessibility ??
-    {}) as Partial<AccessibilitySettings>
-  const timer = (raw.timer ?? {}) as Partial<TimerSettings>
+  const notifications = asSection<NotificationSettings>(raw.notifications)
+  const calendar = asSection<CalendarSettings>(raw.calendar)
+  const behavior = asSection<BehaviorSettings>(raw.behavior)
+  const format = asSection<FormatSettings>(raw.format)
+  const accessibility = asSection<AccessibilitySettings>(raw.accessibility)
+  const timer = asSection<TimerSettings>(raw.timer)
 
   return {
     notifications: {
+      ...notifications,
       leadMinutes: clampNumber(
         notifications.leadMinutes,
         1,
@@ -230,6 +239,7 @@ function sanitize(input: unknown): AppSettings {
       quietTo: asTime(notifications.quietTo, defaults.notifications.quietTo),
     },
     calendar: {
+      ...calendar,
       snapMinutes: oneOf(
         calendar.snapMinutes,
         [5, 10, 15, 30, 60],
@@ -264,6 +274,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     behavior: {
+      ...behavior,
       startView: oneOf(
         behavior.startView,
         Object.values(START_VIEW),
@@ -294,6 +305,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     format: {
+      ...format,
       locale: oneOf(
         format.locale,
         LOCALE_OPTIONS.map((option) => option.id),
@@ -306,6 +318,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     accessibility: {
+      ...accessibility,
       textScale: clampNumber(
         accessibility.textScale,
         0.8,
@@ -322,6 +335,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     timer: {
+      ...timer,
       focusMinutes: clampNumber(
         timer.focusMinutes,
         1,
@@ -394,13 +408,32 @@ function assign(next: AppSettings) {
   settings.timer = next.timer
 }
 
+const KNOWN_SECTIONS: ReadonlyArray<string> = [
+  'notifications',
+  'calendar',
+  'behavior',
+  'format',
+  'accessibility',
+  'timer',
+]
+
+/** Sections a newer version stored, kept so this one does not erase them. */
+let unknownSections: Record<string, unknown> = {}
+
 function initialize() {
   if (initialized) return
   initialized = true
 
   try {
     const stored = readJson<unknown>(SETTINGS_STORAGE_KEY, null)
-    if (stored) assign(sanitize(stored))
+    if (stored) {
+      assign(sanitize(stored))
+      unknownSections = Object.fromEntries(
+        Object.entries(asSection<Record<string, unknown>>(stored)).filter(
+          ([key]) => !KNOWN_SECTIONS.includes(key),
+        ),
+      )
+    }
   } catch {
     // Malformed settings fall back to the defaults already in place.
   }
@@ -409,7 +442,7 @@ function initialize() {
     settings,
     () => {
       applyToDocument()
-      writeJson(SETTINGS_STORAGE_KEY, settings)
+      writeJson(SETTINGS_STORAGE_KEY, { ...unknownSections, ...settings })
     },
     { deep: true, immediate: true },
   )

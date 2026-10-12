@@ -1,4 +1,4 @@
-import { computed, ref, watch } from 'vue'
+import { computed, customRef, ref, watch } from 'vue'
 import type { ID } from '../entities/types'
 import type {
   TimeEntry,
@@ -14,6 +14,7 @@ import {
   entryFromDraft,
   groupByDay,
   sortByStart,
+  splitReadableEntries,
   totalForDay,
   totalForTaskOnDate,
   totalForTasks,
@@ -21,39 +22,58 @@ import {
 
 export const TIME_ENTRIES_STORAGE_KEY = 'dayforge-time-entries-v1'
 
-const entries = ref<TimeEntry[]>([])
-let initialized = false
+let unreadable: unknown[] = []
 
-/** Stored history is user-editable JSON, so unusable rows are dropped. */
-function sanitize(input: unknown): TimeEntry[] {
-  if (!Array.isArray(input)) return []
-
-  return input.filter((item): item is TimeEntry => {
-    if (typeof item !== 'object' || item === null) return false
-    const entry = item as Partial<TimeEntry>
-    return (
-      typeof entry.id === 'string' &&
-      typeof entry.startedAt === 'string' &&
-      typeof entry.endedAt === 'string' &&
-      !Number.isNaN(Date.parse(entry.startedAt)) &&
-      !Number.isNaN(Date.parse(entry.endedAt))
-    )
+function holdUnreadable(more: unknown[]) {
+  if (more.length === 0) return
+  const seen = new Set(unreadable.map((item) => JSON.stringify(item)))
+  more.forEach((item) => {
+    const key = JSON.stringify(item)
+    if (seen.has(key)) return
+    seen.add(key)
+    unreadable.push(item)
   })
 }
 
+const stored = ref<TimeEntry[]>([])
+
+const entries = customRef<TimeEntry[]>((track, trigger) => ({
+  get() {
+    track()
+    return stored.value
+  },
+  set(next) {
+    const split = splitReadableEntries(next)
+    const readableIds = new Set(split.readable.map((entry) => entry.id))
+    unreadable = unreadable.filter(
+      (item) =>
+        typeof item !== 'object' ||
+        item === null ||
+        !readableIds.has((item as { id?: string }).id ?? ''),
+    )
+    holdUnreadable(split.unreadable)
+    stored.value = split.readable
+    trigger()
+  },
+}))
+
+let initialized = false
+
 function persist() {
-  writeJson(TIME_ENTRIES_STORAGE_KEY, entries.value)
+  writeJson(TIME_ENTRIES_STORAGE_KEY, [...entries.value, ...unreadable])
 }
 
 function initialize() {
   if (initialized) return
   initialized = true
 
-  // Unusable rows are dropped outright; a row that is merely buried is taken
-  // out of the list *and* its burial recorded, so the deletion still travels.
+  const raw = readJson<unknown>(TIME_ENTRIES_STORAGE_KEY, [])
+  const split = splitReadableEntries(Array.isArray(raw) ? raw : [])
+  holdUnreadable(split.unreadable)
+
   entries.value = useTombstones().keepLive(
     SYNC_TABLE.TIME_ENTRIES,
-    sanitize(readJson<unknown>(TIME_ENTRIES_STORAGE_KEY, [])),
+    split.readable,
   )
 
   watch(entries, persist, { deep: true })
@@ -62,9 +82,12 @@ function initialize() {
   window.addEventListener('storage', (event) => {
     if (event.key !== TIME_ENTRIES_STORAGE_KEY) return
     try {
+      const parsed = JSON.parse(event.newValue ?? '[]')
+      const incoming = splitReadableEntries(Array.isArray(parsed) ? parsed : [])
+      holdUnreadable(incoming.unreadable)
       entries.value = useTombstones().keepLive(
         SYNC_TABLE.TIME_ENTRIES,
-        sanitize(JSON.parse(event.newValue ?? '[]')),
+        incoming.readable,
       )
     } catch {
       // Leave the in-memory history alone if the other tab wrote junk.
@@ -159,6 +182,7 @@ export function useTimeEntries() {
 
   return {
     entries,
+    heldEntries: () => [...unreadable],
     days,
     recent,
     todayTotalMs,

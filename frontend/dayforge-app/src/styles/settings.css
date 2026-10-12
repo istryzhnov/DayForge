@@ -538,6 +538,11 @@
   color: var(--danger);
 }
 
+.settings-message.is-warning {
+  background: color-mix(in srgb, var(--major) 14%, transparent);
+  color: var(--major);
+}
+
 /* --- colour field --------------------------------------------------------- */
 
 .color-field {

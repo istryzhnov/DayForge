@@ -28,6 +28,7 @@ import {
 import { MINUTE_MS, PHASE_LABELS } from './timer/pomodoro'
 import { mustRecordBeforeAdopting } from './timer/remote'
 import { formatDuration } from './timer/format'
+import { sanitizeActiveTimer } from './timer/sanitize'
 
 export const ACTIVE_TIMER_STORAGE_KEY = 'dayforge-timer-active-v1'
 
@@ -49,40 +50,6 @@ let initialized = false
 
 function timerSettings() {
   return useSettings().settings.timer
-}
-
-function sanitize(input: unknown): ActiveTimer {
-  if (typeof input !== 'object' || input === null) return createIdleTimer()
-
-  const raw = input as Partial<ActiveTimer>
-  const mode = Object.values(TIMER_MODE).includes(raw.mode as TimerMode)
-    ? (raw.mode as TimerMode)
-    : TIMER_MODE.STOPWATCH
-
-  if (!Object.values(TIMER_STATUS).includes(raw.status as ActiveTimer['status'])) {
-    return createIdleTimer(mode)
-  }
-
-  return {
-    sessionId: typeof raw.sessionId === 'string' ? raw.sessionId : '',
-    mode,
-    status: raw.status as ActiveTimer['status'],
-    startedAt: typeof raw.startedAt === 'number' ? raw.startedAt : null,
-    accumulatedMs:
-      typeof raw.accumulatedMs === 'number' && raw.accumulatedMs >= 0
-        ? raw.accumulatedMs
-        : 0,
-    durationMs:
-      typeof raw.durationMs === 'number' && raw.durationMs > 0
-        ? raw.durationMs
-        : undefined,
-    phase: raw.phase,
-    completedFocusCount:
-      typeof raw.completedFocusCount === 'number'
-        ? raw.completedFocusCount
-        : 0,
-    task: raw.task,
-  }
 }
 
 function notifyPhaseFinished(effects: TimerEffect[]) {
@@ -160,7 +127,7 @@ function initialize() {
   if (initialized) return
   initialized = true
 
-  timer.value = sanitize(readJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null))
+  timer.value = sanitizeActiveTimer(readJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null))
   unlockAudioOnFirstInteraction()
 
   watch(
@@ -174,7 +141,7 @@ function initialize() {
   window.addEventListener('storage', (event) => {
     if (event.key !== ACTIVE_TIMER_STORAGE_KEY) return
     try {
-      timer.value = sanitize(JSON.parse(event.newValue ?? 'null'))
+      timer.value = sanitizeActiveTimer(JSON.parse(event.newValue ?? 'null'))
     } catch {
       timer.value = createIdleTimer()
     }
@@ -202,7 +169,7 @@ export function readActiveTimer(): { timer: ActiveTimer; closedSessionId: ID } {
  */
 export function applyRemoteTimer(raw: unknown, remoteClosedSessionId: ID) {
   initialize()
-  const incoming = sanitize(raw)
+  const incoming = sanitizeActiveTimer(raw)
 
   if (mustRecordBeforeAdopting(timer.value, incoming, remoteClosedSessionId)) {
     dispatch({ type: 'stop' })

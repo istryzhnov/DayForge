@@ -1,7 +1,5 @@
 import { computed } from 'vue'
 import type { useGoalSpace } from '../../../composables/useGoalSpace'
-import type { Goal } from '../../../entities/GoalEntity'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import { useUndoToast } from '../../../composables/useUndoToast'
 import {
@@ -12,6 +10,14 @@ import { TOMBSTONES_STORAGE_KEY } from '../../../composables/useTombstones'
 import { restampForRestore } from '../../../sync/tombstoneRules'
 import type { SyncedRow } from '../../../sync/types'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import {
+  BACKUP_FORMAT,
+  BACKUP_VERSION,
+  parseBackupFile,
+  type BackupFile,
+} from './backupFormat'
+
+export { parseBackupFile, type BackupFile } from './backupFormat'
 
 /**
  * Rows coming out of a file or a snapshot are stamped as a current edit. With an
@@ -22,34 +28,6 @@ function restampAll<T>(rows: T[]): T[] {
   return rows.map(
     (row) => restampForRestore(row as unknown as SyncedRow) as unknown as T,
   )
-}
-
-/** A deleted row has no business coming back out of a backup, nor does junk. */
-function withoutDeleted<T extends { deletedAt?: string }>(rows: unknown[]): T[] {
-  return rows.filter(
-    (row): row is T =>
-      isRecord(row) &&
-      typeof row.id === 'string' &&
-      row.id !== '' &&
-      row.deletedAt === undefined,
-  )
-}
-
-const BACKUP_FORMAT = 'dayforge-backup'
-const BACKUP_VERSION = 1
-
-export interface BackupFile {
-  format: typeof BACKUP_FORMAT
-  version: number
-  exportedAt: string
-  goals: Goal[]
-  taskTemplates: TaskTemplate[]
-  dailyTasks: DailyTask[]
-  /** Absent in backups written before the timer existed. */
-  timeEntries?: TimeEntry[]
-  /** Theme and preferences travel along, so a restore looks like the original. */
-  theme?: unknown
-  settings?: unknown
 }
 
 const THEME_STORAGE_KEY = 'dayforge-theme-v1'
@@ -64,39 +42,9 @@ function readJson(key: string): unknown {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-/** A backup is a file off disk, so nothing in it is trusted before it is applied. */
-export function parseBackupFile(input: unknown): BackupFile | null {
-  if (!isRecord(input)) return null
-  if (input.format !== BACKUP_FORMAT) return null
-  if (!Array.isArray(input.goals)) return null
-  if (!Array.isArray(input.taskTemplates)) return null
-  if (!Array.isArray(input.dailyTasks)) return null
-
-  return {
-    format: BACKUP_FORMAT,
-    version: typeof input.version === 'number' ? input.version : BACKUP_VERSION,
-    exportedAt:
-      typeof input.exportedAt === 'string'
-        ? input.exportedAt
-        : new Date().toISOString(),
-    goals: withoutDeleted<Goal>(input.goals),
-    taskTemplates: withoutDeleted<TaskTemplate>(input.taskTemplates),
-    dailyTasks: withoutDeleted<DailyTask>(input.dailyTasks),
-    timeEntries: Array.isArray(input.timeEntries)
-      ? withoutDeleted<TimeEntry>(input.timeEntries)
-      : [],
-    theme: input.theme,
-    settings: input.settings,
-  }
-}
-
 export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
   const { offerUndo } = useUndoToast()
-  const { entries: timeEntries } = useTimeEntries()
+  const { entries: timeEntries, heldEntries } = useTimeEntries()
 
   const stats = computed(() => {
     const bytes = [
@@ -125,11 +73,15 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     return {
       format: BACKUP_FORMAT,
       version: BACKUP_VERSION,
+      newerVersion: false,
       exportedAt: new Date().toISOString(),
       goals: goalSpace.goals.value,
       taskTemplates: goalSpace.taskTemplates.value,
       dailyTasks: goalSpace.dailyTasks.value,
-      timeEntries: timeEntries.value,
+      timeEntries: [
+        ...timeEntries.value,
+        ...heldEntries(),
+      ] as unknown as TimeEntry[],
       theme: readJson(THEME_STORAGE_KEY),
       settings: readJson(SETTINGS_STORAGE_KEY),
     }
