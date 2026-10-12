@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
-import { GOAL_STATUS, PRIORITY } from '../../../entities/constants'
+import { GOAL_STATUS } from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
 import {
   parseQuickAdd,
@@ -112,13 +112,19 @@ onMounted(() => inputRef.value?.focus())
           <span v-else class="quick-add-chip is-muted">
             {{ currentTitle }}
           </span>
-          <span v-if="parsed.priority === PRIORITY.MAJOR" class="quick-add-chip">
-            Project
-          </span>
           <span v-if="parsed.date" class="quick-add-chip">{{ dayLabel }}</span>
         </div>
 
-        <p class="quick-add-card__hint">
+        <p v-if="!text" class="quick-add-card__hint quick-add-card__syntax">
+          <span class="quick-add-card__syntax-short">Try: Buy milk tomorrow</span>
+          <span class="quick-add-card__syntax-full">
+            Try: Buy milk tomorrow · <kbd>Enter</kbd> to add
+          </span>
+          <span class="quick-add-card__note quick-add-card__syntax-full">
+            #project to file it
+          </span>
+        </p>
+        <p v-else class="quick-add-card__hint">
           <kbd>Enter</kbd> add
           <kbd>Shift</kbd>+<kbd>Enter</kbd> add and keep open
           <kbd>Esc</kbd> close

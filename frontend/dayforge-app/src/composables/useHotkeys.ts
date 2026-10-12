@@ -35,6 +35,11 @@ export interface ShortcutGroup {
   rows: ShortcutRow[]
 }
 
+export function shortcutTitle(label: string, keys: string): string {
+  const { settings } = useSettings()
+  return settings.behavior.keyboardShortcuts ? `${label} (${keys})` : label
+}
+
 export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
     title: 'Add',
@@ -44,9 +49,17 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     ],
   },
   {
+    title: 'In quick add',
+    rows: [
+      { keys: ['Enter'], label: 'Add the task' },
+      { keys: ['Shift+Enter'], label: 'Add and keep the box open' },
+    ],
+  },
+  {
     title: 'Timer',
     rows: [
       { keys: ['Space'], label: 'Start, pause or carry on' },
+      { keys: ['S'], label: 'Same as Space' },
       { keys: ['X'], label: 'Stop' },
     ],
   },
@@ -63,13 +76,15 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   },
   {
     title: 'Help',
-    rows: [{ keys: ['?'], label: 'This list' }],
+    rows: [
+      { keys: ['?'], label: 'This list' },
+      { keys: ['Esc'], label: 'Close the open panel' },
+    ],
   },
 ]
 
 export const QUICK_ADD_SYNTAX: ShortcutRow[] = [
   { keys: ['#Work'], label: 'Put it in the project starting with “Work”' },
-  { keys: ['!'], label: 'Make it a Project (also “!!”)' },
   { keys: ['today'], label: 'Schedule for today (also “сьогодні”)' },
   { keys: ['tomorrow'], label: 'Schedule for tomorrow (also “завтра”)' },
 ]
@@ -151,13 +166,27 @@ export function useHotkeys(actions: HotkeyActions) {
     actions.selectGoal(visible[next].id)
   }
 
+  /**
+   * The key by its place on the keyboard, so shortcuts work on any layout:
+   * on a Ukrainian layout N types "т", but its code is still KeyN.
+   */
+  function layoutFreeKey(event: KeyboardEvent): string {
+    const { code } = event
+    if (code.startsWith('Key')) return code.slice(3).toLowerCase()
+    if (code === 'Space') return ' '
+    if (code === 'BracketLeft') return '['
+    if (code === 'BracketRight') return ']'
+    if (code === 'Slash' && event.shiftKey) return '?'
+    return event.key.toLowerCase()
+  }
+
   function onKeydown(event: KeyboardEvent) {
     if (!settings.behavior.keyboardShortcuts) return
     if (overlay.value !== 'none') return
     if (event.altKey) return
     if (document.querySelector('[aria-modal="true"]')) return
 
-    const key = event.key.toLowerCase()
+    const key = layoutFreeKey(event)
 
     if ((event.ctrlKey || event.metaKey) && key === 'k') {
       event.preventDefault()

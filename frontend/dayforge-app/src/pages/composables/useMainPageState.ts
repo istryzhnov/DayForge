@@ -20,6 +20,7 @@ import { useTheme } from '../../composables/useTheme'
 import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
 import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
+import { noteManualTaskAdded } from '../../composables/useShortcutTip'
 import { useTimer } from '../../composables/useTimer'
 import { useTimeEntries } from '../../composables/useTimeEntries'
 import { useSync } from '../../composables/useSync'
@@ -231,13 +232,14 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   ) {
     if (!goalSpace.activeGoal.value) return
     goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
+    noteManualTaskAdded()
   }
 
   function handleQuickAdd(result: QuickAddResult) {
     goalSpace.addTask(
       result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
       result.title,
-      result.priority ?? settings.behavior.defaultPriority,
+      settings.behavior.defaultPriority,
       result.date
         ? {
             date: result.date,
@@ -358,6 +360,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     goalSpace.addMinorInAllMode(title, goalId, majorId, schedule)
+    noteManualTaskAdded()
   }
 
   function handleEditTask(templateId: ID, title: string) {
