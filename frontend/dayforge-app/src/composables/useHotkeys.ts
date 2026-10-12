@@ -84,9 +84,11 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
 ]
 
 export const QUICK_ADD_SYNTAX: ShortcutRow[] = [
-  { keys: ['#Work'], label: 'Put it in the project starting with “Work”' },
+  { keys: ['#Work'], label: 'Put it in a project; pick from the list as you type' },
+  { keys: ['#New_name'], label: 'Start a new project (underscores become spaces)' },
   { keys: ['today'], label: 'Schedule for today (also “сьогодні”)' },
   { keys: ['tomorrow'], label: 'Schedule for tomorrow (also “завтра”)' },
+  { keys: ['25.10.2026'], label: 'Schedule for a date; 25.10 means the next 25 October' },
 ]
 
 const GO_TIMEOUT_MS = 1000

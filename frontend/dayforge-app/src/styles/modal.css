@@ -209,6 +209,56 @@
   outline-offset: 1px;
 }
 
+.quick-add-suggest {
+  margin: -4px 0 0;
+  padding: 4px;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.quick-add-suggest__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: calc(7px * var(--radius-scale));
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+  cursor: pointer;
+}
+
+.quick-add-suggest__item.is-active {
+  background: var(--panel-soft);
+  outline: 1px solid var(--line);
+}
+
+.quick-add-suggest__dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.quick-add-suggest__new {
+  padding: 6px 10px;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+@media (pointer: coarse) {
+  .quick-add-suggest__item {
+    min-height: 40px;
+  }
+}
+
 .quick-add-chips {
   display: flex;
   flex-wrap: wrap;
@@ -229,6 +279,11 @@
 .quick-add-chip.is-project {
   border-color: color-mix(in srgb, var(--chip-color, var(--accent)) 70%, transparent);
   background: color-mix(in srgb, var(--chip-color, var(--accent)) 20%, transparent);
+}
+
+.quick-add-chip.is-new {
+  border-style: dashed;
+  color: var(--accent);
 }
 
 .quick-add-chip.is-muted {

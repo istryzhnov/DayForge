@@ -40,8 +40,63 @@ const parsed = computed(() =>
 const dayLabel = computed(() => {
   const result = parsed.value
   if (!result.date) return ''
+  if (result.day === 'date') return result.date
   return `${result.day === 'today' ? 'Today' : 'Tomorrow'} · ${result.date}`
 })
+
+const caret = ref(0)
+const highlighted = ref(0)
+const dismissedFor = ref<string | null>(null)
+
+/** The #word the caret sits in, if any: what the suggestion list completes. */
+const projectToken = computed(() => {
+  const before = text.value.slice(0, caret.value)
+  const start = before.search(/\S*$/)
+  const word = before.slice(start)
+  if (!word.startsWith('#')) return null
+  return { start, query: word.slice(1).toLowerCase() }
+})
+
+const suggestions = computed(() => {
+  const token = projectToken.value
+  if (!token || dismissedFor.value === text.value) return []
+  const starts = openGoals.value.filter((goal) =>
+    goal.title.toLowerCase().startsWith(token.query),
+  )
+  const contains = openGoals.value.filter(
+    (goal) =>
+      !starts.includes(goal) && goal.title.toLowerCase().includes(token.query),
+  )
+  return [...starts, ...contains].slice(0, 6)
+})
+
+const showSuggestions = computed(
+  () => projectToken.value !== null && dismissedFor.value !== text.value,
+)
+
+function syncCaret() {
+  caret.value = inputRef.value?.selectionStart ?? text.value.length
+}
+
+function onInput() {
+  syncCaret()
+  highlighted.value = 0
+  dismissedFor.value = null
+}
+
+function pickSuggestion(goal: Goal) {
+  const token = projectToken.value
+  if (!token) return
+  const after = text.value.slice(caret.value).replace(/^\S*/, '')
+  const inserted = `#${goal.title} `
+  text.value = text.value.slice(0, token.start) + inserted + after.trimStart()
+  const position = token.start + inserted.length
+  void nextTick(() => {
+    inputRef.value?.focus()
+    inputRef.value?.setSelectionRange(position, position)
+    syncCaret()
+  })
+}
 
 function projectColor(goalId: string | null): string | undefined {
   return goalId ? colors.value.get(goalId) : undefined
@@ -63,6 +118,28 @@ function submit(keepOpen: boolean) {
 
 function onKeydown(event: KeyboardEvent) {
   if (event.isComposing) return
+
+  const list = suggestions.value
+  if (showSuggestions.value && list.length > 0) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      const step = event.key === 'ArrowDown' ? 1 : -1
+      highlighted.value = (highlighted.value + step + list.length) % list.length
+      return
+    }
+    if (event.key === 'Tab' || (event.key === 'Enter' && !event.shiftKey)) {
+      event.preventDefault()
+      pickSuggestion(list[highlighted.value] ?? list[0])
+      return
+    }
+  }
+
+  if (showSuggestions.value && event.key === 'Escape') {
+    event.preventDefault()
+    event.stopPropagation()
+    dismissedFor.value = text.value
+    return
+  }
 
   if (event.key === 'Escape') {
     event.preventDefault()
@@ -95,11 +172,52 @@ onMounted(() => inputRef.value?.focus())
           v-model="text"
           class="quick-add-card__input"
           type="text"
-          placeholder="Task title  #project  !  today  tomorrow"
+          placeholder="Buy milk tomorrow  #project"
           autocomplete="off"
           aria-label="Task title"
+          aria-autocomplete="list"
+          :aria-expanded="showSuggestions && suggestions.length > 0"
+          aria-controls="quick-add-projects"
           @keydown="onKeydown"
+          @input="onInput"
+          @click="syncCaret"
+          @keyup="syncCaret"
         />
+
+        <ul
+          v-if="showSuggestions"
+          id="quick-add-projects"
+          class="quick-add-suggest"
+          role="listbox"
+          aria-label="Projects"
+        >
+          <li
+            v-for="(goal, index) in suggestions"
+            :key="goal.id"
+            class="quick-add-suggest__item"
+            :class="{ 'is-active': index === highlighted }"
+            role="option"
+            :aria-selected="index === highlighted"
+            @mousedown.prevent="pickSuggestion(goal)"
+            @mouseenter="highlighted = index"
+          >
+            <span
+              class="quick-add-suggest__dot"
+              :style="{ background: projectColor(goal.id) }"
+              aria-hidden="true"
+            ></span>
+            {{ goal.title }}
+          </li>
+          <li
+            v-if="suggestions.length === 0 && projectToken?.query"
+            class="quick-add-suggest__new"
+          >
+            No project yet: Enter creates “{{ projectToken.query.replace(/_/g, ' ') }}”
+          </li>
+          <li v-else-if="suggestions.length === 0" class="quick-add-suggest__new">
+            Type a project name
+          </li>
+        </ul>
 
         <div class="quick-add-chips" aria-live="polite">
           <span
@@ -108,6 +226,9 @@ onMounted(() => inputRef.value?.focus())
             :style="{ '--chip-color': projectColor(parsed.goalId) }"
           >
             {{ parsed.goalTitle }}
+          </span>
+          <span v-else-if="parsed.newGoalTitle" class="quick-add-chip is-new">
+            New project: {{ parsed.newGoalTitle }}
           </span>
           <span v-else class="quick-add-chip is-muted">
             {{ currentTitle }}
@@ -118,10 +239,10 @@ onMounted(() => inputRef.value?.focus())
         <p v-if="!text" class="quick-add-card__hint quick-add-card__syntax">
           <span class="quick-add-card__syntax-short">Try: Buy milk tomorrow</span>
           <span class="quick-add-card__syntax-full">
-            Try: Buy milk tomorrow · <kbd>Enter</kbd> to add
+            Try: Buy milk tomorrow or 25.10 · <kbd>Enter</kbd> to add
           </span>
           <span class="quick-add-card__note quick-add-card__syntax-full">
-            #project to file it
+            #project to file it, or to start a new one
           </span>
         </p>
         <p v-else class="quick-add-card__hint">

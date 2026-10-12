@@ -1419,7 +1419,16 @@ function verifyQuickAdd() {
   check('a prefix of the project name is enough', prefix.goalId === 'g-home' && prefix.title === 'Call dentist', prefix)
 
   const unknown = parseQuickAdd('Read #nowhere', { goals, today })
-  check('an unknown #name stays in the title', unknown.goalId === null && unknown.title === 'Read #nowhere', unknown)
+  check('an unknown #name starts a new project', unknown.goalId === null && unknown.newGoalTitle === 'nowhere' && unknown.title === 'Read', unknown)
+
+  const underscored = parseQuickAdd('Fix tap #мій_дім завтра', { goals, today })
+  check('underscores in a new project name become spaces', underscored.newGoalTitle === 'мій дім' && underscored.title === 'Fix tap', underscored)
+
+  const spaced = parseQuickAdd('Call plumber #home stuff tomorrow', { goals, today })
+  check('a project name with spaces is matched whole', spaced.goalId === 'g-home' && spaced.title === 'Call plumber' && spaced.newGoalTitle === null, spaced)
+
+  const cyrillic = parseQuickAdd('Помити вікна #ДІМ', { goals: [...goals, { id: 'g-dim', title: 'Дім' }], today })
+  check('Cyrillic project names match ignoring case', cyrillic.goalId === 'g-dim' && cyrillic.title === 'Помити вікна', cyrillic)
 
   const todayEn = parseQuickAdd('Pay rent today', { goals, today })
   check('today is read and removed', todayEn.title === 'Pay rent' && todayEn.date === today, todayEn)
@@ -1432,6 +1441,27 @@ function verifyQuickAdd() {
 
   const alone = parseQuickAdd('Call mom !', { goals, today })
   check('a lone ! stays in the title, it is not a priority', alone.title === 'Call mom !' && alone.goalId === null && alone.date === null, alone)
+
+  const dated = parseQuickAdd('Dentist 25.10.2026 #work', { goals, today })
+  check('a written date d.m.yyyy schedules that day', dated.date === '2026-10-25' && dated.day === 'date' && dated.title === 'Dentist', dated)
+
+  const isoDate = parseQuickAdd('Renew passport 2027-01-05', { goals, today })
+  check('an ISO date is read', isoDate.date === '2027-01-05' && isoDate.title === 'Renew passport', isoDate)
+
+  const slashed = parseQuickAdd('Pay tax 5/11/26', { goals, today })
+  check('d/m/yy with a short year is read', slashed.date === '2026-11-05', slashed.date)
+
+  const noYear = parseQuickAdd('Birthday 01.03', { goals, today })
+  check('a date without a year that has passed means next year', noYear.date === '2027-03-01', noYear.date)
+
+  const noYearAhead = parseQuickAdd('Party 31.12', { goals, today })
+  check('a date without a year still ahead stays this year', noYearAhead.date === '2026-12-31', noYearAhead.date)
+
+  const impossible = parseQuickAdd('Odd 31.02.2026', { goals, today })
+  check('an impossible date stays in the title', impossible.date === null && impossible.title === 'Odd 31.02.2026', impossible)
+
+  const version = parseQuickAdd('Release v1.2 notes', { goals, today })
+  check('version numbers are not dates', version.date === null && version.title === 'Release v1.2 notes', version)
 
   const wrap = parseQuickAdd('ship it tomorrow', { goals, today: '2026-10-31' })
   check('tomorrow crosses the month boundary', wrap.date === '2026-11-01', wrap.date)

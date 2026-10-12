@@ -10,6 +10,7 @@ import type {
 } from '../../entities/TaskEntity'
 import type { TimeEntry } from '../../entities/TimerEntity'
 import {
+  GOAL_COLOR_PRESETS,
   GOAL_STATUS,
   PRIORITY,
   RECURRENCE_TYPE,
@@ -236,8 +237,11 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   }
 
   function handleQuickAdd(result: QuickAddResult) {
+    const newGoalId = result.newGoalTitle
+      ? handleCreateGoal(result.newGoalTitle, '', unusedProjectColor())
+      : null
     goalSpace.addTask(
-      result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
+      newGoalId ?? result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
       result.title,
       settings.behavior.defaultPriority,
       result.date
@@ -261,10 +265,26 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
   }
 
-  function handleCreateGoal(title: string, description: string, color: string) {
+  /** The first preset no project is wearing yet, so a new one stands out. */
+  function unusedProjectColor(): string {
+    const used = new Set(
+      goalSpace.goals.value.map((goal) => goal.theme?.accent?.toLowerCase()),
+    )
+    return (
+      GOAL_COLOR_PRESETS.find((color) => !used.has(color.toLowerCase())) ??
+      GOAL_COLOR_PRESETS[0]
+    )
+  }
+
+  function handleCreateGoal(
+    title: string,
+    description: string,
+    color: string,
+  ): ID {
     const now = new Date().toISOString()
+    const id = `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
     goalSpace.createGoal({
-      id: `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      id,
       title,
       description,
       status: GOAL_STATUS.ACTIVE,
@@ -272,6 +292,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       updatedAt: now,
       theme: { accent: color },
     })
+    return id
   }
 
   function handleToggleDone(dailyTaskId: ID) {
