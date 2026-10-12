@@ -6,6 +6,7 @@ import { useProfile } from '../../profile/composables/useProfile'
 import { useProfilePanel } from '../../profile/composables/useProfilePanel'
 import { useMobileNav } from '../composables/useMobileNav'
 import { useTimer } from '../../../composables/useTimer'
+import { useHotkeyOverlay } from '../../../composables/useHotkeys'
 import { SYNC_STATE } from '../../../sync/types'
 
 const props = defineProps<{
@@ -27,6 +28,7 @@ const { isOpen: isNavOpen, open: openNav } = useMobileNav()
 const { isOpen: isProfileOpen, open: openProfile } = useProfilePanel()
 const { auth, status, initial, avatarUrl, triggerTitle } = useProfile()
 const { isLive, displayLabel } = useTimer()
+const { openQuickAdd } = useHotkeyOverlay()
 
 const title = computed(() => {
   if (props.activeView === 'goals') return props.goalTitle ?? 'All Projects'
@@ -65,6 +67,16 @@ const showSyncDot = computed(
       >
         <span class="mobile-topbar__timer-dot" aria-hidden="true"></span>
         <span>{{ displayLabel }}</span>
+      </button>
+
+      <button
+        class="mobile-topbar__btn"
+        type="button"
+        aria-label="Quick add task"
+        title="Quick add task"
+        @click="openQuickAdd"
+      >
+        <span aria-hidden="true">+</span>
       </button>
 
       <button
