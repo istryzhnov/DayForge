@@ -4,6 +4,7 @@ import type { SyncCollection } from '../sync/engine'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 import { TIMER_STATUS } from '../entities/constants'
 import { applyRemoteTimer, readActiveTimer } from './useTimer'
+import { isKnownTimerStatus } from './timer/sanitize'
 
 const TIMER_SYNC_STORAGE_KEY = 'dayforge-timer-sync-v1'
 const TIMER_ROW_ID = 'active-timer'
@@ -61,6 +62,8 @@ export function createTimerCollection(): SyncCollection {
     if (!row) return
 
     const { id: _id, updatedAt, closedSessionId, ...timer } = row
+    if (!isKnownTimerStatus(timer.status)) return
+
     const incoming = { ...timer, closedSessionId }
     if (stableStringify(incoming) !== stableStringify(payload())) {
       applyRemoteTimer(

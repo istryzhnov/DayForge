@@ -14,5 +14,5 @@
     "noEmit": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.verify.tsbuildinfo"
   },
-  "include": ["tests/sync/verify.ts"]
+  "include": ["tests/sync/verify.ts", "tests/sync/compat.ts"]
 }

@@ -1,7 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import type { Goal, GoalTheme } from '../entities/GoalEntity'
 import type { GoalStatus, ID } from '../entities/types'
-import { GOAL_STATUS } from '../entities/constants'
+import { migrateGoals } from './goalSpace/goalMigration'
 import { GOALS_STORAGE_KEY } from './goalSpace/storage'
 import { readJson, writeJson } from '../lib/storage'
 import { useSettings } from './useSettings'
@@ -123,19 +123,6 @@ export function useGoals() {
   /** A buried copy never belongs in the list the sidebar reads. */
   function liveOnly(list: Goal[]): Goal[] {
     return keepLive(SYNC_TABLE.GOALS, list)
-  }
-
-  /** Goals coloured before per-project theming existed stored a bare hex. */
-  function migrateGoals(list: Goal[]) {
-    list.forEach((goal) => {
-      if (goal.accentColor && !goal.theme) {
-        goal.theme = { accent: goal.accentColor }
-      }
-      delete goal.accentColor
-      if (!Object.values(GOAL_STATUS).includes(goal.status)) {
-        goal.status = GOAL_STATUS.ACTIVE
-      }
-    })
   }
 
   function selectInitialGoal() {

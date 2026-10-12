@@ -237,3 +237,28 @@ export function groupByDay(entries: TimeEntry[]): DayGroup[] {
     }))
     .sort((a, b) => (a.date < b.date ? 1 : -1))
 }
+
+export function isReadableEntry(item: unknown): item is TimeEntry {
+  if (typeof item !== 'object' || item === null) return false
+  const entry = item as Partial<TimeEntry>
+  return (
+    typeof entry.id === 'string' &&
+    typeof entry.startedAt === 'string' &&
+    typeof entry.endedAt === 'string' &&
+    !Number.isNaN(Date.parse(entry.startedAt)) &&
+    !Number.isNaN(Date.parse(entry.endedAt))
+  )
+}
+
+export function splitReadableEntries(input: unknown[]): {
+  readable: TimeEntry[]
+  unreadable: unknown[]
+} {
+  const readable: TimeEntry[] = []
+  const unreadable: unknown[] = []
+  input.forEach((item) => {
+    if (isReadableEntry(item)) readable.push(item)
+    else unreadable.push(item)
+  })
+  return { readable, unreadable }
+}

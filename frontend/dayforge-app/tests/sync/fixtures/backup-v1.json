@@ -1,0 +1,212 @@
+{
+  "format": "dayforge-backup",
+  "version": 1,
+  "exportedAt": "2026-09-20T18:30:00.000Z",
+  "goals": [
+    {
+      "id": "goal-work",
+      "title": "Work",
+      "description": "Client projects",
+      "status": "active",
+      "createdAt": "2026-06-01T08:00:00.000Z",
+      "updatedAt": "2026-09-18T10:12:00.000Z",
+      "theme": { "accent": "#73ff44", "intensity": 0.6 },
+      "hourlyRate": 45,
+      "icon": "briefcase"
+    },
+    {
+      "id": "goal-home",
+      "title": "Home",
+      "status": "paused",
+      "createdAt": "2026-07-10T09:00:00.000Z",
+      "updatedAt": "2026-09-01T12:00:00.000Z",
+      "icon": "home"
+    }
+  ],
+  "taskTemplates": [
+    {
+      "id": "task-report",
+      "goalId": "goal-work",
+      "title": "Monthly report",
+      "notes": "Pull numbers from the dashboard",
+      "priority": "major",
+      "order": 0,
+      "tagIds": [],
+      "recurrence": {
+        "type": "monthly",
+        "interval": 1,
+        "daysOfMonth": [1],
+        "startDate": "2026-06-01"
+      },
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "isActive": true,
+      "hourlyRate": 60,
+      "createdAt": "2026-06-01T08:05:00.000Z",
+      "updatedAt": "2026-09-10T07:00:00.000Z"
+    },
+    {
+      "id": "task-review",
+      "goalId": "goal-work",
+      "parentTemplateId": "task-report",
+      "title": "Review numbers",
+      "priority": "minor",
+      "order": 0,
+      "tagIds": [],
+      "isActive": true,
+      "createdAt": "2026-06-02T08:00:00.000Z",
+      "updatedAt": "2026-06-02T08:00:00.000Z"
+    },
+    {
+      "id": "task-groceries",
+      "goalId": "goal-home",
+      "title": "Groceries",
+      "priority": "minor",
+      "order": 1,
+      "tagIds": [],
+      "isActive": true,
+      "createdAt": "2026-07-10T09:05:00.000Z",
+      "updatedAt": "2026-07-10T09:05:00.000Z"
+    }
+  ],
+  "dailyTasks": [
+    {
+      "id": "task-report::2026-09-20",
+      "date": "2026-09-20",
+      "goalId": "goal-work",
+      "templateId": "task-report",
+      "title": "Monthly report",
+      "priority": "major",
+      "tagIds": [],
+      "status": "done",
+      "completedAt": "2026-09-20T11:05:00.000Z",
+      "startTime": "09:00",
+      "endTime": "10:00",
+      "createdAt": "2026-09-20T06:00:00.000Z",
+      "updatedAt": "2026-09-20T11:05:00.000Z",
+      "fieldsAt": {
+        "status": "2026-09-20T11:05:00.000Z",
+        "time": "2026-09-19T08:00:00.000Z"
+      }
+    },
+    {
+      "id": "task-review::2026-09-20",
+      "date": "2026-09-20",
+      "goalId": "goal-work",
+      "templateId": "task-review",
+      "parentDailyTaskId": "task-report::2026-09-20",
+      "title": "Review numbers",
+      "priority": "minor",
+      "tagIds": [],
+      "status": "todo",
+      "createdAt": "2026-09-20T06:00:00.000Z",
+      "updatedAt": "2026-09-20T06:00:00.000Z"
+    },
+    {
+      "id": "task-groceries::2026-09-20",
+      "date": "2026-09-20",
+      "goalId": "goal-home",
+      "templateId": "task-groceries",
+      "title": "Groceries",
+      "priority": "minor",
+      "tagIds": [],
+      "status": "todo",
+      "createdAt": "2026-09-20T06:00:00.000Z",
+      "updatedAt": "2026-09-20T06:00:00.000Z"
+    }
+  ],
+  "timeEntries": [
+    {
+      "id": "entry-session-a-2026-09-20T09:00:00.000Z",
+      "sessionId": "session-a",
+      "startedAt": "2026-09-20T09:00:00.000Z",
+      "endedAt": "2026-09-20T09:50:00.000Z",
+      "mode": "stopwatch",
+      "taskId": "task-report",
+      "goalId": "goal-work",
+      "taskTitle": "Monthly report",
+      "source": "timer",
+      "updatedAt": "2026-09-20T09:50:00.000Z"
+    },
+    {
+      "id": "entry-manual-1",
+      "sessionId": "session-b",
+      "startedAt": "2026-09-19T14:00:00.000Z",
+      "endedAt": "2026-09-19T15:30:00.000Z",
+      "mode": "stopwatch",
+      "goalId": "goal-work",
+      "taskTitle": "Client call",
+      "source": "manual",
+      "note": "Kickoff",
+      "updatedAt": "2026-09-19T15:31:00.000Z"
+    },
+    {
+      "id": "entry-pomodoro-1",
+      "sessionId": "session-c",
+      "startedAt": "2026-09-18T20:00:00.000Z",
+      "endedAt": "2026-09-18T20:25:00.000Z",
+      "mode": "pomodoro",
+      "phase": "focus",
+      "taskId": "task-review",
+      "goalId": "goal-work",
+      "taskTitle": "Review numbers",
+      "source": "timer",
+      "updatedAt": "2026-09-18T20:25:00.000Z"
+    }
+  ],
+  "theme": {
+    "style": "vivid",
+    "mode": "dark",
+    "colors": { "accent": "#73ff44" },
+    "workspace": {
+      "radiusScale": 1,
+      "glow": 1,
+      "blur": 8,
+      "density": "cozy",
+      "pattern": "glow",
+      "font": "manrope",
+      "motion": "full"
+    }
+  },
+  "settings": {
+    "notifications": {
+      "leadMinutes": 10,
+      "sound": true,
+      "volume": 0.5,
+      "repeatAlert": true,
+      "quietHours": true,
+      "quietFrom": "22:00",
+      "quietTo": "07:30"
+    },
+    "calendar": {
+      "snapMinutes": 15,
+      "hourHeight": 60,
+      "defaultDurationMinutes": 60,
+      "defaultStartTime": "09:00",
+      "fullDayHours": 8,
+      "weekStartsOn": 1
+    },
+    "behavior": {
+      "startView": "goals",
+      "defaultPriority": "minor",
+      "carryForward": true,
+      "undoWindowSeconds": 9,
+      "autoSelectFirstGoal": true,
+      "keyboardShortcuts": true
+    },
+    "format": { "locale": "en-GB", "clock": "24h" },
+    "accessibility": { "textScale": 1, "largeTargets": false, "highContrast": false },
+    "timer": {
+      "focusMinutes": 25,
+      "shortBreakMinutes": 5,
+      "longBreakMinutes": 15,
+      "longBreakEvery": 4,
+      "autoStartBreaks": true,
+      "autoStartFocus": false,
+      "defaultCountdownMinutes": 25,
+      "sound": true,
+      "hourlyRate": 45,
+      "currency": "EUR"
+    }
+  }
+}
