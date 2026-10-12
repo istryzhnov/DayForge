@@ -98,13 +98,6 @@
   outline-offset: 3px;
 }
 
-.new-goal-swatch__check {
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  color: #0d0f14;
-}
-
 .task-reminder-modal {
   z-index: 1400;
 }

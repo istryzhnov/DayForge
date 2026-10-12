@@ -48,14 +48,7 @@ const swatches = GOAL_COLOR_PRESETS.map((value, index) => ({
             :aria-label="swatch.name"
             :aria-pressed="color === swatch.value"
             @click="color = swatch.value"
-          >
-            <span
-              v-if="color === swatch.value"
-              class="new-goal-swatch__check"
-              aria-hidden="true"
-              >✓</span
-            >
-          </button>
+          ></button>
         </div>
         <div class="modal-actions">
           <button class="btn btn-ghost" @click="cancel">Cancel</button>
