@@ -70,14 +70,6 @@
   transform: rotate(20deg);
 }
 
-.brand-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 999px;
-  background: var(--accent);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
 .project-icon {
   display: inline-block;
   flex: 0 0 auto;
