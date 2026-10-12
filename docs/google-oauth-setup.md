@@ -12,13 +12,13 @@
 
 ## 1. Передумови
 
-1. Домен `{{APP_DOMAIN}}` куплений і вказує на хостинг застосунку (HTTPS).
+1. Домен `day-forge-app-is.netlify.app` куплений і вказує на хостинг застосунку (HTTPS).
 2. Домен підтверджено в Google Search Console як власний (Domain property). Зроби це з того Google-акаунта, який є owner або editor проєкту в Google Cloud. Підтвердження через DNS TXT-запис найнадійніше.
 3. Створено проєкт Google Cloud і Supabase-проєкт. Ref Supabase-проєкту: `<project-ref>`, адреса `https://<project-ref>.supabase.co`.
 4. Сторінки вже доступні на тому самому домені:
-   - `https://{{APP_DOMAIN}}/` (домашня сторінка)
-   - `https://{{APP_DOMAIN}}/privacy.html`
-   - `https://{{APP_DOMAIN}}/terms.html`
+   - `https://day-forge-app-is.netlify.app/` (домашня сторінка)
+   - `https://day-forge-app-is.netlify.app/privacy.html`
+   - `https://day-forge-app-is.netlify.app/terms.html`
 5. Логотип: `frontend/dayforge-app/public/logo-120.png` (120×120 px, PNG). Файл уже згенеровано з обраного знака (D з чотирьох смуг, помаранчева — «зараз»). Файл 512×512 можна використати в Supabase або в інших місцях, але для екрана згоди потрібен саме 120×120.
 
 ## 2. Google Cloud Console: екран згоди
@@ -30,13 +30,13 @@
 | Поле | Значення |
 |---|---|
 | App name | `DayForge` |
-| User support email | `{{CONTACT_EMAIL}}` |
+| User support email | `thetotemofficial@gmail.com` |
 | App logo | файл `frontend/dayforge-app/public/logo-120.png` (120×120 PNG, до 1 МБ) |
-| Application home page | `https://{{APP_DOMAIN}}/` |
-| Application privacy policy link | `https://{{APP_DOMAIN}}/privacy.html` |
-| Application terms of service link | `https://{{APP_DOMAIN}}/terms.html` |
-| Authorized domains | `{{APP_DOMAIN}}` і `<project-ref>.supabase.co` |
-| Developer contact information | `{{CONTACT_EMAIL}}` |
+| Application home page | `https://day-forge-app-is.netlify.app/` |
+| Application privacy policy link | `https://day-forge-app-is.netlify.app/privacy.html` |
+| Application terms of service link | `https://day-forge-app-is.netlify.app/terms.html` |
+| Authorized domains | `day-forge-app-is.netlify.app` і `<project-ref>.supabase.co` |
+| Developer contact information | `thetotemofficial@gmail.com` |
 
 Натисни **Save**. Google може попросити підтвердити власність на authorized domains. Якщо домен уже підтверджено в Search Console з того ж акаунта, це пройде автоматично.
 
@@ -63,7 +63,7 @@
    - домашню сторінку (на домені, описує застосунок, не лише логін);
    - політику конфіденційності (доступна за посиланням з домашньої сторінки і з екрана згоди, містить розділ про Google API Services User Data Policy);
    - підтвердження власності на домени.
-3. Зазвичай це 2–3 робочі дні. Якщо Google просить уточнення, відповідай на листи з адреси `{{CONTACT_EMAIL}}` швидко, інакше заявка «застрягає».
+3. Зазвичай це 2–3 робочі дні. Якщо Google просить уточнення, відповідай на листи з адреси `thetotemofficial@gmail.com` швидко, інакше заявка «застрягає».
 4. Після схвалення назва й логотип з'являться на екрані згоди. Попередження «unverified app» зникає.
 
 Важливо: якщо змінити логотип після схвалення, його треба перевіряти знову.
@@ -74,7 +74,7 @@
 
 1. Application type: **Web application**. Name: `DayForge web`.
 2. **Authorized JavaScript origins:**
-   - `https://{{APP_DOMAIN}}`
+   - `https://day-forge-app-is.netlify.app`
    - `http://localhost:5173` (для розробки, опційно; для локального dev-сервера з фронтенду використовуй порт з твого `.env`, наприклад `http://127.0.0.1:5207`, якщо запускаєш так)
 3. **Authorized redirect URIs:** лише один:
    - `https://<project-ref>.supabase.co/auth/v1/callback`
@@ -95,9 +95,9 @@ Client secret ніде не коміть і не вставляй у фронт�
 
 Шлях: **Authentication → URL Configuration**.
 
-- **Site URL:** `https://{{APP_DOMAIN}}/`
+- **Site URL:** `https://day-forge-app-is.netlify.app/`
 - **Redirect URLs** (додай кожен рядок):
-  - `https://{{APP_DOMAIN}}/**`
+  - `https://day-forge-app-is.netlify.app/**`
   - `http://localhost:5173/**` (для розробки)
   - `http://127.0.0.1:5207/**` (для локального dev-сервера, якщо використовуєш його)
 
@@ -107,30 +107,19 @@ Client secret ніде не коміть і не вставляй у фронт�
 
 ## 7. Перевірка
 
-1. Відкрий `https://{{APP_DOMAIN}}/` в режимі інкогніто.
+1. Відкрий `https://day-forge-app-is.netlify.app/` в режимі інкогніто.
 2. Профіль → Continue with Google. На екрані згоди має бути назва DayForge і логотип, без попередження «unverified».
-3. Переконайся, що після входу повертаєшся на `https://{{APP_DOMAIN}}/`, а не на Site URL.
+3. Переконайся, що після входу повертаєшся на `https://day-forge-app-is.netlify.app/`, а не на Site URL.
 4. Посилання «Terms» і «Privacy Policy» під кнопкою входу і в Settings → Backup and data мають відкриватися.
 5. Якщо бачиш помилку `redirect_uri_mismatch` від Google, перевір кроки 4 і 6. Якщо `Invalid redirect` від Supabase, перевір Redirect URLs.
 
-## 8. Заглушки для заміни
+## 8. Дані власника
 
-У репозиторії (усі файли, які треба підправити перед продакшеном):
-
-| Заглушка | Де | Що вписати |
-|---|---|---|
-| `{{APP_DOMAIN}}` | `public/privacy.html`, `public/terms.html`, цей документ | домен застосунку, наприклад `dayforge.example` |
-| `{{CONTACT_EMAIL}}` | `public/privacy.html`, `public/terms.html`, цей документ | контактна адреса |
-| `{{OWNER_NAME}}` | `public/privacy.html`, `public/terms.html` | ім'я або назва особи чи компанії, яка керує застосунком |
-| `{{EFFECTIVE_DATE}}` | `public/privacy.html`, `public/terms.html` | дата набрання чинності, наприклад `12 October 2026` |
-| `{{COUNTRY}}` | `public/privacy.html`, `public/terms.html` | країна, законодавство якої застосовується |
-| `{{SUPABASE_REGION}}` | `public/privacy.html` | регіон Supabase-проєкту, наприклад `eu-central-1` (Frankfurt) |
-
-Заміна робиться пошуком по `{{` у `frontend/dayforge-app/public` і в цьому файлі.
+Заглушки в `public/privacy.html` і `public/terms.html` уже заповнені: Ihor Stryzhnov, Ukraine, thetotemofficial@gmail.com, `day-forge-app-is.netlify.app`, чинність з 12 October 2026. Якщо з'явиться власний домен, заміни `day-forge-app-is.netlify.app` у цих двох файлах і в цьому документі.
 
 ## 9. Що зробити руками (короткий чеклист)
 
-1. Підтвердити домен `{{APP_DOMAIN}}` у Google Search Console.
+1. Підтвердити домен `day-forge-app-is.netlify.app` у Google Search Console.
 2. Заповнити Branding у Google Auth Platform (розділ 2).
 3. Додати Scopes `email`, `profile`, `openid` і більше нічого.
 4. Створити OAuth client ID (Web application) і вписати redirect URI Supabase (розділ 4).
