@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import type { ShareInput } from '../../../composables/analytics/charts'
-import { useDonutGeometry } from '../composables/useChartGeometry'
+import { computed } from 'vue'
+import {
+  foldSmallShares,
+  type ShareInput,
+} from '../../../composables/analytics/charts'
+
+const MAX_SLICES = 6
 
 const props = defineProps<{
   shares: ShareInput[]
@@ -9,7 +14,56 @@ const props = defineProps<{
   formatShare: (totalMs: number) => string
 }>()
 
-const { donut, tintOf } = useDonutGeometry(() => props.shares)
+/** Ranked tints of the one accent: calm, and right for parts of a whole. */
+function tintOf(rank: number): number {
+  return Math.max(0.28, 0.95 - rank * 0.13)
+}
+
+const slices = computed(() => {
+  const folded = foldSmallShares(props.shares, MAX_SLICES)
+  const totalMs = folded.reduce((sum, share) => sum + share.totalMs, 0)
+  let cursor = 0
+
+  return folded.map((share, rank) => {
+    const start = cursor
+    cursor += totalMs === 0 ? 0 : (share.totalMs / totalMs) * 100
+
+    return {
+      key: share.key,
+      label: share.label,
+      totalMs: share.totalMs,
+      rank,
+      start,
+      end: cursor,
+      tint: tintOf(rank),
+    }
+  })
+})
+
+const totalMs = computed(() =>
+  slices.value.reduce((sum, slice) => sum + slice.totalMs, 0),
+)
+
+const isEmpty = computed(() => totalMs.value === 0)
+
+const background = computed(() => {
+  if (isEmpty.value) return ''
+
+  const stops = slices.value.map(
+    (slice) =>
+      `color-mix(in srgb, var(--accent) ${slice.tint * 100}%, transparent) ${slice.start}% ${slice.end}%`,
+  )
+  return `conic-gradient(${stops.join(', ')})`
+})
+
+const summary = computed(() => {
+  if (isEmpty.value) return `${props.caption}. Nothing tracked.`
+
+  const parts = slices.value.map(
+    (slice) => `${slice.label} ${props.formatShare(slice.totalMs)}`,
+  )
+  return `${props.caption}. Total ${props.formatHours(totalMs.value)}. ${parts.join('. ')}.`
+})
 </script>
 
 <template>
@@ -17,63 +71,58 @@ const { donut, tintOf } = useDonutGeometry(() => props.shares)
     <figcaption class="analytics-chart__caption">{{ caption }}</figcaption>
 
     <div class="analytics-share">
-      <!-- The measured box carries no padding of its own. -->
-      <div ref="chartBox" class="analytics-share__ring">
-        <svg
-          class="analytics-chart__svg"
-          :width="donut.size"
-          :height="donut.size"
-          :viewBox="`0 0 ${donut.size} ${donut.size}`"
-          role="img"
-          :aria-label="caption"
-        >
-          <circle
-            class="analytics-share__track"
-            :cx="donut.cx"
-            :cy="donut.cy"
-            :r="donut.size / 2 - donut.thickness / 2 - 1"
-            :stroke-width="donut.thickness"
-          />
-          <path
-            v-for="segment in donut.segments"
-            :key="segment.key"
-            class="analytics-share__slice"
-            :d="segment.path"
-            :fill-opacity="tintOf(segment.rank)"
-          >
-            <title>
-              {{ segment.label }} · {{ formatShare(segment.totalMs) }}
-            </title>
-          </path>
-          <text
-            class="analytics-share__total"
-            :x="donut.cx"
-            :y="donut.cy + 4"
-            text-anchor="middle"
-          >
-            {{ formatHours(donut.totalMs) }}
-          </text>
-        </svg>
+      <div class="analytics-share__ring" role="img" :aria-label="summary">
+        <div class="analytics-share__donut" :style="{ background }"></div>
+        <span class="analytics-share__total">{{ formatHours(totalMs) }}</span>
       </div>
 
       <ul class="analytics-share__legend">
-        <li v-for="segment in donut.segments" :key="segment.key">
+        <li v-for="slice in slices" :key="slice.key">
           <span
             class="analytics-share__swatch"
-            :style="{ opacity: tintOf(segment.rank) }"
+            :style="{ opacity: slice.tint }"
             aria-hidden="true"
           ></span>
-          <span class="analytics-share__name">{{ segment.label }}</span>
+          <span class="analytics-share__name">{{ slice.label }}</span>
           <span class="analytics-share__value">
-            {{ formatShare(segment.totalMs) }}
-            <em>{{ formatHours(segment.totalMs) }}</em>
+            {{ formatShare(slice.totalMs) }}
+            <em>{{ formatHours(slice.totalMs) }}</em>
           </span>
         </li>
       </ul>
     </div>
 
-    <p v-if="donut.isEmpty" class="analytics-chart__empty">
+    <p v-if="isEmpty" class="analytics-chart__empty">
       Nothing tracked against a project in this period.
     </p>
   </figure>
 </template>
+
+<style scoped>
+.analytics-share__ring {
+  position: relative;
+  width: min(168px, 100%);
+  aspect-ratio: 1;
+}
+
+.analytics-share__donut {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--line-soft, var(--line)) 50%, transparent);
+  -webkit-mask: radial-gradient(closest-side, transparent 65%, #000 66%);
+  mask: radial-gradient(closest-side, transparent 65%, #000 66%);
+}
+
+.analytics-share__total {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+</style>

@@ -353,6 +353,20 @@ body.is-dragging-task {
   border-color: var(--major);
 }
 
+.task-dot-check__icon {
+  width: 14px;
+  height: 14px;
+  color: color-mix(in srgb, var(--minor) 75%, var(--muted));
+}
+
+.task-dot-check--project .task-dot-check__icon {
+  color: color-mix(in srgb, var(--major) 75%, var(--muted));
+}
+
+.task-dot-check:hover .task-dot-check__icon {
+  color: var(--minor);
+}
+
 .task-dot-check__mark {
   font-size: calc(13px * var(--text-scale));
   font-weight: 700;
@@ -1248,6 +1262,7 @@ body.is-dragging-task {
     left: 12px;
     right: 12px;
     bottom: 12px;
+    z-index: 1200;
     transform: none;
     animation: none;
   }
@@ -1274,6 +1289,13 @@ body.is-dragging-task {
   .starter {
     padding: 14px;
     border-radius: calc(16px * var(--radius-scale));
+  }
+
+  .starter__actions {
+    position: sticky;
+    bottom: -14px;
+    padding: 10px 0 0;
+    background: var(--panel);
   }
 
   .archive-block {

@@ -13,7 +13,6 @@ import {
   periodDateBounds,
   periodRange,
   summarize,
-  totalsByDay,
   type AnalyticsPeriod,
   type ProjectTotal,
 } from '../../../composables/timer/analytics'
@@ -29,7 +28,10 @@ import {
   type ShareInput,
 } from '../../../composables/analytics/charts'
 import { habitStats } from '../../../composables/analytics/habits'
-import type { TaskTotal } from '../../../composables/timer/entries'
+import {
+  totalsByDay,
+  type TaskTotal,
+} from '../../../composables/timer/entries'
 
 export const PERIOD_OPTIONS: { id: AnalyticsPeriod; label: string }[] = [
   { id: ANALYTICS_PERIOD.THIS_MONTH, label: 'This month' },

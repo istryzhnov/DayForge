@@ -1,7 +1,14 @@
 import type { ID, ISODate } from '../../entities/types'
 import type { TimeEntry } from '../../entities/TimerEntity'
 import { toLocalISODate } from '../goalSpace/date'
-import { entryDurationMs, entryDate, totalsByTask, type TaskTotal } from './entries'
+import {
+  entriesByDay,
+  entryDate,
+  entryDurationMs,
+  sumDurations,
+  totalsByTask,
+  type TaskTotal,
+} from './entries'
 
 export const ANALYTICS_PERIOD = {
   THIS_MONTH: 'thisMonth',
@@ -138,9 +145,9 @@ export function summarize(
   goalTitleById: Map<ID, string>,
 ): AnalyticsSummary {
   return {
-    totalMs: inRange.reduce((sum, entry) => sum + entryDurationMs(entry), 0),
+    totalMs: sumDurations(inRange),
     sessionCount: new Set(inRange.map((entry) => entry.sessionId)).size,
-    dayCount: new Set(inRange.map(entryDate)).size,
+    dayCount: entriesByDay(inRange).size,
     byTask: totalsByTask(inRange),
     byProject: totalsByProject(inRange, goalTitleById),
   }
@@ -173,18 +180,6 @@ export function periodDateBounds(
   }, null)
 
   return { from: earliest ?? today, to: to < today ? today : to }
-}
-
-/** Tracked milliseconds per day, filed under the day each stretch began on. */
-export function totalsByDay(entries: TimeEntry[]): Map<ISODate, number> {
-  const totals = new Map<ISODate, number>()
-
-  entries.forEach((entry) => {
-    const date = entryDate(entry)
-    totals.set(date, (totals.get(date) ?? 0) + entryDurationMs(entry))
-  })
-
-  return totals
 }
 
 const HOUR_MS = 60 * 60 * 1000

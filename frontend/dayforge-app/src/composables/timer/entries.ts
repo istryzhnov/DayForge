@@ -47,13 +47,35 @@ export function entryDurationMs(entry: TimeEntry): number {
   )
 }
 
-function sumDurations(entries: TimeEntry[]): number {
+export function sumDurations(entries: TimeEntry[]): number {
   return entries.reduce((total, entry) => total + entryDurationMs(entry), 0)
 }
 
 /** Entries are filed under the day they started on, midnight crossings included. */
 export function entryDate(entry: TimeEntry): ISODate {
   return toLocalISODate(new Date(entry.startedAt))
+}
+
+export function entriesByDay(entries: TimeEntry[]): Map<ISODate, TimeEntry[]> {
+  const byDate = new Map<ISODate, TimeEntry[]>()
+
+  entries.forEach((entry) => {
+    const date = entryDate(entry)
+    const group = byDate.get(date) ?? []
+    group.push(entry)
+    byDate.set(date, group)
+  })
+
+  return byDate
+}
+
+/** Tracked milliseconds per day, filed under the day each stretch began on. */
+export function totalsByDay(entries: TimeEntry[]): Map<ISODate, number> {
+  const totals = new Map<ISODate, number>()
+  entriesByDay(entries).forEach((group, date) => {
+    totals.set(date, sumDurations(group))
+  })
+  return totals
 }
 
 export function sortByStart(entries: TimeEntry[]): TimeEntry[] {
@@ -109,15 +131,8 @@ export function validateEntry(
   return { errors, warnings }
 }
 
-export function entriesForTask(
-  entries: TimeEntry[],
-  taskId: ID,
-): TimeEntry[] {
-  return entries.filter((entry) => entry.taskId === taskId)
-}
-
-export function totalForTask(entries: TimeEntry[], taskId: ID): number {
-  return sumDurations(entriesForTask(entries, taskId))
+export function entriesOnDay(entries: TimeEntry[], date: ISODate): TimeEntry[] {
+  return entries.filter((entry) => entryDate(entry) === date)
 }
 
 export function totalForTaskOnDate(
@@ -126,18 +141,12 @@ export function totalForTaskOnDate(
   date: ISODate,
 ): number {
   return sumDurations(
-    entries.filter(
-      (entry) => entry.taskId === taskId && entryDate(entry) === date,
-    ),
+    entriesOnDay(entries, date).filter((entry) => entry.taskId === taskId),
   )
 }
 
-export function totalForGoal(entries: TimeEntry[], goalId: ID): number {
-  return sumDurations(entries.filter((entry) => entry.goalId === goalId))
-}
-
 export function totalForDay(entries: TimeEntry[], date: ISODate): number {
-  return sumDurations(entries.filter((entry) => entryDate(entry) === date))
+  return sumDurations(entriesOnDay(entries, date))
 }
 
 export interface TaskTotal {
@@ -220,16 +229,7 @@ export function totalForTasks(entries: TimeEntry[], taskIds: ID[]): number {
 }
 
 export function groupByDay(entries: TimeEntry[]): DayGroup[] {
-  const byDate = new Map<ISODate, TimeEntry[]>()
-
-  sortByStart(entries).forEach((entry) => {
-    const date = entryDate(entry)
-    const group = byDate.get(date) ?? []
-    group.push(entry)
-    byDate.set(date, group)
-  })
-
-  return [...byDate]
+  return [...entriesByDay(sortByStart(entries))]
     .map(([date, group]) => ({
       date,
       entries: group,

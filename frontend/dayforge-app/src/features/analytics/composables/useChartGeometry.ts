@@ -1,9 +1,7 @@
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import {
   buildBarChart,
-  buildDonut,
   type SeriesPoint,
-  type ShareInput,
 } from '../../../composables/analytics/charts'
 
 const FALLBACK_WIDTH = 520
@@ -48,21 +46,4 @@ export function useBarChartGeometry(getPoints: () => SeriesPoint[]) {
   return {
     chart: computed(() => buildBarChart(getPoints(), { width: width.value })),
   }
-}
-
-export function useDonutGeometry(getShares: () => ShareInput[]) {
-  const width = useMeasuredWidth()
-
-  const donut = computed(() =>
-    buildDonut(getShares(), {
-      size: Math.min(168, Math.max(110, width.value)),
-    }),
-  )
-
-  /** Ranked tints of the one accent: calm, and right for parts of a whole. */
-  function tintOf(rank: number): number {
-    return Math.max(0.28, 0.95 - rank * 0.13)
-  }
-
-  return { donut, tintOf }
 }

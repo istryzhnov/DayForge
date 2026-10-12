@@ -78,6 +78,14 @@
   box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
+.project-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
 .sidebar-caption {
   margin: 8px 6px 4px;
   font-size: calc(12px * var(--text-scale));
@@ -398,10 +406,6 @@
 @media (max-width: 960px) {
   .goal-panel-header h2 {
     font-size: calc(28px * var(--text-scale));
-  }
-
-  .goal-kpi-row {
-    grid-template-columns: 1fr;
   }
 
   .goal-form-card,
