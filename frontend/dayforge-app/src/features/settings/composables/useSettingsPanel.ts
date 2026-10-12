@@ -7,6 +7,7 @@ export const SETTINGS_SECTION = {
   WORKSPACE: 'workspace',
   REMINDERS: 'reminders',
   CALENDAR: 'calendar',
+  TIMER: 'timer',
   BEHAVIOR: 'behavior',
   FORMAT: 'format',
   DATA: 'data',
@@ -51,8 +52,8 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
     id: SETTINGS_SECTION.PROJECT,
     group: SETTINGS_GROUP.APPEARANCE,
     icon: '🏷️',
-    label: 'This project',
-    description: 'Colours for the open project only.',
+    label: 'Project',
+    description: 'Name, status, colours and rate of the project you have open.',
   },
   {
     id: SETTINGS_SECTION.WORKSPACE,
@@ -74,6 +75,13 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
     icon: '📅',
     label: 'Calendar',
     description: 'How the grid behaves and what a full day means.',
+  },
+  {
+    id: SETTINGS_SECTION.TIMER,
+    group: SETTINGS_GROUP.PLANNER,
+    icon: '⏱️',
+    label: 'Timer',
+    description: 'Pomodoro lengths, countdowns and what lands in history.',
   },
   {
     id: SETTINGS_SECTION.BEHAVIOR,

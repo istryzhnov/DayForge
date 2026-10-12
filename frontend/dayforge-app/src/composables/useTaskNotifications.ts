@@ -3,6 +3,11 @@ import type { DailyTask } from '../entities/TaskEntity'
 import { TASK_STATUS } from '../entities/constants'
 import { getTodayISODate } from './goalSpace/date'
 import { isWithinQuietHours, useSettings } from './useSettings'
+import {
+  ensureAudioContext,
+  playBeep as playAlertSound,
+  unlockAudioOnFirstInteraction,
+} from './alertSound'
 
 const NOTIFICATIONS_STORAGE_KEY = 'dayforge-notifications-enabled-v1'
 const CHECK_INTERVAL_MS = 15 * 1000
@@ -13,8 +18,6 @@ function leadWindowMs(): number {
   return useSettings().settings.notifications.leadMinutes * 60 * 1000
 }
 
-type AudioContextCtor = typeof AudioContext
-
 const isSupported = typeof window !== 'undefined' && 'Notification' in window
 const permission = ref<NotificationPermission>(
   isSupported ? Notification.permission : 'denied',
@@ -24,51 +27,13 @@ const activeAlert = ref<DailyTask | null>(null)
 const alertQueue = ref<DailyTask[]>([])
 const handledKeys = new Set<string>()
 
-let audioCtx: AudioContext | null = null
 let alertLoopId: number | undefined
 let initialized = false
 
-function getAudioContextCtor(): AudioContextCtor | undefined {
-  return (
-    window.AudioContext ??
-    (window as unknown as { webkitAudioContext?: AudioContextCtor })
-      .webkitAudioContext
-  )
-}
-
-function ensureAudioContext(): AudioContext | null {
-  if (!audioCtx) {
-    const Ctor = getAudioContextCtor()
-    if (!Ctor) return null
-    audioCtx = new Ctor()
-  }
-  if (audioCtx.state === 'suspended') void audioCtx.resume()
-  return audioCtx
-}
-
-// Two short beeps synthesized via Web Audio API — no audio asset needed.
 function playBeep() {
   const { sound, volume } = useSettings().settings.notifications
-  if (!sound || volume <= 0) return
-
-  const ctx = ensureAudioContext()
-  if (!ctx) return
-  const now = ctx.currentTime
-  // `exponentialRampToValueAtTime` can never reach 0, hence the tiny floor.
-  const peak = Math.max(0.0002, 0.35 * volume)
-  ;[0, 0.22].forEach((offset) => {
-    const oscillator = ctx.createOscillator()
-    const gain = ctx.createGain()
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(880, now + offset)
-    gain.gain.setValueAtTime(0.0001, now + offset)
-    gain.gain.exponentialRampToValueAtTime(peak, now + offset + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.2)
-    oscillator.connect(gain)
-    gain.connect(ctx.destination)
-    oscillator.start(now + offset)
-    oscillator.stop(now + offset + 0.22)
-  })
+  if (!sound) return
+  playAlertSound(volume)
 }
 
 function startAlertLoop() {
@@ -147,16 +112,6 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
       queueAlert(task)
     }
   }
-}
-
-function unlockAudioOnFirstInteraction() {
-  const handler = () => {
-    ensureAudioContext()
-    document.removeEventListener('pointerdown', handler)
-    document.removeEventListener('keydown', handler)
-  }
-  document.addEventListener('pointerdown', handler)
-  document.addEventListener('keydown', handler)
 }
 
 function loadEnabledFromStorage(): boolean {

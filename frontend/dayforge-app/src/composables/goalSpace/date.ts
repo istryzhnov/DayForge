@@ -1,7 +1,19 @@
 import type { ID, ISODate, TimeOfDay } from '../../entities/types'
 
 export function createId(prefix: string): ID {
-  return `${prefix}-${Math.random().toString(36).slice(2, 10)}` as ID
+  const unique =
+    typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+  return `${prefix}-${unique}` as ID
+}
+
+/**
+ * A day's row is identified by what it is, not by chance: two devices that
+ * each open the app on the same morning must land on the same row.
+ */
+export function dailyTaskId(templateId: ID, date: ISODate): ID {
+  return `${templateId}::${date}` as ID
 }
 
 export function toLocalISODate(date: Date): ISODate {

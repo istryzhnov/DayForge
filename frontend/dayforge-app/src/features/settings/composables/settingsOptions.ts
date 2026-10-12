@@ -15,8 +15,8 @@ import {
   type ClockFormat,
   type StartView,
 } from '../../../composables/useSettings'
-import { PRIORITY } from '../../../entities/constants'
-import type { Priority } from '../../../entities/types'
+import { GOAL_STATUS, PRIORITY } from '../../../entities/constants'
+import type { GoalStatus, Priority } from '../../../entities/types'
 
 export type SettingOption<T> = { id: T; label: string }
 
@@ -24,6 +24,15 @@ export type SettingOption<T> = { id: T; label: string }
 export const MINUTE_STEPS = [5, 10, 15, 30, 60]
 
 export const TASK_DURATIONS = [15, 30, 45, 60, 90, 120]
+
+export const FOCUS_LENGTHS = [15, 20, 25, 30, 45, 50]
+
+export const BREAK_LENGTHS = [3, 5, 10, 15, 20, 30]
+
+export const COUNTDOWN_LENGTHS = [5, 10, 15, 25, 45, 60]
+
+/** Focus phases between long breaks. */
+export const LONG_BREAK_EVERY = [2, 3, 4, 5, 6]
 
 export const DENSITY_OPTIONS: SettingOption<Density>[] = [
   { id: DENSITY.COMPACT, label: 'Compact' },
@@ -58,6 +67,21 @@ export const PRIORITY_OPTIONS: SettingOption<Priority>[] = [
   { id: PRIORITY.MINOR, label: 'Task' },
   { id: PRIORITY.MAJOR, label: 'Project' },
 ]
+
+export const GOAL_STATUS_OPTIONS: SettingOption<GoalStatus>[] = [
+  { id: GOAL_STATUS.ACTIVE, label: 'Active' },
+  { id: GOAL_STATUS.PAUSED, label: 'Paused' },
+  { id: GOAL_STATUS.ARCHIVED, label: 'Archived' },
+]
+
+export const GOAL_STATUS_HINTS: Record<GoalStatus, string> = {
+  [GOAL_STATUS.ACTIVE]:
+    'Today\u2019s list is rebuilt from this project every morning, as usual.',
+  [GOAL_STATUS.PAUSED]:
+    'Its tasks stop arriving on today: repeats no longer fire and unfinished ones stay on the day they were left. Rows already on today are kept, and nothing is deleted.',
+  [GOAL_STATUS.ARCHIVED]:
+    'Paused, and the project also drops out of the sidebar list \u2014 it stays visible only while it is the one you have open.',
+}
 
 export const CLOCK_OPTIONS: SettingOption<ClockFormat>[] = [
   { id: CLOCK_FORMAT.H24, label: '24-hour' },

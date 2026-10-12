@@ -6,6 +6,8 @@ import { usePressGesture } from '../../../composables/usePressGesture'
 const props = defineProps<{
   goal: Goal
   isActive: boolean
+  /** Listed under the collapsed "Archived" group instead of the main list. */
+  isArchived?: boolean
   taskCount: number
   /** The project's own colours, when it has any. */
   themeVars?: Record<string, string>
@@ -40,6 +42,7 @@ function onContextMenu(event: MouseEvent) {
       active: isActive,
       'is-lifted': isLifted,
       'is-themed': !!themeVars,
+      'is-archived': isArchived,
     }"
     :style="themeVars"
     @click="emit('select')"

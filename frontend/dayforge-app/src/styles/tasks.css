@@ -126,6 +126,137 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* --- the panel that opens under a task ----------------------------------- */
+
+.task-editor {
+  display: grid;
+  gap: 12px;
+  margin-top: -4px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: calc(16px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+}
+
+.task-editor__field {
+  display: grid;
+  gap: 4px;
+}
+
+.task-editor__field input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 11px;
+  font-family: inherit;
+  font-size: calc(14px * var(--text-scale));
+}
+
+.task-editor__field input:focus {
+  outline: 1px solid var(--accent);
+}
+
+.task-editor__hint {
+  margin: -4px 0 0;
+  font-size: calc(12px * var(--text-scale));
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.task-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* --- dragging between projects ------------------------------------------- */
+
+.task-row.is-draggable {
+  cursor: grab;
+  -webkit-touch-callout: none;
+}
+
+.task-row.is-dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+body.is-dragging-task {
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grabbing;
+}
+
+.task-project.is-drop-target {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.task-list.is-drop-target {
+  outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 6px;
+  border-radius: calc(20px * var(--radius-scale));
+}
+
+/* The line a dropped task would land on. */
+.task-row.is-drop-above::before,
+.task-row.is-drop-below::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.task-row.is-drop-above::before {
+  top: -5px;
+}
+
+.task-row.is-drop-below::after {
+  bottom: -5px;
+}
+
+.task-drop-out {
+  padding: 14px;
+  text-align: center;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line-soft));
+  border-radius: calc(16px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 35%, transparent);
+}
+
+.task-drop-out.is-drop-target {
+  color: var(--text);
+  border-style: solid;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* Follows the pointer, so it must never be what the pointer lands on. */
+.task-drag-ghost {
+  position: fixed;
+  z-index: 1300;
+  pointer-events: none;
+  transform: translate(14px, 12px);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel);
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+  box-shadow: var(--shadow-lg);
+}
+
 .task-main {
   display: flex;
   align-items: center;
@@ -221,6 +352,20 @@
 .task-dot-check--project.is-done {
   background: var(--major);
   border-color: var(--major);
+}
+
+.task-dot-check__icon {
+  width: 14px;
+  height: 14px;
+  color: color-mix(in srgb, var(--minor) 75%, var(--muted));
+}
+
+.task-dot-check--project .task-dot-check__icon {
+  color: color-mix(in srgb, var(--major) 75%, var(--muted));
+}
+
+.task-dot-check:hover .task-dot-check__icon {
+  color: var(--minor);
 }
 
 .task-dot-check__mark {
@@ -357,6 +502,56 @@
   margin: 4px 0;
 }
 
+.task-context-menu__more {
+  gap: 2px;
+}
+
+.task-context-menu__more > .disclosure__summary {
+  justify-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: calc(8px * var(--radius-scale));
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 400;
+  color: var(--text);
+}
+
+.task-context-menu__more > .disclosure__summary:hover {
+  background: color-mix(in srgb, var(--panel-soft) 90%, transparent);
+}
+
+.task-context-menu__more > .disclosure__summary:focus-visible {
+  outline-offset: -2px;
+  border-radius: calc(8px * var(--radius-scale));
+}
+
+.task-context-menu__more > .disclosure__summary::before {
+  display: none;
+}
+
+.task-context-menu__more > .disclosure__summary::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  margin-right: 3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.task-context-menu__more[open] > .disclosure__summary::after {
+  transform: rotate(-135deg);
+}
+
+.task-context-menu__more > .disclosure__body {
+  gap: 2px;
+  padding-left: 12px;
+}
+
 /* Shared "checkbox reveals a panel" block, used by the schedule fields and the
    goal/project pickers so both stay identical. */
 .composer-section {
@@ -435,6 +630,7 @@
 .task-schedule__field input,
 .task-schedule__field select {
   width: 100%;
+  min-width: 0;
   border: 1px solid var(--line);
   border-radius: calc(10px * var(--radius-scale));
   background: var(--panel-soft);
@@ -490,6 +686,19 @@
 
 .composer-toggle-btn {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.composer-toggle-btn__key {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .composer-toggle-btn__key {
+    display: inline-block;
+  }
 }
 
 .composer-collapsible {
@@ -564,11 +773,19 @@
   padding: 3px 9px;
 }
 
+.goal-inline-chip--project {
+  border-color: color-mix(in srgb, var(--project-color) 40%, transparent);
+  background: color-mix(in srgb, var(--project-color) 14%, transparent);
+  color: color-mix(in srgb, var(--project-color) 40%, var(--text));
+  font-weight: 600;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-right: 8px;
   justify-content: flex-end;
 }
 
@@ -699,6 +916,13 @@
     font-size: calc(14px * var(--text-scale));
   }
 
+  .task-context-menu__more > .disclosure__summary {
+    min-height: 40px;
+    padding: 12px 12px;
+    box-sizing: border-box;
+    font-size: calc(14px * var(--text-scale));
+  }
+
   .composer-section__body {
     padding: 10px;
     border-radius: calc(14px * var(--radius-scale));
@@ -715,6 +939,7 @@
     flex: 1 1 calc(50% - 5px);
   }
 
+  .task-editor__field input,
   .task-schedule__field input,
   .task-schedule__field select {
     /* iOS zooms the page when a focused field is under 16px. */
@@ -900,7 +1125,7 @@
 
 .starter {
   width: min(560px, calc(100vw - 32px));
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: calc(20px * var(--radius-scale));
@@ -1018,6 +1243,42 @@
   flex-wrap: wrap;
 }
 
+/* --- Shortcut tip ------------------------------------------------------- */
+
+.shortcut-tip {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1300;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 48px));
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--panel);
+  box-shadow: var(--shadow-lg);
+  animation: undo-toast-in 0.16s ease;
+}
+
+.shortcut-tip__text {
+  margin: 0;
+  font-size: calc(13px * var(--text-scale));
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.shortcut-tip__close {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: max(16px, calc(16px * var(--text-scale)));
+  cursor: pointer;
+  line-height: 1;
+}
+
 /* --- Undo toast --------------------------------------------------------- */
 
 .undo-toast {
@@ -1115,12 +1376,14 @@
     left: 12px;
     right: 12px;
     bottom: 12px;
+    z-index: 1200;
     transform: none;
     animation: none;
   }
 
   .undo-toast__label {
     flex: 1 1 auto;
+    min-width: 0;
     max-width: none;
   }
 
@@ -1142,6 +1405,13 @@
     border-radius: calc(16px * var(--radius-scale));
   }
 
+  .starter__actions {
+    position: sticky;
+    bottom: -14px;
+    padding: 10px 0 0;
+    background: var(--panel);
+  }
+
   .archive-block {
     padding: 10px;
     border-radius: calc(16px * var(--radius-scale));
@@ -1150,4 +1420,19 @@
   .archive-task__when {
     display: none;
   }
+}
+
+/* In the All view a project's colour runs down the left edge of its rows. */
+.task-row.is-project-tinted {
+  box-shadow: inset 3px 0 0 var(--project-color);
+}
+
+.task-row.is-project-tinted:hover {
+  box-shadow:
+    inset 3px 0 0 var(--project-color),
+    var(--shadow-sm);
+}
+
+.task-row.is-project-tinted .task-dot-check__icon {
+  color: var(--project-color);
 }

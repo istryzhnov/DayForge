@@ -4,9 +4,12 @@ import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
 import { isRepeating } from './goalSpace/recurrence'
+import { projectColors } from './theme/goalTheme'
 
 export type TaskNode = {
   task: DailyTask
+  /** The task's rule book: repeat, default times, parent. */
+  template?: TaskTemplate
   /** Goal the task is tagged with, or "All Goals" when it has none. */
   goalTitle?: string
   /** Title of the owning project, for the chip on a nested task. */
@@ -15,6 +18,12 @@ export type TaskNode = {
   isNew?: boolean
   /** How many days this task has been completed on, across its whole history. */
   completedCount?: number
+  /** The project's hourly rate, which a task without its own one bills at. */
+  goalRate?: number
+  /** The project's icon id, drawn in the completion circle. */
+  goalIcon?: string
+  /** The project's colour, marking its rows in the All view. */
+  goalColor?: string
 }
 
 export type TaskGroup =
@@ -49,6 +58,35 @@ export function useTaskTree(props: TaskTreeProps) {
       if (!task.goalId) return 'All Goals'
       return goalTitleById.get(task.goalId) ?? 'Unknown Goal'
     }
+
+    const goalRateById = new Map(
+      props.goals.map((goal) => [goal.id, goal.hourlyRate]),
+    )
+
+    function goalRateOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalRateById.get(task.goalId)
+    }
+
+    const goalIconById = new Map(
+      props.goals.map((goal) => [goal.id, goal.icon]),
+    )
+
+    function goalIconOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalIconById.get(task.goalId)
+    }
+
+    const goalColorById = projectColors(props.goals)
+
+    function goalColorOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalColorById.get(task.goalId)
+    }
+
+    const templateById = new Map(
+      props.templates.map((template) => [template.id, template]),
+    )
 
     const createdRank = new Map(
       props.templates.map((template, index) => [template.id, index]),
@@ -95,7 +133,11 @@ export function useTaskTree(props: TaskTreeProps) {
 
       const projectNode: TaskNode = {
         task: project,
+        template: templateById.get(project.templateId),
         goalTitle: goalTitleOf(project),
+        goalRate: goalRateOf(project),
+        goalIcon: goalIconOf(project),
+        goalColor: goalColorOf(project),
         isNew: isRecentlyCreated(project),
         completedCount: completedCountOf(project),
       }
@@ -110,7 +152,11 @@ export function useTaskTree(props: TaskTreeProps) {
         project: projectNode,
         children: children.map((child) => ({
           task: child,
+          template: templateById.get(child.templateId),
           goalTitle: goalTitleOf(child),
+          goalRate: goalRateOf(child),
+          goalIcon: goalIconOf(child),
+          goalColor: goalColorOf(child),
           projectTitle: project.title,
           isNew: isRecentlyCreated(child),
           completedCount: completedCountOf(child),
@@ -131,7 +177,11 @@ export function useTaskTree(props: TaskTreeProps) {
           kind: 'task',
           node: {
             task,
+            template: templateById.get(task.templateId),
             goalTitle: goalTitleOf(task),
+            goalRate: goalRateOf(task),
+            goalIcon: goalIconOf(task),
+            goalColor: goalColorOf(task),
             isNew: isRecentlyCreated(task),
             completedCount: completedCountOf(task),
           },

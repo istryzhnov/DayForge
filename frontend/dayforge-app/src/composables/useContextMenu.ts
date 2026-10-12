@@ -21,8 +21,10 @@ export function useContextMenu(options: ContextMenuOptions) {
     const width = menuRef.value?.offsetWidth || ESTIMATED_MENU_WIDTH_PX
     const height = menuRef.value?.offsetHeight || ESTIMATED_MENU_HEIGHT_PX
 
-    const maxLeft = window.innerWidth - width - VIEWPORT_MARGIN_PX
-    const maxTop = window.innerHeight - height - VIEWPORT_MARGIN_PX
+    const maxLeft =
+      document.documentElement.clientWidth - width - VIEWPORT_MARGIN_PX
+    const maxTop =
+      document.documentElement.clientHeight - height - VIEWPORT_MARGIN_PX
 
     return {
       left: `${Math.max(VIEWPORT_MARGIN_PX, Math.min(x, maxLeft))}px`,

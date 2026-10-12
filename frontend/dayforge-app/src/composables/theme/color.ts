@@ -193,10 +193,6 @@ export function contrastRatio(a: string, b: string): number {
   return (light + 0.05) / (dark + 0.05)
 }
 
-export function isLight(color: string): boolean {
-  return relativeLuminance(color) > 0.42
-}
-
 export function readableTextOn(color: string): string {
   const dark = mix(color, '#000000', 0.14)
   const light = mix(color, '#ffffff', 0.06)

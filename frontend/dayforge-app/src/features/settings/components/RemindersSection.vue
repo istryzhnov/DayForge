@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useSettings } from '../../../composables/useSettings'
 import { MINUTE_STEPS } from '../composables/settingsOptions'
 import {
@@ -64,65 +65,67 @@ const { settings, update, resetSection } = useSettings()
       </span>
     </label>
 
-    <label v-if="settings.notifications.sound" class="settings-slider">
-      <span>
-        Volume
-        <em>{{ Math.round(settings.notifications.volume * 100) }}%</em>
-      </span>
-      <input
-        type="range"
-        min="0"
-        max="100"
-        step="5"
-        :value="Math.round(settings.notifications.volume * 100)"
-        @input="update('notifications', { volume: fractionValue($event) })"
-      />
-    </label>
-
-    <label class="settings-toggle">
-      <input
-        type="checkbox"
-        :checked="settings.notifications.repeatAlert"
-        @change="update('notifications', { repeatAlert: checkedValue($event) })"
-      />
-      <span>
-        <strong>Keep chiming until acknowledged</strong>
-        <em>Off means one chime and the popup waits quietly.</em>
-      </span>
-    </label>
-
-    <p class="sidebar-caption">Quiet hours</p>
-
-    <label class="settings-toggle">
-      <input
-        type="checkbox"
-        :checked="settings.notifications.quietHours"
-        @change="update('notifications', { quietHours: checkedValue($event) })"
-      />
-      <span>
-        <strong>Stay silent overnight</strong>
-        <em>Nothing is queued during this window, not even held back.</em>
-      </span>
-    </label>
-
-    <div v-if="settings.notifications.quietHours" class="settings-times">
-      <label>
-        From
+    <DisclosureSection label="Advanced">
+      <label v-if="settings.notifications.sound" class="settings-slider">
+        <span>
+          Volume
+          <em>{{ Math.round(settings.notifications.volume * 100) }}%</em>
+        </span>
         <input
-          type="time"
-          :value="settings.notifications.quietFrom"
-          @change="update('notifications', { quietFrom: textValue($event) })"
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          :value="Math.round(settings.notifications.volume * 100)"
+          @input="update('notifications', { volume: fractionValue($event) })"
         />
       </label>
-      <label>
-        To
+
+      <label class="settings-toggle">
         <input
-          type="time"
-          :value="settings.notifications.quietTo"
-          @change="update('notifications', { quietTo: textValue($event) })"
+          type="checkbox"
+          :checked="settings.notifications.repeatAlert"
+          @change="update('notifications', { repeatAlert: checkedValue($event) })"
         />
+        <span>
+          <strong>Keep chiming until acknowledged</strong>
+          <em>Off means one chime and the popup waits quietly.</em>
+        </span>
       </label>
-    </div>
+
+      <p class="sidebar-caption">Quiet hours</p>
+
+      <label class="settings-toggle">
+        <input
+          type="checkbox"
+          :checked="settings.notifications.quietHours"
+          @change="update('notifications', { quietHours: checkedValue($event) })"
+        />
+        <span>
+          <strong>Stay silent overnight</strong>
+          <em>Nothing is queued during this window, not even held back.</em>
+        </span>
+      </label>
+
+      <div v-if="settings.notifications.quietHours" class="settings-times">
+        <label>
+          From
+          <input
+            type="time"
+            :value="settings.notifications.quietFrom"
+            @change="update('notifications', { quietFrom: textValue($event) })"
+          />
+        </label>
+        <label>
+          To
+          <input
+            type="time"
+            :value="settings.notifications.quietTo"
+            @change="update('notifications', { quietTo: textValue($event) })"
+          />
+        </label>
+      </div>
+    </DisclosureSection>
 
     <button
       class="btn btn-ghost settings-reset"

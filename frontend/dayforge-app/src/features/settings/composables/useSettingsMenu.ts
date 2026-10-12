@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../composables/useTheme'
+import { GOAL_STATUS } from '../../../entities/constants'
 import { LOCALE_OPTIONS, useSettings } from '../../../composables/useSettings'
 import { FONT_LABELS } from '../../../composables/theme/tokens'
 import {
@@ -12,6 +13,7 @@ import {
 import {
   CLOCK_OPTIONS,
   DENSITY_OPTIONS,
+  GOAL_STATUS_OPTIONS,
   START_VIEW_OPTIONS,
 } from './settingsOptions'
 
@@ -55,7 +57,7 @@ export function useSettingsMenu(props: MenuProps) {
 
   const summaries = computed<Record<SettingsSection, string>>(() => {
     const customCount = Object.keys(palette.value).length
-    const { notifications, calendar, behavior, format, accessibility } =
+    const { notifications, calendar, behavior, format, accessibility, timer } =
       settings
 
     return {
@@ -67,9 +69,18 @@ export function useSettingsMenu(props: MenuProps) {
           ? 'Theme defaults'
           : `${customCount} colour${customCount > 1 ? 's' : ''} changed`,
       project: props.activeGoal
-        ? `${props.activeGoal.title} — ${
-            props.activeGoal.theme?.accent ? 'own colours' : 'theme colours'
-          }`
+        ? [
+            props.activeGoal.title,
+            props.activeGoal.status === GOAL_STATUS.ACTIVE
+              ? null
+              : labelOf(GOAL_STATUS_OPTIONS, props.activeGoal.status, 'Active'),
+            props.activeGoal.theme?.accent ? 'own colours' : 'theme colours',
+            (props.activeGoal.hourlyRate ?? 0) > 0
+              ? `${props.activeGoal.hourlyRate} / h`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' · ')
         : 'Open a project first',
       workspace: [
         labelOf(DENSITY_OPTIONS, workspace.value.density, 'Cozy'),
@@ -86,11 +97,12 @@ export function useSettingsMenu(props: MenuProps) {
       calendar: `${calendar.snapMinutes} min steps · ${
         calendar.weekStartsOn === 1 ? 'week from Mon' : 'week from Sun'
       }`,
+      timer: `${timer.focusMinutes} / ${timer.shortBreakMinutes} min · long break every ${timer.longBreakEvery}`,
       behavior: `Opens ${labelOf(
         START_VIEW_OPTIONS,
         behavior.startView,
         'Projects',
-      )}`,
+      )}${behavior.keyboardShortcuts ? '' : ' · no shortcuts'}`,
       format: `${labelOf(LOCALE_OPTIONS, format.locale, 'Українська')} · ${labelOf(
         CLOCK_OPTIONS,
         format.clock,

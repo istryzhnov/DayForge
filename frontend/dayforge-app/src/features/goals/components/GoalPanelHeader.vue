@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import GoalHeader from './GoalHeader.vue'
-import type { GoalTheme } from '../../../entities/GoalEntity'
 
 defineProps<{
   title: string
@@ -10,12 +9,6 @@ defineProps<{
   projectCount: number
   taskCount: number
   showSettings: boolean
-  goalTheme?: GoalTheme
-}>()
-
-const emit = defineEmits<{
-  (e: 'delete-goal'): void
-  (e: 'change-color', color: string | undefined): void
 }>()
 </script>
 
@@ -28,8 +21,5 @@ const emit = defineEmits<{
     :project-count="projectCount"
     :task-count="taskCount"
     :show-settings="showSettings"
-    :goal-theme="goalTheme"
-    @delete-goal="emit('delete-goal')"
-    @change-color="(color) => emit('change-color', color)"
   />
 </template>

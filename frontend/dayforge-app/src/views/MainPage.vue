@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
+import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
+import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
 import CalendarView from '../features/calendar/components/CalendarView.vue'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import PlannedTaskList from '../features/tasks/components/PlannedTaskList.vue'
 import ArchiveView from '../features/tasks/components/ArchiveView.vue'
+import TimerView from '../features/timer/components/TimerView.vue'
+import AnalyticsView from '../features/analytics/components/AnalyticsView.vue'
 import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
 import StarterTemplateModal from '../features/onboarding/components/StarterTemplateModal.vue'
 import UndoToast from '../components/UndoToast.vue'
+import ShortcutTipToast from '../components/ShortcutTipToast.vue'
 import SettingsSidebar from '../features/settings/components/SettingsSidebar.vue'
+import ProfileModal from '../features/profile/components/ProfileModal.vue'
+import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
+import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
+import QuickAddModal from '../features/hotkeys/components/QuickAddModal.vue'
+import ShortcutsModal from '../features/hotkeys/components/ShortcutsModal.vue'
 
 const goalSpace = useGoalSpace()
 
@@ -54,34 +64,67 @@ const {
   pendingCount,
   acknowledgeAlert,
   toggleNotifications,
+  handleSaveTimerAsTask,
+  handleAttachTimerTask,
+  timerTaskOptions,
   dataStats,
   exportData,
   importData,
+  restoreSnapshot,
   clearData,
+  syncStatus,
   majorTaskOptions,
   handleAddTask,
+  handleQuickAdd,
   handleAddSubTask,
   handleCreateGoal,
   handleToggleDone,
   handleTogglePlanned,
   handleSetAsProject,
   handleAttachToProject,
+  handleMoveTaskTo,
   handleAssignTaskToGoal,
   handleCreateAllModeMinor,
   handleCreateScheduledTask,
   handleEditTask,
+  handleScheduleTask,
   handleDeleteTask,
   handleDeleteGoal,
-  handleChangeGoalColor,
+  handleChangeGoalRate,
+  handleChangeGoalDetails,
+  handleChangeGoalStatus,
   handleChangeGoalTheme,
+  handleChangeGoalIcon,
+  handleSetTaskRate,
 } = useMainPageState(goalSpace)
 
+useHotkeys({
+  goals: goalSpace.goals,
+  activeGoalId: goalSpace.activeGoalId,
+  selectView,
+  selectGoal,
+})
+
+const { overlay } = useHotkeyOverlay()
+
 const { isOpen: isSettingsOpen } = useSettingsPanel()
+const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
+const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
 </script>
 
 <template>
   <div class="app-shell" :class="{ 'is-settings-open': isSettingsOpen }">
-    <aside class="app-sidebar">
+    <MobileTopBar
+      :active-view="activeView"
+      :goal-title="activeGoal?.title ?? null"
+      @open-timer="selectView('timer')"
+    />
+
+    <aside
+      id="app-sidebar"
+      class="app-sidebar"
+      :class="{ 'is-mobile-open': isMobileNavOpen }"
+    >
       <SidebarComponent
         :goals="goals"
         :active-goal-id="activeGoalId"
@@ -93,6 +136,7 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
         :done-count="totalDone"
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"
+        :sync-status="syncStatus"
         @select-goal="selectGoal"
         @create-goal="handleCreateGoal"
         @select-view="selectView"
@@ -100,6 +144,15 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
         @delete-goal="handleDeleteGoal"
       />
     </aside>
+
+    <Transition name="mobile-nav-backdrop">
+      <div
+        v-if="isMobileNavOpen"
+        class="mobile-nav-backdrop"
+        aria-hidden="true"
+        @click="closeMobileNav"
+      ></div>
+    </Transition>
 
     <main class="app-content">
       <div class="app-content__inner">
@@ -126,9 +179,12 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
           @set-as-project="handleSetAsProject"
           @create-all-mode-minor="handleCreateAllModeMinor"
           @edit-task="handleEditTask"
+          @schedule-task="handleScheduleTask"
           @delete-task="handleDeleteTask"
-          @delete-goal="handleDeleteGoal"
-          @change-goal-color="handleChangeGoalColor"
+          @set-task-rate="handleSetTaskRate"
+          @assign-goal="handleAssignTaskToGoal"
+          @attach-to-project="handleAttachToProject"
+          @move-task-to="handleMoveTaskTo"
         />
 
         <PlannedTaskList
@@ -141,6 +197,21 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
           v-else-if="activeView === 'archive'"
           :blocks="archiveBlocks"
           :total-done="totalDone"
+        />
+
+        <AnalyticsView
+          v-else-if="activeView === 'analytics'"
+          :goals="goals"
+          :templates="taskTemplates"
+          :daily-tasks="dailyTasks"
+          @change-goal-rate="handleChangeGoalRate"
+        />
+
+        <TimerView
+          v-else-if="activeView === 'timer'"
+          :task-options="timerTaskOptions"
+          @save-as-task="handleSaveTimerAsTask"
+          @attach-task="handleAttachTimerTask"
         />
 
         <CalendarView
@@ -183,9 +254,15 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
         :notifications-enabled="notificationsEnabled"
         :data-stats="dataStats"
         @change-goal-theme="handleChangeGoalTheme"
+        @change-goal-rate="handleChangeGoalRate"
+        @change-goal-icon="handleChangeGoalIcon"
+        @change-goal-details="handleChangeGoalDetails"
+        @change-goal-status="handleChangeGoalStatus"
+        @delete-goal="handleDeleteGoal"
         @toggle-notifications="toggleNotifications"
         @export-data="exportData"
         @import-data="importData"
+        @restore-snapshot="restoreSnapshot"
         @clear-data="clearData"
         @open-starter="openStarter"
       />
@@ -197,7 +274,20 @@ const { isOpen: isSettingsOpen } = useSettingsPanel()
       @close="closeStarter"
     />
 
+    <ProfileModal v-if="isProfileOpen" @close="closeProfile" />
+
+    <QuickAddModal
+      v-if="overlay === 'quick-add'"
+      :goals="goals"
+      :current-title="activeGoal?.title ?? 'All Projects'"
+      @submit="handleQuickAdd"
+    />
+
+    <ShortcutsModal v-if="overlay === 'shortcuts'" />
+
     <UndoToast />
+
+    <ShortcutTipToast />
 
     <TaskReminderPopup
       v-if="activeAlert"

@@ -5,8 +5,27 @@
 }
 
 .calendar-view__modes {
-  display: flex;
-  gap: 8px;
+  display: inline-flex;
+  align-self: flex-end;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--panel-soft);
+}
+
+.calendar-view__modes .theme-chip {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  padding: 6px 14px;
+  border-radius: calc(9px * var(--radius-scale));
+}
+
+.calendar-view__modes .theme-chip.active {
+  color: var(--text);
+  background: var(--panel);
+  box-shadow: var(--shadow-sm);
 }
 
 .calendar-view__header {
@@ -142,11 +161,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   border-left: 2px solid var(--minor);
-  background: color-mix(in srgb, var(--panel-soft) 85%, transparent);
+  background: color-mix(in srgb, var(--minor) 16%, var(--panel-soft));
 }
 
 .calendar-month__event.major {
   border-left-color: var(--major);
+  background: color-mix(in srgb, var(--major) 16%, var(--panel-soft));
 }
 
 .calendar-month__event.is-done {
@@ -158,6 +178,13 @@
 .calendar-month__event.is-projected {
   border-left-style: dashed;
   opacity: 0.8;
+}
+
+.calendar-month__event-icon {
+  margin-right: 3px;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
 }
 
 .calendar-month__event-time {
@@ -178,9 +205,15 @@
   text-transform: capitalize;
 }
 
+.calendar-view__date strong {
+  font-size: calc(16px * var(--text-scale));
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
 .calendar-view__body {
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: 1fr 240px;
   gap: 16px;
   align-items: start;
 }
@@ -201,7 +234,8 @@
 .calendar-view__hour-label {
   height: 60px;
   padding: 4px 8px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(11px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
@@ -213,7 +247,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
   pointer-events: none;
 }
 
@@ -222,16 +256,20 @@
   left: 6px;
   right: 6px;
   border-radius: calc(8px * var(--radius-scale));
-  padding: 4px 8px;
-  color: var(--ring-check);
+  padding: 4px 8px 4px 11px;
+  color: var(--text);
+  background: color-mix(in srgb, var(--minor) 16%, var(--panel));
   cursor: grab;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  /* Time and title share one line: stacked, a 30-minute block is too short to
-     show the title at all. */
+  /* Time and title share one line by default. Blocks tall enough for two
+     lines stack the time under the title instead (see the container query). */
   display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
   align-items: baseline;
-  gap: 6px;
+  gap: 2px 6px;
+  container-type: size;
   /* A long press must grab the block, not select its text or raise the iOS
      selection callout. */
   user-select: none;
@@ -274,13 +312,23 @@
   text-decoration: line-through;
 }
 
-.cal-event.major {
-  background: color-mix(in srgb, var(--major) 80%, white 10%);
+.cal-event::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--minor);
 }
 
-.cal-event.minor {
-  background: color-mix(in srgb, var(--minor) 80%, white 10%);
-  color: var(--on-minor);
+.cal-event.major {
+  background: color-mix(in srgb, var(--major) 16%, var(--panel));
+}
+
+.cal-event.major::before {
+  width: 4px;
+  background: var(--major);
 }
 
 .cal-event__time {
@@ -290,10 +338,25 @@
   white-space: nowrap;
 }
 
+@container (min-height: 44px) {
+  .cal-event__time {
+    order: 2;
+    flex-basis: 100%;
+  }
+}
+
+.cal-event__icon {
+  flex: 0 0 auto;
+  align-self: center;
+  width: 1em;
+  height: 1em;
+  font-size: calc(13px * var(--text-scale));
+}
+
 /* Takes the remaining width and truncates, so a long name never pushes the
    time out of the block. */
 .cal-event__title {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-width: 0;
   font-weight: 600;
   font-size: calc(13px * var(--text-scale));
@@ -357,6 +420,17 @@
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease;
+}
+
+.calendar-view__unscheduled-icon {
+  margin-right: 6px;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+}
+
+.calendar-view__unscheduled-item:hover {
+  background: color-mix(in srgb, var(--minor) 12%, var(--panel-soft));
 }
 
 .calendar-view__unscheduled-item.major {
@@ -455,10 +529,28 @@
 
 .event-details__time label {
   display: flex;
+  flex: 1 1 0;
+  min-width: 0;
   flex-direction: column;
   font-size: calc(12px * var(--text-scale));
   color: var(--muted);
   gap: 4px;
+}
+
+.event-details__time input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: calc(14px * var(--text-scale));
+}
+
+.event-details__time input:focus {
+  outline: 1px solid var(--accent);
 }
 
 .event-details__actions {
@@ -547,7 +639,7 @@
   .cal-event {
     left: 3px;
     right: 3px;
-    padding: 6px 9px;
+    padding: 6px 9px 6px 11px;
     border-radius: calc(12px * var(--radius-scale));
   }
 
@@ -596,6 +688,9 @@
   .calendar-view__unscheduled-item {
     flex: 0 0 auto;
     white-space: nowrap;
+    max-width: 70vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
     padding: 10px 14px;
     border-radius: 999px;
     border-left: none;
@@ -622,6 +717,13 @@
   /* modal-like popovers stay within the viewport on small screens */
   .event-details {
     width: min(320px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+  }
+
+  .event-details__field input,
+  .event-details__time input {
+    font-size: max(16px, calc(16px * var(--text-scale)));
   }
 
   .task-context-menu {
@@ -755,6 +857,35 @@
   position: relative;
 }
 
+.cal-past-shade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: color-mix(in srgb, var(--line) 22%, transparent);
+  pointer-events: none;
+}
+
+.cal-now-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 2px solid var(--accent);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.cal-now-line::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .calendar-week__hour-line {
   position: absolute;
   left: 0;
@@ -770,21 +901,30 @@
   right: 2px;
   border: none;
   border-radius: calc(6px * var(--radius-scale));
-  padding: 2px 5px;
+  padding: 2px 5px 2px 7px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
-  color: var(--on-minor);
-  background: color-mix(in srgb, var(--minor) 80%, white 10%);
+  color: var(--text);
+  background: color-mix(in srgb, var(--minor) 16%, var(--panel));
+  box-shadow: inset 3px 0 0 var(--minor);
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
+.week-event__icon {
+  margin-right: 3px;
+  width: 1em;
+  height: 1em;
+  font-size: calc(10px * var(--text-scale));
+  vertical-align: -0.125em;
+}
+
 .week-event.major {
-  color: var(--ring-check);
-  background: color-mix(in srgb, var(--major) 80%, white 10%);
+  background: color-mix(in srgb, var(--major) 16%, var(--panel));
+  box-shadow: inset 4px 0 0 var(--major);
 }
 
 .week-event.is-done {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ComposerToggleSection from './ComposerToggleSection.vue'
+import DisclosureSection from '../../../components/DisclosureSection.vue'
 import {
   MAX_TIME,
   MIN_TIME,
@@ -25,11 +26,12 @@ const {
   isValid,
   toggleWeekday,
   buildSchedule,
+  load,
   reset,
 } = useTaskScheduleState()
 
 // The owning composer reads the payload on submit and clears it afterwards.
-defineExpose({ buildSchedule, reset, isValid, isEnabled })
+defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
 </script>
 
 <template>
@@ -62,38 +64,41 @@ defineExpose({ buildSchedule, reset, isValid, isEnabled })
         </label>
       </div>
 
-      <div class="task-schedule__row">
-        <label class="task-schedule__field">
-          <span class="task-schedule__label">Repeat</span>
-          <select v-model="repeatType">
-            <option
-              v-for="option in REPEAT_OPTIONS"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
+      <DisclosureSection label="Repeat" :open="isRepeating">
+        <div class="task-schedule__row">
+          <label class="task-schedule__field">
+            <span class="task-schedule__label">Repeat</span>
+            <select v-model="repeatType">
+              <option
+                v-for="option in REPEAT_OPTIONS"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
 
-        <label v-if="isCustomInterval" class="task-schedule__field">
-          <span class="task-schedule__label">Every (days)</span>
-          <input v-model.number="intervalDays" type="number" min="1" max="30" />
-        </label>
-      </div>
+          <label v-if="isCustomInterval" class="task-schedule__field">
+            <span class="task-schedule__label">Every (days)</span>
+            <input v-model.number="intervalDays" type="number" min="1" max="30" />
+          </label>
+        </div>
 
-      <div v-if="isWeekly" class="task-schedule__weekdays">
-        <button
-          v-for="day in WEEKDAY_OPTIONS"
-          :key="day.value"
-          class="task-schedule__weekday"
-          :class="{ 'is-selected': weekdays.includes(day.value) }"
-          type="button"
-          @click="toggleWeekday(day.value)"
-        >
-          {{ day.label }}
-        </button>
-      </div>
+        <div v-if="isWeekly" class="task-schedule__weekdays">
+          <button
+            v-for="day in WEEKDAY_OPTIONS"
+            :key="day.value"
+            class="task-schedule__weekday"
+            :class="{ 'is-selected': weekdays.includes(day.value) }"
+            type="button"
+            @click="toggleWeekday(day.value)"
+          >
+            {{ day.label }}
+          </button>
+        </div>
+
+      </DisclosureSection>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
       <p v-else-if="isAnnual" class="task-schedule__hint">

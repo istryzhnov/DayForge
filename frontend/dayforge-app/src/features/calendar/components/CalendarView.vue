@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type {
   DailyTask,
   MajorTaskOption,
@@ -21,6 +22,7 @@ import {
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import { useCalendarDayView } from '../composables/useCalendarDayView'
+import { useCalendarNow } from '../composables/useCalendarNow'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -104,6 +106,20 @@ const {
   onToggleDone: (taskId) => emit('toggle-task-done', taskId),
   onSelectDate: (date) => emit('select-date', date),
 })
+
+const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
+
+const goalIconById = computed(() => {
+  const result: Record<ID, string> = {}
+  props.goals.forEach((goal) => {
+    if (goal.icon) result[goal.id] = goal.icon
+  })
+  return result
+})
+
+function iconFor(goalId: ID | undefined) {
+  return goalId ? goalIconById.value[goalId] : undefined
+}
 </script>
 
 <template>
@@ -141,6 +157,7 @@ const {
       :daily-tasks="dailyTasks"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -150,6 +167,7 @@ const {
       :daily-tasks="dailyTasks"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -198,6 +216,14 @@ const {
               :style="hourLineStyle(hour)"
             ></div>
 
+            <template v-if="isToday">
+              <div
+                class="cal-past-shade"
+                :style="{ height: `${nowTopPx}px` }"
+              ></div>
+              <div class="cal-now-line" :style="{ top: `${nowTopPx}px` }"></div>
+            </template>
+
             <CalendarEventBlock
               v-for="task in scheduledTasks"
               :key="task.id"
@@ -206,6 +232,7 @@ const {
               :height-px="heightPxFor(task)"
               :is-dragging="draggingTaskId === task.id"
               :theme-vars="themeVarsFor(task.goalId)"
+              :icon="iconFor(task.goalId)"
               :column-style="columnStyleFor(task)"
               @select="openDetails"
               @drag-start="onBlockDragStart"
@@ -270,6 +297,7 @@ const {
             :key="task.id"
             :task="task"
             :theme-vars="themeVarsFor(task.goalId)"
+            :icon="iconFor(task.goalId)"
             @drag-start="onDragStartFromList"
             @touch-lift="onUnscheduledTouchLift"
             @touch-move="onTouchMove"

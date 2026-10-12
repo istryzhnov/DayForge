@@ -6,23 +6,29 @@ import {
   type TaskSchedule,
   type TaskTemplate,
 } from '../entities/TaskEntity'
-import type { ID, ISODate, Priority } from '../entities/types'
-import { PRIORITY, TASK_KIND, TASK_STATUS } from '../entities/constants'
+import type { GoalStatus, ID, ISODate, Priority } from '../entities/types'
+import {
+  GOAL_STATUS,
+  PRIORITY,
+  TASK_KIND,
+  TASK_STATUS,
+} from '../entities/constants'
 import { useUndoToast } from './useUndoToast'
 
 /** How long a freshly created task keeps its "just added" highlight. */
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
-import {
-  bindStorage,
-  DAILY_TASKS_STORAGE_KEY,
-  loadJson,
-  TASKS_STORAGE_KEY,
-} from './goalSpace/storage'
+import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
+import { bindStorage, readJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
   ensureTodaySnapshot,
+  migrateDailyTasks,
+  touchRow,
 } from './goalSpace/dailyTasks'
+import { useTombstones } from './useTombstones'
+import { SYNC_TABLE, type SyncedRow } from '../sync/types'
+import { DAILY_FIELD_GROUPS } from '../sync/merge'
 
 export function useGoalSpace() {
   const {
@@ -33,10 +39,29 @@ export function useGoalSpace() {
     setGoals,
     createGoal,
     deleteGoal,
-    updateGoalColor,
+    updateGoalDetails,
+    updateGoalStatus,
     updateGoalTheme,
+    updateGoalRate,
+    updateGoalIcon,
+    restoreGoal,
     loadFromStorage,
   } = useGoals()
+
+  const { bury, exhumeAll, keepLive } = useTombstones()
+
+  /**
+   * Projects that are not active stop generating rows: their repeats do not
+   * fire and their unfinished tasks are left on the day they were abandoned.
+   */
+  const pausedGoalIds = computed(
+    () =>
+      new Set(
+        goals.value
+          .filter((goal) => goal.status !== GOAL_STATUS.ACTIVE)
+          .map((goal) => goal.id),
+      ),
+  )
 
   const { offerUndo } = useUndoToast()
 
@@ -57,7 +82,10 @@ export function useGoalSpace() {
   }
 
   function loadFromStorageTasks() {
-    const stored = loadJson<TaskTemplate[]>(TASKS_STORAGE_KEY, [])
+    const stored = keepLive(
+      SYNC_TABLE.TASK_TEMPLATES,
+      readJson<TaskTemplate[]>(TASKS_STORAGE_KEY, []),
+    )
 
     stored.forEach((template) => {
       if (template.recurrence?.endDate) {
@@ -69,7 +97,12 @@ export function useGoalSpace() {
   }
 
   function loadFromStorageDailyTasks() {
-    dailyTasks.value = loadJson<DailyTask[]>(DAILY_TASKS_STORAGE_KEY, [])
+    dailyTasks.value = migrateDailyTasks(
+      keepLive(
+        SYNC_TABLE.DAILY_TASKS,
+        readJson<DailyTask[]>(DAILY_TASKS_STORAGE_KEY, []),
+      ),
+    )
   }
 
   function initializeStorage() {
@@ -80,6 +113,7 @@ export function useGoalSpace() {
       taskTemplates.value,
       dailyTasks.value,
       currentDate.value,
+      pausedGoalIds.value,
     )
   }
 
@@ -225,7 +259,17 @@ export function useGoalSpace() {
       .filter((item) => item.templateId === templateId)
       .forEach((item) => {
         item.title = trimmedTitle
+        touchRow(item)
       })
+  }
+
+  /** An absent rate means "bill this task at its project's rate". */
+  function updateTaskRate(templateId: ID, hourlyRate: number | undefined) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    template.hourlyRate = hourlyRate && hourlyRate > 0 ? hourlyRate : undefined
+    template.updatedAt = new Date().toISOString()
   }
 
   function deleteTask(templateId: ID) {
@@ -252,6 +296,12 @@ export function useGoalSpace() {
         idsToRemove.has(item.templateId) && item.date >= currentDate.value,
     )
 
+    bury(
+      SYNC_TABLE.TASK_TEMPLATES,
+      removedTemplates as unknown as SyncedRow[],
+    )
+    bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
+
     taskTemplates.value = taskTemplates.value.filter(
       (item) => !idsToRemove.has(item.id),
     )
@@ -260,9 +310,23 @@ export function useGoalSpace() {
         !idsToRemove.has(item.templateId) || item.date < currentDate.value,
     )
 
+    const templateIds = removedTemplates.map((item) => item.id)
+    const rowIds = removedDailyTasks.map((item) => item.id)
+
     offerUndo(`Deleted "${removedTitle}"`, () => {
-      taskTemplates.value = [...taskTemplates.value, ...removedTemplates]
-      dailyTasks.value = [...dailyTasks.value, ...removedDailyTasks]
+      // The buried copies come back, which also lifts the burial — so a sync
+      // afterwards carries a restoration rather than a deletion.
+      const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
+      const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
+
+      taskTemplates.value = [
+        ...taskTemplates.value,
+        ...(templates as unknown as TaskTemplate[]),
+      ]
+      dailyTasks.value = [
+        ...dailyTasks.value,
+        ...(rows as unknown as DailyTask[]),
+      ]
     })
   }
 
@@ -340,14 +404,107 @@ export function useGoalSpace() {
       })
   }
 
+  /**
+   * Pausing takes effect from the next snapshot; resuming has to rebuild the
+   * day straight away, or the project's tasks stay missing until a date change.
+   */
+  function setGoalStatus(goalId: ID, status: GoalStatus) {
+    updateGoalStatus(goalId, status)
+    ensureTodaySnapshot(
+      taskTemplates.value,
+      dailyTasks.value,
+      currentDate.value,
+      pausedGoalIds.value,
+    )
+  }
+
+  /**
+   * Deleting a project takes its tasks with it, so everything is buried with a
+   * copy and the whole cascade can be undone in one go.
+   */
   function removeGoal(goalId: ID) {
+    const goalTitle = goals.value.find((item) => item.id === goalId)?.title
+
+    const removedTemplates = taskTemplates.value.filter(
+      (item) => item.goalId === goalId,
+    )
+    const removedDailyTasks = dailyTasks.value.filter(
+      (item) => item.goalId === goalId,
+    )
+
+    bury(
+      SYNC_TABLE.TASK_TEMPLATES,
+      removedTemplates as unknown as SyncedRow[],
+    )
+    bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
+
     taskTemplates.value = taskTemplates.value.filter(
       (item) => item.goalId !== goalId,
     )
     dailyTasks.value = dailyTasks.value.filter((item) => item.goalId !== goalId)
     deleteGoal(goalId)
+
+    const templateIds = removedTemplates.map((item) => item.id)
+    const rowIds = removedDailyTasks.map((item) => item.id)
+
+    offerUndo(`Deleted "${goalTitle ?? 'project'}"`, () => {
+      const restored = restoreGoal(goalId)
+      const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
+      const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
+
+      taskTemplates.value = [
+        ...taskTemplates.value,
+        ...(templates as unknown as TaskTemplate[]),
+      ]
+      dailyTasks.value = [
+        ...dailyTasks.value,
+        ...(rows as unknown as DailyTask[]),
+      ]
+      if (restored) selectGoal(restored.id)
+    })
   }
 
+  /**
+   * Puts an existing task on the calendar, or takes it off. Rows already in
+   * the past keep whatever they recorded; only today onwards is rebuilt from
+   * the new rule.
+   */
+  function updateTaskSchedule(templateId: ID, schedule: TaskSchedule | null) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    template.recurrence = schedule?.recurrence
+    template.startTime = schedule?.startTime
+    template.endTime = schedule?.endTime
+    template.updatedAt = new Date().toISOString()
+
+    dailyTasks.value = dailyTasks.value.filter(
+      (row) =>
+        row.templateId !== templateId ||
+        row.date < currentDate.value ||
+        row.status === TASK_STATUS.DONE,
+    )
+
+    ensureDailyTaskForTemplate({
+      taskTemplates: taskTemplates.value,
+      dailyTasks: dailyTasks.value,
+      template,
+      date: schedule?.date ?? currentDate.value,
+    })
+
+    if (!schedule) return
+
+    const row = dailyTasks.value.find(
+      (item) => item.templateId === templateId && item.date === schedule.date,
+    )
+    if (!row) return
+
+    row.startTime = schedule.startTime
+    row.endTime = schedule.endTime
+    touchRow(row, DAILY_FIELD_GROUPS.TIME)
+  }
+
+  /** Re-stamping an unchanged row would be an edit as far as sync is concerned. */
   function scheduleDailyTask(
     dailyTaskId: ID,
     startTime: string,
@@ -355,20 +512,31 @@ export function useGoalSpace() {
   ) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
     if (!task) return
+    if (task.startTime === startTime && task.endTime === endTime) return
+
     task.startTime = startTime
     task.endTime = endTime
+    touchRow(task, DAILY_FIELD_GROUPS.TIME)
   }
 
   function unscheduleDailyTask(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
     if (!task) return
+    if (task.startTime === undefined && task.endTime === undefined) return
+
     task.startTime = undefined
     task.endTime = undefined
+    touchRow(task, DAILY_FIELD_GROUPS.TIME)
   }
 
   function goToDate(date: ISODate) {
     currentDate.value = date
-    ensureTodaySnapshot(taskTemplates.value, dailyTasks.value, date)
+    ensureTodaySnapshot(
+      taskTemplates.value,
+      dailyTasks.value,
+      date,
+      pausedGoalIds.value,
+    )
   }
 
   function goToPreviousDay() {
@@ -395,10 +563,12 @@ export function useGoalSpace() {
     if (task.status === TASK_STATUS.DONE) {
       task.status = TASK_STATUS.TODO
       task.completedAt = undefined
+      touchRow(task, DAILY_FIELD_GROUPS.STATUS)
       return
     }
     task.status = TASK_STATUS.DONE
     task.completedAt = new Date().toISOString()
+    touchRow(task, DAILY_FIELD_GROUPS.STATUS)
   }
 
   function togglePlannedTask(templateId: ID, date: ISODate) {
@@ -416,6 +586,30 @@ export function useGoalSpace() {
       (item) => item.templateId === templateId && item.date === date,
     )
     if (row) toggleTaskDone(row.id)
+  }
+
+  /**
+   * Puts one task next to another in the list. Rows are drawn newest first,
+   * which is the template list reversed — so landing *above* a task means
+   * sitting *after* it in storage.
+   */
+  function reorderTask(
+    templateId: ID,
+    targetTemplateId: ID,
+    placeAbove: boolean,
+  ) {
+    if (templateId === targetTemplateId) return
+
+    const list = [...taskTemplates.value]
+    const from = list.findIndex((item) => item.id === templateId)
+    if (from === -1) return
+
+    const [moved] = list.splice(from, 1)
+    const target = list.findIndex((item) => item.id === targetTemplateId)
+    if (target === -1) return
+
+    list.splice(placeAbove ? target + 1 : target, 0, moved)
+    taskTemplates.value = list
   }
 
   function convertTaskToProject(templateId: ID) {
@@ -451,22 +645,28 @@ export function useGoalSpace() {
     setGoals,
     createGoal,
     deleteGoal: removeGoal,
-    updateGoalColor,
+    updateGoalDetails,
+    updateGoalStatus: setGoalStatus,
     updateGoalTheme,
+    updateGoalRate,
+    updateGoalIcon,
     addTask,
     addSubTask,
     editTaskTitle,
+    updateTaskRate,
     deleteTask,
     initializeStorage,
     toggleTaskDone,
     togglePlannedTask,
     convertTaskToProject,
     attachTaskToProject,
+    reorderTask,
     assignTaskToGoal,
     activeMajorTemplates,
     addMinorInAllMode,
     scheduleDailyTask,
     unscheduleDailyTask,
+    updateTaskSchedule,
     goToPreviousDay,
     goToNextDay,
     goToToday,

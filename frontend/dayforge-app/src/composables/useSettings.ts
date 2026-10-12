@@ -1,6 +1,8 @@
 import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
+import type { TimerSettings } from '../entities/TimerEntity'
 import { PRIORITY } from '../entities/constants'
+import { readJson, writeJson } from '../lib/storage'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -64,6 +66,8 @@ export interface BehaviorSettings {
   undoWindowSeconds: number
   /** Open the first project on load instead of "All Projects". */
   autoSelectFirstGoal: boolean
+  /** Single-key commands (N, Space, G then A…) while focus is not in a field. */
+  keyboardShortcuts: boolean
 }
 
 export interface FormatSettings {
@@ -80,12 +84,22 @@ export interface AccessibilitySettings {
   highContrast: boolean
 }
 
+export const CURRENCY_OPTIONS = [
+  { id: 'USD', label: 'USD $' },
+  { id: 'EUR', label: 'EUR €' },
+  { id: 'UAH', label: 'UAH ₴' },
+  { id: 'GBP', label: 'GBP £' },
+  { id: 'PLN', label: 'PLN zł' },
+  { id: 'CAD', label: 'CAD $' },
+] as const
+
 export interface AppSettings {
   notifications: NotificationSettings
   calendar: CalendarSettings
   behavior: BehaviorSettings
   format: FormatSettings
   accessibility: AccessibilitySettings
+  timer: TimerSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -112,6 +126,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     carryForward: true,
     undoWindowSeconds: 9,
     autoSelectFirstGoal: true,
+    keyboardShortcuts: true,
   },
   format: {
     locale: 'uk-UA',
@@ -121,6 +136,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
     textScale: 1,
     largeTargets: false,
     highContrast: false,
+  },
+  timer: {
+    focusMinutes: 25,
+    shortBreakMinutes: 5,
+    longBreakMinutes: 15,
+    longBreakEvery: 4,
+    autoStartBreaks: true,
+    autoStartFocus: false,
+    defaultCountdownMinutes: 25,
+    sound: true,
+    hourlyRate: 0,
+    currency: 'USD',
   },
 }
 
@@ -159,21 +186,31 @@ function asTime(value: unknown, fallback: TimeOfDay): TimeOfDay {
     : fallback
 }
 
-/** Stored settings are user-editable JSON, so every field is re-validated. */
+/** A section as stored, or nothing if it is not an object. */
+function asSection<T>(value: unknown): Partial<T> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Partial<T>)
+    : {}
+}
+
+/**
+ * Stored settings are user-editable JSON, so every known field is re-validated.
+ * Fields a newer version added are carried along untouched.
+ */
 function sanitize(input: unknown): AppSettings {
   const raw = (input ?? {}) as Partial<AppSettings>
   const defaults = DEFAULT_SETTINGS
 
-  const notifications = (raw.notifications ??
-    {}) as Partial<NotificationSettings>
-  const calendar = (raw.calendar ?? {}) as Partial<CalendarSettings>
-  const behavior = (raw.behavior ?? {}) as Partial<BehaviorSettings>
-  const format = (raw.format ?? {}) as Partial<FormatSettings>
-  const accessibility = (raw.accessibility ??
-    {}) as Partial<AccessibilitySettings>
+  const notifications = asSection<NotificationSettings>(raw.notifications)
+  const calendar = asSection<CalendarSettings>(raw.calendar)
+  const behavior = asSection<BehaviorSettings>(raw.behavior)
+  const format = asSection<FormatSettings>(raw.format)
+  const accessibility = asSection<AccessibilitySettings>(raw.accessibility)
+  const timer = asSection<TimerSettings>(raw.timer)
 
   return {
     notifications: {
+      ...notifications,
       leadMinutes: clampNumber(
         notifications.leadMinutes,
         1,
@@ -202,6 +239,7 @@ function sanitize(input: unknown): AppSettings {
       quietTo: asTime(notifications.quietTo, defaults.notifications.quietTo),
     },
     calendar: {
+      ...calendar,
       snapMinutes: oneOf(
         calendar.snapMinutes,
         [5, 10, 15, 30, 60],
@@ -236,6 +274,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     behavior: {
+      ...behavior,
       startView: oneOf(
         behavior.startView,
         Object.values(START_VIEW),
@@ -260,8 +299,13 @@ function sanitize(input: unknown): AppSettings {
         behavior.autoSelectFirstGoal,
         defaults.behavior.autoSelectFirstGoal,
       ),
+      keyboardShortcuts: asBoolean(
+        behavior.keyboardShortcuts,
+        defaults.behavior.keyboardShortcuts,
+      ),
     },
     format: {
+      ...format,
       locale: oneOf(
         format.locale,
         LOCALE_OPTIONS.map((option) => option.id),
@@ -274,6 +318,7 @@ function sanitize(input: unknown): AppSettings {
       ),
     },
     accessibility: {
+      ...accessibility,
       textScale: clampNumber(
         accessibility.textScale,
         0.8,
@@ -287,6 +332,54 @@ function sanitize(input: unknown): AppSettings {
       highContrast: asBoolean(
         accessibility.highContrast,
         defaults.accessibility.highContrast,
+      ),
+    },
+    timer: {
+      ...timer,
+      focusMinutes: clampNumber(
+        timer.focusMinutes,
+        1,
+        180,
+        defaults.timer.focusMinutes,
+      ),
+      shortBreakMinutes: clampNumber(
+        timer.shortBreakMinutes,
+        1,
+        60,
+        defaults.timer.shortBreakMinutes,
+      ),
+      longBreakMinutes: clampNumber(
+        timer.longBreakMinutes,
+        1,
+        120,
+        defaults.timer.longBreakMinutes,
+      ),
+      longBreakEvery: clampNumber(
+        timer.longBreakEvery,
+        2,
+        12,
+        defaults.timer.longBreakEvery,
+      ),
+      autoStartBreaks: asBoolean(
+        timer.autoStartBreaks,
+        defaults.timer.autoStartBreaks,
+      ),
+      autoStartFocus: asBoolean(
+        timer.autoStartFocus,
+        defaults.timer.autoStartFocus,
+      ),
+      defaultCountdownMinutes: clampNumber(
+        timer.defaultCountdownMinutes,
+        1,
+        240,
+        defaults.timer.defaultCountdownMinutes,
+      ),
+      sound: asBoolean(timer.sound, defaults.timer.sound),
+      hourlyRate: clampNumber(timer.hourlyRate, 0, 100000, defaults.timer.hourlyRate),
+      currency: oneOf(
+        timer.currency,
+        CURRENCY_OPTIONS.map((option) => option.id),
+        defaults.timer.currency,
       ),
     },
   }
@@ -312,15 +405,35 @@ function assign(next: AppSettings) {
   settings.behavior = next.behavior
   settings.format = next.format
   settings.accessibility = next.accessibility
+  settings.timer = next.timer
 }
+
+const KNOWN_SECTIONS: ReadonlyArray<string> = [
+  'notifications',
+  'calendar',
+  'behavior',
+  'format',
+  'accessibility',
+  'timer',
+]
+
+/** Sections a newer version stored, kept so this one does not erase them. */
+let unknownSections: Record<string, unknown> = {}
 
 function initialize() {
   if (initialized) return
   initialized = true
 
   try {
-    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY)
-    if (raw) assign(sanitize(JSON.parse(raw)))
+    const stored = readJson<unknown>(SETTINGS_STORAGE_KEY, null)
+    if (stored) {
+      assign(sanitize(stored))
+      unknownSections = Object.fromEntries(
+        Object.entries(asSection<Record<string, unknown>>(stored)).filter(
+          ([key]) => !KNOWN_SECTIONS.includes(key),
+        ),
+      )
+    }
   } catch {
     // Malformed settings fall back to the defaults already in place.
   }
@@ -329,7 +442,7 @@ function initialize() {
     settings,
     () => {
       applyToDocument()
-      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+      writeJson(SETTINGS_STORAGE_KEY, { ...unknownSections, ...settings })
     },
     { deep: true, immediate: true },
   )

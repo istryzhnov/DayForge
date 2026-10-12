@@ -1,22 +1,33 @@
 import { computed } from 'vue'
 import type { useGoalSpace } from '../../../composables/useGoalSpace'
-import type { Goal } from '../../../entities/GoalEntity'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import type { TimeEntry } from '../../../entities/TimerEntity'
 import { useUndoToast } from '../../../composables/useUndoToast'
+import {
+  TIME_ENTRIES_STORAGE_KEY,
+  useTimeEntries,
+} from '../../../composables/useTimeEntries'
+import { TOMBSTONES_STORAGE_KEY } from '../../../composables/useTombstones'
+import { restampForRestore } from '../../../sync/tombstoneRules'
+import type { SyncedRow } from '../../../sync/types'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
+import {
+  BACKUP_FORMAT,
+  BACKUP_VERSION,
+  parseBackupFile,
+  type BackupFile,
+} from './backupFormat'
 
-const BACKUP_FORMAT = 'dayforge-backup'
-const BACKUP_VERSION = 1
+export { parseBackupFile, type BackupFile } from './backupFormat'
 
-export interface BackupFile {
-  format: typeof BACKUP_FORMAT
-  version: number
-  exportedAt: string
-  goals: Goal[]
-  taskTemplates: TaskTemplate[]
-  dailyTasks: DailyTask[]
-  /** Theme and preferences travel along, so a restore looks like the original. */
-  theme?: unknown
-  settings?: unknown
+/**
+ * Rows coming out of a file or a snapshot are stamped as a current edit. With an
+ * account attached, their original stamps could easily be older than what the
+ * server holds, and the restore would be quietly undone by the next sync.
+ */
+function restampAll<T>(rows: T[]): T[] {
+  return rows.map(
+    (row) => restampForRestore(row as unknown as SyncedRow) as unknown as T,
+  )
 }
 
 const THEME_STORAGE_KEY = 'dayforge-theme-v1'
@@ -31,43 +42,19 @@ function readJson(key: string): unknown {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
-}
-
-/** A backup is a file off disk, so nothing in it is trusted before it is applied. */
-export function parseBackupFile(input: unknown): BackupFile | null {
-  if (!isRecord(input)) return null
-  if (input.format !== BACKUP_FORMAT) return null
-  if (!Array.isArray(input.goals)) return null
-  if (!Array.isArray(input.taskTemplates)) return null
-  if (!Array.isArray(input.dailyTasks)) return null
-
-  return {
-    format: BACKUP_FORMAT,
-    version: typeof input.version === 'number' ? input.version : BACKUP_VERSION,
-    exportedAt:
-      typeof input.exportedAt === 'string'
-        ? input.exportedAt
-        : new Date().toISOString(),
-    goals: input.goals as Goal[],
-    taskTemplates: input.taskTemplates as TaskTemplate[],
-    dailyTasks: input.dailyTasks as DailyTask[],
-    theme: input.theme,
-    settings: input.settings,
-  }
-}
-
 export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
   const { offerUndo } = useUndoToast()
+  const { entries: timeEntries, heldEntries } = useTimeEntries()
 
   const stats = computed(() => {
     const bytes = [
       'dayforge-goals',
       'dayforge-task-templates',
       'dayforge-daily-tasks',
+      TIME_ENTRIES_STORAGE_KEY,
       THEME_STORAGE_KEY,
       SETTINGS_STORAGE_KEY,
+      TOMBSTONES_STORAGE_KEY,
     ].reduce(
       (total, key) => total + (localStorage.getItem(key)?.length ?? 0),
       0,
@@ -86,10 +73,15 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     return {
       format: BACKUP_FORMAT,
       version: BACKUP_VERSION,
+      newerVersion: false,
       exportedAt: new Date().toISOString(),
       goals: goalSpace.goals.value,
       taskTemplates: goalSpace.taskTemplates.value,
       dailyTasks: goalSpace.dailyTasks.value,
+      timeEntries: [
+        ...timeEntries.value,
+        ...heldEntries(),
+      ] as unknown as TimeEntry[],
       theme: readJson(THEME_STORAGE_KEY),
       settings: readJson(SETTINGS_STORAGE_KEY),
     }
@@ -100,12 +92,14 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     const goals = [...goalSpace.goals.value]
     const templates = [...goalSpace.taskTemplates.value]
     const rows = [...goalSpace.dailyTasks.value]
+    const entries = [...timeEntries.value]
     const activeGoalId = goalSpace.activeGoalId.value
 
     return () => {
-      goalSpace.setGoals(goals)
-      goalSpace.taskTemplates.value = templates
-      goalSpace.dailyTasks.value = rows
+      goalSpace.setGoals(restampAll(goals))
+      goalSpace.taskTemplates.value = restampAll(templates)
+      goalSpace.dailyTasks.value = restampAll(rows)
+      timeEntries.value = restampAll(entries)
       goalSpace.selectGoal(activeGoalId)
     }
   }
@@ -117,7 +111,7 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.download = `dayforge-${new Date().toISOString().slice(0, 10)}.json`
+    link.download = `dayforge-${getTodayISODate()}.json`
     document.body.append(link)
     link.click()
     link.remove()
@@ -131,9 +125,10 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
 
     const restore = snapshot()
 
-    goalSpace.setGoals(backup.goals)
-    goalSpace.taskTemplates.value = backup.taskTemplates
-    goalSpace.dailyTasks.value = backup.dailyTasks
+    goalSpace.setGoals(restampAll(backup.goals))
+    goalSpace.taskTemplates.value = restampAll(backup.taskTemplates)
+    goalSpace.dailyTasks.value = restampAll(backup.dailyTasks)
+    timeEntries.value = restampAll(backup.timeEntries ?? [])
     goalSpace.selectGoal(backup.goals[0]?.id ?? null)
 
     if (backup.theme !== undefined) {
@@ -156,10 +151,26 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     goalSpace.setGoals([])
     goalSpace.taskTemplates.value = []
     goalSpace.dailyTasks.value = []
+    timeEntries.value = []
     goalSpace.selectGoal(null)
 
     offerUndo('All data cleared', restore)
   }
 
-  return { stats, exportToFile, importBackup, clearEverything }
+  /**
+   * Puts back one of the snapshots taken automatically before a first merge.
+   * It goes through the same path as a file, undo offer included.
+   */
+  function restoreSnapshot(payload: unknown): boolean {
+    return importBackup(payload)
+  }
+
+  return {
+    stats,
+    buildBackup,
+    exportToFile,
+    importBackup,
+    restoreSnapshot,
+    clearEverything,
+  }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
 import type {
   MajorTaskOption,
@@ -8,12 +8,16 @@ import type {
 import type { Goal } from '../../../entities/GoalEntity'
 import TaskComposer from '../../tasks/components/TaskComposer.vue'
 import AllModeMinorComposer from '../../tasks/components/AllModeMinorComposer.vue'
+import { useSettings } from '../../../composables/useSettings'
 
 defineProps<{
   isAllMode: boolean
   goals: Goal[]
   majorTaskOptions: MajorTaskOption[]
 }>()
+
+const { settings } = useSettings()
+const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
 const emit = defineEmits<{
   (
@@ -56,6 +60,13 @@ function toggleComposer() {
       @click="toggleComposer"
     >
       + Add task
+      <kbd
+        v-if="keyboardShortcuts"
+        class="kbd-badge composer-toggle-btn__key"
+        title="Quick add from anywhere (N)"
+        aria-hidden="true"
+        >N</kbd
+      >
     </button>
 
     <div v-else class="composer-collapsible">

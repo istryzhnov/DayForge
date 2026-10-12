@@ -3,7 +3,7 @@ import { parseBackupFile } from './useDataTransfer'
 
 export type BackupFileMessage = {
   text: string
-  tone: 'ok' | 'error'
+  tone: 'ok' | 'warning' | 'error'
 }
 
 type BackupFileActions = {
@@ -39,7 +39,8 @@ export function useBackupFile(actions: BackupFileActions) {
       return
     }
 
-    if (!parseBackupFile(parsed)) {
+    const backup = parseBackupFile(parsed)
+    if (!backup) {
       message.value = {
         text: 'That JSON is not a DayForge backup.',
         tone: 'error',
@@ -48,7 +49,12 @@ export function useBackupFile(actions: BackupFileActions) {
     }
 
     actions.onImport(parsed)
-    message.value = { text: `Imported ${file.name}.`, tone: 'ok' }
+    message.value = backup.newerVersion
+      ? {
+          text: `Imported ${file.name}. This backup was made by a newer version of DayForge; some data may not be shown.`,
+          tone: 'warning',
+        }
+      : { text: `Imported ${file.name}.`, tone: 'ok' }
   }
 
   return { message, clearMessage, pickFile, onFileChosen }

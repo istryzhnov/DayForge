@@ -1,5 +1,6 @@
 
-import type { GoalTheme } from '../../entities/GoalEntity'
+import type { Goal, GoalTheme } from '../../entities/GoalEntity'
+import { GOAL_COLOR_PRESETS } from '../../entities/constants'
 import {
   contrastRatio,
   lighten,
@@ -37,6 +38,29 @@ function fitToMode(color: string, mode: ThemeMode): string {
   if (mode === 'dark' && l < 44) return lighten(color, 44 - l)
   if (mode === 'light' && l > 60) return lighten(color, 60 - l)
   return color
+}
+
+/**
+ * Each project's colour for telling rows apart: its own accent, or else the
+ * first preset no other project is using. Projects are taken in creation order
+ * so a fallback colour does not jump when the list is reordered.
+ */
+export function projectColors(goals: Goal[]): Map<string, string> {
+  const colors = new Map<string, string>()
+  const used = new Set<string>()
+  goals.forEach((goal) => {
+    if (!goal.theme?.accent) return
+    colors.set(goal.id, goal.theme.accent)
+    used.add(goal.theme.accent.toLowerCase())
+  })
+
+  const unpainted = goals
+    .filter((goal) => !colors.has(goal.id))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+  const free = GOAL_COLOR_PRESETS.filter((color) => !used.has(color.toLowerCase()))
+  const pool = free.length > 0 ? free : [...GOAL_COLOR_PRESETS]
+  unpainted.forEach((goal, index) => colors.set(goal.id, pool[index % pool.length]))
+  return colors
 }
 
 export function buildGoalThemeVars(

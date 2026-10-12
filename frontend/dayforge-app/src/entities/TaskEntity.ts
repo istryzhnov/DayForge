@@ -8,6 +8,7 @@ import type {
   TimeOfDay,
 } from './types'
 import { TASK_KIND } from './constants'
+import type { DailyFieldGroup } from '../sync/merge'
 
 export interface TaskTemplate {
   id: ID
@@ -22,8 +23,12 @@ export interface TaskTemplate {
   startTime?: TimeOfDay
   endTime?: TimeOfDay
   isActive: boolean
+  /** What an hour on this task is worth; falls back to its project's rate. */
+  hourlyRate?: number
   createdAt: ISODateTime
   updatedAt: ISODateTime
+  /** Set only on a buried copy; a task in the live list never carries it. */
+  deletedAt?: ISODateTime
 
   day?: ISODate
   status?: TaskStatus
@@ -33,12 +38,13 @@ export interface TaskTemplate {
 /** Optional scheduling captured while creating a task. */
 export type TaskSchedule = {
   date: ISODate
-  startTime: TimeOfDay
-  endTime: TimeOfDay
+  startTime?: TimeOfDay
+  endTime?: TimeOfDay
   recurrence: RecurrenceRule
 }
 
 export interface DailyTask {
+  /** `templateId::date` — derived, so the same day cannot be created twice. */
   id: ID
   date: ISODate
   goalId?: ID
@@ -51,14 +57,17 @@ export interface DailyTask {
   completedAt?: ISODateTime
   startTime?: TimeOfDay
   endTime?: TimeOfDay
-}
-
-export interface DailyProgress {
-  date: ISODate
-  goalId?: ID
-  totalTasks: number
-  completedTasks: number
-  completionPercent: number
+  createdAt?: ISODateTime
+  /** Last edit, so two devices can tell which version of a row is newer. */
+  updatedAt?: ISODateTime
+  /**
+   * When each independently edited group of fields last changed. Ticking a task
+   * off on the phone and moving it in the calendar on the laptop are two
+   * different edits, and one row stamp cannot keep them both.
+   */
+  fieldsAt?: Partial<Record<DailyFieldGroup, ISODateTime>>
+  /** Set only on a buried copy; a row in the live list never carries it. */
+  deletedAt?: ISODateTime
 }
 
 export type MajorTaskOption = {
@@ -67,8 +76,6 @@ export type MajorTaskOption = {
   goalId?: ID
   goalTitle: string
 }
-
-export type TaskKind = (typeof TASK_KIND)[keyof typeof TASK_KIND]
 
 export type CreateTaskInput =
   | {

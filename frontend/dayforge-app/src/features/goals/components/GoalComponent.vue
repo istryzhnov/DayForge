@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
@@ -12,6 +13,8 @@ import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
 import HabitCalendar from './HabitCalendar.vue'
+import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
+import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 
 const props = defineProps<{
@@ -52,10 +55,30 @@ const emit = defineEmits<{
     schedule?: TaskSchedule,
   ): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'delete-task', templateId: ID): void
-  (e: 'delete-goal', goalId: ID): void
-  (e: 'change-goal-color', goalId: ID, color: string | undefined): void
+  (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
+  (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
+  (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
+  (e: 'move-task-to', payload: TaskDropPayload): void
 }>()
+
+const movingTemplateId = ref<ID | null>(null)
+
+const movingTemplate = computed(
+  () =>
+    props.templates.find(
+      (template) => template.id === movingTemplateId.value,
+    ) ?? null,
+)
+
+function openMoveDialog(templateId: ID) {
+  movingTemplateId.value = templateId
+}
+
+function closeMoveDialog() {
+  movingTemplateId.value = null
+}
 
 const {
   taskGroups,
@@ -102,11 +125,6 @@ const {
       :project-count="projectCount"
       :task-count="taskCount"
       :show-settings="!isAllMode && !!goal"
-      :goal-theme="goal?.theme"
-      @delete-goal="goal && emit('delete-goal', goal.id)"
-      @change-color="
-        (color) => goal && emit('change-goal-color', goal.id, color)
-      "
     />
 
     <GoalComposerZone
@@ -132,9 +150,33 @@ const {
       @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
       @focus-project="focusProject"
       @edit-task="(templateId, title) => editTask(templateId, title)"
+      @schedule-task="
+        (templateId, schedule) => emit('schedule-task', templateId, schedule)
+      "
+      @set-task-rate="
+        (templateId, hourlyRate) =>
+          emit('set-task-rate', templateId, hourlyRate)
+      "
       @delete-task="(templateId) => deleteTask(templateId)"
       @set-as-project="(templateId) => setAsProject(templateId)"
+      @move-task="openMoveDialog"
+      @move-task-to="(payload) => emit('move-task-to', payload)"
       @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
+    />
+
+    <TaskMoveDialog
+      v-if="movingTemplate"
+      :template="movingTemplate"
+      :goals="goals"
+      :project-options="majorTaskOptions"
+      @assign-goal="
+        (templateId, goalId) => emit('assign-goal', templateId, goalId)
+      "
+      @attach-to-project="
+        (templateId, projectId) =>
+          emit('attach-to-project', templateId, projectId)
+      "
+      @close="closeMoveDialog"
     />
 
     <HabitCalendar

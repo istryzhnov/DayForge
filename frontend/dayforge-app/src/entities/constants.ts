@@ -45,12 +45,35 @@ export const TASK_KIND_BY_SCHEDULE = {
   RECURRING: 'recurring',
 } as const
 
+export const TIMER_MODE = {
+  STOPWATCH: 'stopwatch',
+  COUNTDOWN: 'countdown',
+  POMODORO: 'pomodoro',
+} as const
+
+export const TIMER_STATUS = {
+  IDLE: 'idle',
+  RUNNING: 'running',
+  PAUSED: 'paused',
+  /** A countdown or pomodoro phase ran out and the next one waits for a start. */
+  FINISHED: 'finished',
+} as const
+
+export const POMODORO_PHASE = {
+  FOCUS: 'focus',
+  SHORT_BREAK: 'shortBreak',
+  LONG_BREAK: 'longBreak',
+} as const
+
+export const TIME_ENTRY_SOURCE = {
+  TIMER: 'timer',
+  MANUAL: 'manual',
+} as const
+
 export const DAY_WINDOW = {
   START_HOUR: 0,
   END_HOUR: 24,
 } as const
-
-export const DEFAULT_TASK_DURATION_MINUTES = 60
 
 // Curated swatches offered in the per-goal color picker.
 export const GOAL_COLOR_PRESETS = [
