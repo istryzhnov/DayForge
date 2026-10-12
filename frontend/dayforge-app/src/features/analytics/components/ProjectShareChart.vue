@@ -14,17 +14,12 @@ const props = defineProps<{
   formatShare: (totalMs: number) => string
 }>()
 
-/** Ranked tints of the one accent: calm, and right for parts of a whole. */
-function tintOf(rank: number): number {
-  return Math.max(0.28, 0.95 - rank * 0.13)
-}
-
 const slices = computed(() => {
   const folded = foldSmallShares(props.shares, MAX_SLICES)
   const totalMs = folded.reduce((sum, share) => sum + share.totalMs, 0)
   let cursor = 0
 
-  return folded.map((share, rank) => {
+  return folded.map((share) => {
     const start = cursor
     cursor += totalMs === 0 ? 0 : (share.totalMs / totalMs) * 100
 
@@ -32,10 +27,9 @@ const slices = computed(() => {
       key: share.key,
       label: share.label,
       totalMs: share.totalMs,
-      rank,
       start,
       end: cursor,
-      tint: tintOf(rank),
+      color: share.color ?? 'var(--muted)',
     }
   })
 })
@@ -50,8 +44,7 @@ const background = computed(() => {
   if (isEmpty.value) return ''
 
   const stops = slices.value.map(
-    (slice) =>
-      `color-mix(in srgb, var(--accent) ${slice.tint * 100}%, transparent) ${slice.start}% ${slice.end}%`,
+    (slice) => `${slice.color} ${slice.start}% ${slice.end}%`,
   )
   return `conic-gradient(${stops.join(', ')})`
 })
@@ -80,7 +73,7 @@ const summary = computed(() => {
         <li v-for="slice in slices" :key="slice.key">
           <span
             class="analytics-share__swatch"
-            :style="{ opacity: slice.tint }"
+            :style="{ background: slice.color }"
             aria-hidden="true"
           ></span>
           <span class="analytics-share__name">{{ slice.label }}</span>

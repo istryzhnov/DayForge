@@ -16,6 +16,7 @@ import {
 } from '../../../composables/analytics/habits'
 import { useFormat } from '../../../composables/useFormat'
 import { isRepeating } from '../../../composables/goalSpace/recurrence'
+import { projectColors } from '../../../composables/theme/goalTheme'
 
 const STATE_WORDS: Record<HabitDayState, string> = {
   done: 'done',
@@ -88,9 +89,11 @@ export function useHabitMonth(sources: HabitMonthSources) {
       new Map<ID, Goal>(sources.getGoals().map((goal) => [goal.id, goal])),
   )
 
+  const colorById = computed(() => projectColors(sources.getGoals()))
+
   function colorOf(goalId?: ID): string | undefined {
     if (!goalId) return undefined
-    return projectById.value.get(goalId)?.theme?.accent
+    return colorById.value.get(goalId)
   }
 
   function projectNameOf(goalId?: ID): string {

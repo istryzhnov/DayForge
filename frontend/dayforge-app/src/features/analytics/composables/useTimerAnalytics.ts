@@ -16,6 +16,7 @@ import {
   type AnalyticsPeriod,
   type ProjectTotal,
 } from '../../../composables/timer/analytics'
+import { projectColors } from '../../../composables/theme/goalTheme'
 import {
   breakdownEarnings,
   buildRateLookup,
@@ -173,13 +174,15 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
       : 'Tracked hours per day',
   )
 
-  const projectShares = computed<ShareInput[]>(() =>
-    summary.value.byProject.map((project) => ({
+  const projectShares = computed<ShareInput[]>(() => {
+    const colors = projectColors(sources.getGoals())
+    return summary.value.byProject.map((project) => ({
       key: projectKeyOf(project),
       label: project.title,
       totalMs: project.totalMs,
-    })),
-  )
+      color: project.goalId ? colors.get(project.goalId) : undefined,
+    }))
+  })
 
   // --- habits --------------------------------------------------------------
 

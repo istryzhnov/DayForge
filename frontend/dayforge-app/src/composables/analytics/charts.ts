@@ -210,6 +210,7 @@ export interface ShareInput {
   key: string
   label: string
   totalMs: number
+  color?: string
 }
 
 /** Everything past the top few slices is one "Other", so the ring stays legible. */

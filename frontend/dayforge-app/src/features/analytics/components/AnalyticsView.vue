@@ -146,7 +146,7 @@ const {
           <thead>
             <tr>
               <th class="analytics-table__name">Project</th>
-              <th class="analytics-table__num">Tasks</th>
+              <th class="analytics-table__num analytics-table__tasks">Tasks</th>
               <th class="analytics-table__num">Hours</th>
               <th v-if="showsMoney" class="analytics-table__num">Rate / h</th>
               <th v-if="showsMoney" class="analytics-table__num">Earned</th>
@@ -157,7 +157,9 @@ const {
               <td class="analytics-table__name" :title="project.title">
                 {{ project.title }}
               </td>
-              <td class="analytics-table__num">{{ project.taskCount }}</td>
+              <td class="analytics-table__num analytics-table__tasks">
+                {{ project.taskCount }}
+              </td>
               <td class="analytics-table__num">
                 {{ durationLabel(project.totalMs) }}
                 <em>{{ shareLabel(project.totalMs) }}</em>

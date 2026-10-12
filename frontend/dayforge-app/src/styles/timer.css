@@ -758,7 +758,8 @@
     min-width: 96px;
   }
 
-  .analytics-table__sub {
+  .analytics-table__sub,
+  .analytics-table__tasks {
     display: none;
   }
 
@@ -820,6 +821,7 @@
   margin: 0;
   padding: 0;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 
@@ -895,10 +897,11 @@
 }
 
 .habits__cell {
-  flex: none;
+  flex: 0 1 14px;
   box-sizing: border-box;
   width: 14px;
-  height: 14px;
+  min-width: 0;
+  aspect-ratio: 1;
   border-radius: 4px;
   border: 1px solid transparent;
 }
@@ -943,6 +946,7 @@
 
 .habits__body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   min-width: 0;
 }
