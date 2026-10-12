@@ -4,6 +4,7 @@ import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
 import { isRepeating } from './goalSpace/recurrence'
+import { projectColors } from './theme/goalTheme'
 
 export type TaskNode = {
   task: DailyTask
@@ -21,6 +22,8 @@ export type TaskNode = {
   goalRate?: number
   /** The project's icon id, drawn in the completion circle. */
   goalIcon?: string
+  /** The project's colour, marking its rows in the All view. */
+  goalColor?: string
 }
 
 export type TaskGroup =
@@ -72,6 +75,13 @@ export function useTaskTree(props: TaskTreeProps) {
     function goalIconOf(task: DailyTask) {
       if (!task.goalId) return undefined
       return goalIconById.get(task.goalId)
+    }
+
+    const goalColorById = projectColors(props.goals)
+
+    function goalColorOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalColorById.get(task.goalId)
     }
 
     const templateById = new Map(
@@ -127,6 +137,7 @@ export function useTaskTree(props: TaskTreeProps) {
         goalTitle: goalTitleOf(project),
         goalRate: goalRateOf(project),
         goalIcon: goalIconOf(project),
+        goalColor: goalColorOf(project),
         isNew: isRecentlyCreated(project),
         completedCount: completedCountOf(project),
       }
@@ -145,6 +156,7 @@ export function useTaskTree(props: TaskTreeProps) {
           goalTitle: goalTitleOf(child),
           goalRate: goalRateOf(child),
           goalIcon: goalIconOf(child),
+          goalColor: goalColorOf(child),
           projectTitle: project.title,
           isNew: isRecentlyCreated(child),
           completedCount: completedCountOf(child),
@@ -169,6 +181,7 @@ export function useTaskTree(props: TaskTreeProps) {
             goalTitle: goalTitleOf(task),
             goalRate: goalRateOf(task),
             goalIcon: goalIconOf(task),
+            goalColor: goalColorOf(task),
             isNew: isRecentlyCreated(task),
             completedCount: completedCountOf(task),
           },

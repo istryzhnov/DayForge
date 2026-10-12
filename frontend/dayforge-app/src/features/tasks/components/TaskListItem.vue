@@ -89,7 +89,13 @@ const {
       'is-dragging': isDragging,
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
+      'is-project-tinted': isAllMode && node.goalColor,
     }"
+    :style="
+      isAllMode && node.goalColor
+        ? { '--project-color': node.goalColor }
+        : undefined
+    "
     :data-drop-row="drag ? node.task.templateId : undefined"
     @contextmenu.prevent="openContextMenu"
     @pointerdown="onRowPointerDown"
@@ -119,7 +125,11 @@ const {
         </span>
 
         <div class="task-meta">
-          <span v-if="isAllMode" class="goal-inline-chip">
+          <span
+            v-if="isAllMode"
+            class="goal-inline-chip"
+            :class="{ 'goal-inline-chip--project': node.goalColor }"
+          >
             {{ node.goalTitle }}
           </span>
 

@@ -760,6 +760,13 @@ body.is-dragging-task {
   padding: 3px 9px;
 }
 
+.goal-inline-chip--project {
+  border-color: color-mix(in srgb, var(--project-color) 40%, transparent);
+  background: color-mix(in srgb, var(--project-color) 14%, transparent);
+  color: color-mix(in srgb, var(--project-color) 40%, var(--text));
+  font-weight: 600;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -1364,4 +1371,19 @@ body.is-dragging-task {
   .archive-task__when {
     display: none;
   }
+}
+
+/* In the All view a project's colour runs down the left edge of its rows. */
+.task-row.is-project-tinted {
+  box-shadow: inset 3px 0 0 var(--project-color);
+}
+
+.task-row.is-project-tinted:hover {
+  box-shadow:
+    inset 3px 0 0 var(--project-color),
+    var(--shadow-sm);
+}
+
+.task-row.is-project-tinted .task-dot-check__icon {
+  color: var(--project-color);
 }
