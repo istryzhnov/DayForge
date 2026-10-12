@@ -14,6 +14,7 @@ import {
   PRIORITY,
   RECURRENCE_TYPE,
 } from '../../entities/constants'
+import type { QuickAddResult } from '../../composables/quickAdd/parse'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
 import { useTheme } from '../../composables/useTheme'
 import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
@@ -230,6 +231,23 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   ) {
     if (!goalSpace.activeGoal.value) return
     goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
+  }
+
+  function handleQuickAdd(result: QuickAddResult) {
+    goalSpace.addTask(
+      result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
+      result.title,
+      result.priority ?? settings.behavior.defaultPriority,
+      result.date
+        ? {
+            date: result.date,
+            recurrence: {
+              type: RECURRENCE_TYPE.NONE,
+              startDate: result.date,
+            },
+          }
+        : undefined,
+    )
   }
 
   function handleAddSubTask(
@@ -454,6 +472,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleCreateScheduledTask,
     majorTaskOptions,
     handleAddTask,
+    handleQuickAdd,
     handleAddSubTask,
     handleCreateGoal,
     handleToggleDone,

@@ -38,8 +38,8 @@ export interface TaskTemplate {
 /** Optional scheduling captured while creating a task. */
 export type TaskSchedule = {
   date: ISODate
-  startTime: TimeOfDay
-  endTime: TimeOfDay
+  startTime?: TimeOfDay
+  endTime?: TimeOfDay
   recurrence: RecurrenceRule
 }
 

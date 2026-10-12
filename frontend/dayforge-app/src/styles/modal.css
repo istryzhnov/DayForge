@@ -149,7 +149,165 @@
   color: var(--text);
 }
 
+.quick-add-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 1400;
+}
+
+.quick-add-modal kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: calc(6px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(11px * var(--text-scale));
+  line-height: 1.5;
+  text-align: center;
+}
+
+.quick-add-card,
+.shortcuts-card {
+  position: relative;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: calc(18px * var(--radius-scale));
+  background: var(--panel-layer), var(--panel);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  gap: 12px;
+}
+
+.shortcuts-card:focus {
+  outline: none;
+}
+
+.quick-add-card__input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(17px * var(--text-scale));
+}
+
+.quick-add-card__input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.quick-add-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 26px;
+}
+
+.quick-add-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+}
+
+.quick-add-chip.is-project {
+  border-color: color-mix(in srgb, var(--chip-color, var(--accent)) 70%, transparent);
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 20%, transparent);
+}
+
+.quick-add-chip.is-muted {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.quick-add-card__hint {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
+}
+
+.shortcuts-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shortcuts-card__head h3 {
+  margin: 0;
+  color: var(--text);
+}
+
+.shortcuts-card__note {
+  margin: 0;
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
+}
+
+.shortcuts-group {
+  display: grid;
+  gap: 2px;
+}
+
+.shortcuts-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 7px 0;
+  border-top: 1px solid var(--line);
+  font-size: calc(14px * var(--text-scale));
+  color: var(--text);
+}
+
+.shortcuts-row__keys {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 4px;
+}
+
+.shortcuts-row__then {
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
+}
+
 @media (max-width: 720px) {
+  .quick-add-modal {
+    align-items: flex-start;
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 12px;
+  }
+
+  .quick-add-card,
+  .shortcuts-card {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+  }
+
+  .quick-add-card__hint {
+    display: none;
+  }
+
   .new-goal-swatch {
     width: 40px;
     height: 40px;

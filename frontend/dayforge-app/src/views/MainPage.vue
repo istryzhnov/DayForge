@@ -18,6 +18,9 @@ import { useProfilePanel } from '../features/profile/composables/useProfilePanel
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
+import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
+import QuickAddModal from '../features/hotkeys/components/QuickAddModal.vue'
+import ShortcutsModal from '../features/hotkeys/components/ShortcutsModal.vue'
 
 const goalSpace = useGoalSpace()
 
@@ -71,6 +74,7 @@ const {
   syncStatus,
   majorTaskOptions,
   handleAddTask,
+  handleQuickAdd,
   handleAddSubTask,
   handleCreateGoal,
   handleToggleDone,
@@ -92,6 +96,15 @@ const {
   handleChangeGoalIcon,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
+
+useHotkeys({
+  goals: goalSpace.goals,
+  activeGoalId: goalSpace.activeGoalId,
+  selectView,
+  selectGoal,
+})
+
+const { overlay } = useHotkeyOverlay()
 
 const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
@@ -261,6 +274,15 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
     />
 
     <ProfileModal v-if="isProfileOpen" @close="closeProfile" />
+
+    <QuickAddModal
+      v-if="overlay === 'quick-add'"
+      :goals="goals"
+      :current-title="activeGoal?.title ?? 'All Projects'"
+      @submit="handleQuickAdd"
+    />
+
+    <ShortcutsModal v-if="overlay === 'shortcuts'" />
 
     <UndoToast />
 

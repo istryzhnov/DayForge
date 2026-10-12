@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useSettings } from '../../../composables/useSettings'
+import { useHotkeyOverlay } from '../../../composables/useHotkeys'
 import {
   PRIORITY_OPTIONS,
   START_VIEW_OPTIONS,
@@ -7,6 +8,7 @@ import {
 import { checkedValue, rangeValue } from '../../../composables/inputValue'
 
 const { settings, update, resetSection } = useSettings()
+const { openShortcuts } = useHotkeyOverlay()
 </script>
 
 <template>
@@ -69,6 +71,25 @@ const { settings, update, resetSection } = useSettings()
         <em>Off starts on "All Projects", with nothing filtered out.</em>
       </span>
     </label>
+
+    <label class="settings-toggle">
+      <input
+        type="checkbox"
+        :checked="settings.behavior.keyboardShortcuts"
+        @change="update('behavior', { keyboardShortcuts: checkedValue($event) })"
+      />
+      <span>
+        <strong>Keyboard shortcuts</strong>
+        <em>
+          N adds a task, Space runs the timer, ? lists the rest. Off turns them
+          all off.
+        </em>
+      </span>
+    </label>
+
+    <button class="btn btn-ghost" type="button" @click="openShortcuts">
+      Show shortcuts
+    </button>
 
     <label class="settings-slider">
       <span>

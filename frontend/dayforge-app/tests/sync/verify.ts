@@ -40,6 +40,7 @@ import { createSnapshotStore } from '../../src/sync/snapshots'
 import { createIdleTimer } from '../../src/composables/timer/machine'
 import { mustRecordBeforeAdopting } from '../../src/composables/timer/remote'
 import { TIMER_STATUS } from '../../src/entities/constants'
+import { parseQuickAdd } from '../../src/composables/quickAdd/parse'
 import {
   SYNC_TABLE,
   type Mutation,
@@ -1395,6 +1396,54 @@ async function verifySnapshotRetention() {
   check('the oldest two were dropped', (kept[2].payload as { index: number }).index === 2)
 }
 
+function verifyQuickAdd() {
+  section('Quick add parsing')
+
+  const goals = [
+    { id: 'g-workshop', title: 'Workshop' },
+    { id: 'g-work', title: 'Work' },
+    { id: 'g-home', title: 'Home stuff' },
+  ]
+  const today = '2026-10-12'
+
+  const milk = parseQuickAdd('Купити молоко #work !! завтра', { goals, today })
+  check('the title keeps only the words that were not tokens', milk.title === 'Купити молоко', milk.title)
+  check('#name picks the project', milk.goalId === 'g-work', milk.goalId)
+  check('the project title comes back for the chip', milk.goalTitle === 'Work')
+  check('!! makes the task major', milk.priority === 'major', milk.priority)
+  check('завтра schedules tomorrow', milk.day === 'tomorrow' && milk.date === '2026-10-13', milk)
+
+  const exact = parseQuickAdd('plan #WORK', { goals, today })
+  check('project names match ignoring case and prefer an exact match', exact.goalId === 'g-work', exact.goalId)
+
+  const prefix = parseQuickAdd('Call dentist #home', { goals, today })
+  check('a prefix of the project name is enough', prefix.goalId === 'g-home' && prefix.title === 'Call dentist', prefix)
+
+  const unknown = parseQuickAdd('Read #nowhere', { goals, today })
+  check('an unknown #name stays in the title', unknown.goalId === null && unknown.title === 'Read #nowhere', unknown)
+
+  const todayEn = parseQuickAdd('Pay rent today', { goals, today })
+  check('today is read and removed', todayEn.title === 'Pay rent' && todayEn.date === today, todayEn)
+
+  const todayUk = parseQuickAdd('Зробити звіт сьогодні !', { goals, today })
+  check('сьогодні and a single ! are read', todayUk.title === 'Зробити звіт' && todayUk.date === today && todayUk.priority === 'major', todayUk)
+
+  const bang = parseQuickAdd('Wow! not a priority', { goals, today })
+  check('a ! glued to a word is part of the title', bang.priority === null && bang.title === 'Wow! not a priority', bang)
+
+  const wrap = parseQuickAdd('ship it tomorrow', { goals, today: '2026-10-31' })
+  check('tomorrow crosses the month boundary', wrap.date === '2026-11-01', wrap.date)
+
+  const onlyProject = parseQuickAdd('  #work   ', { goals, today })
+  check('a line with only a project has no title to add', onlyProject.title === '' && onlyProject.goalId === 'g-work', onlyProject)
+
+  const empty = parseQuickAdd('', { goals, today })
+  check('an empty line parses to nothing', empty.title === '' && empty.goalId === null && empty.priority === null && empty.date === null, empty)
+
+  const proto = parseQuickAdd('constructor', { goals, today })
+  check('plain words that name object properties stay plain', proto.title === 'constructor' && proto.date === null, proto)
+}
+
 async function main() {
   verifyTombstones()
   verifyDirtyCheck()
@@ -1408,6 +1457,7 @@ async function main() {
   await verifyAccountSwitch()
   await verifyActiveTimer()
   await verifySnapshotRetention()
+  verifyQuickAdd()
 
   console.log(`\n${checks - failures}/${checks} checks passed`)
   if (failures > 0) {

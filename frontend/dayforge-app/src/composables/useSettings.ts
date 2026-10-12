@@ -66,6 +66,8 @@ export interface BehaviorSettings {
   undoWindowSeconds: number
   /** Open the first project on load instead of "All Projects". */
   autoSelectFirstGoal: boolean
+  /** Single-key commands (N, Space, G then A…) while focus is not in a field. */
+  keyboardShortcuts: boolean
 }
 
 export interface FormatSettings {
@@ -124,6 +126,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     carryForward: true,
     undoWindowSeconds: 9,
     autoSelectFirstGoal: true,
+    keyboardShortcuts: true,
   },
   format: {
     locale: 'uk-UA',
@@ -284,6 +287,10 @@ function sanitize(input: unknown): AppSettings {
       autoSelectFirstGoal: asBoolean(
         behavior.autoSelectFirstGoal,
         defaults.behavior.autoSelectFirstGoal,
+      ),
+      keyboardShortcuts: asBoolean(
+        behavior.keyboardShortcuts,
+        defaults.behavior.keyboardShortcuts,
       ),
     },
     format: {

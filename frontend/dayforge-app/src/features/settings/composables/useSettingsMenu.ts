@@ -102,7 +102,7 @@ export function useSettingsMenu(props: MenuProps) {
         START_VIEW_OPTIONS,
         behavior.startView,
         'Projects',
-      )}`,
+      )}${behavior.keyboardShortcuts ? '' : ' · no shortcuts'}`,
       format: `${labelOf(LOCALE_OPTIONS, format.locale, 'Українська')} · ${labelOf(
         CLOCK_OPTIONS,
         format.clock,
