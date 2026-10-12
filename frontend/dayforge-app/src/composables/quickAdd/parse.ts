@@ -1,6 +1,5 @@
 import type { Goal } from '../../entities/GoalEntity'
-import type { ID, ISODate, Priority } from '../../entities/types'
-import { PRIORITY } from '../../entities/constants'
+import type { ID, ISODate } from '../../entities/types'
 import { addDaysToISODate } from '../goalSpace/date'
 
 export type QuickAddGoal = Pick<Goal, 'id' | 'title'>
@@ -11,7 +10,6 @@ export interface QuickAddResult {
   title: string
   goalId: ID | null
   goalTitle: string | null
-  priority: Priority | null
   day: QuickAddDay | null
   date: ISODate | null
 }
@@ -22,8 +20,6 @@ const DAY_WORDS = new Map<string, QuickAddDay>([
   ['tomorrow', 'tomorrow'],
   ['завтра', 'tomorrow'],
 ])
-
-const PRIORITY_WORDS = new Set(['!', '!!'])
 
 function findGoal(
   goals: readonly QuickAddGoal[],
@@ -43,7 +39,6 @@ export function parseQuickAdd(
 ): QuickAddResult {
   const kept: string[] = []
   let goal: QuickAddGoal | undefined
-  let priority: Priority | null = null
   let day: QuickAddDay | null = null
 
   const words = input.split(/\s+/).filter((word) => word !== '')
@@ -55,11 +50,6 @@ export function parseQuickAdd(
         if (!goal) goal = match
         continue
       }
-    }
-
-    if (PRIORITY_WORDS.has(word)) {
-      priority = PRIORITY.MAJOR
-      continue
     }
 
     const dayWord = DAY_WORDS.get(word.toLowerCase())
@@ -82,7 +72,6 @@ export function parseQuickAdd(
     title: kept.join(' '),
     goalId: goal?.id ?? null,
     goalTitle: goal?.title ?? null,
-    priority,
     day,
     date,
   }

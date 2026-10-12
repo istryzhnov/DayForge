@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { shortcutTitle } from '../../../composables/useHotkeys'
+
 withDefaults(
   defineProps<{
     primaryLabel: string
@@ -18,7 +20,12 @@ const emit = defineEmits<{
 
 <template>
   <div class="timer-controls" :class="`timer-controls--${size}`">
-    <button class="btn btn-primary" type="button" @click="emit('primary')">
+    <button
+      class="btn btn-primary"
+      type="button"
+      :title="shortcutTitle(primaryLabel, 'Space')"
+      @click="emit('primary')"
+    >
       {{ primaryLabel }}
     </button>
 

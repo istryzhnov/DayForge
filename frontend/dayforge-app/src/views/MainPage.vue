@@ -12,6 +12,7 @@ import AnalyticsView from '../features/analytics/components/AnalyticsView.vue'
 import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
 import StarterTemplateModal from '../features/onboarding/components/StarterTemplateModal.vue'
 import UndoToast from '../components/UndoToast.vue'
+import ShortcutTipToast from '../components/ShortcutTipToast.vue'
 import SettingsSidebar from '../features/settings/components/SettingsSidebar.vue'
 import ProfileModal from '../features/profile/components/ProfileModal.vue'
 import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
@@ -285,6 +286,8 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
     <ShortcutsModal v-if="overlay === 'shortcuts'" />
 
     <UndoToast />
+
+    <ShortcutTipToast />
 
     <TaskReminderPopup
       v-if="activeAlert"

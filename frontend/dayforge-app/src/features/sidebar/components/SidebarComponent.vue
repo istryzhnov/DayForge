@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
+import BrandWordmark from '../../../components/BrandWordmark.vue'
 import type { ActiveView } from '../../../pages/composables/useMainPageState'
 import NewGoalComponent from './NewGoalComponent.vue'
 import SidebarGoalButton from './SidebarGoalButton.vue'
@@ -15,6 +16,7 @@ import { useMobileNav } from '../composables/useMobileNav'
 import { useSettings } from '../../../composables/useSettings'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 import { useProfilePanel } from '../../profile/composables/useProfilePanel'
+import { shortcutTitle, useHotkeyOverlay } from '../../../composables/useHotkeys'
 
 const props = defineProps<{
   goals: Goal[]
@@ -65,6 +67,7 @@ const {
 })
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
+const { openShortcuts } = useHotkeyOverlay()
 const { open: openProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
 
@@ -96,13 +99,13 @@ onUnmounted(() => {
 // The tooltip quotes the configured lead time rather than a fixed "5 min".
 const { settings } = useSettings()
 const leadMinutes = computed(() => settings.notifications.leadMinutes)
+const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 </script>
 
 <template>
   <div class="sidebar-shell">
     <div class="sidebar-brand">
-      <span class="brand-dot"></span>
-      <strong>DayForge</strong>
+      <BrandWordmark />
       <button
         v-if="notificationsSupported"
         class="sidebar-notify-trigger"
@@ -134,6 +137,16 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
           ⚙
         </button>
       </div>
+      <button
+        v-if="keyboardShortcuts"
+        class="sidebar-shortcuts-trigger"
+        type="button"
+        aria-label="Keyboard shortcuts"
+        title="Keyboard shortcuts (?)"
+        @click="openShortcuts"
+      >
+        ?
+      </button>
     </div>
 
     <p class="sidebar-caption">Projects</p>
@@ -141,6 +154,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
     <button
       class="nav-goal-btn"
       :class="{ active: activeGoalId === null }"
+      :title="shortcutTitle('All Projects', 'G then A')"
       @click="selectGoal(null)"
     >
       <span>All Projects</span>
@@ -192,6 +206,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
+      :title="shortcutTitle('Calendar', 'G then C')"
       @click="chooseView('calendar')"
     >
       <span class="nav-goal-btn__main">
@@ -202,6 +217,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'timer' }"
+      :title="shortcutTitle('Timer', 'G then T')"
       @click="chooseView('timer')"
     >
       <span class="nav-goal-btn__main">
@@ -212,6 +228,7 @@ const leadMinutes = computed(() => settings.notifications.leadMinutes)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'analytics' }"
+      :title="shortcutTitle('Analytics', 'G then Y')"
       @click="chooseView('analytics')"
     >
       <span class="nav-goal-btn__main">

@@ -246,6 +246,20 @@
   color: var(--muted);
 }
 
+.quick-add-card__syntax {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.quick-add-card__syntax-short {
+  display: none;
+}
+
+.quick-add-card__note {
+  font-size: calc(11px * var(--text-scale));
+  opacity: 0.8;
+}
+
 .shortcuts-card__head {
   display: flex;
   align-items: center;
@@ -305,6 +319,18 @@
   }
 
   .quick-add-card__hint {
+    display: none;
+  }
+
+  .quick-add-card__syntax {
+    display: flex;
+  }
+
+  .quick-add-card__syntax-short {
+    display: inline;
+  }
+
+  .quick-add-card__syntax-full {
     display: none;
   }
 

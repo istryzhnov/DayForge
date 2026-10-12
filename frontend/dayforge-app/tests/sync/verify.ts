@@ -1406,11 +1406,10 @@ function verifyQuickAdd() {
   ]
   const today = '2026-10-12'
 
-  const milk = parseQuickAdd('Купити молоко #work !! завтра', { goals, today })
+  const milk = parseQuickAdd('Купити молоко #work завтра', { goals, today })
   check('the title keeps only the words that were not tokens', milk.title === 'Купити молоко', milk.title)
   check('#name picks the project', milk.goalId === 'g-work', milk.goalId)
   check('the project title comes back for the chip', milk.goalTitle === 'Work')
-  check('!! makes the task major', milk.priority === 'major', milk.priority)
   check('завтра schedules tomorrow', milk.day === 'tomorrow' && milk.date === '2026-10-13', milk)
 
   const exact = parseQuickAdd('plan #WORK', { goals, today })
@@ -1425,11 +1424,14 @@ function verifyQuickAdd() {
   const todayEn = parseQuickAdd('Pay rent today', { goals, today })
   check('today is read and removed', todayEn.title === 'Pay rent' && todayEn.date === today, todayEn)
 
-  const todayUk = parseQuickAdd('Зробити звіт сьогодні !', { goals, today })
-  check('сьогодні and a single ! are read', todayUk.title === 'Зробити звіт' && todayUk.date === today && todayUk.priority === 'major', todayUk)
+  const todayUk = parseQuickAdd('Зробити звіт сьогодні', { goals, today })
+  check('сьогодні is read', todayUk.title === 'Зробити звіт' && todayUk.date === today, todayUk)
 
   const bang = parseQuickAdd('Wow! not a priority', { goals, today })
-  check('a ! glued to a word is part of the title', bang.priority === null && bang.title === 'Wow! not a priority', bang)
+  check('a ! glued to a word is part of the title', bang.title === 'Wow! not a priority', bang)
+
+  const alone = parseQuickAdd('Call mom !', { goals, today })
+  check('a lone ! stays in the title, it is not a priority', alone.title === 'Call mom !' && alone.goalId === null && alone.date === null, alone)
 
   const wrap = parseQuickAdd('ship it tomorrow', { goals, today: '2026-10-31' })
   check('tomorrow crosses the month boundary', wrap.date === '2026-11-01', wrap.date)
@@ -1438,7 +1440,7 @@ function verifyQuickAdd() {
   check('a line with only a project has no title to add', onlyProject.title === '' && onlyProject.goalId === 'g-work', onlyProject)
 
   const empty = parseQuickAdd('', { goals, today })
-  check('an empty line parses to nothing', empty.title === '' && empty.goalId === null && empty.priority === null && empty.date === null, empty)
+  check('an empty line parses to nothing', empty.title === '' && empty.goalId === null && empty.date === null, empty)
 
   const proto = parseQuickAdd('constructor', { goals, today })
   check('plain words that name object properties stay plain', proto.title === 'constructor' && proto.date === null, proto)
