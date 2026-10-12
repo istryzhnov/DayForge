@@ -77,6 +77,12 @@ const {
           {{ auth.isBusy.value ? 'Opening Google…' : 'Continue with Google' }}
         </button>
 
+        <p class="settings-group-hint legal-links">
+          By signing in you agree to the
+          <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and
+          <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+        </p>
+
         <p class="settings-group-hint">
           New here? The same button creates the account. Without one nothing
           leaves this browser, and everything keeps working as it does now.

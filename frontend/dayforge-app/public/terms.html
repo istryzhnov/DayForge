@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Terms of Service for DayForge, a free personal planner." />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Terms of Service · DayForge</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #eef3fb;
+        --bg-base: linear-gradient(165deg, #eff4fb 0%, #e9f0fa 55%, #eff6ff 100%);
+        --panel: #ffffff;
+        --line: #d6e0ed;
+        --text: #162033;
+        --muted: #5f6f88;
+        --link: #1d7d1a;
+        --font-ui: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #0c111a;
+          --bg-base: linear-gradient(160deg, #0c111a 0%, #11192a 58%, #101827 100%);
+          --panel: #151d29;
+          --line: #2b3649;
+          --text: #eef4ff;
+          --muted: #9caec3;
+          --link: #73ff44;
+        }
+      }
+      :root[data-theme='dark'] {
+        --bg: #0c111a;
+        --bg-base: linear-gradient(160deg, #0c111a 0%, #11192a 58%, #101827 100%);
+        --panel: #151d29;
+        --line: #2b3649;
+        --text: #eef4ff;
+        --muted: #9caec3;
+        --link: #73ff44;
+      }
+
+      * { box-sizing: border-box; }
+      html, body { margin: 0; }
+      body {
+        min-height: 100vh;
+        background: var(--bg) var(--bg-base);
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: var(--font-ui);
+        font-size: 16px;
+        line-height: 1.65;
+        overflow-x: hidden;
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 24px 16px 56px;
+      }
+      .back {
+        display: inline-block;
+        margin-bottom: 20px;
+        color: var(--link);
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .back:hover, .back:focus-visible { text-decoration: underline; }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px 22px 28px;
+        overflow-wrap: anywhere;
+      }
+      h1 {
+        margin: 0 0 6px;
+        font-size: 1.75rem;
+        line-height: 1.2;
+      }
+      h2 {
+        margin: 28px 0 8px;
+        font-size: 1.15rem;
+        line-height: 1.3;
+      }
+      p, ul { margin: 0 0 12px; }
+      ul { padding-left: 22px; }
+      li { margin-bottom: 6px; }
+      a { color: var(--link); }
+      .meta { color: var(--muted); font-size: 0.92rem; margin-bottom: 8px; }
+      @media (min-width: 720px) {
+        .wrap { padding-top: 40px; }
+        .card { padding: 36px 40px 40px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <a class="back" href="/">← Back to DayForge</a>
+      <main class="card">
+        <h1>Terms of Service</h1>
+        <p class="meta">Effective date: {{EFFECTIVE_DATE}}</p>
+        <p class="meta">Provider: {{OWNER_NAME}} · Contact: {{CONTACT_EMAIL}} · Website: https://{{APP_DOMAIN}}/</p>
+
+        <p>
+          These terms govern your use of DayForge at
+          <a href="https://{{APP_DOMAIN}}/">https://{{APP_DOMAIN}}/</a>. By using
+          DayForge, or by signing in, you agree to them. If you do not agree, do
+          not use DayForge. The <a href="/privacy.html">Privacy Policy</a> explains
+          how your data is handled and is part of these terms.
+        </p>
+
+        <h2>1. The service</h2>
+        <p>
+          DayForge is a free personal planner for projects, tasks, habits and time
+          tracking. It works in your browser. You may optionally sign in with Google
+          to sync your data between your devices. The service may change, be
+          limited or be discontinued at any time.
+        </p>
+
+        <h2>2. Provided "as is"</h2>
+        <p>
+          DayForge is provided "as is" and "as available", without warranties of any
+          kind, express or implied, including merchantability, fitness for a
+          particular purpose, and non-infringement. We do not guarantee that it will
+          be uninterrupted, error-free or that synced data will never be lost. Keep
+          your own backups: use Settings → Backup and data → Export backup regularly.
+        </p>
+
+        <h2>3. Your account</h2>
+        <ul>
+          <li>You are responsible for your Google account and for activity under your DayForge session.</li>
+          <li>You must be old enough to form a binding contract where you live, or have a parent or guardian's permission.</li>
+          <li>Tell us if you believe someone else has access to your account.</li>
+        </ul>
+
+        <h2>4. Acceptable use</h2>
+        <p>You agree not to:</p>
+        <ul>
+          <li>use DayForge for anything unlawful, or to store content you have no right to store;</li>
+          <li>attempt to access another person's data, or interfere with the service, its security or its infrastructure;</li>
+          <li>reverse engineer, scrape at scale, or overload the service beyond normal personal use;</li>
+          <li>use the service to build a competing service by copying its data or access.</li>
+        </ul>
+
+        <h2>5. Your content</h2>
+        <p>
+          The projects, tasks, habits, time entries, notes and settings you create
+          ("your content") belong to you. We do not claim ownership of it. You grant
+          us only the limited permission needed to store and sync your content so
+          that the service can work for you. We do not use your content for
+          advertising. Our handling of your content is described in the Privacy
+          Policy.
+        </p>
+
+        <h2>6. Ending use</h2>
+        <p>
+          You can stop using DayForge at any time. Signing out leaves your local
+          data on your device. To delete your server data, follow the steps in
+          section 9 of the Privacy Policy. We may suspend or end access if you
+          breach these terms or misuse the service, with notice where practical.
+        </p>
+
+        <h2>7. Limitation of liability</h2>
+        <p>
+          To the maximum extent permitted by law, {{OWNER_NAME}} is not liable for
+          any indirect, incidental, special, consequential or punitive damages, or
+          for any loss of data, profits or goodwill, arising from your use of or
+          inability to use DayForge. Our total liability for any claim relating to
+          DayForge is limited to the amount you paid us for it, which is zero for
+          the free service. Nothing in these terms excludes liability that cannot be
+          excluded under applicable law.
+        </p>
+
+        <h2>8. Changes to these terms</h2>
+        <p>
+          We may update these terms. The effective date above shows when the latest
+          version took effect. Continued use of DayForge after a change means you
+          accept the updated terms.
+        </p>
+
+        <h2>9. Governing law</h2>
+        <p>
+          These terms are governed by the laws of {{COUNTRY}}, without regard to its
+          conflict-of-law rules. Courts in {{COUNTRY}} have jurisdiction, unless
+          mandatory consumer protection law where you live gives you the right to
+          bring a claim elsewhere.
+        </p>
+
+        <h2>10. Contact</h2>
+        <p>
+          Questions about these terms: <a href="mailto:{{CONTACT_EMAIL}}">{{CONTACT_EMAIL}}</a>.
+        </p>
+      </main>
+    </div>
+  </body>
+</html>

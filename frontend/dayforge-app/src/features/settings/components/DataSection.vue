@@ -165,5 +165,11 @@ function clearEverything() {
         It clears your account too, on every device.
       </template>
     </p>
+
+    <p class="settings-group-hint legal-links">
+      <a href="/terms.html" target="_blank" rel="noopener">Terms of Service</a>
+      ·
+      <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+    </p>
   </div>
 </template>
