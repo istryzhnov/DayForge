@@ -35,11 +35,7 @@ const title = computed(() => {
   return VIEW_TITLES[props.activeView]
 })
 
-const showSyncDot = computed(
-  () =>
-    status.value.state !== SYNC_STATE.OFF &&
-    status.value.state !== SYNC_STATE.IDLE,
-)
+const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
 </script>
 
 <template>
@@ -96,7 +92,7 @@ const showSyncDot = computed(
         />
         <span
           v-if="showSyncDot"
-          class="mobile-topbar__sync"
+          class="sync-dot mobile-topbar__sync"
           :class="`is-${status.state}`"
           aria-hidden="true"
         ></span>

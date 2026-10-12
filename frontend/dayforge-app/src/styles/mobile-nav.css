@@ -99,21 +99,6 @@
     width: 10px;
     height: 10px;
     border: 2px solid var(--panel);
-    border-radius: 50%;
-    background: var(--accent);
-  }
-
-  .mobile-topbar__sync.is-offline {
-    background: var(--muted);
-  }
-
-  .mobile-topbar__sync.is-error {
-    background: var(--danger);
-  }
-
-  .mobile-topbar__sync.is-syncing {
-    background: var(--accent);
-    animation: sync-pulse 1.4s ease-in-out infinite;
   }
 
   .mobile-nav-backdrop {

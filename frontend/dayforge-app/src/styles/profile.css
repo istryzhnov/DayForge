@@ -62,8 +62,19 @@
   font-size: calc(11px * var(--text-scale));
 }
 
-.sidebar-profile.is-error .sidebar-profile__text span {
-  color: var(--danger);
+.sidebar-profile__avatar {
+  position: relative;
+  flex: none;
+  display: flex;
+}
+
+.sidebar-profile__dot {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--panel);
 }
 
 .profile-avatar {
@@ -149,37 +160,15 @@
   flex: none;
   width: 8px;
   height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.profile-sync.is-off .profile-sync__dot,
-.profile-sync.is-offline .profile-sync__dot {
-  background: var(--muted);
-}
-
-.profile-sync.is-syncing .profile-sync__dot {
-  background: var(--accent);
-  animation: sync-pulse 1.4s ease-in-out infinite;
-}
-
-.profile-sync.is-error .profile-sync__dot {
-  background: var(--danger);
 }
 
 .profile-sync__text {
-  display: grid;
-  gap: 2px;
   min-width: 0;
   margin-right: auto;
 }
 
-.profile-sync__text span {
-  color: var(--muted);
-}
-
-:root[data-motion='reduced'] .profile-sync.is-syncing .profile-sync__dot {
-  animation: none;
+.profile-sync.is-error .profile-sync__text {
+  color: var(--danger);
 }
 
 @media (max-width: 960px) {
