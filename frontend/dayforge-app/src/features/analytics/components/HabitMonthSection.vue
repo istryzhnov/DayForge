@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { useHabitMonth } from '../composables/useHabitMonth'
 import HabitMonthRow from './HabitMonthRow.vue'
 
@@ -9,6 +10,8 @@ const props = defineProps<{
   templates: TaskTemplate[]
   dailyTasks: DailyTask[]
 }>()
+
+const todayISO = getTodayISODate()
 
 const {
   monthLabel,
@@ -96,40 +99,53 @@ const {
         date and state.
       </p>
 
-      <ul class="habits__rows">
-        <HabitMonthRow
-          v-for="row in view.rows"
-          :key="row.templateId"
-          :row="row"
-          :color="colorOf(row.goalId)"
-          :project-name="projectNameOf(row.goalId)"
-          :percent="percentLabel(row.completionRate)"
-          :cell-label="cellLabel"
-        />
-      </ul>
+      <div class="habits__body">
+        <ul class="habits__rows">
+          <HabitMonthRow
+            v-for="row in view.rows"
+            :key="row.templateId"
+            :row="row"
+            :color="colorOf(row.goalId)"
+            :project-name="projectNameOf(row.goalId)"
+            :percent="percentLabel(row.completionRate)"
+            :cell-label="cellLabel"
+          />
+        </ul>
 
-      <figure class="analytics-chart habits__heat">
-        <figcaption class="analytics-chart__caption">
-          Daily completion
-        </figcaption>
-        <div class="habits__weekdays" aria-hidden="true">
-          <span v-for="label in weekdayLabels" :key="label">{{ label }}</span>
-        </div>
-        <ol class="habits__grid">
-          <li
-            v-for="(day, index) in calendarCells"
-            :key="day?.date ?? `blank-${index}`"
-            class="habits__day"
-            :class="day ? `is-${dayTone(day)}` : 'is-blank'"
-            :role="day ? 'img' : undefined"
-            :aria-hidden="day ? undefined : 'true'"
-            :aria-label="day ? dayLabel(day) : undefined"
-            :title="day ? dayLabel(day) : undefined"
-          >
-            {{ day ? dayNumberOf(day.date) : '' }}
-          </li>
-        </ol>
-      </figure>
+        <figure class="analytics-chart habits__heat">
+          <figcaption class="analytics-chart__caption">
+            Daily completion
+          </figcaption>
+          <div class="habits__legend" aria-hidden="true">
+            <span>Less</span>
+            <i class="habits__day is-missed"></i>
+            <i class="habits__day is-partial"></i>
+            <i class="habits__day is-full"></i>
+            <span>More</span>
+          </div>
+          <div class="habits__weekdays" aria-hidden="true">
+            <span v-for="label in weekdayLabels" :key="label">{{ label }}</span>
+          </div>
+          <ol class="habits__grid">
+            <li
+              v-for="(day, index) in calendarCells"
+              :key="day?.date ?? `blank-${index}`"
+              class="habits__day"
+              :class="
+                day
+                  ? [`is-${dayTone(day)}`, { 'is-today': day.date === todayISO }]
+                  : 'is-blank'
+              "
+              :role="day ? 'img' : undefined"
+              :aria-hidden="day ? undefined : 'true'"
+              :aria-label="day ? dayLabel(day) : undefined"
+              :title="day ? dayLabel(day) : undefined"
+            >
+              {{ day ? dayNumberOf(day.date) : '' }}
+            </li>
+          </ol>
+        </figure>
+      </div>
     </template>
   </section>
 </template>
