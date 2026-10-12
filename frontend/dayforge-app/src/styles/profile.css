@@ -203,3 +203,9 @@
     border-bottom-right-radius: 0;
   }
 }
+
+.legal-links a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
