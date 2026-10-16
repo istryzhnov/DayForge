@@ -663,6 +663,25 @@
   outline: 1px solid var(--accent);
 }
 
+.event-details__field textarea {
+  width: 100%;
+  min-height: 56px;
+  max-height: 40vh;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 10px;
+  font-family: inherit;
+  font-size: calc(14px * var(--text-scale));
+  line-height: 1.5;
+}
+
+.event-details__field textarea:focus {
+  outline: 1px solid var(--accent);
+}
+
 .event-details__time {
   display: flex;
   gap: 12px;
@@ -864,6 +883,7 @@
   }
 
   .event-details__field input,
+  .event-details__field textarea,
   .event-details__time input {
     font-size: max(16px, calc(16px * var(--text-scale)));
   }

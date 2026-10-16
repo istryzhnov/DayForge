@@ -388,6 +388,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.editTaskTitle(templateId, title)
   }
 
+  function handleEditNotes(templateId: ID, notes: string) {
+    goalSpace.updateTaskNotes(templateId, notes)
+  }
+
   // A timer left running on something that no longer exists would keep
   // recording against it, so it is closed out first.
   function handleScheduleTask(templateId: ID, schedule: TaskSchedule | null) {
@@ -508,6 +512,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleAssignTaskToGoal,
     handleCreateAllModeMinor,
     handleEditTask,
+    handleEditNotes,
     handleScheduleTask,
     handleDeleteTask,
     handleDeleteGoal,

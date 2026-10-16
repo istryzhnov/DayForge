@@ -34,6 +34,7 @@ const props = defineProps<{
   onCancelSubtask: () => void
   onFocusProject: (dailyTaskId: ID) => void
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
   onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
   onDeleteTask: (templateId: ID) => void
@@ -70,8 +71,10 @@ const {
   closeRateEditor,
   saveRate,
   saveEdits,
+  saveNotes,
 } = useTaskRow(props, {
   onEditTask: props.onEditTask,
+  onEditNotes: props.onEditNotes,
   onScheduleTask: props.onScheduleTask,
   onSetTaskRate: props.onSetTaskRate,
   drag: props.drag,
@@ -145,6 +148,27 @@ const {
             {{ node.template?.hourlyRate }} / h
           </span>
 
+          <!-- Shown only when there is something to read; opens the editor. -->
+          <button
+            v-if="node.template?.notes"
+            type="button"
+            class="task-notes-btn"
+            aria-label="Has notes"
+            title="Edit notes"
+            @click="openEditor(false)"
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path
+                d="M3.5 2.5h6l3 3v8h-9z M9.5 2.5v3h3 M5.5 8.5h5 M5.5 11h3"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.4"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+              />
+            </svg>
+          </button>
+
           <!-- Repeating tasks only: a running tally of days completed. -->
           <span
             v-if="node.completedCount"
@@ -207,6 +231,7 @@ const {
     :node="node"
     :open-scheduled="editorStartsScheduled"
     @save="(payload) => saveEdits(payload.title, payload.schedule)"
+    @save-notes="(notes) => saveNotes(notes)"
     @close="closeEditor"
   />
 

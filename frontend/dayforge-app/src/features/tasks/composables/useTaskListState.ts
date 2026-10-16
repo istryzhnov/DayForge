@@ -11,6 +11,7 @@ type TaskListActions = {
   ) => void
   onToggleDone: (taskId: ID) => void
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
   onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
   onDeleteTask: (templateId: ID) => void
@@ -43,6 +44,10 @@ export function useTaskListState(actions: TaskListActions) {
     actions.onEditTask(templateId, title)
   }
 
+  function editNotes(templateId: ID, notes: string) {
+    actions.onEditNotes(templateId, notes)
+  }
+
   function scheduleTask(templateId: ID, schedule: TaskSchedule | null) {
     actions.onScheduleTask(templateId, schedule)
   }
@@ -69,6 +74,7 @@ export function useTaskListState(actions: TaskListActions) {
     handleSubtaskSubmit,
     toggleDone,
     editTask,
+    editNotes,
     scheduleTask,
     setTaskRate,
     deleteTask,

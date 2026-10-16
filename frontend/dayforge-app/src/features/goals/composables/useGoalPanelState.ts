@@ -48,6 +48,7 @@ type GoalPanelActions = {
     schedule?: TaskSchedule,
   ) => void
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onDeleteTask: (templateId: ID) => void
   onSetAsProject: (templateId: ID) => void
 }
@@ -164,6 +165,10 @@ export function useGoalPanelState(
     actions.onEditTask(templateId, title)
   }
 
+  function editNotes(templateId: ID, notes: string) {
+    actions.onEditNotes(templateId, notes)
+  }
+
   function deleteTask(templateId: ID) {
     actions.onDeleteTask(templateId)
   }
@@ -186,6 +191,7 @@ export function useGoalPanelState(
     submitQuickAdd,
     toggleDone,
     editTask,
+    editNotes,
     deleteTask,
     setAsProject,
   }

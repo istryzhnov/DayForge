@@ -21,6 +21,7 @@ const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'delete-task', templateId: ID): void
@@ -47,6 +48,9 @@ const emit = defineEmits<{
     @focus-project="(taskId: ID) => emit('focus-project', taskId)"
     @edit-task="
       (templateId: ID, title: string) => emit('edit-task', templateId, title)
+    "
+    @edit-notes="
+      (templateId: ID, notes: string) => emit('edit-notes', templateId, notes)
     "
     @schedule-task="
       (templateId: ID, schedule: TaskSchedule | null) =>

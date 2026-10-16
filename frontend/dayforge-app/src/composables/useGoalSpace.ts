@@ -19,6 +19,7 @@ import { useUndoToast } from './useUndoToast'
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
+import { normalizeNotes } from './goalSpace/notes'
 import { bindStorage, readJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
@@ -261,6 +262,22 @@ export function useGoalSpace() {
         item.title = trimmedTitle
         touchRow(item)
       })
+  }
+
+  /** Blank notes remove the field, so a cleared note leaves no trace behind. */
+  function updateTaskNotes(templateId: ID, notes: string) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    const next = normalizeNotes(notes)
+    if (next === template.notes) return
+
+    if (next === undefined) {
+      delete template.notes
+    } else {
+      template.notes = next
+    }
+    template.updatedAt = new Date().toISOString()
   }
 
   /** An absent rate means "bill this task at its project's rate". */
@@ -653,6 +670,7 @@ export function useGoalSpace() {
     addTask,
     addSubTask,
     editTaskTitle,
+    updateTaskNotes,
     updateTaskRate,
     deleteTask,
     initializeStorage,

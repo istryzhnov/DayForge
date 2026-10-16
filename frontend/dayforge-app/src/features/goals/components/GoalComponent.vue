@@ -55,6 +55,7 @@ const emit = defineEmits<{
     schedule?: TaskSchedule,
   ): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
@@ -99,6 +100,7 @@ const {
   submitQuickAdd,
   toggleDone,
   editTask,
+  editNotes,
   deleteTask,
   setAsProject,
 } = useGoalPanelState(props, {
@@ -110,6 +112,7 @@ const {
   onCreateAllModeMinor: (title, goalId, majorId, schedule) =>
     emit('create-all-mode-minor', title, goalId, majorId, schedule),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
 })
@@ -150,6 +153,7 @@ const {
       @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
       @focus-project="focusProject"
       @edit-task="(templateId, title) => editTask(templateId, title)"
+      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
       @schedule-task="
         (templateId, schedule) => emit('schedule-task', templateId, schedule)
       "

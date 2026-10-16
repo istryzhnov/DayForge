@@ -28,6 +28,7 @@ const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'delete-task', templateId: ID): void
@@ -58,6 +59,7 @@ const {
   handleSubtaskSubmit,
   toggleDone,
   editTask,
+  editNotes,
   scheduleTask,
   setTaskRate,
   deleteTask,
@@ -68,6 +70,7 @@ const {
     emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleDone: (taskId) => emit('toggle-done', taskId),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
   onScheduleTask: (templateId, schedule) =>
     emit('schedule-task', templateId, schedule),
   onSetTaskRate: (templateId, hourlyRate) =>
@@ -84,6 +87,7 @@ function sharedHandlers() {
     onSubmitSubtask: handleSubtaskSubmit,
     onCancelSubtask: () => (activeParentId.value = null),
     onEditTask: editTask,
+    onEditNotes: editNotes,
     onScheduleTask: scheduleTask,
     onSetTaskRate: setTaskRate,
     onDeleteTask: deleteTask,

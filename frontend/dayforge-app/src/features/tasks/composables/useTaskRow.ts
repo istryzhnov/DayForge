@@ -16,6 +16,7 @@ type TaskRowProps = {
 
 type TaskRowActions = {
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
   onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
   /** Touch drag hooks; absent for rows that cannot be moved. */
@@ -90,6 +91,10 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
     isRateEditing.value = false
   }
 
+  function saveNotes(notes: string) {
+    actions.onEditNotes(props.node.task.templateId, notes)
+  }
+
   function saveRate(hourlyRate: number | undefined) {
     actions.onSetTaskRate(props.node.task.templateId, hourlyRate)
   }
@@ -121,5 +126,6 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
     closeRateEditor,
     saveRate,
     saveEdits,
+    saveNotes,
   }
 }

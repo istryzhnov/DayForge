@@ -87,6 +87,7 @@ const {
   handleCreateAllModeMinor,
   handleCreateScheduledTask,
   handleEditTask,
+  handleEditNotes,
   handleScheduleTask,
   handleDeleteTask,
   handleDeleteGoal,
@@ -179,6 +180,7 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
           @set-as-project="handleSetAsProject"
           @create-all-mode-minor="handleCreateAllModeMinor"
           @edit-task="handleEditTask"
+          @edit-notes="handleEditNotes"
           @schedule-task="handleScheduleTask"
           @delete-task="handleDeleteTask"
           @set-task-rate="handleSetTaskRate"
@@ -239,6 +241,7 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
           @create-task="handleCreateScheduledTask"
           @toggle-task-done="handleToggleDone"
           @edit-task="handleEditTask"
+          @edit-notes="handleEditNotes"
           @attach-to-project="handleAttachToProject"
           @assign-goal="handleAssignTaskToGoal"
         />

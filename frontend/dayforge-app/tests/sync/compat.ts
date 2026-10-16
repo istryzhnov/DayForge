@@ -12,6 +12,7 @@ import { partitionLive, restampForRestore } from '../../src/sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow } from '../../src/sync/types'
 import { migrateDailyTasks } from '../../src/composables/goalSpace/dailyTasks'
 import { migrateGoals } from '../../src/composables/goalSpace/goalMigration'
+import { NOTES_MAX_LENGTH, normalizeNotes } from '../../src/composables/goalSpace/notes'
 import { splitReadableEntries } from '../../src/composables/timer/entries'
 import {
   isKnownTimerStatus,
@@ -85,6 +86,54 @@ function goalRow(overrides: Record<string, unknown> = {}): SyncedRow {
     ...FUTURE,
     ...overrides,
   } as SyncedRow
+}
+
+function templateRow(overrides: Record<string, unknown> = {}): SyncedRow {
+  return {
+    id: 'task-report',
+    goalId: 'goal-a',
+    title: 'Monthly report',
+    priority: 'minor',
+    order: 0,
+    tagIds: [],
+    isActive: true,
+    createdAt: T0,
+    updatedAt: T0,
+    ...FUTURE,
+    ...overrides,
+  } as SyncedRow
+}
+
+function verifyTaskNotes() {
+  section('Task notes survive sync, restore and the outbox')
+
+  const table = SYNC_TABLE.TASK_TEMPLATES
+  const withNotes = templateRow({ notes: 'Call the bank\nAsk about fees', updatedAt: T1 })
+  const older = templateRow({ notes: 'Call the bank', updatedAt: T0 })
+
+  const kept = mergeRow(table, withNotes, older)
+  check('a newer local note wins with its full text', kept.row.notes === withNotes.notes, kept.row)
+
+  const incoming = templateRow({ notes: 'From the phone', updatedAt: T2 })
+  const taken = mergeRow(table, withNotes, incoming)
+  check('a newer remote note is taken whole', taken.row.notes === 'From the phone', taken.row)
+
+  const cleared = templateRow({ updatedAt: T2 })
+  const dropped = mergeRow(table, cleared, older)
+  check('a note cleared on one device stays cleared after merge', !('notes' in dropped.row), dropped.row)
+
+  const restored = restampForRestore(withNotes)
+  check('a restore keeps the note', restored.notes === withNotes.notes)
+
+  const shadow = snapshotRows([templateRow({ updatedAt: T0 })])
+  const diff = diffRows(shadow, [templateRow({ notes: 'New note', updatedAt: T1 })])
+  check('adding a note is a change the outbox sees', diff.changes.length === 1 && diff.changes[0].op === 'upsert')
+
+  check('a template without notes is untouched by the diff', diffRows(snapshotRows([templateRow()]), [templateRow()]).changes.length === 0)
+
+  check('notes are trimmed', normalizeNotes('  Buy milk \n') === 'Buy milk')
+  check('blank notes mean no note at all', normalizeNotes(' \n\t ') === undefined)
+  check('notes are capped at the limit', (normalizeNotes('x'.repeat(NOTES_MAX_LENGTH + 50)) ?? '').length === NOTES_MAX_LENGTH)
 }
 
 function verifyRowsFromNewerBuild() {
@@ -314,6 +363,7 @@ function main() {
   verifySettingsRow()
   verifyBackupFixture()
   verifyNewerBackup()
+  verifyTaskNotes()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {
