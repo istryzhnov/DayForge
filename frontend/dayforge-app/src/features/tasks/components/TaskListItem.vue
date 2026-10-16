@@ -100,6 +100,7 @@ const {
         : undefined
     "
     :data-drop-row="drag ? node.task.templateId : undefined"
+    :data-task-id="node.task.id"
     @contextmenu.prevent="openContextMenu"
     @pointerdown="onRowPointerDown"
   >

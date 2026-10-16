@@ -105,6 +105,23 @@
   animation: task-row-sweep 0.9s ease-out 1;
 }
 
+/* Set by the global search when it jumps to a row; removed after a moment. */
+.task-row.is-search-hit {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  animation: task-search-hit 1.6s ease-out 1;
+}
+
+@keyframes task-search-hit {
+  0%,
+  40% {
+    outline-color: var(--accent);
+  }
+  100% {
+    outline-color: transparent;
+  }
+}
+
 @keyframes task-row-sweep {
   from {
     background-position: 150% 0;

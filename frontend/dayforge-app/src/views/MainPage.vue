@@ -22,6 +22,9 @@ import { useSettingsPanel } from '../features/settings/composables/useSettingsPa
 import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
 import QuickAddModal from '../features/hotkeys/components/QuickAddModal.vue'
 import ShortcutsModal from '../features/hotkeys/components/ShortcutsModal.vue'
+import SearchPalette from '../features/search/components/SearchPalette.vue'
+import type { SearchResult } from '../features/search/composables/useGlobalSearch'
+import { flashTaskRow } from '../features/search/composables/flashTaskRow'
 
 const goalSpace = useGoalSpace()
 
@@ -106,11 +109,20 @@ useHotkeys({
   selectGoal,
 })
 
-const { overlay } = useHotkeyOverlay()
+const { overlay, closeOverlay } = useHotkeyOverlay()
 
 const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
+
+/** Opens the project, moves to the day of a finished task, and flashes its row. */
+function handleSearchSelect(result: SearchResult) {
+  closeOverlay()
+  closeMobileNav()
+  if (result.kind === 'done' && result.date) goToDate(result.date)
+  selectGoal(result.goalId)
+  if (result.rowId) flashTaskRow(result.rowId)
+}
 </script>
 
 <template>
@@ -287,6 +299,16 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
     />
 
     <ShortcutsModal v-if="overlay === 'shortcuts'" />
+
+    <SearchPalette
+      v-if="overlay === 'search'"
+      :goals="goals"
+      :templates="taskTemplates"
+      :daily-tasks="dailyTasks"
+      :current-date="currentDate"
+      @close="closeOverlay"
+      @select="handleSearchSelect"
+    />
 
     <UndoToast />
 
