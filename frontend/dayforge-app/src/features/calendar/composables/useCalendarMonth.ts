@@ -16,6 +16,7 @@ import {
 } from './useCalendarOccurrences'
 import { useSettings } from '../../../composables/useSettings'
 import { useFormat } from '../../../composables/useFormat'
+import { useCalendarFilter } from './useCalendarFilter'
 
 /** Six weeks always fit a month, so the grid never changes height. */
 const GRID_WEEKS = 6
@@ -59,6 +60,7 @@ function loadLevelFor(
 export function useCalendarMonth(options: MonthOptions) {
   const { settings } = useSettings()
   const { formatMonth, weekdayLabels } = useFormat()
+  const { isGoalVisible } = useCalendarFilter()
 
   // Which month is on screen. Follows `currentDate` until the user pages away.
   const monthAnchor = ref<ISODate | null>(null)
@@ -85,7 +87,9 @@ export function useCalendarMonth(options: MonthOptions) {
 
     for (let index = 0; index < GRID_WEEKS * DAYS_PER_WEEK; index += 1) {
       const date = addDaysToISODate(gridStart, index)
-      const events = collectDayEvents({ templates, rowsByDate, date })
+      const events = collectDayEvents({ templates, rowsByDate, date }).filter(
+        (event) => isGoalVisible(event.goalId),
+      )
       const scheduledMinutes = scheduledMinutesOf(events)
       const doneCount = events.filter((event) => event.isDone).length
 

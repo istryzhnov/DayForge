@@ -14,6 +14,7 @@ import { layoutOverlaps } from './overlapLayout'
 import { useCalendarDragDrop } from './useCalendarDragDrop'
 import { useCalendarDraft } from './useCalendarDraft'
 import { useCalendarSelection } from './useCalendarSelection'
+import { useCalendarFilter } from './useCalendarFilter'
 
 /** The breathing room the day strip keeps on both sides. */
 const GRID_INSET_PX = 6
@@ -67,8 +68,15 @@ export function useCalendarDayView(
 
   const dateLabel = computed(() => formatDate(props.currentDate))
 
+  const { isGoalVisible } = useCalendarFilter()
+
   const scheduledTasks = computed(() =>
-    props.tasks.filter((task) => task.startTime && task.endTime),
+    props.tasks.filter(
+      (task) =>
+        task.startTime &&
+        task.endTime &&
+        isGoalVisible(task.goalId),
+    ),
   )
 
   const unscheduledTasks = computed(() =>
@@ -76,7 +84,8 @@ export function useCalendarDayView(
       (task) =>
         !task.startTime &&
         task.priority !== PRIORITY.MAJOR &&
-        task.status !== TASK_STATUS.DONE,
+        task.status !== TASK_STATUS.DONE &&
+        isGoalVisible(task.goalId),
     ),
   )
 

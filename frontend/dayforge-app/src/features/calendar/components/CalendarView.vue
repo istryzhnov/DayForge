@@ -13,6 +13,7 @@ import CalendarWeekView from './CalendarWeekView.vue'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
+import CalendarFilterPopover from './CalendarFilterPopover.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
 import {
   gridHeightPx,
@@ -149,6 +150,11 @@ function iconFor(goalId: ID | undefined) {
       >
         Month
       </button>
+      <CalendarFilterPopover
+        v-model="viewMode"
+        :goals="goals"
+        :goal-vars-by-id="goalVarsById"
+      />
     </div>
 
     <CalendarWeekView

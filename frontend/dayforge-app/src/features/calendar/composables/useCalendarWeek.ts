@@ -17,6 +17,7 @@ import { pxPerMinute, minutesFromDayStart } from './useCalendarGrid'
 import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
 import { useSettings } from '../../../composables/useSettings'
 import { useFormat } from '../../../composables/useFormat'
+import { useCalendarFilter } from './useCalendarFilter'
 
 const DAYS_PER_WEEK = 7
 
@@ -55,6 +56,7 @@ export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
 export function useCalendarWeek(options: WeekOptions) {
   const { settings } = useSettings()
   const { locale } = useFormat()
+  const { isGoalVisible } = useCalendarFilter()
 
   // Follows `currentDate` until the user pages to another week.
   const weekAnchor = ref<ISODate | null>(null)
@@ -72,7 +74,9 @@ export function useCalendarWeek(options: WeekOptions) {
 
     return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
       const date = addDaysToISODate(anchor.value, index)
-      const events = collectDayEvents({ templates, rowsByDate, date })
+      const events = collectDayEvents({ templates, rowsByDate, date }).filter(
+        (event) => isGoalVisible(event.goalId),
+      )
 
       const timed = events
         .filter((event) => event.startTime)

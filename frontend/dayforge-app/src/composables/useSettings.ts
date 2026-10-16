@@ -45,7 +45,12 @@ export interface NotificationSettings {
   quietTo: TimeOfDay
 }
 
+/** Stands in for tasks that belong to no project in the calendar filter. */
+export const NO_PROJECT_FILTER_ID = '__none__'
+
 export interface CalendarSettings {
+  /** Goal ids whose tasks the calendar hides. Unknown ids are harmless. */
+  hiddenGoalIds: string[]
   /** Grid snapping in minutes: how coarse a drag or resize lands. */
   snapMinutes: number
   /** Height of one hour on the day/week grid, in px. */
@@ -113,6 +118,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     quietTo: '08:00',
   },
   calendar: {
+    hiddenGoalIds: [],
     snapMinutes: 15,
     hourHeight: 60,
     defaultDurationMinutes: 60,
@@ -178,6 +184,12 @@ function asBoolean(value: unknown, fallback: boolean): boolean {
   return typeof value === 'boolean' ? value : fallback
 }
 
+/** Keeps only the string entries of a list, each one once. */
+function asStringList(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  return [...new Set(value.filter((item) => typeof item === 'string'))]
+}
+
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/
 
 function asTime(value: unknown, fallback: TimeOfDay): TimeOfDay {
@@ -240,6 +252,7 @@ function sanitize(input: unknown): AppSettings {
     },
     calendar: {
       ...calendar,
+      hiddenGoalIds: asStringList(calendar.hiddenGoalIds),
       snapMinutes: oneOf(
         calendar.snapMinutes,
         [5, 10, 15, 30, 60],
