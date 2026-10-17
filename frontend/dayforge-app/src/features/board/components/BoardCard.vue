@@ -14,6 +14,7 @@ import {
   type BoardColumn,
 } from '../composables/boardModel'
 import type { BoardCardDrag } from '../composables/useBoardDrag'
+import TaskNotesButton from '../../tasks/components/TaskNotesButton.vue'
 
 const props = defineProps<{
   card: BoardCardModel
@@ -24,6 +25,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'open'): void
   (e: 'move', column: BoardColumn): void
+  (e: 'save-notes', notes: string): void
 }>()
 
 const { formatDate, formatTime } = useFormat()
@@ -48,8 +50,6 @@ const row = computed(() => props.card.row)
 const isDone = computed(() => row.value.status === TASK_STATUS.DONE)
 const isMajor = computed(() => row.value.priority === PRIORITY.MAJOR)
 const priorityLabel = computed(() => (isMajor.value ? 'Major' : 'Minor'))
-
-const hasNotes = computed(() => !!props.card.template?.notes?.trim())
 
 const repeats = computed(() => {
   const recurrence = props.card.template?.recurrence
@@ -123,20 +123,16 @@ function onMoveChange(event: Event) {
         >
           ✓ {{ card.subtasksDone }}/{{ card.subtasksTotal }}
         </span>
-
-        <span
-          v-if="hasNotes"
-          class="board-card__notes"
-          role="img"
-          aria-label="Has notes"
-          title="Has notes"
-        >
-          ✎
-        </span>
       </span>
     </button>
 
     <div class="board-card__foot">
+      <TaskNotesButton
+        :notes="card.template?.notes"
+        :title="row.title"
+        @save="(notes) => emit('save-notes', notes)"
+      />
+
       <label class="board-card__move">
         <span>Move to</span>
         <select :value="card.column" @change="onMoveChange">

@@ -8,6 +8,7 @@ import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
+import TaskNotesButton from './TaskNotesButton.vue'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
 
@@ -149,27 +150,6 @@ const {
             {{ node.template?.hourlyRate }} / h
           </span>
 
-          <!-- Shown only when there is something to read; opens the editor. -->
-          <button
-            v-if="node.template?.notes"
-            type="button"
-            class="task-notes-btn"
-            aria-label="Has notes"
-            title="Edit notes"
-            @click="openEditor(false)"
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-              <path
-                d="M3.5 2.5h6l3 3v8h-9z M9.5 2.5v3h3 M5.5 8.5h5 M5.5 11h3"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linejoin="round"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
-
           <!-- Repeating tasks only: a running tally of days completed. -->
           <span
             v-if="node.completedCount"
@@ -183,6 +163,12 @@ const {
     </div>
 
     <div class="actions">
+      <TaskNotesButton
+        :notes="node.template?.notes"
+        :title="node.task.title"
+        @save="saveNotes"
+      />
+
       <TaskTimerButton
         :task-id="node.task.templateId"
         :title="node.task.title"
@@ -232,7 +218,6 @@ const {
     :node="node"
     :open-scheduled="editorStartsScheduled"
     @save="(payload) => saveEdits(payload.title, payload.schedule)"
-    @save-notes="(notes) => saveNotes(notes)"
     @close="closeEditor"
   />
 

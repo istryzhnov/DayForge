@@ -146,6 +146,9 @@ function submitAdd() {
               :is-dragging="drag.draggingId.value === card.id"
               @open="openCard(card)"
               @move="(target) => moveCard(card.id, target)"
+              @save-notes="
+                (notes) => emit('edit-notes', card.row.templateId, notes)
+              "
             />
           </li>
         </ul>
@@ -205,10 +208,6 @@ function submitAdd() {
       v-if="editingNode"
       :node="editingNode"
       @save="(payload) => saveEdits(payload.title, payload.schedule)"
-      @save-notes="
-        (notes) =>
-          editingNode && emit('edit-notes', editingNode.task.templateId, notes)
-      "
       @close="editing = null"
     />
   </section>

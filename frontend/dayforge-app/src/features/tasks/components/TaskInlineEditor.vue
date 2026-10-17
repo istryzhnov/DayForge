@@ -2,11 +2,6 @@
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
-import {
-  isCommitShortcut,
-  useNotesDraft,
-  useTextareaFit,
-} from '../../../composables/useNotesDraft'
 import TaskScheduleFields from './TaskScheduleFields.vue'
 
 const props = defineProps<{
@@ -20,7 +15,6 @@ const emit = defineEmits<{
     e: 'save',
     payload: { title: string; schedule: TaskSchedule | null },
   ): void
-  (e: 'save-notes', notes: string): void
   (e: 'close'): void
 }>()
 
@@ -29,17 +23,6 @@ const scheduleFields =
 
 const title = ref(props.node.task.title)
 const titleInput = useTemplateRef<HTMLInputElement>('titleInput')
-const notesInput = useTemplateRef<HTMLTextAreaElement>('notesInput')
-
-const {
-  draft: notes,
-  commit: commitNotes,
-  revert: revertNotes,
-} = useNotesDraft(
-  () => props.node.template?.notes ?? '',
-  (next) => emit('save-notes', next),
-)
-useTextareaFit(notesInput, notes)
 
 const wasScheduled = Boolean(props.node.task.startTime)
 
@@ -58,19 +41,6 @@ onMounted(() => {
   )
   titleInput.value?.focus()
 })
-
-/** Esc drops an unsaved note; the editor's own Esc then closes it as before. */
-function onNotesKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    revertNotes()
-    return
-  }
-  if (isCommitShortcut(event)) {
-    event.preventDefault()
-    commitNotes()
-    save()
-  }
-}
 
 function save() {
   const trimmed = title.value.trim()
@@ -95,19 +65,6 @@ function save() {
         type="text"
         @keydown.enter="save"
       />
-    </label>
-
-    <label class="task-editor__field">
-      <span class="task-schedule__label">Notes</span>
-      <textarea
-        ref="notesInput"
-        v-model="notes"
-        rows="2"
-        maxlength="5000"
-        placeholder="Add notes"
-        @blur="commitNotes"
-        @keydown="onNotesKeydown"
-      ></textarea>
     </label>
 
     <TaskScheduleFields ref="scheduleFields" />

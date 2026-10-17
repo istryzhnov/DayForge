@@ -156,8 +156,13 @@ input[type='checkbox']:disabled {
     min-height: 40px;
   }
 
+  .goal-panel-header__aside {
+    --header-control-height: 40px;
+  }
+
   .task-add-btn,
-  .task-timer-btn {
+  .task-timer-btn,
+  .task-notes-action {
     min-width: 40px;
     min-height: 40px;
   }

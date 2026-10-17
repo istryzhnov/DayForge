@@ -1,37 +1,6 @@
 /* Project board: an opt-in view of one project's day. Nothing here applies
    unless a project has its board switched on. */
 
-.board-view-switch {
-  display: inline-flex;
-  align-self: flex-start;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: var(--panel-soft);
-}
-
-.board-view-switch__btn {
-  border: 0;
-  border-radius: 999px;
-  padding: 6px 14px;
-  background: transparent;
-  color: var(--muted);
-  font: inherit;
-  font-size: calc(14px * var(--text-scale));
-  cursor: pointer;
-}
-
-.board-view-switch__btn.is-active {
-  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
-  color: var(--text);
-}
-
-.board-view-switch__btn:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* Phones: one column fills most of the width, the next peeks in, and a swipe
    snaps from one to the next. */
 .project-board {
@@ -187,10 +156,6 @@
   background: var(--major);
 }
 
-.board-card__notes {
-  line-height: 1;
-}
-
 .board-chip {
   padding: 1px 8px;
   border: 1px solid var(--line);
@@ -199,13 +164,22 @@
 }
 
 .board-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 0 12px 10px;
+}
+
+.board-card__foot .task-notes-action {
+  height: 28px;
+  min-width: 28px;
 }
 
 .board-card__move {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
   color: var(--muted);
   font-size: calc(12px * var(--text-scale));
 }
