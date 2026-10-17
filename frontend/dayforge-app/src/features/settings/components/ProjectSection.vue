@@ -2,6 +2,7 @@
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus } from '../../../entities/types'
 import { useTheme } from '../../../composables/useTheme'
+import { checkedValue } from '../../../composables/inputValue'
 import ProjectThemeEditor from './ProjectThemeEditor.vue'
 import ProjectBillingSection from './ProjectBillingSection.vue'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
@@ -16,6 +17,7 @@ const emit = defineEmits<{
   (e: 'update-theme', theme: GoalTheme | undefined): void
   (e: 'update-rate', hourlyRate: number | undefined): void
   (e: 'update-icon', icon: string | undefined): void
+  (e: 'update-board', enabled: boolean): void
   (e: 'delete'): void
 }>()
 
@@ -116,6 +118,23 @@ const {
     </div>
 
     <p class="settings-group-hint">{{ statusHint }}</p>
+
+    <p class="sidebar-caption">Board</p>
+
+    <label class="settings-toggle">
+      <input
+        type="checkbox"
+        :checked="goal.boardEnabled === true"
+        @change="emit('update-board', checkedValue($event))"
+      />
+      <span>
+        <strong>Board view</strong>
+        <em>
+          Adds a List / Board switch to this project. The board shows the day's
+          tasks in To do, In progress and Done.
+        </em>
+      </span>
+    </label>
 
     <DisclosureSection label="Colours">
       <ProjectThemeEditor

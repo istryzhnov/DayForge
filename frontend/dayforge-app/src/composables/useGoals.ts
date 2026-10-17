@@ -111,6 +111,19 @@ export function useGoals() {
     goal.updatedAt = new Date().toISOString()
   }
 
+  /** Off is stored as an absent flag, so a project that never had it is unchanged. */
+  function updateGoalBoard(goalId: ID, enabled: boolean) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal || (goal.boardEnabled === true) === enabled) return
+
+    if (enabled) {
+      goal.boardEnabled = true
+    } else {
+      delete goal.boardEnabled
+    }
+    goal.updatedAt = new Date().toISOString()
+  }
+
   /** An absent rate means "bill this project at the global rate". */
   function updateGoalRate(goalId: ID, hourlyRate: number | undefined) {
     const goal = goals.value.find((item) => item.id === goalId)
@@ -162,6 +175,7 @@ export function useGoals() {
     updateGoalTheme,
     updateGoalRate,
     updateGoalIcon,
+    updateGoalBoard,
     loadFromStorage,
   }
 }

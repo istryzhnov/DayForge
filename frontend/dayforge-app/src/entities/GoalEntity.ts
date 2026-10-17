@@ -26,6 +26,8 @@ export interface Goal {
   hourlyRate?: number
   /** Id from the built-in project icon set; absent means no icon. */
   icon?: string
+  /** Shows the List / Board switch on this project. Absent means off. */
+  boardEnabled?: boolean
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

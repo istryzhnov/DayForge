@@ -26,7 +26,8 @@ import {
 import { DEFAULT_SETTINGS } from '../../src/composables/useSettings'
 import { parseBackupFile } from '../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../src/entities/GoalEntity'
-import type { DailyTask } from '../../src/entities/TaskEntity'
+import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
+import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove } from '../../src/features/board/composables/boardModel'
 
 let failures = 0
 let checks = 0
@@ -356,7 +357,73 @@ function verifyNewerBackup() {
   check('a restore from it keeps the field too', restored.futureField === 'x')
 }
 
+function verifyBoardFields() {
+  section('Board fields travel and read safely both ways')
+
+  const project = goalRow({ id: 'goal-b', boardEnabled: true })
+  const projectOff = goalRow({ id: 'goal-b', updatedAt: T0 })
+  const projectOn = goalRow({ id: 'goal-b', boardEnabled: true, updatedAt: T1 })
+  check(
+    'boardEnabled survives a whole-row merge in either direction',
+    mergeRow(SYNC_TABLE.GOALS, projectOff, projectOn).row.boardEnabled === true &&
+      mergeRow(SYNC_TABLE.GOALS, projectOn, projectOff).row.boardEnabled === true,
+  )
+  const migratedProject = clone(project) as unknown as Goal
+  migrateGoals([migratedProject])
+  check('boardEnabled is kept through migrateGoals', migratedProject.boardEnabled === true)
+
+  const task = { ...goalRow({ id: 'task-b', title: 'Task' }), boardStage: 'doing', isActive: true, parentTemplateId: undefined }
+  const liveTask = partitionLive(SYNC_TABLE.TASK_TEMPLATES, [clone(task)]).live[0]
+  check('boardStage survives partitionLive', liveTask.boardStage === 'doing')
+
+  const taskOther = { ...clone(task), updatedAt: T2 }
+  const taskStale = { ...clone(task), boardStage: undefined, updatedAt: T0 }
+  check(
+    'boardStage is not lost when a newer edit comes from another device',
+    mergeCollection(SYNC_TABLE.TASK_TEMPLATES, [taskStale], [taskOther]).merged[0]?.boardStage === 'doing',
+  )
+
+  const restored = restampForRestore(clone(task) as unknown as SyncedRow)
+  check('boardStage survives a restore from undo', restored.boardStage === 'doing')
+
+  const backup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [clone(project)],
+    taskTemplates: [clone(task)],
+    dailyTasks: [],
+  })
+  check(
+    'boardEnabled and boardStage survive a backup round trip',
+    backup !== null &&
+      backup.goals[0].boardEnabled === true &&
+      (backup.taskTemplates[0] as unknown as SyncedRow).boardStage === 'doing',
+  )
+
+  const plainOld = { ...goalRow({ id: 'goal-c' }), updatedAt: T0 }
+  check('a project without the flag has no boardEnabled key', !('boardEnabled' in plainOld))
+
+  const row = dailyRow({ templateId: 'task-b', id: 'task-b::2026-09-02' }) as unknown as DailyTask
+  const unknownStage = { ...task, boardStage: 'review' } as unknown as TaskTemplate
+  check('an unknown stage from a newer build reads as todo', columnOf(row, unknownStage) === BOARD_COLUMN.TODO)
+  check('a missing stage reads as todo', columnOf(row, { ...task, boardStage: undefined } as unknown as TaskTemplate) === BOARD_COLUMN.TODO)
+  check('a doing stage reads as in progress', columnOf(row, task as unknown as TaskTemplate) === BOARD_COLUMN.DOING)
+  check('a done row reads as done whatever its stage', columnOf({ ...row, status: 'done' }, task as unknown as TaskTemplate) === BOARD_COLUMN.DONE)
+
+  const cards = buildBoardCards([row, { ...row, id: 'task-b::2026-09-03', templateId: 'other', parentDailyTaskId: row.id }], [task as unknown as TaskTemplate])
+  check('a nested row is counted on its parent card, not shown twice', cards.doing.length === 1 && cards.todo.length === 0 && cards.doing[0].subtasksTotal === 1)
+
+  const oneOff = task as unknown as TaskTemplate
+  const repeating = { ...task, recurrence: { type: 'daily', startDate: '2026-09-01' } } as unknown as TaskTemplate
+  check('moving a one-off to done only toggles it', same(planBoardMove(row, oneOff, BOARD_COLUMN.DONE), { toggleDone: true, stage: undefined }))
+  check('finishing a repeating task clears its stage', same(planBoardMove(row, repeating, BOARD_COLUMN.DONE), { toggleDone: true, stage: null }))
+  const doneRow = { ...row, status: 'done' } as unknown as DailyTask
+  check('moving out of done un-completes it and sets the stage', same(planBoardMove(doneRow, oneOff, BOARD_COLUMN.DOING), { toggleDone: true, stage: 'doing' }))
+  check('moving back to to do clears the stage', same(planBoardMove(row, oneOff, BOARD_COLUMN.TODO), { toggleDone: false, stage: null }))
+}
+
 function main() {
+  verifyBoardFields()
   verifyRowsFromNewerBuild()
   verifyMergeKeepsUnknownFields()
   verifyRestoreKeepsUnknownFields()

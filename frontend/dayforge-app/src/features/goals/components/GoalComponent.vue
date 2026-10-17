@@ -8,7 +8,7 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../../../entities/types'
-import { GOAL_STATUS } from '../../../entities/constants'
+import { GOAL_STATUS, type BoardStage } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
@@ -16,6 +16,9 @@ import HabitCalendar from './HabitCalendar.vue'
 import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
+import ProjectBoard from '../../board/components/ProjectBoard.vue'
+import BoardViewSwitch from '../../board/components/BoardViewSwitch.vue'
+import { PROJECT_VIEW, useBoardViews } from '../../board/composables/boardViews'
 
 const props = defineProps<{
   goal: Goal | null
@@ -62,7 +65,28 @@ const emit = defineEmits<{
   (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'move-task-to', payload: TaskDropPayload): void
+  (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
 }>()
+
+// The board is opt-in per project: until it is switched on, nothing here
+// changes and the list is the only view.
+const boardViews = useBoardViews()
+
+const boardGoalId = computed<ID | null>(() =>
+  !props.isAllMode && props.goal?.boardEnabled === true ? props.goal.id : null,
+)
+
+const projectView = computed(() =>
+  boardGoalId.value ? boardViews.viewOf(boardGoalId.value) : PROJECT_VIEW.LIST,
+)
+
+const showBoard = computed(
+  () => boardGoalId.value !== null && projectView.value === PROJECT_VIEW.BOARD,
+)
+
+function selectView(view: 'list' | 'board') {
+  if (boardGoalId.value) boardViews.setView(boardGoalId.value, view)
+}
 
 const movingTemplateId = ref<ID | null>(null)
 
@@ -130,6 +154,12 @@ const {
       :show-settings="!isAllMode && !!goal"
     />
 
+    <BoardViewSwitch
+      v-if="boardGoalId"
+      :view="projectView"
+      @select="selectView"
+    />
+
     <GoalComposerZone
       :is-all-mode="isAllMode"
       :goals="goals"
@@ -143,7 +173,26 @@ const {
       "
     />
 
+    <ProjectBoard
+      v-if="showBoard"
+      :tasks="tasks"
+      :templates="templates"
+      @toggle-done="(dailyTaskId) => emit('toggle-done', dailyTaskId)"
+      @set-board-stage="
+        (templateId, stage) => emit('set-board-stage', templateId, stage)
+      "
+      @add-task="
+        (title, priority) => emit('add-task', title, priority)
+      "
+      @edit-task="(templateId, title) => emit('edit-task', templateId, title)"
+      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
+      @schedule-task="
+        (templateId, schedule) => emit('schedule-task', templateId, schedule)
+      "
+    />
+
     <GoalTasksZone
+      v-else
       :groups="taskGroups"
       :is-all-mode="isAllMode"
       @add-subtask="

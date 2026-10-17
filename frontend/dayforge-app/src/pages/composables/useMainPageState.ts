@@ -14,6 +14,7 @@ import {
   GOAL_STATUS,
   PRIORITY,
   RECURRENCE_TYPE,
+  type BoardStage,
 } from '../../entities/constants'
 import type { QuickAddResult } from '../../composables/quickAdd/parse'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
@@ -429,6 +430,14 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalIcon(goalId, icon)
   }
 
+  function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
+    goalSpace.updateGoalBoard(goalId, enabled)
+  }
+
+  function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
+    goalSpace.setTaskBoardStage(templateId, stage)
+  }
+
   function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
     goalSpace.updateGoalTheme(goalId, theme)
   }
@@ -521,6 +530,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalRate,
     handleChangeGoalTheme,
     handleChangeGoalIcon,
+    handleChangeGoalBoard,
+    handleSetBoardStage,
     handleSetTaskRate,
   }
 }

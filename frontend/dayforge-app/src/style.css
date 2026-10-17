@@ -6,6 +6,7 @@
 @import './styles/habit-calendar.css';
 @import './styles/calendar-view.css';
 @import './styles/timer.css';
+@import './styles/board.css';
 /* Last: its `data-pattern` rules rely on import order to outrank the
    theme-specific `.app-content` background in layout.css. */
 @import './styles/settings.css';

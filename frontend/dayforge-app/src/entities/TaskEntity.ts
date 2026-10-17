@@ -7,7 +7,7 @@ import type {
   TaskStatus,
   TimeOfDay,
 } from './types'
-import { TASK_KIND } from './constants'
+import { TASK_KIND, type BoardStage } from './constants'
 import type { DailyFieldGroup } from '../sync/merge'
 
 export interface TaskTemplate {
@@ -33,6 +33,11 @@ export interface TaskTemplate {
   day?: ISODate
   status?: TaskStatus
   completedAt?: ISODateTime
+  /**
+   * Which open column of the project board holds this task. Absent means
+   * "todo". Done is not stored here: it is the row's own status.
+   */
+  boardStage?: BoardStage
 }
 
 /** Optional scheduling captured while creating a task. */

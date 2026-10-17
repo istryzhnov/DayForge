@@ -1,0 +1,252 @@
+/* Project board: an opt-in view of one project's day. Nothing here applies
+   unless a project has its board switched on. */
+
+.board-view-switch {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+}
+
+.board-view-switch__btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: calc(14px * var(--text-scale));
+  cursor: pointer;
+}
+
+.board-view-switch__btn.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
+  color: var(--text);
+}
+
+.board-view-switch__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Phones: one column fills most of the width, the next peeks in, and a swipe
+   snaps from one to the next. */
+.project-board {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.project-board__columns {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 85vw;
+  gap: 12px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+}
+
+@media (min-width: 721px) {
+  .project-board__columns {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+.board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--panel-soft);
+  scroll-snap-align: start;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.board-column.is-drop-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.board-column__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.board-column__head h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: calc(15px * var(--text-scale));
+}
+
+.board-column__count {
+  color: var(--muted);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.board-column__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-column__empty {
+  margin: 0;
+  padding: 12px 0;
+  border: 1px dashed var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  color: var(--muted);
+  font-size: calc(13px * var(--text-scale));
+  text-align: center;
+}
+
+.board-card {
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--panel);
+  transition:
+    opacity 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .board-card:hover {
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  }
+}
+
+.board-card.is-dragging {
+  opacity: 0.45;
+}
+
+.board-card.is-lifted {
+  transform: scale(1.03);
+  box-shadow: var(--shadow-md);
+}
+
+.board-card__body {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 12px 6px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  border-radius: calc(12px * var(--radius-scale)) calc(12px * var(--radius-scale)) 0 0;
+}
+
+.board-card__body:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.board-card__title {
+  color: var(--text);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.board-card.is-done .board-card__title {
+  opacity: 0.7;
+}
+
+.board-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+.board-card__priority {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--minor);
+}
+
+.board-card__priority.is-major {
+  background: var(--major);
+}
+
+.board-card__notes {
+  line-height: 1;
+}
+
+.board-chip {
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.board-card__foot {
+  padding: 0 12px 10px;
+}
+
+.board-card__move {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+.board-card__move select {
+  min-height: 28px;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(12px * var(--text-scale));
+}
+
+.board-add__btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.board-add__btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.board-add__form {
+  display: grid;
+  gap: 8px;
+}
+
+.board-add__form input {
+  width: 100%;
+}
+
+.board-add__actions {
+  display: flex;
+  gap: 8px;
+}

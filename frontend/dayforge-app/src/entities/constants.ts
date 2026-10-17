@@ -15,6 +15,14 @@ export const TASK_STATUS = {
   SKIPPED: 'skipped',
 } as const
 
+/** The open columns of a project board. "Done" is the task's own done status. */
+export const BOARD_STAGE = {
+  TODO: 'todo',
+  DOING: 'doing',
+} as const
+
+export type BoardStage = (typeof BOARD_STAGE)[keyof typeof BOARD_STAGE]
+
 export const GOAL_STATUS = {
   ACTIVE: 'active',
   PAUSED: 'paused',

@@ -99,6 +99,8 @@ const {
   handleChangeGoalStatus,
   handleChangeGoalTheme,
   handleChangeGoalIcon,
+  handleChangeGoalBoard,
+  handleSetBoardStage,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
 
@@ -199,6 +201,7 @@ function handleSearchSelect(result: SearchResult) {
           @assign-goal="handleAssignTaskToGoal"
           @attach-to-project="handleAttachToProject"
           @move-task-to="handleMoveTaskTo"
+          @set-board-stage="handleSetBoardStage"
         />
 
         <PlannedTaskList
@@ -271,6 +274,7 @@ function handleSearchSelect(result: SearchResult) {
         @change-goal-theme="handleChangeGoalTheme"
         @change-goal-rate="handleChangeGoalRate"
         @change-goal-icon="handleChangeGoalIcon"
+        @change-goal-board="handleChangeGoalBoard"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"
         @delete-goal="handleDeleteGoal"
