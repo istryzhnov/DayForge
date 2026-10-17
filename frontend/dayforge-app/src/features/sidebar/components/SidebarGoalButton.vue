@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
+import { goalDropState } from '../../tasks/composables/taskDropTarget'
 
 const props = defineProps<{
   goal: Goal
@@ -26,6 +28,25 @@ const { isLifted, onPointerDown } = usePressGesture({
     emit('context-menu', { goal: props.goal, x: point.x, y: point.y }),
 })
 
+/** Only listed projects take a dropped task; archived ones stay out of it. */
+const dropAttribute = computed(() =>
+  props.isArchived ? undefined : props.goal.id,
+)
+
+const isDropCandidate = computed(
+  () =>
+    !props.isArchived &&
+    goalDropState.value.active &&
+    goalDropState.value.sourceGoalId !== props.goal.id,
+)
+const isDropHover = computed(
+  () =>
+    isDropCandidate.value && goalDropState.value.hoverGoalId === props.goal.id,
+)
+const isDropFlash = computed(
+  () => goalDropState.value.flashGoalId === props.goal.id,
+)
+
 function onContextMenu(event: MouseEvent) {
   emit('context-menu', {
     goal: props.goal,
@@ -43,8 +64,12 @@ function onContextMenu(event: MouseEvent) {
       'is-lifted': isLifted,
       'is-themed': !!themeVars,
       'is-archived': isArchived,
+      'is-drop-candidate': isDropCandidate,
+      'is-drop-hover': isDropHover,
+      'is-drop-flash': isDropFlash,
     }"
     :style="themeVars"
+    :data-drop-goal-id="dropAttribute"
     @click="emit('select')"
     @contextmenu.prevent="onContextMenu"
     @pointerdown="onPointerDown"

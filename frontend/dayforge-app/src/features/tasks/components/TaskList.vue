@@ -50,6 +50,9 @@ function rowDrag(node: TaskNode, parentZone: string) {
     templateId: node.task.templateId,
     title: node.task.title,
     parentZone,
+    goalId: node.task.goalId,
+    // Nested tasks cannot be moved, the same rule as the "Move to…" menu.
+    canMove: parentZone === DROP_ZONE_ROOT,
   })
 }
 
