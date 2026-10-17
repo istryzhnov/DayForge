@@ -47,6 +47,7 @@ export function useGoalSpace() {
     updateGoalRate,
     updateGoalIcon,
     updateGoalBoard,
+    updateGoalNotes,
     restoreGoal,
     loadFromStorage,
   } = useGoals()
@@ -686,6 +687,7 @@ export function useGoalSpace() {
     updateGoalRate,
     updateGoalIcon,
     updateGoalBoard,
+    updateGoalNotes,
     addTask,
     addSubTask,
     editTaskTitle,

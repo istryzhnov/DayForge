@@ -28,6 +28,8 @@ export interface Goal {
   icon?: string
   /** Shows the List / Board switch on this project. Absent means off. */
   boardEnabled?: boolean
+  /** Free-text pad for the whole project. Absent means no notes. */
+  notes?: string
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

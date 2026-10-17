@@ -9,6 +9,15 @@ defineProps<{
   projectCount: number
   taskCount: number
   showSettings: boolean
+  showToolbar: boolean
+  boardEnabled: boolean
+  hasNotes: boolean
+  notesOpen: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'set-board', enabled: boolean): void
+  (e: 'toggle-notes'): void
 }>()
 </script>
 
@@ -21,5 +30,11 @@ defineProps<{
     :project-count="projectCount"
     :task-count="taskCount"
     :show-settings="showSettings"
+    :show-toolbar="showToolbar"
+    :board-enabled="boardEnabled"
+    :has-notes="hasNotes"
+    :notes-open="notesOpen"
+    @set-board="(enabled) => emit('set-board', enabled)"
+    @toggle-notes="emit('toggle-notes')"
   />
 </template>

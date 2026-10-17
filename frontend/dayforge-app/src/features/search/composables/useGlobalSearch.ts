@@ -108,7 +108,7 @@ function buildGroups(needle: string, source: SearchSource): SearchGroup[] {
   const projects = goals
     .filter((goal) => !goal.deletedAt)
     .flatMap((goal): Array<[number, SearchResult]> => {
-      const score = scoreOf(needle, goal.title, undefined)
+      const score = scoreOf(needle, goal.title, goal.notes)
       if (score === SCORE.NONE) return []
       return [
         [
@@ -118,7 +118,10 @@ function buildGroups(needle: string, source: SearchSource): SearchGroup[] {
             kind: 'project',
             title: goal.title,
             titleSegments: highlightSegments(goal.title, needle),
-            snippet: null,
+            snippet:
+              score === SCORE.NOTES && goal.notes
+                ? snippetSegments(goal.notes, needle)
+                : null,
             goalId: goal.id,
             rowId: null,
             projectTitle: null,

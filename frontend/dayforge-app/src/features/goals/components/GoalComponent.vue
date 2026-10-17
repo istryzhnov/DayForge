@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
@@ -17,8 +17,8 @@ import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import ProjectBoard from '../../board/components/ProjectBoard.vue'
-import BoardViewSwitch from '../../board/components/BoardViewSwitch.vue'
-import { PROJECT_VIEW, useBoardViews } from '../../board/composables/boardViews'
+import ProjectNotesPanel from './ProjectNotesPanel.vue'
+import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 
 const props = defineProps<{
   goal: Goal | null
@@ -66,27 +66,28 @@ const emit = defineEmits<{
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'move-task-to', payload: TaskDropPayload): void
   (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
+  (e: 'change-goal-board', goalId: ID, enabled: boolean): void
+  (e: 'change-goal-notes', goalId: ID, notes: string): void
 }>()
 
 // The board is opt-in per project: until it is switched on, nothing here
 // changes and the list is the only view.
-const boardViews = useBoardViews()
-
-const boardGoalId = computed<ID | null>(() =>
-  !props.isAllMode && props.goal?.boardEnabled === true ? props.goal.id : null,
-)
-
-const projectView = computed(() =>
-  boardGoalId.value ? boardViews.viewOf(boardGoalId.value) : PROJECT_VIEW.LIST,
-)
-
 const showBoard = computed(
-  () => boardGoalId.value !== null && projectView.value === PROJECT_VIEW.BOARD,
+  () => !props.isAllMode && props.goal?.boardEnabled === true,
 )
 
-function selectView(view: 'list' | 'board') {
-  if (boardGoalId.value) boardViews.setView(boardGoalId.value, view)
+const notesOpen = ref(false)
+const { isOpen: isSettingsOpen, close: closeSettings } = useSettingsPanel()
+
+// Notes and the settings column share the right side, so one closes the other.
+function toggleNotes() {
+  notesOpen.value = !notesOpen.value
+  if (notesOpen.value) closeSettings()
 }
+
+watch(isSettingsOpen, (open) => {
+  if (open) notesOpen.value = false
+})
 
 const movingTemplateId = ref<ID | null>(null)
 
@@ -152,12 +153,14 @@ const {
       :project-count="projectCount"
       :task-count="taskCount"
       :show-settings="!isAllMode && !!goal"
-    />
-
-    <BoardViewSwitch
-      v-if="boardGoalId"
-      :view="projectView"
-      @select="selectView"
+      :show-toolbar="!isAllMode && !!goal"
+      :board-enabled="showBoard"
+      :has-notes="!!goal?.notes"
+      :notes-open="notesOpen"
+      @set-board="
+        (enabled) => goal && emit('change-goal-board', goal.id, enabled)
+      "
+      @toggle-notes="toggleNotes"
     />
 
     <GoalComposerZone
@@ -237,6 +240,17 @@ const {
       :subtitle="habitSubtitle"
       :today-percent="todayProgress.percent"
       :cells="monthCells"
+    />
+
+    <ProjectNotesPanel
+      v-if="notesOpen && goal && !isAllMode"
+      :key="goal.id"
+      :goal-id="goal.id"
+      :title="goal.title"
+      :notes="goal.notes ?? ''"
+      :theme-style="goalPanelStyle"
+      @save="(goalId, notes) => emit('change-goal-notes', goalId, notes)"
+      @close="notesOpen = false"
     />
   </section>
 </template>

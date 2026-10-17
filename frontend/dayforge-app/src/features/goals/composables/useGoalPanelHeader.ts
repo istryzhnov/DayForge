@@ -16,16 +16,22 @@ const STATUS_BADGES: Record<string, string> = {
 }
 
 export function useGoalPanelHeader(props: GoalPanelHeaderProps) {
-  const { open: openSettings } = useSettingsPanel()
+  const { isOpen, activeSection, open, close } = useSettingsPanel()
 
   /** Only a status that changes what the app does is worth a badge. */
   const statusBadge = computed<string | null>(
     () => STATUS_BADGES[props.status] ?? null,
   )
 
-  function openProjectSettings() {
-    openSettings(SETTINGS_SECTION.PROJECT)
+  const isProjectSettingsOpen = computed(
+    () => isOpen.value && activeSection.value === SETTINGS_SECTION.PROJECT,
+  )
+
+  /** A second press on the same button closes what the first one opened. */
+  function toggleProjectSettings() {
+    if (isProjectSettingsOpen.value) close()
+    else open(SETTINGS_SECTION.PROJECT)
   }
 
-  return { statusBadge, openProjectSettings }
+  return { statusBadge, isProjectSettingsOpen, toggleProjectSettings }
 }
