@@ -14,6 +14,7 @@ import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
 import HabitCalendar from './HabitCalendar.vue'
 import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
+import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import ProjectBoard from '../../board/components/ProjectBoard.vue'
@@ -68,6 +69,7 @@ const emit = defineEmits<{
   (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (e: 'change-goal-notes', goalId: ID, notes: string): void
+  (e: 'select-date', date: ISODate): void
 }>()
 
 // The board is opt-in per project: until it is switched on, nothing here
@@ -218,6 +220,16 @@ const {
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
       @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
+    />
+
+    <UpcomingTasks
+      v-if="isAllMode || goal"
+      :templates="templates"
+      :daily-tasks="dailyTasks"
+      :goals="goals"
+      :goal-id="isAllMode ? null : (goal?.id ?? null)"
+      :from-date="currentDate"
+      @select-date="(date) => emit('select-date', date)"
     />
 
     <TaskMoveDialog

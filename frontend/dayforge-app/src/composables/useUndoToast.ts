@@ -5,13 +5,18 @@ const undoWindowMs = computed(
   () => useSettings().settings.behavior.undoWindowSeconds * 1000,
 )
 
-type PendingUndo = {
+/**
+ * One message at a time, with a single action. Most are "Undo"; a notice can
+ * name its own action instead, such as "Show" after scheduling a task elsewhere.
+ */
+type PendingAction = {
   id: number
   label: string
-  restore: () => void
+  actionLabel: string
+  run: () => void
 }
 
-const pending = ref<PendingUndo | null>(null)
+const pending = ref<PendingAction | null>(null)
 let timerId: number | undefined
 let nextId = 0
 
@@ -23,10 +28,10 @@ function clearTimer() {
 }
 
 export function useUndoToast() {
-  function offerUndo(label: string, restore: () => void) {
+  function show(label: string, actionLabel: string, run: () => void) {
     clearTimer()
     nextId += 1
-    pending.value = { id: nextId, label, restore }
+    pending.value = { id: nextId, label, actionLabel, run }
 
     const offeredId = nextId
     timerId = window.setTimeout(() => {
@@ -35,11 +40,19 @@ export function useUndoToast() {
     }, undoWindowMs.value)
   }
 
-  function performUndo() {
+  function offerUndo(label: string, restore: () => void) {
+    show(label, 'Undo', restore)
+  }
+
+  function offerNotice(label: string, actionLabel: string, run: () => void) {
+    show(label, actionLabel, run)
+  }
+
+  function runPendingAction() {
     const current = pending.value
     clearTimer()
     pending.value = null
-    current?.restore()
+    current?.run()
   }
 
   function dismissUndo() {
@@ -50,7 +63,8 @@ export function useUndoToast() {
   return {
     pending,
     offerUndo,
-    performUndo,
+    offerNotice,
+    runPendingAction,
     dismissUndo,
     undoWindowMs,
   }

@@ -206,6 +206,7 @@ function handleSearchSelect(result: SearchResult) {
           @set-board-stage="handleSetBoardStage"
           @change-goal-board="handleChangeGoalBoard"
           @change-goal-notes="handleChangeGoalNotes"
+          @select-date="goToDate"
         />
 
         <PlannedTaskList

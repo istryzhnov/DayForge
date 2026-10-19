@@ -34,6 +34,8 @@ import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTask
 import { useArchive } from '../../features/tasks/composables/useArchive'
 import { useTaskGoalDrop } from '../../features/tasks/composables/useTaskGoalDrop'
 import { useProjectBilling } from '../../features/analytics/composables/useProjectBilling'
+import { useFormat } from '../../composables/useFormat'
+import { useUndoToast } from '../../composables/useUndoToast'
 import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
 
 export type ActiveView =
@@ -168,6 +170,26 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     getGoals: () => goalSpace.goals.value,
   })
 
+  const { formatDate } = useFormat()
+  const { offerNotice } = useUndoToast()
+
+  /**
+   * A task filed on another day than the one on screen would vanish from the
+   * list, so say where it went and offer to jump there.
+   */
+  function announceScheduled(schedule: TaskSchedule | undefined) {
+    if (!schedule || schedule.date === goalSpace.currentDate.value) return
+
+    const day = formatDate(schedule.date, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    })
+    offerNotice(`Scheduled for ${day}`, 'Show', () =>
+      goalSpace.goToDate(schedule.date),
+    )
+  }
+
   const tasksForCurrentDate = computed(() =>
     goalSpace.dailyTasks.value.filter(
       (task) => task.date === goalSpace.currentDate.value,
@@ -239,6 +261,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   ) {
     if (!goalSpace.activeGoal.value) return
     goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
+    announceScheduled(schedule)
     noteManualTaskAdded()
   }
 
@@ -246,20 +269,23 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     const newGoalId = result.newGoalTitle
       ? handleCreateGoal(result.newGoalTitle, '', unusedProjectColor())
       : null
+    const schedule: TaskSchedule | undefined = result.date
+      ? {
+          date: result.date,
+          recurrence: {
+            type: RECURRENCE_TYPE.NONE,
+            startDate: result.date,
+          },
+        }
+      : undefined
+
     goalSpace.addTask(
       newGoalId ?? result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
       result.title,
       settings.behavior.defaultPriority,
-      result.date
-        ? {
-            date: result.date,
-            recurrence: {
-              type: RECURRENCE_TYPE.NONE,
-              startDate: result.date,
-            },
-          }
-        : undefined,
+      schedule,
     )
+    announceScheduled(schedule)
   }
 
   function handleAddSubTask(
@@ -269,6 +295,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
+    announceScheduled(schedule)
   }
 
   /** The first preset no project is wearing yet, so a new one stands out. */
@@ -387,6 +414,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     goalSpace.addMinorInAllMode(title, goalId, majorId, schedule)
+    announceScheduled(schedule)
     noteManualTaskAdded()
   }
 

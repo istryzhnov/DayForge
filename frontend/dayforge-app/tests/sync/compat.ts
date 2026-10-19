@@ -26,6 +26,8 @@ import {
 import { DEFAULT_SETTINGS } from '../../src/composables/useSettings'
 import { parseBackupFile } from '../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../src/entities/GoalEntity'
+import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
+import { collectUpcoming } from '../../src/features/tasks/composables/useUpcomingTasks'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove } from '../../src/features/board/composables/boardModel'
 import {
@@ -618,7 +620,71 @@ function verifyProjectBilling() {
   )
 }
 
+function verifyUpcomingTasks() {
+  const FROM = '2026-10-19'
+  const template = (id: string, overrides: Record<string, unknown>) =>
+    ({
+      id,
+      title: id,
+      priority: 'minor',
+      order: 0,
+      tagIds: [],
+      isActive: true,
+      createdAt: T0,
+      updatedAt: T0,
+      ...overrides,
+    }) as unknown as TaskTemplate
+  const row = (templateId: string, date: string, overrides: Record<string, unknown>) =>
+    ({
+      id: `${templateId}::${date}`,
+      date,
+      templateId,
+      title: templateId,
+      priority: 'minor',
+      tagIds: [],
+      status: 'todo',
+      ...overrides,
+    }) as unknown as DailyTask
+
+  const oneOff = template('oneoff', { goalId: 'g1', startTime: '09:00', endTime: '10:00', recurrence: { type: 'none', startDate: '2026-10-22' } })
+  const every8 = template('every8', { goalId: 'g1', recurrence: { type: 'daily', interval: 8, startDate: '2026-10-24' } })
+  const daily = template('daily', { goalId: 'g2', recurrence: { type: 'daily', interval: 1, startDate: FROM } })
+  const today = template('today', { goalId: 'g1', recurrence: { type: 'none', startDate: FROM } })
+  const far = template('far', { goalId: 'g1', recurrence: { type: 'none', startDate: '2026-11-03' } })
+  const edge = template('edge', { goalId: 'g1', recurrence: { type: 'none', startDate: '2026-11-02' } })
+  const inactive = template('inactive', { goalId: 'g1', isActive: false, recurrence: { type: 'none', startDate: '2026-10-21' } })
+  const done = row('oneoff', '2026-10-22', { goalId: 'g1', status: 'done', completedAt: T1 })
+  const templates = [oneOff, every8, daily, today, far, edge, inactive]
+
+  const all = collectUpcoming(templates, [done], FROM, 14, null)
+  const items = all.flatMap((day) => day.items.map((item) => ({ ...item, date: day.date })))
+  const byTemplate = (id: string) => items.filter((item) => item.templateId === id)
+
+  section('Upcoming tasks')
+  check('the window is sorted by date', same(all.map((day) => day.date), [...all.map((day) => day.date)].sort()))
+  check('a one-off task on a future date is listed on that date', byTemplate('oneoff').length === 1 && byTemplate('oneoff')[0].date === '2026-10-22')
+  check('a materialized row is not listed twice', byTemplate('oneoff').length === 1)
+  check('a done row is listed as done', byTemplate('oneoff')[0]?.isDone === true)
+  check('a one-off task has no repeat label', byTemplate('oneoff')[0]?.repeatLabel === undefined)
+  check('the viewed date itself is left out', byTemplate('today').length === 0)
+  check('a task 15 days out is left out', byTemplate('far').length === 0)
+  check('a task on the last day of the window is kept', byTemplate('edge').length === 1)
+  check('an inactive task is left out', byTemplate('inactive').length === 0)
+  check('an every-8-days task shows once, at its start', byTemplate('every8').length === 1 && byTemplate('every8')[0].date === '2026-10-24')
+  check('an every-8-days task carries its rule', byTemplate('every8')[0]?.repeatLabel === 'Every 8 days')
+  check('a daily task shows once, at its first day in the window', byTemplate('daily').length === 1 && byTemplate('daily')[0].date === '2026-10-20')
+  check('a daily task carries the Daily label', byTemplate('daily')[0]?.repeatLabel === 'Daily')
+
+  const oneProject = collectUpcoming(templates, [done], FROM, 14, 'g2')
+  const oneProjectItems = oneProject.flatMap((day) => day.items)
+  check('a project filter keeps only that project', oneProjectItems.length === 1 && oneProjectItems[0].templateId === 'daily')
+
+  check('weekly rules name their weekdays', describeRecurrence({ type: 'weekly', daysOfWeek: [1, 3], startDate: FROM }) === 'Weekly · Mon, Wed')
+  check('a yearly rule reads as every year', describeRecurrence({ type: 'yearly', startDate: FROM }) === 'Every year')
+}
+
 function main() {
+  verifyUpcomingTasks()
   verifyBoardFields()
   verifyProjectNotes()
   verifyProjectBilling()

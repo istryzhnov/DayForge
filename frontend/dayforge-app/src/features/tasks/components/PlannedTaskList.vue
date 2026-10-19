@@ -77,6 +77,9 @@ function dayLabel(date: ISODate) {
               <span v-if="task.isAnnual" class="task-repeat-chip">
                 Every year
               </span>
+              <span v-else-if="task.repeatLabel" class="task-repeat-chip">
+                {{ task.repeatLabel }}
+              </span>
             </div>
           </div>
         </div>
