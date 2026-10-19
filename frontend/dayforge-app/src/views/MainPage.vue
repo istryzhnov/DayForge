@@ -95,11 +95,13 @@ const {
   handleDeleteTask,
   handleDeleteGoal,
   handleChangeGoalRate,
+  handleChangeGoalBilling,
   handleChangeGoalDetails,
   handleChangeGoalStatus,
   handleChangeGoalTheme,
   handleChangeGoalIcon,
   handleChangeGoalBoard,
+  handleChangeGoalNotes,
   handleSetBoardStage,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
@@ -202,6 +204,8 @@ function handleSearchSelect(result: SearchResult) {
           @attach-to-project="handleAttachToProject"
           @move-task-to="handleMoveTaskTo"
           @set-board-stage="handleSetBoardStage"
+          @change-goal-board="handleChangeGoalBoard"
+          @change-goal-notes="handleChangeGoalNotes"
         />
 
         <PlannedTaskList
@@ -222,6 +226,7 @@ function handleSearchSelect(result: SearchResult) {
           :templates="taskTemplates"
           :daily-tasks="dailyTasks"
           @change-goal-rate="handleChangeGoalRate"
+          @change-goal-billing="handleChangeGoalBilling"
         />
 
         <TimerView

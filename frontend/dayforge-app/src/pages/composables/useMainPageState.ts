@@ -32,6 +32,9 @@ import { useDataTransfer } from '../../features/settings/composables/useDataTran
 import type { TaskDropPayload } from '../../features/tasks/composables/useTaskDrag'
 import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTasks'
 import { useArchive } from '../../features/tasks/composables/useArchive'
+import { useTaskGoalDrop } from '../../features/tasks/composables/useTaskGoalDrop'
+import { useProjectBilling } from '../../features/analytics/composables/useProjectBilling'
+import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
 
 export type ActiveView =
   | 'goals'
@@ -226,6 +229,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   })
 
   const dataTransfer = useDataTransfer(goalSpace)
+  // Dropping a task on a sidebar project.
+  useTaskGoalDrop(goalSpace)
 
   function handleAddTask(
     title: string,
@@ -426,12 +431,25 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalRate(goalId, hourlyRate)
   }
 
+  const projectBilling = useProjectBilling(goalSpace.goals)
+
+  function handleChangeGoalBilling(
+    goalId: ID,
+    billing: ProjectBilling | undefined,
+  ) {
+    projectBilling.updateGoalBilling(goalId, billing)
+  }
+
   function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
     goalSpace.updateGoalIcon(goalId, icon)
   }
 
   function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
     goalSpace.updateGoalBoard(goalId, enabled)
+  }
+
+  function handleChangeGoalNotes(goalId: ID, notes: string) {
+    goalSpace.updateGoalNotes(goalId, notes)
   }
 
   function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
@@ -528,9 +546,11 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalDetails,
     handleChangeGoalStatus,
     handleChangeGoalRate,
+    handleChangeGoalBilling,
     handleChangeGoalTheme,
     handleChangeGoalIcon,
     handleChangeGoalBoard,
+    handleChangeGoalNotes,
     handleSetBoardStage,
     handleSetTaskRate,
   }

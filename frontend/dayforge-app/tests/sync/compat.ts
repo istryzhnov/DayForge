@@ -28,6 +28,12 @@ import { parseBackupFile } from '../../src/features/settings/composables/backupF
 import type { Goal } from '../../src/entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove } from '../../src/features/board/composables/boardModel'
+import {
+  parseBillingDraft,
+  projectFigures,
+  sameBilling,
+  sanitizeBilling,
+} from '../../src/features/analytics/composables/projectBilling'
 
 let failures = 0
 let checks = 0
@@ -357,6 +363,34 @@ function verifyNewerBackup() {
   check('a restore from it keeps the field too', restored.futureField === 'x')
 }
 
+function verifyProjectNotes() {
+  section('Project notes travel with the project row')
+
+  const withNotes = goalRow({ id: 'goal-n', notes: 'Ideas\n\nlinks', updatedAt: T1 })
+  const withoutNotes = goalRow({ id: 'goal-n', updatedAt: T0 })
+  check(
+    'notes survive a whole-row merge in either direction',
+    mergeRow(SYNC_TABLE.GOALS, withoutNotes, withNotes).row.notes === 'Ideas\n\nlinks' &&
+      mergeRow(SYNC_TABLE.GOALS, withNotes, withoutNotes).row.notes === 'Ideas\n\nlinks',
+  )
+
+  const migrated = clone(withNotes) as unknown as Goal
+  migrateGoals([migrated])
+  check('notes are kept through migrateGoals', migrated.notes === 'Ideas\n\nlinks')
+
+  const backup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [clone(withNotes)],
+    taskTemplates: [],
+    dailyTasks: [],
+  })
+  check('notes survive a backup round trip', backup !== null && backup.goals[0].notes === 'Ideas\n\nlinks')
+
+  check('a project without notes has no notes key', !('notes' in goalRow({ id: 'goal-m' })))
+  check('blank notes normalise to nothing', normalizeNotes('  \n ') === undefined)
+}
+
 function verifyBoardFields() {
   section('Board fields travel and read safely both ways')
 
@@ -422,8 +456,172 @@ function verifyBoardFields() {
   check('moving back to to do clears the stage', same(planBoardMove(row, oneOff, BOARD_COLUMN.TODO), { toggleDone: false, stage: null }))
 }
 
+/** Analytics-only project figures: sync, backup, validation and the period math. */
+function verifyProjectBilling() {
+  section('Project billing (analytics only)')
+
+  const HOUR = 60 * 60 * 1000
+  const near = (left: number, right: number) => Math.abs(left - right) < 1e-9
+
+  const priced = goalRow({
+    id: 'goal-d',
+    billing: { fixedPrice: 1200, manualHours: 14, note: 'invoice 3' },
+    updatedAt: T1,
+  })
+  const plain = goalRow({ id: 'goal-d', updatedAt: T0 })
+
+  check(
+    'billing survives a whole-row merge in either direction',
+    same(mergeRow(SYNC_TABLE.GOALS, plain, priced).row.billing, priced.billing) &&
+      same(mergeRow(SYNC_TABLE.GOALS, priced, plain).row.billing, priced.billing),
+  )
+
+  const backup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [clone(priced)],
+    taskTemplates: [],
+    dailyTasks: [],
+  })
+  check(
+    'billing survives a backup round trip',
+    backup !== null && same(backup.goals[0].billing, priced.billing),
+  )
+
+  const oldGoal = goalRow({ id: 'goal-e' }) as unknown as Goal
+  migrateGoals([oldGoal])
+  check('a project without billing keeps no billing key', !('billing' in oldGoal))
+
+  check(
+    'sanitize keeps valid figures and trims the note',
+    same(
+      sanitizeBilling({ fixedPrice: -5, manualHours: 3, note: '  hi  ' }),
+      { manualHours: 3, note: 'hi' },
+    ),
+  )
+  check(
+    'sanitize drops non-finite and over-limit figures',
+    sanitizeBilling({ fixedPrice: Number.NaN }) === undefined &&
+      sanitizeBilling({ fixedPrice: 10_000_001 }) === undefined &&
+      sanitizeBilling({ manualHours: 100_001 }) === undefined &&
+      sanitizeBilling({}) === undefined,
+  )
+
+  const cleared = parseBillingDraft({ fixedPrice: '', manualHours: ' ', note: '' })
+  check('an empty draft means no billing at all', cleared.ok && cleared.billing === undefined)
+  const comma = parseBillingDraft({ fixedPrice: '', manualHours: '1,5', note: '' })
+  check('a comma decimal is read as a point', comma.ok && comma.billing?.manualHours === 1.5)
+  check(
+    'a non-number is refused, not stored',
+    !parseBillingDraft({ fixedPrice: 'abc', manualHours: '', note: '' }).ok,
+  )
+  check(
+    'hours above the limit are refused',
+    !parseBillingDraft({ fixedPrice: '', manualHours: '100001', note: '' }).ok,
+  )
+  check(
+    'sameBilling detects a real change only',
+    sameBilling({ fixedPrice: 1 }, { fixedPrice: 1 }) &&
+      !sameBilling({ fixedPrice: 1 }, undefined) &&
+      !sameBilling({ fixedPrice: 1 }, { fixedPrice: 2 }),
+  )
+
+  const base = { periodEarned: 0, allTimeEarned: 0, fallbackRate: 50 }
+
+  const allTime = projectFigures({
+    ...base,
+    periodMs: 10 * HOUR,
+    allTimeMs: 10 * HOUR,
+    allTimeEarned: 500,
+    isAllTime: true,
+  })
+  check(
+    'All time without billing keeps tracked hours and earnings',
+    allTime.ms === 10 * HOUR && allTime.earned === 500 && allTime.fixedBasis === null && allTime.effectiveRate === 50,
+  )
+
+  const prorata = projectFigures({
+    ...base,
+    periodMs: 2 * HOUR,
+    allTimeMs: 10 * HOUR,
+    allTimeEarned: 500,
+    isAllTime: false,
+    billing: { fixedPrice: 1000 },
+  })
+  check(
+    'a fixed price is pro-rated by the share of tracked time',
+    near(prorata.earned, 200) && prorata.fixedBasis === 'prorata' && prorata.ms === 2 * HOUR && near(prorata.effectiveRate ?? 0, 100),
+  )
+
+  const fixedAll = projectFigures({
+    ...base,
+    periodMs: 10 * HOUR,
+    allTimeMs: 10 * HOUR,
+    allTimeEarned: 500,
+    isAllTime: true,
+    billing: { fixedPrice: 1000 },
+  })
+  check(
+    'a fixed price replaces the hourly earnings in All time',
+    fixedAll.earned === 1000 && fixedAll.fixedBasis === 'fixed' && fixedAll.effectiveRate === 100,
+  )
+
+  const manualAll = projectFigures({
+    ...base,
+    periodMs: 10 * HOUR,
+    allTimeMs: 10 * HOUR,
+    allTimeEarned: 500,
+    isAllTime: true,
+    billing: { manualHours: 20 },
+  })
+  check(
+    'manual hours replace tracked hours, priced at the blended rate',
+    manualAll.ms === 20 * HOUR && near(manualAll.earned, 1000) && manualAll.manualHours && manualAll.effectiveRate === 50,
+  )
+
+  const manualShort = projectFigures({
+    ...base,
+    periodMs: 2 * HOUR,
+    periodEarned: 100,
+    allTimeMs: 10 * HOUR,
+    allTimeEarned: 500,
+    isAllTime: false,
+    billing: { manualHours: 20 },
+  })
+  check(
+    'manual hours are ignored outside All time',
+    manualShort.ms === 2 * HOUR && manualShort.earned === 100 && !manualShort.manualHours,
+  )
+
+  const untracked = projectFigures({
+    ...base,
+    periodMs: 0,
+    allTimeMs: 0,
+    isAllTime: false,
+    billing: { fixedPrice: 1000 },
+  })
+  check(
+    'a fixed price with no tracked time is not shown outside All time',
+    untracked.earned === 0 && untracked.fixedBasis === null,
+  )
+
+  const noTime = projectFigures({
+    ...base,
+    periodMs: 0,
+    allTimeMs: 0,
+    isAllTime: true,
+    billing: { manualHours: 5 },
+  })
+  check(
+    'manual hours with nothing tracked use the project rate',
+    near(noTime.earned, 250) && noTime.effectiveRate === 50,
+  )
+}
+
 function main() {
   verifyBoardFields()
+  verifyProjectNotes()
+  verifyProjectBilling()
   verifyRowsFromNewerBuild()
   verifyMergeKeepsUnknownFields()
   verifyRestoreKeepsUnknownFields()

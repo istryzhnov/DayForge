@@ -1,0 +1,129 @@
+/* --- analytics: project figures (fixed price, manual hours) -------------- */
+
+.analytics-table--projects .analytics-table__name {
+  white-space: normal;
+}
+
+.analytics-project__title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-project__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+  background: var(--line-soft);
+}
+
+.analytics-project__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.analytics-badge {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.analytics-table__action {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.analytics-table__edit {
+  padding: 4px 10px;
+  font-size: calc(12px * var(--text-scale));
+}
+
+.analytics-table__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- project figures dialog ---------------------------------------------- */
+
+.project-billing h3 {
+  overflow-wrap: anywhere;
+}
+
+.project-billing__note {
+  margin: 0;
+  font-size: calc(13px * var(--text-scale));
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.project-billing__field {
+  display: grid;
+  gap: 4px;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+
+.project-billing__field input {
+  /* 16px stops iOS from zooming the page when the field is focused. */
+  font-size: 16px;
+  font-weight: 400;
+  min-width: 0;
+}
+
+.project-billing__field em {
+  font-style: normal;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.project-billing__error {
+  margin: 0;
+  font-size: calc(13px * var(--text-scale));
+  color: var(--danger);
+}
+
+.project-billing__actions {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.project-billing__actions .btn {
+  min-height: 40px;
+}
+
+.project-billing__actions .btn-ghost:first-child {
+  margin-right: auto;
+}
+
+@media (max-width: 420px) {
+  .project-billing__actions {
+    justify-content: stretch;
+  }
+
+  .project-billing__actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .project-billing__actions .btn-ghost:first-child {
+    margin-right: 0;
+    flex-basis: 100%;
+  }
+}

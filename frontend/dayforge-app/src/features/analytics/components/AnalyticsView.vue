@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import DayBarChart from './DayBarChart.vue'
 import ProjectShareChart from './ProjectShareChart.vue'
 import ProjectRatesDialog from './ProjectRatesDialog.vue'
+import ProjectBillingDialog from './ProjectBillingDialog.vue'
 import HabitMonthSection from './HabitMonthSection.vue'
 import {
   PERIOD_OPTIONS,
   useTimerAnalytics,
 } from '../composables/useTimerAnalytics'
+import type { ProjectBilling } from '../composables/projectBilling'
+import { FIXED_BASIS } from '../composables/projectBilling'
 
 const props = defineProps<{
   goals: Goal[]
@@ -20,9 +23,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
+  (e: 'change-goal-billing', goalId: ID, billing: ProjectBilling | undefined): void
 }>()
 
 const isRatesOpen = ref(false)
+const editingGoalId = ref<ID | null>(null)
 
 const {
   period,
@@ -43,8 +48,11 @@ const {
   shareLabel,
   percentLabel,
   projectNameOf,
-  projectRateLabel,
-  projectMoneyLabel,
+  projectRows,
+  hasAdjustments,
+  projectShareLabel,
+  moneyLabel,
+  effectiveRateLabel,
   taskMoneyLabel,
   barWidth,
   copyReport,
@@ -53,6 +61,23 @@ const {
   getTemplates: () => props.templates,
   getDailyTasks: () => props.dailyTasks,
 })
+
+const editingGoal = computed(() =>
+  props.goals.find((goal) => goal.id === editingGoalId.value),
+)
+
+const editingTrackedMs = computed(
+  () =>
+    projectRows.value.find((row) => row.goalId === editingGoalId.value)
+      ?.trackedMs ?? 0,
+)
+
+function saveBilling(billing: ProjectBilling | undefined) {
+  if (editingGoalId.value !== null) {
+    emit('change-goal-billing', editingGoalId.value, billing)
+  }
+  editingGoalId.value = null
+}
 </script>
 
 <template>
@@ -88,7 +113,10 @@ const {
         <strong class="analytics__card-value" :title="totalLabel">
           {{ totalLabel }}
         </strong>
-        <span class="analytics__card-note">{{ totalHoursLabel }}</span>
+        <span class="analytics__card-note">
+          {{ totalHoursLabel }}
+          <template v-if="hasAdjustments">· includes adjustments</template>
+        </span>
       </div>
       <div class="analytics__card">
         <span class="analytics__card-label">Sessions</span>
@@ -121,12 +149,15 @@ const {
       </button>
     </div>
 
-    <p v-if="summary.byTask.length === 0" class="timer-history__empty">
+    <p
+      v-if="summary.byTask.length === 0 && projectRows.length === 0"
+      class="timer-history__empty"
+    >
       Nothing tracked in {{ periodLabel.toLowerCase() }} yet.
     </p>
 
     <template v-else>
-      <div class="analytics__charts">
+      <div v-if="summary.byTask.length" class="analytics__charts">
         <DayBarChart
           :points="daySeries.points"
           :caption="seriesCaption"
@@ -140,61 +171,112 @@ const {
         />
       </div>
 
-      <p class="sidebar-caption">By project</p>
-      <div class="analytics-table-wrap">
-        <table class="analytics-table">
-          <thead>
-            <tr>
-              <th class="analytics-table__name">Project</th>
-              <th class="analytics-table__num analytics-table__tasks">Tasks</th>
-              <th class="analytics-table__num">Hours</th>
-              <th v-if="showsMoney" class="analytics-table__num">Rate / h</th>
-              <th v-if="showsMoney" class="analytics-table__num">Earned</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="project in summary.byProject" :key="project.title">
-              <td class="analytics-table__name" :title="project.title">
-                {{ project.title }}
-              </td>
-              <td class="analytics-table__num analytics-table__tasks">
-                {{ project.taskCount }}
-              </td>
-              <td class="analytics-table__num">
-                {{ durationLabel(project.totalMs) }}
-                <em>{{ shareLabel(project.totalMs) }}</em>
-              </td>
-              <td v-if="showsMoney" class="analytics-table__num">
-                {{ projectRateLabel(project) }}
-              </td>
-              <td v-if="showsMoney" class="analytics-table__num">
-                {{ projectMoneyLabel(project) }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <template v-if="projectRows.length">
+        <p class="sidebar-caption">By project</p>
+        <p class="analytics__hint">
+          Edit a project to add a fixed price or hours for Analytics only. Your
+          time entries stay as they are.
+        </p>
+        <div class="analytics-table-wrap">
+          <table class="analytics-table analytics-table--projects">
+            <thead>
+              <tr>
+                <th class="analytics-table__name">Project</th>
+                <th class="analytics-table__num analytics-table__tasks">Tasks</th>
+                <th class="analytics-table__num">Hours</th>
+                <th v-if="showsMoney" class="analytics-table__num">
+                  Effective rate / h
+                </th>
+                <th v-if="showsMoney" class="analytics-table__num">Earned</th>
+                <th class="analytics-table__action">
+                  <span class="analytics-table__sr">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="project in projectRows" :key="project.key">
+                <td class="analytics-table__name" :title="project.title">
+                  <span class="analytics-project__title">
+                    <span
+                      v-if="project.color"
+                      class="analytics-project__dot"
+                      :style="{ background: project.color }"
+                    ></span>
+                    {{ project.title }}
+                  </span>
+                  <span
+                    v-if="project.figures.fixedBasis || project.figures.manualHours"
+                    class="analytics-project__badges"
+                  >
+                    <span
+                      v-if="project.figures.fixedBasis === FIXED_BASIS.FIXED"
+                      class="analytics-badge"
+                    >
+                      Fixed
+                    </span>
+                    <span
+                      v-if="project.figures.fixedBasis === FIXED_BASIS.PRORATA"
+                      class="analytics-badge"
+                    >
+                      Fixed · pro-rata
+                    </span>
+                    <span v-if="project.figures.manualHours" class="analytics-badge">
+                      Manual hours
+                    </span>
+                  </span>
+                </td>
+                <td class="analytics-table__num analytics-table__tasks">
+                  {{ project.taskCount }}
+                </td>
+                <td class="analytics-table__num">
+                  {{ durationLabel(project.figures.ms) }}
+                  <em>{{ projectShareLabel(project.figures.ms) }}</em>
+                </td>
+                <td v-if="showsMoney" class="analytics-table__num">
+                  {{ effectiveRateLabel(project.figures.effectiveRate) }}
+                </td>
+                <td v-if="showsMoney" class="analytics-table__num">
+                  {{ moneyLabel(project.figures.earned) }}
+                </td>
+                <td class="analytics-table__action">
+                  <button
+                    v-if="project.editable"
+                    class="btn btn-ghost analytics-table__edit"
+                    type="button"
+                    :aria-label="`Edit figures for ${project.title}`"
+                    @click="editingGoalId = project.goalId ?? null"
+                  >
+                    Edit
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </template>
 
-      <p class="sidebar-caption">By task</p>
-      <div class="analytics__tasks">
-        <div v-for="task in summary.byTask" :key="task.key" class="time-total">
-          <div class="time-total__row">
-            <span class="time-total__title">{{ task.title }}</span>
-            <span class="time-total__value">
-              {{ hoursLabel(task.totalMs) }}
-              <em v-if="showsMoney">{{ taskMoneyLabel(task) }}</em>
-              <em v-else>{{ shareLabel(task.totalMs) }}</em>
+      <template v-if="summary.byTask.length">
+        <p class="sidebar-caption">By task</p>
+        <div class="analytics__tasks">
+          <div v-for="task in summary.byTask" :key="task.key" class="time-total">
+            <div class="time-total__row">
+              <span class="time-total__title">{{ task.title }}</span>
+              <span class="time-total__value">
+                {{ hoursLabel(task.totalMs) }}
+                <em v-if="showsMoney">{{ taskMoneyLabel(task) }}</em>
+                <em v-else>{{ shareLabel(task.totalMs) }}</em>
+              </span>
+            </div>
+            <div class="time-total__bar">
+              <span :style="{ width: barWidth(task.totalMs) }"></span>
+            </div>
+            <span class="time-total__sessions">
+              {{ task.sessionCount }}
+              {{ task.sessionCount === 1 ? 'session' : 'sessions' }}
             </span>
           </div>
-          <div class="time-total__bar">
-            <span :style="{ width: barWidth(task.totalMs) }"></span>
-          </div>
-          <span class="time-total__sessions">
-            {{ task.sessionCount }}
-            {{ task.sessionCount === 1 ? 'session' : 'sessions' }}
-          </span>
         </div>
-      </div>
+      </template>
 
       <template v-if="habits.length">
         <p class="sidebar-caption">Repeating tasks</p>
@@ -251,6 +333,14 @@ const {
       :goals="goals"
       @update-rate="(goalId, rate) => emit('change-goal-rate', goalId, rate)"
       @close="isRatesOpen = false"
+    />
+
+    <ProjectBillingDialog
+      v-if="editingGoal"
+      :goal="editingGoal"
+      :tracked-ms="editingTrackedMs"
+      @save="saveBilling"
+      @close="editingGoalId = null"
     />
   </section>
 </template>
