@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { DailyTask, TaskSchedule, TaskTemplate } from '../../../entities/TaskEntity'
-import type { BoardStage } from '../../../entities/constants'
+import { PRIORITY, type BoardStage } from '../../../entities/constants'
 import type { ID, Priority } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import TaskInlineEditor from '../../tasks/components/TaskInlineEditor.vue'
+import DragGhost from '../../../components/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
 import {
   BOARD_COLUMN,
@@ -68,6 +69,17 @@ function moveCard(cardId: ID, column: BoardColumn) {
 }
 
 const drag = useBoardDrag((cardId, column) => moveCard(cardId, column))
+
+/** The card under the pointer, for the floating copy that follows it. */
+const draggingCard = computed<BoardCardModel | null>(() => {
+  const id = drag.draggingId.value
+  if (id === null) return null
+  for (const column of BOARD_COLUMNS) {
+    const found = cards.value[column.key].find((card) => card.id === id)
+    if (found) return found
+  }
+  return null
+})
 
 // --- editing: the same editor the list opens -----------------------------
 
@@ -203,6 +215,15 @@ function submitAdd() {
         </div>
       </section>
     </div>
+
+    <DragGhost
+      v-if="draggingCard"
+      :title="draggingCard.row.title"
+      :x="drag.pointer.value.x"
+      :y="drag.pointer.value.y"
+      :is-major="draggingCard.row.priority === PRIORITY.MAJOR"
+      :touch="drag.isTouchDrag.value"
+    />
 
     <TaskInlineEditor
       v-if="editingNode"

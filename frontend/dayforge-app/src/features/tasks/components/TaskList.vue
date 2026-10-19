@@ -9,6 +9,7 @@ import {
   useTaskDrag,
   type TaskDropPayload,
 } from '../composables/useTaskDrag'
+import DragGhost from '../../../components/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
 import TaskQuickAdd from './TaskQuickAdd.vue'
 
@@ -53,6 +54,8 @@ function rowDrag(node: TaskNode, parentZone: string) {
     goalId: node.task.goalId,
     // A task inside a project row leaves that row when it lands in another project.
     canMove: true,
+    color: node.goalColor,
+    isMajor: node.task.priority === PRIORITY.MAJOR,
   })
 }
 
@@ -182,16 +185,15 @@ function groupKey(group: TaskGroup) {
       Drop here to take it out of the project
     </div>
 
-    <div
+    <DragGhost
       v-if="drag.draggingId.value"
-      class="task-drag-ghost"
-      :style="{
-        left: `${drag.pointer.value.x}px`,
-        top: `${drag.pointer.value.y}px`,
-      }"
-    >
-      {{ drag.dragTitle.value }}
-    </div>
+      :title="drag.dragTitle.value"
+      :x="drag.pointer.value.x"
+      :y="drag.pointer.value.y"
+      :color="drag.dragColor.value"
+      :is-major="drag.dragIsMajor.value"
+      :touch="drag.dragIsTouch.value"
+    />
   </div>
 
   <TaskQuickAdd

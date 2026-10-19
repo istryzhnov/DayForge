@@ -27,6 +27,10 @@ export function useBoardDrag(
 ) {
   const draggingId = ref<ID | null>(null)
   const dropColumn = ref<BoardColumn | null>(null)
+  /** Where the pointer (or finger) is, so the drag preview can follow it. */
+  const pointer = ref<GesturePoint>({ x: 0, y: 0 })
+  /** True when a finger picked the card up rather than a mouse. */
+  const isTouchDrag = ref(false)
   /** Set after a real drag so the click that ends it does not open the card. */
   let justDragged = false
 
@@ -53,6 +57,7 @@ export function useBoardDrag(
     candidate = null
     draggingId.value = null
     dropColumn.value = null
+    isTouchDrag.value = false
     justDragged = false
   }
 
@@ -66,6 +71,7 @@ export function useBoardDrag(
 
   function activate(id: ID, point: GesturePoint) {
     draggingId.value = id
+    pointer.value = point
     dropColumn.value = columnAt(point)
     justDragged = true
     // Text selection would otherwise follow the pointer across the board.
@@ -74,6 +80,7 @@ export function useBoardDrag(
 
   function moveTo(point: GesturePoint) {
     if (draggingId.value === null) return
+    pointer.value = point
     dropColumn.value = columnAt(point)
   }
 
@@ -133,6 +140,7 @@ export function useBoardDrag(
         reset()
         candidate = id
         origin = point
+        isTouchDrag.value = true
         window.addEventListener('keydown', onKeydown)
         activate(id, point)
       },
@@ -154,6 +162,8 @@ export function useBoardDrag(
   return {
     draggingId,
     dropColumn,
+    pointer,
+    isTouchDrag,
     forCard,
     consumeDragClick,
     cancel,

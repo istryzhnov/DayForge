@@ -30,6 +30,9 @@ export type DragTask = {
   goalId?: ID
   /** Only top-level tasks can be moved to another project, as in "Move to…". */
   canMove: boolean
+  /** Project colour, for the accent bar of the floating copy. */
+  color?: string
+  isMajor?: boolean
 }
 
 export type TaskDropPayload = {
@@ -68,6 +71,11 @@ export function useTaskDrag(actions: DragActions) {
   const dropRowId = ref<string | null>(null)
   const dropAbove = ref(false)
   const pointer = ref<GesturePoint>({ x: 0, y: 0 })
+  /** What the floating copy shows about the task being dragged. */
+  const dragColor = ref<string | undefined>(undefined)
+  const dragIsMajor = ref(false)
+  /** True when a finger picked the task up rather than a mouse. */
+  const dragIsTouch = ref(false)
   /** Sidebar project under the pointer, when it would take the task. */
   const dropGoalId = ref<ID | null>(null)
 
@@ -178,6 +186,8 @@ export function useTaskDrag(actions: DragActions) {
     draggingId.value = task.templateId
     dragTitle.value = task.title
     dragParentZone.value = task.parentZone
+    dragColor.value = task.color
+    dragIsMajor.value = !!task.isMajor
     pointer.value = point
     if (task.canMove) beginGoalDrop(task.goalId)
     updateTarget(point)
@@ -247,6 +257,7 @@ export function useTaskDrag(actions: DragActions) {
     if ((event.target as HTMLElement).closest(INTERACTIVE_SELECTOR)) return
 
     reset()
+    dragIsTouch.value = false
     candidate = task
     origin = { x: event.clientX, y: event.clientY }
     pointer.value = origin
@@ -259,6 +270,7 @@ export function useTaskDrag(actions: DragActions) {
 
   /** Touch path: the row has already been held long enough to be picked up. */
   function startWithTouch(task: DragTask, point: GesturePoint) {
+    dragIsTouch.value = true
     candidate = task
     origin = point
     activate(task, point)
@@ -281,6 +293,9 @@ export function useTaskDrag(actions: DragActions) {
     draggingId,
     dragTitle,
     dragParentZone,
+    dragColor,
+    dragIsMajor,
+    dragIsTouch,
     dropZone,
     dropRowId,
     dropAbove,

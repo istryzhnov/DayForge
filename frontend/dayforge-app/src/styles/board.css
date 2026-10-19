@@ -98,13 +98,19 @@
   }
 }
 
-.board-card.is-dragging {
-  opacity: 0.45;
-}
-
 .board-card.is-lifted {
   transform: scale(1.03);
   box-shadow: var(--shadow-md);
+}
+
+/* The placeholder left behind while a floating copy (DragGhost.vue) follows
+   the pointer: it stays flat, dimmed and dashed so the gap is obvious. */
+.board-card.is-dragging {
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none;
+  outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: -2px;
 }
 
 .board-card__body {
@@ -176,6 +182,7 @@
 }
 
 .board-card__move {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -184,15 +191,51 @@
   font-size: calc(12px * var(--text-scale));
 }
 
+/* The chevron is a mask painted in currentColor (the muted label colour), so
+   it follows the theme without a per-theme SVG. The select is the last child,
+   so the arrow sits at its right edge. */
+.board-card__move::after {
+  content: '';
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  width: 9px;
+  height: 6px;
+  margin-top: -3px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+
 .board-card__move select {
+  appearance: none;
+  -webkit-appearance: none;
   min-height: 28px;
-  padding: 3px 6px;
+  margin: 0;
+  padding: 4px 26px 4px 9px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: var(--panel-soft);
+  border-radius: calc(8px * var(--radius-scale));
+  background-color: var(--panel-soft);
+  background-image: none;
   color: var(--text);
-  font: inherit;
+  font-family: inherit;
   font-size: calc(12px * var(--text-scale));
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.board-card__move select:hover {
+  border-color: var(--line-soft);
+}
+
+.board-card__move select:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .board-add__btn {
@@ -218,6 +261,42 @@
 
 .board-add__form input {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: calc(11px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  font-family: inherit;
+  font-size: calc(14px * var(--text-scale));
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.board-add__form input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.board-add__form input:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+/* Phones and touch screens: iOS zooms the page when a focused field is under
+   16px, so the field and the move select never go below that. */
+@media (max-width: 600px), (pointer: coarse) {
+  .board-add__form input,
+  .board-card__move select {
+    font-size: max(16px, calc(16px * var(--text-scale)));
+  }
+
+  .board-card__move select {
+    min-height: 36px;
+  }
 }
 
 .board-add__actions {

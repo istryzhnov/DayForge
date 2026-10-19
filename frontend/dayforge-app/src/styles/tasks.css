@@ -216,8 +216,13 @@
 }
 
 .task-row.is-dragging {
-  opacity: 0.45;
+  /* The placeholder: the row stays put, dashed, while a floating copy
+     (DragGhost.vue) follows the pointer. */
+  opacity: 0.5;
   cursor: grabbing;
+  outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: -2px;
+  box-shadow: none;
 }
 
 body.is-dragging-task {
@@ -276,24 +281,6 @@ body.is-dragging-task {
 }
 
 /* Follows the pointer, so it must never be what the pointer lands on. */
-.task-drag-ghost {
-  position: fixed;
-  z-index: 1300;
-  pointer-events: none;
-  transform: translate(14px, 12px);
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 7px 11px;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
-  border-radius: calc(10px * var(--radius-scale));
-  background: var(--panel);
-  color: var(--text);
-  font-size: calc(13px * var(--text-scale));
-  box-shadow: var(--shadow-lg);
-}
-
 .task-main {
   display: flex;
   align-items: center;
