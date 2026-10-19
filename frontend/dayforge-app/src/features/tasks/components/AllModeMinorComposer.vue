@@ -66,7 +66,7 @@ const {
           <label class="composer-assign__field">
             <span class="composer-assign__label">Goal</span>
             <select v-model="selectedGoalId">
-              <option value="">Only in All Goals</option>
+              <option value="">Only in All Tasks</option>
               <option v-for="goal in goals" :key="goal.id" :value="goal.id">
                 {{ goal.title }}
               </option>

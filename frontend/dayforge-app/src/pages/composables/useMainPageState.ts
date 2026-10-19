@@ -60,7 +60,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
           ? goalSpace.goals.value.find(
               (goal: Goal) => goal.id === template.goalId,
             )?.title
-          : 'All Goals') ?? 'Unknown Goal',
+          : 'All Tasks') ?? 'Unknown Goal',
     })),
   )
 

@@ -90,7 +90,7 @@ export function useGoalPanelState(
       return 'Project habit'
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
       return 'Goal habit'
-    return 'All goals habit'
+    return 'All tasks habit'
   })
 
   const habitSubtitle = computed(() => {
@@ -98,7 +98,7 @@ export function useGoalPanelState(
       return 'Progress for selected project'
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
       return 'Progress for selected goal'
-    return 'Progress across all goals'
+    return 'Progress across all tasks'
   })
 
   function focusProject(dailyTaskId: ID | null) {
