@@ -1,12 +1,20 @@
 <script setup lang="ts">
+import { useTemplateRef } from 'vue'
 import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
+import {
+  isCommitShortcut,
+  useNotesDraft,
+  useTextareaFit,
+} from '../../../composables/useNotesDraft'
 import { useEventDetailsForm } from '../composables/useEventDetailsForm'
 
 const props = defineProps<{
   task: DailyTask
+  /** The task's notes, read from its template. */
+  notes: string
   projectOptions: MajorTaskOption[]
   /** Project this task currently sits under, if any. */
   currentProjectId: ID | null
@@ -23,6 +31,7 @@ const emit = defineEmits<{
     payload: { taskId: ID; startTime: string; endTime: string },
   ): void
   (e: 'update-title', payload: { templateId: ID; title: string }): void
+  (e: 'update-notes', payload: { templateId: ID; notes: string }): void
   (e: 'update-goal', payload: { templateId: ID; goalId: ID | undefined }): void
   (
     e: 'update-project',
@@ -32,6 +41,20 @@ const emit = defineEmits<{
 
 // Binds to the `ref="trapRef"` root element below.
 useFocusTrap({ onEscape: () => emit('close') })
+
+const notesInput = useTemplateRef<HTMLTextAreaElement>('notesInput')
+
+// Committed on blur, so tapping Save or the backdrop keeps what was typed.
+const {
+  draft: notes,
+  commit: commitNotes,
+  revert: revertNotes,
+} = useNotesDraft(
+  () => props.notes,
+  (next) =>
+    emit('update-notes', { templateId: props.task.templateId, notes: next }),
+)
+useTextareaFit(notesInput, notes)
 
 const {
   title,
@@ -48,6 +71,19 @@ const {
   onUpdateProject: (payload) => emit('update-project', payload),
   onUpdateTime: (payload) => emit('update-time', payload),
 })
+
+/** Esc drops an unsaved note; the panel's own Esc then closes it as before. */
+function onNotesKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    revertNotes()
+    return
+  }
+  if (isCommitShortcut(event)) {
+    event.preventDefault()
+    commitNotes()
+    save()
+  }
+}
 </script>
 
 <template>
@@ -69,6 +105,19 @@ const {
       <label class="event-details__field">
         <span class="event-details__label">Title</span>
         <input v-model="title" type="text" @keydown.enter="save" />
+      </label>
+
+      <label class="event-details__field">
+        <span class="event-details__label">Notes</span>
+        <textarea
+          ref="notesInput"
+          v-model="notes"
+          rows="2"
+          maxlength="5000"
+          placeholder="Add notes"
+          @blur="commitNotes"
+          @keydown="onNotesKeydown"
+        ></textarea>
       </label>
 
       <label class="event-details__field">

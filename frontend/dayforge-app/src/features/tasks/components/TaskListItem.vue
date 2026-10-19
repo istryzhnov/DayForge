@@ -8,6 +8,7 @@ import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
+import TaskNotesButton from './TaskNotesButton.vue'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
 
@@ -34,6 +35,7 @@ const props = defineProps<{
   onCancelSubtask: () => void
   onFocusProject: (dailyTaskId: ID) => void
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
   onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
   onDeleteTask: (templateId: ID) => void
@@ -70,8 +72,10 @@ const {
   closeRateEditor,
   saveRate,
   saveEdits,
+  saveNotes,
 } = useTaskRow(props, {
   onEditTask: props.onEditTask,
+  onEditNotes: props.onEditNotes,
   onScheduleTask: props.onScheduleTask,
   onSetTaskRate: props.onSetTaskRate,
   drag: props.drag,
@@ -97,6 +101,7 @@ const {
         : undefined
     "
     :data-drop-row="drag ? node.task.templateId : undefined"
+    :data-task-id="node.task.id"
     @contextmenu.prevent="openContextMenu"
     @pointerdown="onRowPointerDown"
   >
@@ -158,6 +163,12 @@ const {
     </div>
 
     <div class="actions">
+      <TaskNotesButton
+        :notes="node.template?.notes"
+        :title="node.task.title"
+        @save="saveNotes"
+      />
+
       <TaskTimerButton
         :task-id="node.task.templateId"
         :title="node.task.title"

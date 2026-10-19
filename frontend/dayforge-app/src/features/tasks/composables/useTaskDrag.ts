@@ -1,18 +1,38 @@
 import { onUnmounted, ref } from 'vue'
 import type { ID } from '../../../entities/types'
 import type { GesturePoint } from '../../../composables/usePressGesture'
+import { useMediaQuery } from '../../../composables/useMediaQuery'
+import { useMobileNav } from '../../sidebar/composables/useMobileNav'
+import {
+  beginGoalDrop,
+  emitTaskDroppedOnGoal,
+  endGoalDrop,
+  goalIdAt,
+  setHoverGoal,
+} from './taskDropTarget'
 
 /** Dropping here takes a task out of whatever project it sits in. */
 export const DROP_ZONE_ROOT = 'root'
 
 const DRAG_THRESHOLD_PX = 6
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a'
+/** A finger held this close to the left edge opens the sidebar drawer. */
+const EDGE_ZONE_PX = 24
+const EDGE_HOLD_MS = 400
+const NARROW_QUERY = '(max-width: 960px)'
 
 export type DragTask = {
   templateId: ID
   title: string
   /** Project this task sits in today, so a drop that changes nothing is ignored. */
   parentZone: string
+  /** Project (goal) the task belongs to today. */
+  goalId?: ID
+  /** Only top-level tasks can be moved to another project, as in "Move to…". */
+  canMove: boolean
+  /** Project colour, for the accent bar of the floating copy. */
+  color?: string
+  isMajor?: boolean
 }
 
 export type TaskDropPayload = {
@@ -51,9 +71,21 @@ export function useTaskDrag(actions: DragActions) {
   const dropRowId = ref<string | null>(null)
   const dropAbove = ref(false)
   const pointer = ref<GesturePoint>({ x: 0, y: 0 })
+  /** What the floating copy shows about the task being dragged. */
+  const dragColor = ref<string | undefined>(undefined)
+  const dragIsMajor = ref(false)
+  /** True when a finger picked the task up rather than a mouse. */
+  const dragIsTouch = ref(false)
+  /** Sidebar project under the pointer, when it would take the task. */
+  const dropGoalId = ref<ID | null>(null)
+
+  const isCoarse = useMediaQuery('(pointer: coarse)')
+  const isNarrow = useMediaQuery(NARROW_QUERY)
+  const { open: openMobileNav } = useMobileNav()
 
   let candidate: DragTask | null = null
   let origin: GesturePoint = { x: 0, y: 0 }
+  let edgeTimerId: number | undefined
 
   /**
    * What sits under the pointer: the project it belongs to, and the row it is
@@ -68,12 +100,27 @@ export function useTaskDrag(actions: DragActions) {
     const row = element?.closest<HTMLElement>('[data-drop-row]')
     const rowId = row?.dataset.dropRow
 
+    const goalId = resolveGoalTarget(point)
+
     if (!row || !rowId || rowId === draggingId.value) {
-      return { zone, rowId: null, above: false }
+      return { zone, rowId: null, above: false, goalId }
     }
 
     const box = row.getBoundingClientRect()
-    return { zone, rowId, above: point.y < box.top + box.height / 2 }
+    return {
+      zone,
+      rowId,
+      above: point.y < box.top + box.height / 2,
+      goalId,
+    }
+  }
+
+  /** A sidebar project only counts when the task is movable and it is not its own. */
+  function resolveGoalTarget(point: GesturePoint): ID | null {
+    if (!candidate?.canMove) return null
+    const goalId = goalIdAt(point)
+    if (!goalId || goalId === candidate.goalId) return null
+    return goalId
   }
 
   function updateTarget(point: GesturePoint) {
@@ -81,6 +128,30 @@ export function useTaskDrag(actions: DragActions) {
     dropZone.value = target.zone
     dropRowId.value = target.rowId
     dropAbove.value = target.above
+    dropGoalId.value = target.goalId
+    setHoverGoal(target.goalId)
+  }
+
+  function clearEdgeTimer() {
+    if (edgeTimerId !== undefined) {
+      window.clearTimeout(edgeTimerId)
+      edgeTimerId = undefined
+    }
+  }
+
+  /** Touch only: a finger parked on the left edge opens the drawer for a drop. */
+  function watchLeftEdge(point: GesturePoint) {
+    const eligible =
+      isCoarse.value && isNarrow.value && !!candidate?.canMove
+    if (!eligible || point.x > EDGE_ZONE_PX) {
+      clearEdgeTimer()
+      return
+    }
+    if (edgeTimerId !== undefined) return
+    edgeTimerId = window.setTimeout(() => {
+      edgeTimerId = undefined
+      openMobileNav()
+    }, EDGE_HOLD_MS)
   }
 
   function stopListening() {
@@ -92,12 +163,15 @@ export function useTaskDrag(actions: DragActions) {
 
   function reset() {
     stopListening()
+    clearEdgeTimer()
+    endGoalDrop()
     document.body.classList.remove('is-dragging-task')
     candidate = null
     draggingId.value = null
     dropZone.value = null
     dropRowId.value = null
     dropAbove.value = false
+    dropGoalId.value = null
   }
 
   function cancel() {
@@ -112,7 +186,10 @@ export function useTaskDrag(actions: DragActions) {
     draggingId.value = task.templateId
     dragTitle.value = task.title
     dragParentZone.value = task.parentZone
+    dragColor.value = task.color
+    dragIsMajor.value = !!task.isMajor
     pointer.value = point
+    if (task.canMove) beginGoalDrop(task.goalId)
     updateTarget(point)
     // Text selection would otherwise follow the pointer across the list.
     document.body.classList.add('is-dragging-task')
@@ -122,6 +199,7 @@ export function useTaskDrag(actions: DragActions) {
     if (draggingId.value === null) return
     pointer.value = point
     updateTarget(point)
+    watchLeftEdge(point)
   }
 
   /** Applies the drop and clears the gesture, whatever the outcome. */
@@ -130,10 +208,18 @@ export function useTaskDrag(actions: DragActions) {
     const zone = dropZone.value
     const targetRow = dropRowId.value
     const above = dropAbove.value
+    const goalId = dropGoalId.value
     const wasDragging = draggingId.value !== null
     reset()
 
-    if (!wasDragging || !dragged || zone === null) return
+    if (!wasDragging || !dragged) return
+
+    if (goalId) {
+      emitTaskDroppedOnGoal(dragged.templateId, goalId)
+      return
+    }
+
+    if (zone === null) return
     if (zone === dragged.templateId) return
     // Landing on open space inside the project it already lives in is a no-op.
     if (!targetRow && zone === dragged.parentZone) return
@@ -171,6 +257,7 @@ export function useTaskDrag(actions: DragActions) {
     if ((event.target as HTMLElement).closest(INTERACTIVE_SELECTOR)) return
 
     reset()
+    dragIsTouch.value = false
     candidate = task
     origin = { x: event.clientX, y: event.clientY }
     pointer.value = origin
@@ -183,6 +270,7 @@ export function useTaskDrag(actions: DragActions) {
 
   /** Touch path: the row has already been held long enough to be picked up. */
   function startWithTouch(task: DragTask, point: GesturePoint) {
+    dragIsTouch.value = true
     candidate = task
     origin = point
     activate(task, point)
@@ -205,9 +293,13 @@ export function useTaskDrag(actions: DragActions) {
     draggingId,
     dragTitle,
     dragParentZone,
+    dragColor,
+    dragIsMajor,
+    dragIsTouch,
     dropZone,
     dropRowId,
     dropAbove,
+    dropGoalId,
     pointer,
     forRow,
     cancel,

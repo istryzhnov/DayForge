@@ -204,7 +204,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 13px;
+  box-sizing: border-box;
+  height: var(--header-control-height);
+  padding: 0 13px;
   border-radius: 999px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
@@ -218,6 +220,12 @@
     color 0.15s ease,
     border-color 0.15s ease,
     background 0.15s ease;
+}
+
+.goal-settings-btn.is-active {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
 }
 
 .goal-settings-btn:hover {
@@ -510,4 +518,210 @@
 .composer-fields {
   display: grid;
   gap: 10px;
+}
+
+/* Project header toolbar: List / Board switch and the Notes button. */
+.goal-panel-header__aside {
+  --header-control-height: 34px;
+}
+
+.project-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.project-toolbar__segment {
+  display: inline-flex;
+  gap: 2px;
+  box-sizing: border-box;
+  height: var(--header-control-height);
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+}
+
+.project-toolbar__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 999px;
+  height: 100%;
+  padding: 0 12px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.project-toolbar__btn:hover {
+  color: var(--text);
+}
+
+.project-toolbar__btn.is-active {
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
+  color: var(--text);
+}
+
+.project-toolbar__notes {
+  box-sizing: border-box;
+  height: var(--header-control-height);
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  padding: 0 13px;
+}
+
+.project-toolbar__notes.is-active {
+  border-color: color-mix(in srgb, var(--accent) 65%, var(--line));
+  background: color-mix(in srgb, var(--accent) 18%, var(--panel-soft));
+  color: var(--text);
+}
+
+.project-toolbar__notes:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-soft));
+}
+
+.project-toolbar__notes svg {
+  width: 14px;
+  height: 14px;
+}
+
+.project-toolbar__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.project-toolbar__btn:focus-visible,
+.project-notes__close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Project notes: a drawer on desktop, a bottom sheet on phones. The layer
+   ignores clicks so the board stays usable beside it. */
+.project-notes-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  pointer-events: none;
+}
+
+.project-notes-layer__scrim {
+  display: none;
+}
+
+.project-notes {
+  pointer-events: auto;
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: min(400px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: calc(18px * var(--radius-scale));
+  background: var(--panel-layer), var(--panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.project-notes__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.project-notes__head h3 {
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: calc(16px * var(--text-scale));
+  overflow-wrap: anywhere;
+}
+
+.project-notes__close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.project-notes__close:hover {
+  color: var(--text);
+  background: var(--panel-soft);
+}
+
+.project-notes__text {
+  width: 100%;
+  min-height: 320px;
+  box-sizing: border-box;
+  resize: none;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: calc(14px * var(--text-scale));
+  line-height: 1.55;
+}
+
+.project-notes__text:focus {
+  outline: 1px solid var(--accent);
+}
+
+.project-notes__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+@media (max-width: 720px), (pointer: coarse) and (max-width: 1024px) {
+  .project-notes-layer {
+    pointer-events: auto;
+  }
+
+  .project-notes-layer__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+  }
+
+  .project-notes {
+    top: calc(env(safe-area-inset-top, 0px) + 40px);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    border-radius: calc(18px * var(--radius-scale)) calc(18px * var(--radius-scale)) 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .project-notes__text {
+    min-height: 50vh;
+    font-size: 16px;
+  }
 }

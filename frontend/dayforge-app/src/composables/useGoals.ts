@@ -2,6 +2,7 @@ import { computed, ref, watch } from 'vue'
 import type { Goal, GoalTheme } from '../entities/GoalEntity'
 import type { GoalStatus, ID } from '../entities/types'
 import { migrateGoals } from './goalSpace/goalMigration'
+import { normalizeNotes } from './goalSpace/notes'
 import { GOALS_STORAGE_KEY } from './goalSpace/storage'
 import { readJson, writeJson } from '../lib/storage'
 import { useSettings } from './useSettings'
@@ -111,6 +112,35 @@ export function useGoals() {
     goal.updatedAt = new Date().toISOString()
   }
 
+  /** Off is stored as an absent flag, so a project that never had it is unchanged. */
+  function updateGoalBoard(goalId: ID, enabled: boolean) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal || (goal.boardEnabled === true) === enabled) return
+
+    if (enabled) {
+      goal.boardEnabled = true
+    } else {
+      delete goal.boardEnabled
+    }
+    goal.updatedAt = new Date().toISOString()
+  }
+
+  /** Blank notes remove the field, so a project without notes stays unchanged. */
+  function updateGoalNotes(goalId: ID, notes: string) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+
+    const next = normalizeNotes(notes)
+    if (next === goal.notes) return
+
+    if (next === undefined) {
+      delete goal.notes
+    } else {
+      goal.notes = next
+    }
+    goal.updatedAt = new Date().toISOString()
+  }
+
   /** An absent rate means "bill this project at the global rate". */
   function updateGoalRate(goalId: ID, hourlyRate: number | undefined) {
     const goal = goals.value.find((item) => item.id === goalId)
@@ -162,6 +192,8 @@ export function useGoals() {
     updateGoalTheme,
     updateGoalRate,
     updateGoalIcon,
+    updateGoalBoard,
+    updateGoalNotes,
     loadFromStorage,
   }
 }

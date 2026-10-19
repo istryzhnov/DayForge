@@ -48,6 +48,7 @@ type GoalPanelActions = {
     schedule?: TaskSchedule,
   ) => void
   onEditTask: (templateId: ID, title: string) => void
+  onEditNotes: (templateId: ID, notes: string) => void
   onDeleteTask: (templateId: ID) => void
   onSetAsProject: (templateId: ID) => void
 }
@@ -89,7 +90,7 @@ export function useGoalPanelState(
       return 'Project habit'
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
       return 'Goal habit'
-    return 'All goals habit'
+    return 'All tasks habit'
   })
 
   const habitSubtitle = computed(() => {
@@ -97,7 +98,7 @@ export function useGoalPanelState(
       return 'Progress for selected project'
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
       return 'Progress for selected goal'
-    return 'Progress across all goals'
+    return 'Progress across all tasks'
   })
 
   function focusProject(dailyTaskId: ID | null) {
@@ -164,6 +165,10 @@ export function useGoalPanelState(
     actions.onEditTask(templateId, title)
   }
 
+  function editNotes(templateId: ID, notes: string) {
+    actions.onEditNotes(templateId, notes)
+  }
+
   function deleteTask(templateId: ID) {
     actions.onDeleteTask(templateId)
   }
@@ -186,6 +191,7 @@ export function useGoalPanelState(
     submitQuickAdd,
     toggleDone,
     editTask,
+    editNotes,
     deleteTask,
     setAsProject,
   }

@@ -22,6 +22,9 @@ import { useSettingsPanel } from '../features/settings/composables/useSettingsPa
 import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
 import QuickAddModal from '../features/hotkeys/components/QuickAddModal.vue'
 import ShortcutsModal from '../features/hotkeys/components/ShortcutsModal.vue'
+import SearchPalette from '../features/search/components/SearchPalette.vue'
+import type { SearchResult } from '../features/search/composables/useGlobalSearch'
+import { flashTaskRow } from '../features/search/composables/flashTaskRow'
 
 const goalSpace = useGoalSpace()
 
@@ -87,14 +90,19 @@ const {
   handleCreateAllModeMinor,
   handleCreateScheduledTask,
   handleEditTask,
+  handleEditNotes,
   handleScheduleTask,
   handleDeleteTask,
   handleDeleteGoal,
   handleChangeGoalRate,
+  handleChangeGoalBilling,
   handleChangeGoalDetails,
   handleChangeGoalStatus,
   handleChangeGoalTheme,
   handleChangeGoalIcon,
+  handleChangeGoalBoard,
+  handleChangeGoalNotes,
+  handleSetBoardStage,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
 
@@ -105,11 +113,20 @@ useHotkeys({
   selectGoal,
 })
 
-const { overlay } = useHotkeyOverlay()
+const { overlay, closeOverlay } = useHotkeyOverlay()
 
 const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
+
+/** Opens the project, moves to the day of a finished task, and flashes its row. */
+function handleSearchSelect(result: SearchResult) {
+  closeOverlay()
+  closeMobileNav()
+  if (result.kind === 'done' && result.date) goToDate(result.date)
+  selectGoal(result.goalId)
+  if (result.rowId) flashTaskRow(result.rowId)
+}
 </script>
 
 <template>
@@ -179,12 +196,17 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
           @set-as-project="handleSetAsProject"
           @create-all-mode-minor="handleCreateAllModeMinor"
           @edit-task="handleEditTask"
+          @edit-notes="handleEditNotes"
           @schedule-task="handleScheduleTask"
           @delete-task="handleDeleteTask"
           @set-task-rate="handleSetTaskRate"
           @assign-goal="handleAssignTaskToGoal"
           @attach-to-project="handleAttachToProject"
           @move-task-to="handleMoveTaskTo"
+          @set-board-stage="handleSetBoardStage"
+          @change-goal-board="handleChangeGoalBoard"
+          @change-goal-notes="handleChangeGoalNotes"
+          @select-date="goToDate"
         />
 
         <PlannedTaskList
@@ -205,6 +227,7 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
           :templates="taskTemplates"
           :daily-tasks="dailyTasks"
           @change-goal-rate="handleChangeGoalRate"
+          @change-goal-billing="handleChangeGoalBilling"
         />
 
         <TimerView
@@ -239,6 +262,7 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
           @create-task="handleCreateScheduledTask"
           @toggle-task-done="handleToggleDone"
           @edit-task="handleEditTask"
+          @edit-notes="handleEditNotes"
           @attach-to-project="handleAttachToProject"
           @assign-goal="handleAssignTaskToGoal"
         />
@@ -256,6 +280,7 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
         @change-goal-theme="handleChangeGoalTheme"
         @change-goal-rate="handleChangeGoalRate"
         @change-goal-icon="handleChangeGoalIcon"
+        @change-goal-board="handleChangeGoalBoard"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"
         @delete-goal="handleDeleteGoal"
@@ -284,6 +309,16 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
     />
 
     <ShortcutsModal v-if="overlay === 'shortcuts'" />
+
+    <SearchPalette
+      v-if="overlay === 'search'"
+      :goals="goals"
+      :templates="taskTemplates"
+      :daily-tasks="dailyTasks"
+      :current-date="currentDate"
+      @close="closeOverlay"
+      @select="handleSearchSelect"
+    />
 
     <UndoToast />
 

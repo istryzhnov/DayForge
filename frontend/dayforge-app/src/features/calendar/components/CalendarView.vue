@@ -13,6 +13,7 @@ import CalendarWeekView from './CalendarWeekView.vue'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
+import CalendarFilterPopover from './CalendarFilterPopover.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
 import {
   gridHeightPx,
@@ -51,6 +52,7 @@ const emit = defineEmits<{
   ): void
   (e: 'toggle-task-done', taskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
   (e: 'select-date', date: ISODate): void
@@ -109,6 +111,14 @@ const {
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
 
+/** Notes live on the task's template, not on the day row the panel shows. */
+const selectedTaskNotes = computed(
+  () =>
+    props.templates.find(
+      (template) => template.id === selectedTask.value?.templateId,
+    )?.notes ?? '',
+)
+
 const goalIconById = computed(() => {
   const result: Record<ID, string> = {}
   props.goals.forEach((goal) => {
@@ -149,6 +159,11 @@ function iconFor(goalId: ID | undefined) {
       >
         Month
       </button>
+      <CalendarFilterPopover
+        v-model="viewMode"
+        :goals="goals"
+        :goal-vars-by-id="goalVarsById"
+      />
     </div>
 
     <CalendarWeekView
@@ -331,11 +346,15 @@ function iconFor(goalId: ID | undefined) {
         :current-project-id="selectedProjectTemplateId"
         :goals="goals"
         :current-goal-id="selectedTask.goalId ?? null"
+        :notes="selectedTaskNotes"
         @close="closeDetails"
         @unschedule="unscheduleAndClose"
         @update-time="updateTimeAndClose"
         @update-title="
           (payload) => emit('edit-task', payload.templateId, payload.title)
+        "
+        @update-notes="
+          (payload) => emit('edit-notes', payload.templateId, payload.notes)
         "
         @update-goal="
           (payload) => emit('assign-goal', payload.templateId, payload.goalId)

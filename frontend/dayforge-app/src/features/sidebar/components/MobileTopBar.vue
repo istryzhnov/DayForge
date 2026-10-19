@@ -28,7 +28,7 @@ const { isOpen: isNavOpen, open: openNav } = useMobileNav()
 const { isOpen: isProfileOpen, open: openProfile } = useProfilePanel()
 const { auth, status, initial, avatarUrl, triggerTitle } = useProfile()
 const { isLive, displayLabel } = useTimer()
-const { openQuickAdd } = useHotkeyOverlay()
+const { openQuickAdd, openSearch } = useHotkeyOverlay()
 
 const title = computed(() => {
   if (props.activeView === 'goals') return props.goalTitle ?? 'All Projects'
@@ -63,6 +63,29 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       >
         <span class="mobile-topbar__timer-dot" aria-hidden="true"></span>
         <span>{{ displayLabel }}</span>
+      </button>
+
+      <button
+        class="mobile-topbar__btn"
+        type="button"
+        aria-label="Search projects and tasks"
+        title="Search"
+        @click="openSearch"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
       </button>
 
       <button

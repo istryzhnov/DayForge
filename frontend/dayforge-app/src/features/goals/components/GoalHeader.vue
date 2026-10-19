@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
+import ProjectToolbar from './ProjectToolbar.vue'
 
 const props = defineProps<{
   title: string
@@ -9,9 +10,19 @@ const props = defineProps<{
   projectCount: number
   taskCount: number
   showSettings: boolean
+  showToolbar: boolean
+  boardEnabled: boolean
+  hasNotes: boolean
+  notesOpen: boolean
 }>()
 
-const { statusBadge, openProjectSettings } = useGoalPanelHeader(props)
+const emit = defineEmits<{
+  (e: 'set-board', enabled: boolean): void
+  (e: 'toggle-notes'): void
+}>()
+
+const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
+  useGoalPanelHeader(props)
 </script>
 
 <template>
@@ -23,12 +34,22 @@ const { statusBadge, openProjectSettings } = useGoalPanelHeader(props)
 
     <div class="goal-panel-header__aside">
       <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
+      <ProjectToolbar
+        v-if="showToolbar"
+        :board-enabled="boardEnabled"
+        :has-notes="hasNotes"
+        :notes-open="notesOpen"
+        @set-board="(enabled) => emit('set-board', enabled)"
+        @toggle-notes="emit('toggle-notes')"
+      />
       <button
         v-if="showSettings"
         class="goal-settings-btn"
+        :class="{ 'is-active': isProjectSettingsOpen }"
         type="button"
         title="Name, status, colours, rate"
-        @click="openProjectSettings"
+        :aria-expanded="isProjectSettingsOpen"
+        @click="toggleProjectSettings"
       >
         <span aria-hidden="true">⚙</span>
         <span>Project settings</span>

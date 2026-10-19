@@ -26,6 +26,12 @@ export interface Goal {
   hourlyRate?: number
   /** Id from the built-in project icon set; absent means no icon. */
   icon?: string
+  /** Shows the List / Board switch on this project. Absent means off. */
+  boardEnabled?: boolean
+  /** Free-text pad for the whole project. Absent means no notes. */
+  notes?: string
+  /** Analytics-only figures; never touches time entries. Absent means none. */
+  billing?: { fixedPrice?: number; manualHours?: number; note?: string }
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

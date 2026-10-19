@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
@@ -8,14 +8,18 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../../../entities/types'
-import { GOAL_STATUS } from '../../../entities/constants'
+import { GOAL_STATUS, type BoardStage } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import GoalTasksZone from './GoalTasksZone.vue'
 import HabitCalendar from './HabitCalendar.vue'
 import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
+import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
+import ProjectBoard from '../../board/components/ProjectBoard.vue'
+import ProjectNotesPanel from './ProjectNotesPanel.vue'
+import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 
 const props = defineProps<{
   goal: Goal | null
@@ -55,13 +59,37 @@ const emit = defineEmits<{
     schedule?: TaskSchedule,
   ): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'delete-task', templateId: ID): void
   (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'move-task-to', payload: TaskDropPayload): void
+  (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
+  (e: 'change-goal-board', goalId: ID, enabled: boolean): void
+  (e: 'change-goal-notes', goalId: ID, notes: string): void
+  (e: 'select-date', date: ISODate): void
 }>()
+
+// The board is opt-in per project: until it is switched on, nothing here
+// changes and the list is the only view.
+const showBoard = computed(
+  () => !props.isAllMode && props.goal?.boardEnabled === true,
+)
+
+const notesOpen = ref(false)
+const { isOpen: isSettingsOpen, close: closeSettings } = useSettingsPanel()
+
+// Notes and the settings column share the right side, so one closes the other.
+function toggleNotes() {
+  notesOpen.value = !notesOpen.value
+  if (notesOpen.value) closeSettings()
+}
+
+watch(isSettingsOpen, (open) => {
+  if (open) notesOpen.value = false
+})
 
 const movingTemplateId = ref<ID | null>(null)
 
@@ -99,6 +127,7 @@ const {
   submitQuickAdd,
   toggleDone,
   editTask,
+  editNotes,
   deleteTask,
   setAsProject,
 } = useGoalPanelState(props, {
@@ -110,6 +139,7 @@ const {
   onCreateAllModeMinor: (title, goalId, majorId, schedule) =>
     emit('create-all-mode-minor', title, goalId, majorId, schedule),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
 })
@@ -125,6 +155,14 @@ const {
       :project-count="projectCount"
       :task-count="taskCount"
       :show-settings="!isAllMode && !!goal"
+      :show-toolbar="!isAllMode && !!goal"
+      :board-enabled="showBoard"
+      :has-notes="!!goal?.notes"
+      :notes-open="notesOpen"
+      @set-board="
+        (enabled) => goal && emit('change-goal-board', goal.id, enabled)
+      "
+      @toggle-notes="toggleNotes"
     />
 
     <GoalComposerZone
@@ -140,7 +178,26 @@ const {
       "
     />
 
+    <ProjectBoard
+      v-if="showBoard"
+      :tasks="tasks"
+      :templates="templates"
+      @toggle-done="(dailyTaskId) => emit('toggle-done', dailyTaskId)"
+      @set-board-stage="
+        (templateId, stage) => emit('set-board-stage', templateId, stage)
+      "
+      @add-task="
+        (title, priority) => emit('add-task', title, priority)
+      "
+      @edit-task="(templateId, title) => emit('edit-task', templateId, title)"
+      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
+      @schedule-task="
+        (templateId, schedule) => emit('schedule-task', templateId, schedule)
+      "
+    />
+
     <GoalTasksZone
+      v-else
       :groups="taskGroups"
       :is-all-mode="isAllMode"
       @add-subtask="
@@ -150,6 +207,7 @@ const {
       @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
       @focus-project="focusProject"
       @edit-task="(templateId, title) => editTask(templateId, title)"
+      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
       @schedule-task="
         (templateId, schedule) => emit('schedule-task', templateId, schedule)
       "
@@ -162,6 +220,16 @@ const {
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
       @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
+    />
+
+    <UpcomingTasks
+      v-if="isAllMode || goal"
+      :templates="templates"
+      :daily-tasks="dailyTasks"
+      :goals="goals"
+      :goal-id="isAllMode ? null : (goal?.id ?? null)"
+      :from-date="currentDate"
+      @select-date="(date) => emit('select-date', date)"
     />
 
     <TaskMoveDialog
@@ -184,6 +252,17 @@ const {
       :subtitle="habitSubtitle"
       :today-percent="todayProgress.percent"
       :cells="monthCells"
+    />
+
+    <ProjectNotesPanel
+      v-if="notesOpen && goal && !isAllMode"
+      :key="goal.id"
+      :goal-id="goal.id"
+      :title="goal.title"
+      :notes="goal.notes ?? ''"
+      :theme-style="goalPanelStyle"
+      @save="(goalId, notes) => emit('change-goal-notes', goalId, notes)"
+      @close="notesOpen = false"
     />
   </section>
 </template>

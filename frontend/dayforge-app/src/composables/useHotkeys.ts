@@ -6,7 +6,7 @@ import type { ActiveView } from '../pages/composables/useMainPageState'
 import { useSettings } from './useSettings'
 import { useTimer } from './useTimer'
 
-export type HotkeyOverlay = 'none' | 'quick-add' | 'shortcuts'
+export type HotkeyOverlay = 'none' | 'quick-add' | 'shortcuts' | 'search'
 
 const overlay = ref<HotkeyOverlay>('none')
 
@@ -18,6 +18,9 @@ export function useHotkeyOverlay() {
     },
     openShortcuts: () => {
       overlay.value = 'shortcuts'
+    },
+    openSearch: () => {
+      overlay.value = 'search'
     },
     closeOverlay: () => {
       overlay.value = 'none'
@@ -45,7 +48,13 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'Add',
     rows: [
       { keys: ['N'], label: 'Quick add a task' },
-      { keys: ['Ctrl+K'], label: 'Quick add from anywhere' },
+    ],
+  },
+  {
+    title: 'Search',
+    rows: [
+      { keys: ['Ctrl+K'], label: 'Search projects and tasks' },
+      { keys: ['/'], label: 'Search projects and tasks' },
     ],
   },
   {
@@ -132,7 +141,8 @@ interface HotkeyActions {
 export function useHotkeys(actions: HotkeyActions) {
   const { settings } = useSettings()
   const timer = useTimer()
-  const { overlay, openQuickAdd, openShortcuts } = useHotkeyOverlay()
+  const { overlay, openQuickAdd, openShortcuts, openSearch } =
+    useHotkeyOverlay()
 
   let awaitingGo = false
   let goTimerId: number | undefined
@@ -178,7 +188,7 @@ export function useHotkeys(actions: HotkeyActions) {
     if (code === 'Space') return ' '
     if (code === 'BracketLeft') return '['
     if (code === 'BracketRight') return ']'
-    if (code === 'Slash' && event.shiftKey) return '?'
+    if (code === 'Slash') return event.shiftKey ? '?' : '/'
     return event.key.toLowerCase()
   }
 
@@ -193,7 +203,7 @@ export function useHotkeys(actions: HotkeyActions) {
     if ((event.ctrlKey || event.metaKey) && key === 'k') {
       event.preventDefault()
       cancelGo()
-      openQuickAdd()
+      openSearch()
       return
     }
 
@@ -239,6 +249,12 @@ export function useHotkeys(actions: HotkeyActions) {
     if (key === '[' || key === ']') {
       event.preventDefault()
       cycleGoal(key === '[' ? -1 : 1)
+      return
+    }
+
+    if (key === '/') {
+      event.preventDefault()
+      openSearch()
       return
     }
 

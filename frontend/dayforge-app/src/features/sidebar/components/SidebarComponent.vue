@@ -67,12 +67,17 @@ const {
 })
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
-const { openShortcuts } = useHotkeyOverlay()
+const { openShortcuts, openSearch } = useHotkeyOverlay()
 const { open: openProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
 
 function chooseView(view: ActiveView) {
   emit('select-view', view)
+  closeMobileNav()
+}
+
+function openSearchFromNav() {
+  openSearch()
   closeMobileNav()
 }
 
@@ -137,6 +142,28 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
           ⚙
         </button>
       </div>
+      <button
+        class="sidebar-search-trigger"
+        type="button"
+        aria-label="Search projects and tasks"
+        :title="shortcutTitle('Search projects and tasks', 'Ctrl+K or /')"
+        @click="openSearchFromNav"
+      >
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+      </button>
       <button
         v-if="keyboardShortcuts"
         class="sidebar-shortcuts-trigger"

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUndoToast } from '../composables/useUndoToast'
 
-const { pending, performUndo, dismissUndo, undoWindowMs } = useUndoToast()
+const { pending, runPendingAction, dismissUndo, undoWindowMs } = useUndoToast()
 
 function timerStyle(durationMs: number) {
   return { animationDuration: `${durationMs}ms` }
@@ -19,8 +19,12 @@ function timerStyle(durationMs: number) {
     aria-live="polite"
   >
     <span class="undo-toast__label">{{ pending.label }}</span>
-    <button class="undo-toast__action" type="button" @click="performUndo">
-      Undo
+    <button
+      class="undo-toast__action"
+      type="button"
+      @click="runPendingAction"
+    >
+      {{ pending.actionLabel }}
     </button>
     <button
       class="undo-toast__close"

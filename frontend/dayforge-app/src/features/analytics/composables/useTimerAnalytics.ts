@@ -24,6 +24,12 @@ import {
   rateForTask,
 } from '../../../composables/timer/rates'
 import {
+  projectFigures,
+  sanitizeBilling,
+  type ProjectBilling,
+  type ProjectFigures,
+} from './projectBilling'
+import {
   SERIES_GRANULARITY,
   buildSeries,
   type ShareInput,
@@ -42,6 +48,21 @@ export const PERIOD_OPTIONS: { id: AnalyticsPeriod; label: string }[] = [
 ]
 
 const HOUR_MS = 60 * 60 * 1000
+
+export interface ProjectRow {
+  /** Same key the earnings maps use: the goal id, or the no-project key. */
+  key: string
+  goalId?: ID
+  title: string
+  color?: string
+  taskCount: number
+  /** Tracked over all time, shown for reference next to manual hours. */
+  trackedMs: number
+  /** Only live projects can be edited; deleted ones keep their history. */
+  editable: boolean
+  billing?: ProjectBilling
+  figures: ProjectFigures
+}
 
 export interface AnalyticsSources {
   getGoals: () => Goal[]
@@ -83,7 +104,23 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     breakdownEarnings(inRange.value, rateLookup.value),
   )
 
-  const showsMoney = computed(() => hasAnyRate(rateLookup.value))
+  const isAllTime = computed(() => period.value === ANALYTICS_PERIOD.ALL)
+
+  const allTimeSummary = computed(() =>
+    summarize(entries.value, goalTitleById.value),
+  )
+
+  const allTimeEarnings = computed(() =>
+    breakdownEarnings(entries.value, rateLookup.value),
+  )
+
+  const hasFixedPrice = computed(() =>
+    sources.getGoals().some((goal) => goal.billing?.fixedPrice !== undefined),
+  )
+
+  const showsMoney = computed(
+    () => hasAnyRate(rateLookup.value) || hasFixedPrice.value,
+  )
 
   const money = computed(
     () =>
@@ -116,27 +153,97 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     return project.goalId ?? NO_PROJECT_KEY
   }
 
-  function projectMoneyLabel(project: ProjectTotal): string {
-    return money.value.format(
-      earnings.value.byProject.get(projectKeyOf(project)) ?? 0,
+  /**
+   * One row per project with time in the period. In All time every live
+   * project gets a row too, so a project worked on without the timer can
+   * still be given its hours or fixed price.
+   */
+  const projectRows = computed<ProjectRow[]>(() => {
+    const goals = sources.getGoals()
+    const colors = projectColors(goals)
+    const goalById = new Map(goals.map((goal) => [goal.id, goal]))
+
+    const periodByKey = new Map(
+      summary.value.byProject.map((project) => [projectKeyOf(project), project]),
     )
+    const allByKey = new Map(
+      allTimeSummary.value.byProject.map((project) => [
+        projectKeyOf(project),
+        project,
+      ]),
+    )
+
+    const keys = new Set(periodByKey.keys())
+    if (isAllTime.value) goals.forEach((goal) => keys.add(goal.id))
+
+    const rows = [...keys].map((key): ProjectRow => {
+      const goal = goalById.get(key)
+      const inPeriod = periodByKey.get(key)
+      const overAll = allByKey.get(key)
+      const billing = sanitizeBilling(goal?.billing)
+
+      const figures = projectFigures({
+        periodMs: inPeriod?.totalMs ?? 0,
+        periodEarned: earnings.value.byProject.get(key) ?? 0,
+        allTimeMs: overAll?.totalMs ?? 0,
+        allTimeEarned: allTimeEarnings.value.byProject.get(key) ?? 0,
+        fallbackRate: rateForTask(rateLookup.value, undefined, goal?.id),
+        isAllTime: isAllTime.value,
+        billing,
+      })
+
+      return {
+        key,
+        goalId: goal?.id,
+        title:
+          goal?.title ??
+          inPeriod?.title ??
+          overAll?.title ??
+          'Without a project',
+        color: goal ? colors.get(goal.id) : undefined,
+        taskCount: inPeriod?.taskCount ?? 0,
+        trackedMs: overAll?.totalMs ?? 0,
+        editable: goal !== undefined,
+        billing,
+        figures,
+      }
+    })
+
+    return rows.sort(
+      (a, b) =>
+        b.figures.ms - a.figures.ms || a.title.localeCompare(b.title),
+    )
+  })
+
+  const adjustedTotalMs = computed(() =>
+    projectRows.value.reduce((sum, row) => sum + row.figures.ms, 0),
+  )
+
+  const adjustedTotalEarned = computed(() =>
+    projectRows.value.reduce((sum, row) => sum + row.figures.earned, 0),
+  )
+
+  const hasAdjustments = computed(() =>
+    projectRows.value.some(
+      (row) => row.figures.fixedBasis !== null || row.figures.manualHours,
+    ),
+  )
+
+  function moneyLabel(value: number): string {
+    return money.value.format(value)
+  }
+
+  function effectiveRateLabel(rate: number | null): string {
+    return rate === null ? '—' : money.value.format(rate)
   }
 
   function taskMoneyLabel(task: TaskTotal): string {
     return money.value.format(earnings.value.byTask.get(task.key) ?? 0)
   }
 
-  function projectRateLabel(project: ProjectTotal): string {
-    if (earnings.value.mixedProjects.has(projectKeyOf(project))) return 'mixed'
-    const rate = rateForTask(rateLookup.value, undefined, project.goalId)
-    return rate > 0 ? String(rate) : '—'
-  }
-
   function taskRate(task: TaskTotal): number {
     return rateForTask(rateLookup.value, task.taskId, task.goalId)
   }
-
-  const totalEarned = computed(() => earnings.value.total)
 
   function durationLabel(totalMs: number): string {
     return formatShortDuration(totalMs)
@@ -150,6 +257,12 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     const total = summary.value.totalMs
     if (total === 0) return '0%'
     return `${Math.round((totalMs / total) * 100)}%`
+  }
+
+  /** Share of the adjusted total, so the project column adds up to 100%. */
+  function projectShareLabel(totalMs: number): string {
+    if (adjustedTotalMs.value === 0) return '0%'
+    return `${Math.round((totalMs / adjustedTotalMs.value) * 100)}%`
   }
 
   function barWidth(totalMs: number): string {
@@ -227,7 +340,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     })
 
     const total = showsMoney.value
-      ? ['Total', '', hours(summary.value.totalMs), '', totalEarned.value.toFixed(2)]
+      ? ['Total', '', hours(summary.value.totalMs), '', earnings.value.total.toFixed(2)]
       : ['Total', '', hours(summary.value.totalMs)]
 
     return [header.join('\t'), ...rows, total.join('\t')]
@@ -330,16 +443,19 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
         PERIOD_OPTIONS.find((option) => option.id === period.value)?.label ??
         '',
     ),
-    totalLabel: computed(() => formatShortDuration(summary.value.totalMs)),
-    totalHoursLabel: computed(() => hoursLabel(summary.value.totalMs)),
-    totalMoneyLabel: computed(() => money.value.format(totalEarned.value)),
+    hasAdjustments,
+    projectRows,
+    projectShareLabel,
+    totalLabel: computed(() => formatShortDuration(adjustedTotalMs.value)),
+    totalHoursLabel: computed(() => hoursLabel(adjustedTotalMs.value)),
+    totalMoneyLabel: computed(() => moneyLabel(adjustedTotalEarned.value)),
     durationLabel,
     hoursLabel,
     shareLabel,
     percentLabel,
     projectNameOf,
-    projectRateLabel,
-    projectMoneyLabel,
+    moneyLabel,
+    effectiveRateLabel,
     taskMoneyLabel,
     barWidth,
     copyReport,

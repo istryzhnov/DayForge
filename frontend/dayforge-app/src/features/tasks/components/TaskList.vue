@@ -9,6 +9,7 @@ import {
   useTaskDrag,
   type TaskDropPayload,
 } from '../composables/useTaskDrag'
+import DragGhost from '../../../components/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
 import TaskQuickAdd from './TaskQuickAdd.vue'
 
@@ -28,6 +29,7 @@ const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
+  (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
   (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
   (e: 'delete-task', templateId: ID): void
@@ -49,6 +51,11 @@ function rowDrag(node: TaskNode, parentZone: string) {
     templateId: node.task.templateId,
     title: node.task.title,
     parentZone,
+    goalId: node.task.goalId,
+    // A task inside a project row leaves that row when it lands in another project.
+    canMove: true,
+    color: node.goalColor,
+    isMajor: node.task.priority === PRIORITY.MAJOR,
   })
 }
 
@@ -58,6 +65,7 @@ const {
   handleSubtaskSubmit,
   toggleDone,
   editTask,
+  editNotes,
   scheduleTask,
   setTaskRate,
   deleteTask,
@@ -68,6 +76,7 @@ const {
     emit('add-subtask', parentTemplateId, title, priority, schedule),
   onToggleDone: (taskId) => emit('toggle-done', taskId),
   onEditTask: (templateId, title) => emit('edit-task', templateId, title),
+  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
   onScheduleTask: (templateId, schedule) =>
     emit('schedule-task', templateId, schedule),
   onSetTaskRate: (templateId, hourlyRate) =>
@@ -84,6 +93,7 @@ function sharedHandlers() {
     onSubmitSubtask: handleSubtaskSubmit,
     onCancelSubtask: () => (activeParentId.value = null),
     onEditTask: editTask,
+    onEditNotes: editNotes,
     onScheduleTask: scheduleTask,
     onSetTaskRate: setTaskRate,
     onDeleteTask: deleteTask,
@@ -175,16 +185,15 @@ function groupKey(group: TaskGroup) {
       Drop here to take it out of the project
     </div>
 
-    <div
+    <DragGhost
       v-if="drag.draggingId.value"
-      class="task-drag-ghost"
-      :style="{
-        left: `${drag.pointer.value.x}px`,
-        top: `${drag.pointer.value.y}px`,
-      }"
-    >
-      {{ drag.dragTitle.value }}
-    </div>
+      :title="drag.dragTitle.value"
+      :x="drag.pointer.value.x"
+      :y="drag.pointer.value.y"
+      :color="drag.dragColor.value"
+      :is-major="drag.dragIsMajor.value"
+      :touch="drag.dragIsTouch.value"
+    />
   </div>
 
   <TaskQuickAdd

@@ -3,3 +3,11 @@ import './style.css'
 import App from './App.vue'
 
 createApp(App).mount('#app')
+
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((error: unknown) => {
+      console.warn('Service worker registration failed', error)
+    })
+  })
+}

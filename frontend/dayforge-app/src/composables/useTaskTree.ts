@@ -10,7 +10,7 @@ export type TaskNode = {
   task: DailyTask
   /** The task's rule book: repeat, default times, parent. */
   template?: TaskTemplate
-  /** Goal the task is tagged with, or "All Goals" when it has none. */
+  /** Goal the task is tagged with, or "All Tasks" when it has none. */
   goalTitle?: string
   /** Title of the owning project, for the chip on a nested task. */
   projectTitle?: string
@@ -55,7 +55,7 @@ export function useTaskTree(props: TaskTreeProps) {
     )
 
     function goalTitleOf(task: DailyTask) {
-      if (!task.goalId) return 'All Goals'
+      if (!task.goalId) return 'All Tasks'
       return goalTitleById.get(task.goalId) ?? 'Unknown Goal'
     }
 
@@ -204,11 +204,11 @@ export function useTaskTree(props: TaskTreeProps) {
   )
 
   const panelTitle = computed(() =>
-    props.isAllMode ? 'All Goals' : (props.goal?.title ?? 'Goal'),
+    props.isAllMode ? 'All Tasks' : (props.goal?.title ?? 'Goal'),
   )
   const panelDescription = computed(() =>
     props.isAllMode
-      ? 'All tasks across goals'
+      ? 'Tasks across all projects'
       : (props.goal?.description ?? 'Overview of this goal'),
   )
 

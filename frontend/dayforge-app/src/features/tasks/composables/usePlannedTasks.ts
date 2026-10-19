@@ -2,11 +2,17 @@ import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { TASK_STATUS } from '../../../entities/constants'
+import {
+  RECURRENCE_TYPE,
+  TASK_KIND_BY_SCHEDULE,
+  TASK_STATUS,
+} from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
 import {
+  describeRecurrence,
   isAnnual,
   nextPlannedDateOf,
+  scheduleKindOf,
 } from '../../../composables/goalSpace/recurrence'
 
 export type PlannedTask = {
@@ -20,12 +26,28 @@ export type PlannedTask = {
   isOverdue: boolean
   isToday: boolean
   isAnnual: boolean
+  /** Set for a repeating task that has not started yet, e.g. "Every 8 days". */
+  repeatLabel?: string
 }
 
 type PlannedOptions = {
   getTemplates: () => TaskTemplate[]
   getDailyTasks: () => DailyTask[]
   getGoals: () => Goal[]
+}
+
+/**
+ * A repeating task is planned from its first day until that day arrives; after
+ * that it lives in the daily list like any other repeat.
+ */
+function notYetStartedRepeatOf(
+  template: TaskTemplate,
+  today: ISODate,
+): ISODate | null {
+  const rule = template.recurrence
+  if (!rule || rule.type === RECURRENCE_TYPE.NONE) return null
+  if (scheduleKindOf(template) !== TASK_KIND_BY_SCHEDULE.RECURRING) return null
+  return rule.startDate > today ? rule.startDate : null
 }
 
 export function usePlannedTasks(options: PlannedOptions) {
@@ -39,7 +61,8 @@ export function usePlannedTasks(options: PlannedOptions) {
     return options
       .getTemplates()
       .flatMap((template) => {
-        const date = nextPlannedDateOf(template, today)
+        const plannedRepeat = notYetStartedRepeatOf(template, today)
+        const date = plannedRepeat ?? nextPlannedDateOf(template, today)
         if (!date) return []
 
         const row = dailyTasks.find(
@@ -64,6 +87,9 @@ export function usePlannedTasks(options: PlannedOptions) {
             isOverdue: !isDone && !isAnnual(template) && date < today,
             isToday: date === today,
             isAnnual: isAnnual(template),
+            repeatLabel: plannedRepeat && template.recurrence
+              ? describeRecurrence(template.recurrence)
+              : undefined,
           },
         ]
       })

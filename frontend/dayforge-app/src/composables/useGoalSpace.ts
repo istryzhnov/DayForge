@@ -12,6 +12,7 @@ import {
   PRIORITY,
   TASK_KIND,
   TASK_STATUS,
+  type BoardStage,
 } from '../entities/constants'
 import { useUndoToast } from './useUndoToast'
 
@@ -19,6 +20,7 @@ import { useUndoToast } from './useUndoToast'
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
+import { normalizeNotes } from './goalSpace/notes'
 import { bindStorage, readJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
@@ -44,6 +46,8 @@ export function useGoalSpace() {
     updateGoalTheme,
     updateGoalRate,
     updateGoalIcon,
+    updateGoalBoard,
+    updateGoalNotes,
     restoreGoal,
     loadFromStorage,
   } = useGoals()
@@ -261,6 +265,38 @@ export function useGoalSpace() {
         item.title = trimmedTitle
         touchRow(item)
       })
+  }
+
+  /** Blank notes remove the field, so a cleared note leaves no trace behind. */
+  function updateTaskNotes(templateId: ID, notes: string) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template) return
+
+    const next = normalizeNotes(notes)
+    if (next === template.notes) return
+
+    if (next === undefined) {
+      delete template.notes
+    } else {
+      template.notes = next
+    }
+    template.updatedAt = new Date().toISOString()
+  }
+
+  /**
+   * Which open column a task sits in. `undefined` (or "todo") removes the key
+   * entirely, so a task that never used the board serialises exactly as before.
+   */
+  function setTaskBoardStage(templateId: ID, stage: BoardStage | undefined) {
+    const template = taskTemplates.value.find((item) => item.id === templateId)
+    if (!template || template.boardStage === stage) return
+
+    if (stage === undefined) {
+      delete template.boardStage
+    } else {
+      template.boardStage = stage
+    }
+    template.updatedAt = new Date().toISOString()
   }
 
   /** An absent rate means "bill this task at its project's rate". */
@@ -650,9 +686,13 @@ export function useGoalSpace() {
     updateGoalTheme,
     updateGoalRate,
     updateGoalIcon,
+    updateGoalBoard,
+    updateGoalNotes,
     addTask,
     addSubTask,
     editTaskTitle,
+    updateTaskNotes,
+    setTaskBoardStage,
     updateTaskRate,
     deleteTask,
     initializeStorage,

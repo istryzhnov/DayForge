@@ -14,6 +14,7 @@ import {
   GOAL_STATUS,
   PRIORITY,
   RECURRENCE_TYPE,
+  type BoardStage,
 } from '../../entities/constants'
 import type { QuickAddResult } from '../../composables/quickAdd/parse'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
@@ -31,6 +32,11 @@ import { useDataTransfer } from '../../features/settings/composables/useDataTran
 import type { TaskDropPayload } from '../../features/tasks/composables/useTaskDrag'
 import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTasks'
 import { useArchive } from '../../features/tasks/composables/useArchive'
+import { useTaskGoalDrop } from '../../features/tasks/composables/useTaskGoalDrop'
+import { useProjectBilling } from '../../features/analytics/composables/useProjectBilling'
+import { useFormat } from '../../composables/useFormat'
+import { useUndoToast } from '../../composables/useUndoToast'
+import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
 
 export type ActiveView =
   | 'goals'
@@ -56,7 +62,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
           ? goalSpace.goals.value.find(
               (goal: Goal) => goal.id === template.goalId,
             )?.title
-          : 'All Goals') ?? 'Unknown Goal',
+          : 'All Tasks') ?? 'Unknown Goal',
     })),
   )
 
@@ -164,6 +170,26 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     getGoals: () => goalSpace.goals.value,
   })
 
+  const { formatDate } = useFormat()
+  const { offerNotice } = useUndoToast()
+
+  /**
+   * A task filed on another day than the one on screen would vanish from the
+   * list, so say where it went and offer to jump there.
+   */
+  function announceScheduled(schedule: TaskSchedule | undefined) {
+    if (!schedule || schedule.date === goalSpace.currentDate.value) return
+
+    const day = formatDate(schedule.date, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+    })
+    offerNotice(`Scheduled for ${day}`, 'Show', () =>
+      goalSpace.goToDate(schedule.date),
+    )
+  }
+
   const tasksForCurrentDate = computed(() =>
     goalSpace.dailyTasks.value.filter(
       (task) => task.date === goalSpace.currentDate.value,
@@ -225,6 +251,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   })
 
   const dataTransfer = useDataTransfer(goalSpace)
+  // Dropping a task on a sidebar project.
+  useTaskGoalDrop(goalSpace)
 
   function handleAddTask(
     title: string,
@@ -233,6 +261,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   ) {
     if (!goalSpace.activeGoal.value) return
     goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
+    announceScheduled(schedule)
     noteManualTaskAdded()
   }
 
@@ -240,20 +269,23 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     const newGoalId = result.newGoalTitle
       ? handleCreateGoal(result.newGoalTitle, '', unusedProjectColor())
       : null
+    const schedule: TaskSchedule | undefined = result.date
+      ? {
+          date: result.date,
+          recurrence: {
+            type: RECURRENCE_TYPE.NONE,
+            startDate: result.date,
+          },
+        }
+      : undefined
+
     goalSpace.addTask(
       newGoalId ?? result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
       result.title,
       settings.behavior.defaultPriority,
-      result.date
-        ? {
-            date: result.date,
-            recurrence: {
-              type: RECURRENCE_TYPE.NONE,
-              startDate: result.date,
-            },
-          }
-        : undefined,
+      schedule,
     )
+    announceScheduled(schedule)
   }
 
   function handleAddSubTask(
@@ -263,6 +295,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
+    announceScheduled(schedule)
   }
 
   /** The first preset no project is wearing yet, so a new one stands out. */
@@ -381,11 +414,16 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     goalSpace.addMinorInAllMode(title, goalId, majorId, schedule)
+    announceScheduled(schedule)
     noteManualTaskAdded()
   }
 
   function handleEditTask(templateId: ID, title: string) {
     goalSpace.editTaskTitle(templateId, title)
+  }
+
+  function handleEditNotes(templateId: ID, notes: string) {
+    goalSpace.updateTaskNotes(templateId, notes)
   }
 
   // A timer left running on something that no longer exists would keep
@@ -421,8 +459,29 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalRate(goalId, hourlyRate)
   }
 
+  const projectBilling = useProjectBilling(goalSpace.goals)
+
+  function handleChangeGoalBilling(
+    goalId: ID,
+    billing: ProjectBilling | undefined,
+  ) {
+    projectBilling.updateGoalBilling(goalId, billing)
+  }
+
   function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
     goalSpace.updateGoalIcon(goalId, icon)
+  }
+
+  function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
+    goalSpace.updateGoalBoard(goalId, enabled)
+  }
+
+  function handleChangeGoalNotes(goalId: ID, notes: string) {
+    goalSpace.updateGoalNotes(goalId, notes)
+  }
+
+  function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
+    goalSpace.setTaskBoardStage(templateId, stage)
   }
 
   function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
@@ -508,14 +567,19 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleAssignTaskToGoal,
     handleCreateAllModeMinor,
     handleEditTask,
+    handleEditNotes,
     handleScheduleTask,
     handleDeleteTask,
     handleDeleteGoal,
     handleChangeGoalDetails,
     handleChangeGoalStatus,
     handleChangeGoalRate,
+    handleChangeGoalBilling,
     handleChangeGoalTheme,
     handleChangeGoalIcon,
+    handleChangeGoalBoard,
+    handleChangeGoalNotes,
+    handleSetBoardStage,
     handleSetTaskRate,
   }
 }

@@ -89,6 +89,38 @@ export function occursOn(template: TaskTemplate, date: ISODate): boolean {
   return matchesRecurrence(template.recurrence!, date)
 }
 
+const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+/** Short English rule label, e.g. "Daily", "Every 8 days", "Weekly · Mon, Wed". */
+export function describeRecurrence(rule: RecurrenceRule): string {
+  const interval = Math.max(1, rule.interval ?? 1)
+
+  switch (rule.type) {
+    case RECURRENCE_TYPE.NONE:
+      return 'Once'
+
+    case RECURRENCE_TYPE.DAILY:
+    case RECURRENCE_TYPE.CUSTOM:
+      return interval > 1 ? `Every ${interval} days` : 'Daily'
+
+    case RECURRENCE_TYPE.WEEKLY: {
+      const names = (rule.daysOfWeek ?? []).map((day) => WEEKDAY_SHORT[day])
+      return names.length ? `Weekly · ${names.join(', ')}` : 'Weekly'
+    }
+
+    case RECURRENCE_TYPE.MONTHLY: {
+      const days = rule.daysOfMonth ?? []
+      return days.length ? `Monthly · day ${days.join(', ')}` : 'Monthly'
+    }
+
+    case RECURRENCE_TYPE.YEARLY:
+      return 'Every year'
+
+    default:
+      return 'Repeats'
+  }
+}
+
 /** Whether a template produces more than one occurrence, so a tally means something. */
 export function isRepeating(template: TaskTemplate): boolean {
   if (!template.recurrence) return false
