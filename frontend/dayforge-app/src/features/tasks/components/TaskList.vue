@@ -51,8 +51,8 @@ function rowDrag(node: TaskNode, parentZone: string) {
     title: node.task.title,
     parentZone,
     goalId: node.task.goalId,
-    // Nested tasks cannot be moved, the same rule as the "Move to…" menu.
-    canMove: parentZone === DROP_ZONE_ROOT,
+    // A task inside a project row leaves that row when it lands in another project.
+    canMove: true,
   })
 }
 

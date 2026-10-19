@@ -48,7 +48,6 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'Add',
     rows: [
       { keys: ['N'], label: 'Quick add a task' },
-      { keys: ['Ctrl+Shift+K'], label: 'Quick add from anywhere' },
     ],
   },
   {
@@ -204,8 +203,7 @@ export function useHotkeys(actions: HotkeyActions) {
     if ((event.ctrlKey || event.metaKey) && key === 'k') {
       event.preventDefault()
       cancelGo()
-      if (event.shiftKey) openQuickAdd()
-      else openSearch()
+      openSearch()
       return
     }
 
