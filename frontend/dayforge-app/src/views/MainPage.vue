@@ -147,7 +147,8 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
 
 /**
  * After mount, once the browser is idle, fetch the chunks of the two views
- * people switch to most, so the first switch does not wait on the network.
+ * people switch to most, so the first switch does not wait on the network,
+ * and the rest so they also open offline once the app has been loaded.
  * Skipped when the user asked to save data.
  */
 function warmLazyViews() {
@@ -157,6 +158,16 @@ function warmLazyViews() {
   const warm = () => {
     void import('../features/calendar/components/CalendarView.vue')
     void import('../features/analytics/components/AnalyticsView.vue')
+    void import('../features/timer/components/TimerView.vue')
+    void import('../features/settings/components/SettingsSidebar.vue')
+    void import('../features/search/components/SearchPalette.vue')
+    void import('../features/hotkeys/components/QuickAddModal.vue')
+    void import('../features/hotkeys/components/ShortcutsModal.vue')
+    void import('../features/profile/components/ProfileModal.vue')
+    void import('../features/tasks/components/PlannedTaskList.vue')
+    void import('../features/tasks/components/ArchiveView.vue')
+    void import('../features/board/components/ProjectBoard.vue')
+    void import('../features/goals/components/ProjectNotesPanel.vue')
   }
   if ('requestIdleCallback' in window) {
     window.requestIdleCallback(warm)
