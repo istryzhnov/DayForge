@@ -1,30 +1,56 @@
 <script setup lang="ts">
+import { defineAsyncComponent, onMounted } from 'vue'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
 import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
-import CalendarView from '../features/calendar/components/CalendarView.vue'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
-import PlannedTaskList from '../features/tasks/components/PlannedTaskList.vue'
-import ArchiveView from '../features/tasks/components/ArchiveView.vue'
-import TimerView from '../features/timer/components/TimerView.vue'
-import AnalyticsView from '../features/analytics/components/AnalyticsView.vue'
 import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
-import StarterTemplateModal from '../features/onboarding/components/StarterTemplateModal.vue'
 import UndoToast from '../components/UndoToast.vue'
 import ShortcutTipToast from '../components/ShortcutTipToast.vue'
-import SettingsSidebar from '../features/settings/components/SettingsSidebar.vue'
-import ProfileModal from '../features/profile/components/ProfileModal.vue'
 import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
 import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
-import QuickAddModal from '../features/hotkeys/components/QuickAddModal.vue'
-import ShortcutsModal from '../features/hotkeys/components/ShortcutsModal.vue'
-import SearchPalette from '../features/search/components/SearchPalette.vue'
 import type { SearchResult } from '../features/search/composables/useGlobalSearch'
 import { flashTaskRow } from '../features/search/composables/flashTaskRow'
+
+// Views and overlays that are not needed for first paint live in their own
+// chunks. The goals list (and the shell) stays eager.
+const CalendarView = defineAsyncComponent(
+  () => import('../features/calendar/components/CalendarView.vue'),
+)
+const PlannedTaskList = defineAsyncComponent(
+  () => import('../features/tasks/components/PlannedTaskList.vue'),
+)
+const ArchiveView = defineAsyncComponent(
+  () => import('../features/tasks/components/ArchiveView.vue'),
+)
+const TimerView = defineAsyncComponent(
+  () => import('../features/timer/components/TimerView.vue'),
+)
+const AnalyticsView = defineAsyncComponent(
+  () => import('../features/analytics/components/AnalyticsView.vue'),
+)
+const StarterTemplateModal = defineAsyncComponent(
+  () => import('../features/onboarding/components/StarterTemplateModal.vue'),
+)
+const SettingsSidebar = defineAsyncComponent(
+  () => import('../features/settings/components/SettingsSidebar.vue'),
+)
+const ProfileModal = defineAsyncComponent(
+  () => import('../features/profile/components/ProfileModal.vue'),
+)
+const QuickAddModal = defineAsyncComponent(
+  () => import('../features/hotkeys/components/QuickAddModal.vue'),
+)
+const ShortcutsModal = defineAsyncComponent(
+  () => import('../features/hotkeys/components/ShortcutsModal.vue'),
+)
+const SearchPalette = defineAsyncComponent(
+  () => import('../features/search/components/SearchPalette.vue'),
+)
 
 const goalSpace = useGoalSpace()
 
@@ -118,6 +144,28 @@ const { overlay, closeOverlay } = useHotkeyOverlay()
 const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
+
+/**
+ * After mount, once the browser is idle, fetch the chunks of the two views
+ * people switch to most, so the first switch does not wait on the network.
+ * Skipped when the user asked to save data.
+ */
+function warmLazyViews() {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
+    .connection
+  if (connection?.saveData) return
+  const warm = () => {
+    void import('../features/calendar/components/CalendarView.vue')
+    void import('../features/analytics/components/AnalyticsView.vue')
+  }
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(warm)
+  } else {
+    setTimeout(warm, 1000)
+  }
+}
+
+onMounted(warmLazyViews)
 
 /** Opens the project, moves to the day of a finished task, and flashes its row. */
 function handleSearchSelect(result: SearchResult) {

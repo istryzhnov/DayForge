@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
@@ -17,9 +17,15 @@ import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
 import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
-import ProjectBoard from '../../board/components/ProjectBoard.vue'
-import ProjectNotesPanel from './ProjectNotesPanel.vue'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
+
+// Opened on demand (board toggle, notes button), so kept out of the first chunk.
+const ProjectBoard = defineAsyncComponent(
+  () => import('../../board/components/ProjectBoard.vue'),
+)
+const ProjectNotesPanel = defineAsyncComponent(
+  () => import('./ProjectNotesPanel.vue'),
+)
 
 const props = defineProps<{
   goal: Goal | null
