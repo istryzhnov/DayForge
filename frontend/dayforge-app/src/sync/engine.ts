@@ -47,6 +47,8 @@ export interface MetaPersistence {
   write(meta: SyncMeta): void
 }
 
+export type SyncErrorStage = 'pull' | 'migrate' | 'flush'
+
 export interface SyncEngineDeps {
   transport: () => SyncTransport | null
   userId: () => string | null
@@ -65,6 +67,8 @@ export interface SyncEngineDeps {
     sweep: () => void
   }
   outboxPersistence?: OutboxPersistence
+  /** Told about failures that the sync status only shows as text. */
+  onError?: (error: unknown, stage: SyncErrorStage) => void
   ringLogPersistence?: RingLogPersistence
   metaPersistence?: MetaPersistence
   debounceMs?: number
@@ -141,6 +145,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     persistence: deps.outboxPersistence,
     onChange: refreshCounters,
     onApplied,
+    onError: (error) => deps.onError?.(error, 'flush'),
     debounceMs: deps.debounceMs,
     baseBackoffMs: deps.baseBackoffMs,
     maxBackoffMs: deps.maxBackoffMs,
@@ -416,6 +421,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
       lastSyncedAt.value = new Date(deps.now()).toISOString()
       lastError.value = null
     } catch (error) {
+      deps.onError?.(error, 'pull')
       lastError.value = error instanceof Error ? error.message : String(error)
     } finally {
       pulling = false
@@ -515,6 +521,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     } catch (error) {
       // A migration that could not finish leaves the gate shut: the edits stay
       // queued here rather than reaching the server half-reconciled.
+      deps.onError?.(error, 'migrate')
       lastError.value = error instanceof Error ? error.message : String(error)
     } finally {
       busy.value = false

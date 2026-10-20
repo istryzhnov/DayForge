@@ -131,7 +131,7 @@
         <ul>
           <li>DayForge works without an account. Without signing in, your data never leaves your browser.</li>
           <li>If you sign in with Google, your data is synced to a database so that your devices can share it.</li>
-          <li>We do not sell your data, do not show ads, and do not use analytics or tracking SDKs.</li>
+          <li>We do not sell your data, do not show ads, and do not use analytics or tracking SDKs. The only exception is crash reporting, described in section 6.</li>
         </ul>
 
         <h2>2. Data we collect</h2>
@@ -201,7 +201,18 @@
         <ul>
           <li><strong>Supabase, Inc.</strong> hosts the database and handles authentication.</li>
           <li><strong>Google LLC</strong> provides the Sign in with Google service.</li>
+          <li><strong>Functional Software, Inc. (Sentry)</strong> receives crash reports, as described below.</li>
         </ul>
+        <p>
+          <strong>Crash reports.</strong> When DayForge hits an error, it sends a
+          technical error report to Sentry so that we can fix the bug. Reports
+          contain technical details only, such as the error type, the app version
+          and the code path that failed. They never contain your projects, tasks,
+          notes or other content, and they never include your email address, name,
+          cookies, session tokens or local storage. Your account appears only as a
+          one-way hash of your user identifier. Sentry keeps reports under its own
+          retention policy.
+        </p>
         <p>
           We do not sell your personal data, and we do not share it with other
           third parties for their own purposes, for advertising or for marketing.
