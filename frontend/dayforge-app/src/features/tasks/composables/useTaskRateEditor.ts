@@ -33,13 +33,13 @@ export function useTaskRateEditor(
   )
 
   const parsed = computed(() => {
-    const trimmed = draft.value.trim()
+    const trimmed = String(draft.value ?? '').trim()
     if (trimmed === '') return undefined
     const value = Number(trimmed)
     return Number.isFinite(value) && value > 0 ? value : undefined
   })
 
-  const isEmpty = computed(() => draft.value.trim() === '')
+  const isEmpty = computed(() => String(draft.value ?? '').trim() === '')
   const isValid = computed(() => isEmpty.value || parsed.value !== undefined)
 
   const inheritedFrom = computed(() => {
