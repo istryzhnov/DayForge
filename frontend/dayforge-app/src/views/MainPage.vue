@@ -129,6 +129,7 @@ const {
   handleChangeGoalBoard,
   handleChangeGoalNotes,
   handleSetBoardStage,
+  handleClearBoardDone,
   handleSetTaskRate,
 } = useMainPageState(goalSpace)
 
@@ -263,6 +264,7 @@ function handleSearchSelect(result: SearchResult) {
           @attach-to-project="handleAttachToProject"
           @move-task-to="handleMoveTaskTo"
           @set-board-stage="handleSetBoardStage"
+          @clear-board-done="handleClearBoardDone"
           @change-goal-board="handleChangeGoalBoard"
           @change-goal-notes="handleChangeGoalNotes"
           @select-date="goToDate"

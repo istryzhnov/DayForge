@@ -6,7 +6,13 @@ import {
   type TaskSchedule,
   type TaskTemplate,
 } from '../entities/TaskEntity'
-import type { GoalStatus, ID, ISODate, Priority } from '../entities/types'
+import type {
+  GoalStatus,
+  ID,
+  ISODate,
+  ISODateTime,
+  Priority,
+} from '../entities/types'
 import {
   GOAL_STATUS,
   PRIORITY,
@@ -19,6 +25,7 @@ import { useUndoToast } from './useUndoToast'
 /** How long a freshly created task keeps its "just added" highlight. */
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
+import { isRepeating } from './goalSpace/recurrence'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
 import { bindStorage, readJson } from '../lib/storage'
@@ -605,6 +612,60 @@ export function useGoalSpace() {
     task.status = TASK_STATUS.DONE
     task.completedAt = new Date().toISOString()
     touchRow(task, DAILY_FIELD_GROUPS.STATUS)
+
+    // Finishing today's occurrence of a repeating task sends it back to To do
+    // for tomorrow, rather than leaving it "In progress" from a finished day.
+    const template = taskTemplates.value.find(
+      (item) => item.id === task.templateId,
+    )
+    if (
+      template?.boardStage !== undefined &&
+      isRepeating(template) &&
+      task.date === getTodayISODate()
+    ) {
+      delete template.boardStage
+      template.updatedAt = task.completedAt
+    }
+  }
+
+  /**
+   * Hides finished cards from the board. Only `boardClearedAt` changes: no
+   * row, time entry or analytic is touched, and undo restores the old value.
+   */
+  function clearBoardDone(templateIds: ID[]) {
+    const now = new Date().toISOString()
+    const previous = new Map<ID, ISODateTime | undefined>()
+
+    templateIds.forEach((templateId) => {
+      const template = taskTemplates.value.find(
+        (item) => item.id === templateId,
+      )
+      if (!template || previous.has(templateId)) return
+      previous.set(templateId, template.boardClearedAt)
+      template.boardClearedAt = now
+      template.updatedAt = now
+    })
+
+    if (previous.size === 0) return
+
+    offerUndo(
+      previous.size === 1 ? 'Cleared 1 done task' : `Cleared ${previous.size} done tasks`,
+      () => {
+        const restoredAt = new Date().toISOString()
+        previous.forEach((value, templateId) => {
+          const template = taskTemplates.value.find(
+            (item) => item.id === templateId,
+          )
+          if (!template) return
+          if (value === undefined) {
+            delete template.boardClearedAt
+          } else {
+            template.boardClearedAt = value
+          }
+          template.updatedAt = restoredAt
+        })
+      },
+    )
   }
 
   function togglePlannedTask(templateId: ID, date: ISODate) {
@@ -693,6 +754,7 @@ export function useGoalSpace() {
     editTaskTitle,
     updateTaskNotes,
     setTaskBoardStage,
+    clearBoardDone,
     updateTaskRate,
     deleteTask,
     initializeStorage,

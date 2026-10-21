@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { DailyTask, TaskSchedule, TaskTemplate } from '../../../entities/TaskEntity'
-import { PRIORITY, type BoardStage } from '../../../entities/constants'
-import type { ID, Priority } from '../../../entities/types'
+import type {
+  DailyTask,
+  TaskSchedule,
+  TaskTemplate,
+} from '../../../entities/TaskEntity'
+import { PRIORITY, TASK_STATUS, type BoardStage } from '../../../entities/constants'
+import type { ID, ISODate, Priority } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import type { TaskNode } from '../../../composables/useTaskTree'
+import {
+  dailyTaskId,
+  getTodayISODate,
+} from '../../../composables/goalSpace/date'
 import TaskInlineEditor from '../../tasks/components/TaskInlineEditor.vue'
 import DragGhost from '../../../components/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
@@ -19,14 +27,17 @@ import {
 import { useBoardDrag } from '../composables/useBoardDrag'
 
 const props = defineProps<{
-  /** The day's rows for the open project, as the list reads them. */
-  tasks: DailyTask[]
+  /** Daily rows of the project, from any day: the board is not per day. */
+  rows: DailyTask[]
+  /** The project's own tasks. */
   templates: TaskTemplate[]
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle-done', dailyTaskId: ID): void
+  (e: 'toggle-planned', templateId: ID, date: ISODate): void
   (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
+  (e: 'clear-done', templateIds: ID[]): void
   (e: 'add-task', title: string, priority: Priority): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'edit-notes', templateId: ID, notes: string): void
@@ -35,11 +46,15 @@ const emit = defineEmits<{
 
 const { settings } = useSettings()
 
-const cards = computed(() => buildBoardCards(props.tasks, props.templates))
+const today = getTodayISODate()
 
-const templateById = computed(
-  () => new Map(props.templates.map((template) => [template.id, template])),
-)
+const cards = computed(() => buildBoardCards(props.rows, props.templates, today))
+
+const allCards = computed<BoardCardModel[]>(() => [
+  ...cards.value.todo,
+  ...cards.value.doing,
+  ...cards.value.done,
+])
 
 const EMPTY_TEXT: Record<BoardColumn, string> = {
   [BOARD_COLUMN.TODO]: 'Nothing to do yet.',
@@ -52,20 +67,31 @@ const EMPTY_TEXT: Record<BoardColumn, string> = {
  * select. Done goes through the same toggle as the checkbox in the list.
  */
 function moveCard(cardId: ID, column: BoardColumn) {
-  const row = props.tasks.find((item) => item.id === cardId)
-  if (!row) return
+  const card = allCards.value.find((item) => item.id === cardId)
+  if (!card) return
 
-  const template = templateById.value.get(row.templateId)
-  const plan = planBoardMove(row, template, column)
+  const plan = planBoardMove(card, column)
 
-  if (plan.toggleDone) emit('toggle-done', row.id)
+  if (plan.toggleDone) {
+    if (card.row) {
+      emit('toggle-done', card.row.id)
+    } else {
+      // A repeating task finished for the first time today has no row yet.
+      emit('toggle-planned', card.templateId, today)
+    }
+  }
 
   if (plan.stage !== undefined) {
     const next = plan.stage ?? undefined
-    if ((template?.boardStage ?? undefined) !== next) {
-      emit('set-board-stage', row.templateId, next)
+    if ((card.template.boardStage ?? undefined) !== next) {
+      emit('set-board-stage', card.templateId, next)
     }
   }
+}
+
+function clearDone() {
+  const templateIds = cards.value.done.map((card) => card.templateId)
+  if (templateIds.length) emit('clear-done', templateIds)
 }
 
 const drag = useBoardDrag((cardId, column) => moveCard(cardId, column))
@@ -74,11 +100,7 @@ const drag = useBoardDrag((cardId, column) => moveCard(cardId, column))
 const draggingCard = computed<BoardCardModel | null>(() => {
   const id = drag.draggingId.value
   if (id === null) return null
-  for (const column of BOARD_COLUMNS) {
-    const found = cards.value[column.key].find((card) => card.id === id)
-    if (found) return found
-  }
-  return null
+  return allCards.value.find((card) => card.id === id) ?? null
 })
 
 // --- editing: the same editor the list opens -----------------------------
@@ -91,9 +113,29 @@ function openCard(card: BoardCardModel) {
   editing.value = card
 }
 
+/**
+ * The editor reads the title and time from a row. A card with no row today
+ * (a repeating task whose next day is ahead) is edited through a stand-in.
+ */
+function rowForEditing(card: BoardCardModel): DailyTask {
+  if (card.row) return card.row
+  return {
+    id: dailyTaskId(card.templateId, card.date ?? today),
+    date: card.date ?? today,
+    templateId: card.templateId,
+    title: card.title,
+    priority: card.priority,
+    goalId: card.template.goalId,
+    tagIds: [],
+    status: TASK_STATUS.TODO,
+    startTime: card.startTime,
+    endTime: card.template.endTime,
+  }
+}
+
 const editingNode = computed<TaskNode | null>(() => {
   if (!editing.value) return null
-  return { task: editing.value.row, template: editing.value.template }
+  return { task: rowForEditing(editing.value), template: editing.value.template }
 })
 
 function saveEdits(title: string, schedule: TaskSchedule | null) {
@@ -102,7 +144,7 @@ function saveEdits(title: string, schedule: TaskSchedule | null) {
   if (!card) return
 
   // Same rules as the list: an unchanged title is not an edit.
-  if (title !== card.row.title) {
+  if (title !== card.title) {
     emit('edit-task', card.templateId, title)
   }
   emit('schedule-task', card.templateId, schedule)
@@ -148,6 +190,15 @@ function submitAdd() {
         <header class="board-column__head">
           <h3 :id="`board-column-${column.key}`">{{ column.title }}</h3>
           <span class="board-column__count">{{ cards[column.key].length }}</span>
+          <button
+            v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
+            type="button"
+            class="board-column__clear"
+            title="Hide finished tasks from this board. Nothing is deleted."
+            @click="clearDone"
+          >
+            Clear done
+          </button>
         </header>
 
         <ul class="board-column__list">
@@ -158,9 +209,7 @@ function submitAdd() {
               :is-dragging="drag.draggingId.value === card.id"
               @open="openCard(card)"
               @move="(target) => moveCard(card.id, target)"
-              @save-notes="
-                (notes) => emit('edit-notes', card.row.templateId, notes)
-              "
+              @save-notes="(notes) => emit('edit-notes', card.templateId, notes)"
             />
           </li>
         </ul>
@@ -218,10 +267,10 @@ function submitAdd() {
 
     <DragGhost
       v-if="draggingCard"
-      :title="draggingCard.row.title"
+      :title="draggingCard.title"
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
-      :is-major="draggingCard.row.priority === PRIORITY.MAJOR"
+      :is-major="draggingCard.priority === PRIORITY.MAJOR"
       :touch="drag.isTouchDrag.value"
     />
 
