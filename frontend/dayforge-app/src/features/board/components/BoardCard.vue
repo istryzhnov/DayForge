@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { PRIORITY } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
@@ -15,6 +15,8 @@ import {
 import type { BoardCardDrag } from '../composables/useBoardDrag'
 import TaskNotesButton from '../../tasks/components/TaskNotesButton.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
+import BoardCardMenu from './BoardCardMenu.vue'
+import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 
 const props = defineProps<{
   card: BoardCardModel
@@ -51,6 +53,47 @@ const isDone = computed(() => props.card.done)
 const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
 const priorityLabel = computed(() => (isMajor.value ? 'Major' : 'Minor'))
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
+
+const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
+  'notesButton',
+)
+/** Set from the menu: the notes button shows while its popover is open. */
+const notesRequested = ref(false)
+const hasNotes = computed(() => !!props.card.template.notes?.trim())
+const showNotes = computed(() => hasNotes.value || notesRequested.value)
+
+const menuPos = ref<{ x: number; y: number } | null>(null)
+
+/** Desktop right-click; on touch a held card is a drag, so the ⋯ button covers it. */
+function onContextMenu(event: MouseEvent) {
+  if (isCoarsePointer.value) return
+  event.preventDefault()
+  menuPos.value = { x: event.clientX, y: event.clientY }
+}
+
+/** Anchored under the ⋯ button, so the keyboard gets a sensible spot too. */
+function openMenuFromButton(event: MouseEvent) {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  menuPos.value = { x: rect.left, y: rect.bottom + 4 }
+}
+
+async function addNote() {
+  notesRequested.value = true
+  await nextTick()
+  notesButton.value?.openPopover()
+}
+
+function onNotesClosed() {
+  notesRequested.value = false
+}
+
+function toggleTimer() {
+  toggleTaskTimer({
+    taskId: props.card.templateId,
+    taskTitle: props.card.title,
+    goalId: props.card.template.goalId,
+  })
+}
 
 /**
  * Today's card says nothing about the day; any other day is named, so a card
@@ -96,6 +139,7 @@ function onMoveChange(event: Event) {
     }"
     :data-card-id="card.id"
     @pointerdown="onPointerDownCard"
+    @contextmenu="onContextMenu"
   >
     <button
       type="button"
@@ -136,20 +180,35 @@ function onMoveChange(event: Event) {
 
     <div class="board-card__foot">
       <TaskNotesButton
+        v-if="showNotes"
+        ref="notesButton"
         :notes="card.template.notes"
         :title="card.title"
         @save="(notes) => emit('save-notes', notes)"
+        @close="onNotesClosed"
       />
 
       <!-- Stopped here so a press on the timer never starts a drag. -->
-      <span class="board-card__timer" @pointerdown.stop>
-        <TaskTimerButton
-          :task-id="card.templateId"
-          :title="card.title"
-          :goal-id="card.template.goalId"
-          :rollup-task-ids="card.childTemplateIds"
-        />
-      </span>
+      <TaskTimerButton
+        class="board-card__timer"
+        :task-id="card.templateId"
+        :title="card.title"
+        :goal-id="card.template.goalId"
+        :rollup-task-ids="card.childTemplateIds"
+        @pointerdown.stop
+      />
+
+      <button
+        type="button"
+        class="board-card__more"
+        aria-label="More actions"
+        aria-haspopup="menu"
+        title="More actions"
+        @pointerdown.stop
+        @click.stop="openMenuFromButton"
+      >
+        ⋯
+      </button>
 
       <label class="board-card__move">
         <span>Move to</span>
@@ -165,5 +224,15 @@ function onMoveChange(event: Event) {
         </select>
       </label>
     </div>
+    <BoardCardMenu
+      v-if="menuPos"
+      :x="menuPos.x"
+      :y="menuPos.y"
+      :has-notes="hasNotes"
+      :is-timer-active="isTiming"
+      @add-note="addNote"
+      @toggle-timer="toggleTimer"
+      @close="menuPos = null"
+    />
   </article>
 </template>

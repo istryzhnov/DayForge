@@ -5,10 +5,13 @@ const props = defineProps<{
   x: number
   y: number
   isDone: boolean
+  /** Running on this task, so the entry offers to stop it instead. */
+  isTimerActive: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void
+  (e: 'toggle-timer'): void
   (e: 'close'): void
 }>()
 
@@ -31,6 +34,18 @@ const { menuPositionStyle } = useContextMenu({
       "
     >
       {{ isDone ? 'Mark as not done' : 'Mark as done' }}
+    </button>
+    <button
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('toggle-timer')
+          emit('close')
+        }
+      "
+    >
+      {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
     </button>
   </div>
 </template>

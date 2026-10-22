@@ -9,12 +9,13 @@ const props = defineProps<{
   rollupTaskIds?: ID[]
 }>()
 
-const { isActive, totalLabel, runningLabel, hint, toggle } =
+const { isActive, isShown, totalLabel, runningLabel, hint, toggle } =
   useTaskTimerButton(props)
 </script>
 
 <template>
   <button
+    v-if="isShown"
     class="task-timer-btn"
     :class="{ 'is-active': isActive }"
     type="button"
