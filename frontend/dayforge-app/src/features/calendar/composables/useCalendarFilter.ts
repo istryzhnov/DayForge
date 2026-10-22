@@ -29,5 +29,12 @@ export function useCalendarFilter() {
     update('calendar', { hiddenGoalIds: [] })
   }
 
-  return { isGoalVisible, toggleGoal, showAll, isFilterActive }
+  /** Hides every listed project and the tasks without one. */
+  function hideAll(goalIds: ID[]) {
+    update('calendar', {
+      hiddenGoalIds: [...new Set([...goalIds, NO_PROJECT_FILTER_ID])],
+    })
+  }
+
+  return { isGoalVisible, toggleGoal, showAll, hideAll, isFilterActive }
 }

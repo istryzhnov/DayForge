@@ -114,6 +114,11 @@
   color: var(--muted);
 }
 
+.calendar-filter__bulk {
+  display: flex;
+  gap: 2px;
+}
+
 .calendar-filter__show-all {
   padding: 2px 6px;
   font-size: calc(12px * var(--text-scale));
