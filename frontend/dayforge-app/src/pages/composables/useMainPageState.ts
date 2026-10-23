@@ -24,6 +24,7 @@ import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
 import { noteManualTaskAdded } from '../../composables/useShortcutTip'
 import { useTimer } from '../../composables/useTimer'
+import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
 import { useSync } from '../../composables/useSync'
 import { useAuth } from '../../composables/useAuth'
@@ -200,6 +201,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   const notifications = useTaskNotifications(goalSpace.dailyTasks)
   const timer = useTimer()
+  initTimerReminders(goalSpace.dailyTasks)
 
   /** Turns a sitting that was timed with no task attached into a real one. */
   function handleSaveTimerAsTask(title: string) {

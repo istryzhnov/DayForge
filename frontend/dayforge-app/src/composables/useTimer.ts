@@ -26,6 +26,7 @@ import {
   type TransitionResult,
 } from './timer/machine'
 import { MINUTE_MS, PHASE_LABELS } from './timer/pomodoro'
+import { splitStretchAroundAway } from './timer/reminders'
 import { mustRecordBeforeAdopting } from './timer/remote'
 import { formatDuration } from './timer/format'
 import { sanitizeActiveTimer } from './timer/sanitize'
@@ -186,10 +187,12 @@ export function useTimer() {
 
   const settings = useSettings().settings
 
+  /** `startedAt` backdates the sitting, e.g. to the moment a planned block began. */
   function start(
     mode: TimerMode = timer.value.mode,
     task?: TimerTaskRef,
     durationMs?: number,
+    startedAt?: number,
   ) {
     unnamedSessionId.value = null
     dispatch({
@@ -198,7 +201,45 @@ export function useTimer() {
       mode,
       task: task ?? timer.value.task,
       durationMs,
+      startedAt,
     })
+  }
+
+  /**
+   * Cuts the away window out of the running stretch: the time before the tab
+   * was hidden is kept, and the timer carries on from the moment it came back.
+   */
+  function discardAwayTime(hiddenAt: number, returnedAt: number) {
+    const state = timer.value
+    if (!isRunning(state) || state.startedAt === null) return
+
+    const settings = timerSettings()
+    const split = splitStretchAroundAway(state.startedAt, hiddenAt, returnedAt)
+    if (split.keptEndsAt === null) {
+      apply({
+        timer: { ...state, startedAt: split.resumeAt },
+        entries: [],
+        effects: [],
+      })
+      return
+    }
+
+    const paused = transition(
+      state,
+      { type: 'pause' },
+      split.keptEndsAt,
+      settings,
+    )
+    apply(paused)
+    apply(
+      transition(paused.timer, { type: 'resume' }, split.resumeAt, settings),
+    )
+  }
+
+  /** Stops the running sitting as if it had ended at `at`. */
+  function stopAt(at: number) {
+    if (!isRunning(timer.value)) return
+    apply(transition(timer.value, { type: 'stop' }, at, timerSettings()))
   }
 
   function startCountdown(minutes: number, task?: TimerTaskRef) {
@@ -352,6 +393,8 @@ export function useTimer() {
     ),
     attachTask,
     start,
+    discardAwayTime,
+    stopAt,
     startCountdown,
     pause,
     resume,

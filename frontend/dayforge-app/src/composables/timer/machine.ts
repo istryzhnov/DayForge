@@ -21,6 +21,8 @@ export type TimerAction =
       mode: TimerMode
       task?: TimerTaskRef
       durationMs?: number
+      /** Epoch ms to date the sitting from, when it is backdated; defaults to now. */
+      startedAt?: number
     }
   | { type: 'pause' }
   | { type: 'resume' }
@@ -137,7 +139,7 @@ function startedTimer(
     sessionId: action.sessionId,
     mode: action.mode,
     status: TIMER_STATUS.RUNNING,
-    startedAt: now,
+    startedAt: action.startedAt ?? now,
     accumulatedMs: 0,
     completedFocusCount: 0,
     task: action.task,

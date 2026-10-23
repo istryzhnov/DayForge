@@ -51,6 +51,41 @@ const { settings, update, resetSection } = useSettings()
       </button>
     </div>
 
+    <p class="sidebar-caption">Planned blocks</p>
+    <p class="settings-group-hint">
+      Only works while DayForge is open, in a tab or the installed app.
+    </p>
+
+    <label class="settings-toggle">
+      <input
+        type="checkbox"
+        :checked="settings.notifications.plannedStartReminder"
+        @change="
+          update('notifications', {
+            plannedStartReminder: checkedValue($event),
+          })
+        "
+      />
+      <span>
+        <strong>Ask to start the timer on a late block</strong>
+        <em>
+          When a scheduled block began 5 min ago with no timer running.
+        </em>
+      </span>
+    </label>
+
+    <label class="settings-toggle">
+      <input
+        type="checkbox"
+        :checked="settings.notifications.endOfDayNudge"
+        @change="update('notifications', { endOfDayNudge: checkedValue($event) })"
+      />
+      <span>
+        <strong>Evening nudge to log planned blocks</strong>
+        <em>After 6 pm, once a day, if finished blocks have no time logged.</em>
+      </span>
+    </label>
+
     <p class="sidebar-caption">Sound</p>
 
     <label class="settings-toggle">

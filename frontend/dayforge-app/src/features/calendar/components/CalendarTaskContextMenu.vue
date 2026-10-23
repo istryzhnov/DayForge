@@ -7,11 +7,14 @@ const props = defineProps<{
   isDone: boolean
   /** Running on this task, so the entry offers to stop it instead. */
   isTimerActive: boolean
+  /** A finished, scheduled block with no time logged over it yet. */
+  canLogPlanned?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void
   (e: 'toggle-timer'): void
+  (e: 'log-planned'): void
   (e: 'close'): void
 }>()
 
@@ -46,6 +49,19 @@ const { menuPositionStyle } = useContextMenu({
       "
     >
       {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
+    </button>
+    <button
+      v-if="canLogPlanned"
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('log-planned')
+          emit('close')
+        }
+      "
+    >
+      Log as planned
     </button>
   </div>
 </template>

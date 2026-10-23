@@ -3,6 +3,10 @@ import type { Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
 import { PRIORITY } from '../entities/constants'
 import { readJson, writeJson } from '../lib/storage'
+import {
+  IDLE_RETURN_MINUTE_OPTIONS,
+  LONG_RUN_HOUR_OPTIONS,
+} from './timer/reminders'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -43,6 +47,10 @@ export interface NotificationSettings {
   quietHours: boolean
   quietFrom: TimeOfDay
   quietTo: TimeOfDay
+  /** Offer to start the timer on a block that began without one. */
+  plannedStartReminder: boolean
+  /** In the evening, offer to log planned blocks that have no time yet. */
+  endOfDayNudge: boolean
 }
 
 /** Stands in for tasks that belong to no project in the calendar filter. */
@@ -116,6 +124,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
     quietHours: false,
     quietFrom: '22:00',
     quietTo: '08:00',
+    plannedStartReminder: true,
+    endOfDayNudge: true,
   },
   calendar: {
     hiddenGoalIds: [],
@@ -154,6 +164,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
     sound: true,
     hourlyRate: 0,
     currency: 'USD',
+    longRunHours: 3,
+    idleReturnMinutes: 15,
   },
 }
 
@@ -249,6 +261,14 @@ function sanitize(input: unknown): AppSettings {
         defaults.notifications.quietFrom,
       ),
       quietTo: asTime(notifications.quietTo, defaults.notifications.quietTo),
+      plannedStartReminder: asBoolean(
+        notifications.plannedStartReminder,
+        defaults.notifications.plannedStartReminder,
+      ),
+      endOfDayNudge: asBoolean(
+        notifications.endOfDayNudge,
+        defaults.notifications.endOfDayNudge,
+      ),
     },
     calendar: {
       ...calendar,
@@ -393,6 +413,16 @@ function sanitize(input: unknown): AppSettings {
         timer.currency,
         CURRENCY_OPTIONS.map((option) => option.id),
         defaults.timer.currency,
+      ),
+      longRunHours: oneOf<number>(
+        timer.longRunHours,
+        LONG_RUN_HOUR_OPTIONS,
+        defaults.timer.longRunHours,
+      ),
+      idleReturnMinutes: oneOf<number>(
+        timer.idleReturnMinutes,
+        IDLE_RETURN_MINUTE_OPTIONS,
+        defaults.timer.idleReturnMinutes,
       ),
     },
   }

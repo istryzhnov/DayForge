@@ -22,9 +22,18 @@ function timerStyle(durationMs: number) {
     <button
       class="undo-toast__action"
       type="button"
-      @click="runPendingAction"
+      @click="runPendingAction(0)"
     >
       {{ pending.actionLabel }}
+    </button>
+    <button
+      v-for="(action, index) in pending.secondary"
+      :key="action.label"
+      class="undo-toast__action undo-toast__action--secondary"
+      type="button"
+      @click="runPendingAction(index + 1)"
+    >
+      {{ action.label }}
     </button>
     <button
       class="undo-toast__close"
@@ -34,6 +43,10 @@ function timerStyle(durationMs: number) {
     >
       ×
     </button>
-    <span class="undo-toast__timer" :style="timerStyle(undoWindowMs)"></span>
+    <span
+      v-if="!pending.sticky"
+      class="undo-toast__timer"
+      :style="timerStyle(undoWindowMs)"
+    ></span>
   </div>
 </template>

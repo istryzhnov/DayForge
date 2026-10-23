@@ -78,4 +78,8 @@ export interface TimerSettings {
   /** What an hour of tracked time is worth; 0 keeps money out of the way. */
   hourlyRate: number
   currency: string
+  /** Remind after a running timer has run this many hours; 0 is off. */
+  longRunHours: number
+  /** Away from a running timer for this many minutes asks what to do with it; 0 is off. */
+  idleReturnMinutes: number
 }
