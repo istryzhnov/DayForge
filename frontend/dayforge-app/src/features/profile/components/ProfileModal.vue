@@ -1,11 +1,20 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import ProfileAvatar from './ProfileAvatar.vue'
+import DeleteAccountDialog from './DeleteAccountDialog.vue'
 import { useProfile } from '../composables/useProfile'
+import { useAccountDeletion } from '../composables/useAccountDeletion'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 
-const emit = defineEmits<{ (e: 'close'): void }>()
+const emit = defineEmits<{
+  (e: 'close'): void
+  (e: 'export-backup'): void
+}>()
 
 useFocusTrap({ onEscape: () => emit('close') })
+
+const isDeleteOpen = ref(false)
+const { isOnline, offlineHint } = useAccountDeletion()
 
 const {
   auth,
@@ -183,6 +192,26 @@ const {
           Signing out leaves every project and task here, on this device. It
           only stops them being sent anywhere.
         </p>
+
+        <button
+          class="btn btn-ghost settings-action settings-action--danger"
+          type="button"
+          :disabled="!isOnline"
+          @click="isDeleteOpen = true"
+        >
+          Delete account
+        </button>
+        <p v-if="!isOnline" class="settings-group-hint">{{ offlineHint }}</p>
+        <p v-else class="settings-group-hint">
+          Permanently deletes your account and all of its data on the server.
+          This device's copy is erased too.
+        </p>
+
+        <DeleteAccountDialog
+          v-if="isDeleteOpen"
+          @close="isDeleteOpen = false"
+          @export-backup="emit('export-backup')"
+        />
       </template>
     </div>
   </section>

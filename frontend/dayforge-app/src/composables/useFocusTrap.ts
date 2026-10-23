@@ -16,8 +16,16 @@ type FocusTrapOptions = {
   onEscape?: () => void
 }
 
+/**
+ * Open traps, oldest first. A dialog opened from inside another (the delete
+ * confirmation from the profile or settings) takes the keyboard while it is
+ * open, and the one underneath stays put until it closes.
+ */
+const openTraps: symbol[] = []
+
 export function useFocusTrap(options: FocusTrapOptions = {}) {
   const trapRef = useTemplateRef<HTMLElement>(FOCUS_TRAP_REF)
+  const trapId = Symbol('focus-trap')
   let previouslyFocused: HTMLElement | null = null
 
   function focusableElements(): HTMLElement[] {
@@ -34,7 +42,12 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
   }
 
   function handleKeydown(event: KeyboardEvent) {
+    if (openTraps[openTraps.length - 1] !== trapId) return
+
     if (event.key === 'Escape') {
+      // Captured here, so the screen underneath (the settings panel, say)
+      // does not also react to the same Escape.
+      event.stopPropagation()
       options.onEscape?.()
       return
     }
@@ -65,13 +78,17 @@ export function useFocusTrap(options: FocusTrapOptions = {}) {
 
   onMounted(() => {
     previouslyFocused = document.activeElement as HTMLElement | null
-    document.addEventListener('keydown', handleKeydown)
+    openTraps.push(trapId)
+    // Capture phase, so this runs before any listener further down the page.
+    document.addEventListener('keydown', handleKeydown, true)
     // Move focus in so the first Tab continues from the dialog, not the page.
     focusableElements()[0]?.focus()
   })
 
   onUnmounted(() => {
-    document.removeEventListener('keydown', handleKeydown)
+    const index = openTraps.indexOf(trapId)
+    if (index !== -1) openTraps.splice(index, 1)
+    document.removeEventListener('keydown', handleKeydown, true)
     previouslyFocused?.focus?.()
   })
 }

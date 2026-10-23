@@ -24,6 +24,11 @@ import {
   withHeld,
 } from '../../src/composables/settingsRow'
 import { DEFAULT_SETTINGS } from '../../src/composables/useSettings'
+import {
+  appStorageKeys,
+  clearLocalAppData,
+  isDeleteConfirmed,
+} from '../../src/sync/accountDeletion'
 import { parseBackupFile } from '../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../src/entities/GoalEntity'
 import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
@@ -813,8 +818,55 @@ function verifyUpcomingTasks() {
   check('a yearly rule reads as every year', describeRecurrence({ type: 'yearly', startDate: FROM }) === 'Every year')
 }
 
+function verifyAccountDeletionWipe() {
+  section('account deletion: local wipe')
+
+  const store = new Map<string, string>([
+    ['dayforge-goals', '[]'],
+    ['dayforge-sync-outbox-v1', '{"pending":[],"dead":[],"seq":0}'],
+    ['dayforge-auth-v1', '{}'],
+    ['unrelated-key', 'kept'],
+  ])
+  const storage = {
+    get length() {
+      return store.size
+    },
+    key: (index: number) => [...store.keys()][index] ?? null,
+    removeItem: (key: string) => {
+      store.delete(key)
+    },
+  }
+
+  check(
+    'finds only the app keys, auth session included',
+    same(appStorageKeys(storage).sort(), [
+      'dayforge-auth-v1',
+      'dayforge-goals',
+      'dayforge-sync-outbox-v1',
+    ]),
+  )
+
+  const removed = clearLocalAppData(storage)
+  check('reports how many keys it removed', removed === 3, removed)
+  check(
+    'leaves keys that are not the app\'s alone',
+    same([...store.keys()], ['unrelated-key']),
+    [...store.keys()],
+  )
+  check('a second wipe removes nothing', clearLocalAppData(storage) === 0)
+
+  check(
+    'the confirmation word must be typed exactly, padding aside',
+    isDeleteConfirmed(' DELETE ') &&
+      !isDeleteConfirmed('delete') &&
+      !isDeleteConfirmed('DELETE!') &&
+      !isDeleteConfirmed(''),
+  )
+}
+
 function main() {
   verifyUpcomingTasks()
+  verifyAccountDeletionWipe()
   verifyBoardFields()
   verifyBoardPersistence()
   verifyProjectNotes()

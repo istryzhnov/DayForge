@@ -227,3 +227,45 @@ begin
   end loop;
 end;
 $$;
+
+-- 6. Account deletion ------------------------------------------------------
+
+-- Called by the app's "Delete account" button. The account is always the
+-- caller's own (auth.uid()); nothing is passed in, so nobody can name another
+-- account here.
+--
+-- Every table is cleared explicitly rather than left to the cascade, so the
+-- list of what gets erased is visible in one place. Each table's foreign key
+-- to auth.users is `on delete cascade`, so the final delete is not blocked by
+-- anything; if a table is ever added without a cascade, its rows must be added
+-- to the list below or the account delete will fail on that foreign key.
+--
+-- The same statements live in supabase/migrations/2026-10-25-delete-account.sql
+-- for running on their own.
+create or replace function public.delete_my_account()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  me uuid := auth.uid();
+begin
+  if me is null then
+    raise exception 'Not signed in' using errcode = '28000';
+  end if;
+
+  delete from public.goals where user_id = me;
+  delete from public.task_templates where user_id = me;
+  delete from public.daily_tasks where user_id = me;
+  delete from public.time_entries where user_id = me;
+  delete from public.settings where user_id = me;
+  delete from public.active_timer where user_id = me;
+  delete from public.deletions where user_id = me;
+
+  delete from auth.users where id = me;
+end;
+$$;
+
+revoke all on function public.delete_my_account() from public, anon;
+grant execute on function public.delete_my_account() to authenticated;

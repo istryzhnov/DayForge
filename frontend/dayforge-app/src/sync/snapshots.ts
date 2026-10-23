@@ -13,6 +13,7 @@ export interface SnapshotBackend {
   /** Newest first. */
   list(): Promise<SnapshotRecord[]>
   remove(id: string): Promise<void>
+  clear(): Promise<void>
 }
 
 /** Enough to step back past a bad merge without hoarding copies. */
@@ -21,6 +22,8 @@ export const SNAPSHOT_KEEP = 3
 export interface SnapshotStore {
   save(reason: string, payload: unknown): Promise<SnapshotRecord | null>
   list(): Promise<SnapshotRecord[]>
+  /** Removes every snapshot. Used when the account is deleted. */
+  clear(): Promise<void>
 }
 
 export function createSnapshotStore(backend: SnapshotBackend): SnapshotStore {
@@ -55,7 +58,15 @@ export function createSnapshotStore(backend: SnapshotBackend): SnapshotStore {
     }
   }
 
-  return { save, list }
+  async function clear() {
+    try {
+      await backend.clear()
+    } catch {
+      // Nothing that failed to clear is worse than the caller carrying on.
+    }
+  }
+
+  return { save, list, clear }
 }
 
 const DB_NAME = 'dayforge-sync'
@@ -115,5 +126,8 @@ export const indexedDbSnapshotBackend: SnapshotBackend = {
   },
   async remove(id) {
     await runTransaction('readwrite', (store) => store.delete(id))
+  },
+  async clear() {
+    await runTransaction('readwrite', (store) => store.clear())
   },
 }

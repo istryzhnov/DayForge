@@ -9,6 +9,7 @@ import OnboardingHints from '../features/onboarding/components/OnboardingHints.v
 import UndoToast from '../components/UndoToast.vue'
 import ShortcutTipToast from '../components/ShortcutTipToast.vue'
 import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
+import { showAccountDeletedNotice } from '../features/profile/composables/useAccountDeletion'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
@@ -178,6 +179,7 @@ function warmLazyViews() {
 }
 
 onMounted(warmLazyViews)
+onMounted(showAccountDeletedNotice)
 
 /** Opens the project, moves to the day of a finished task, and flashes its row. */
 function handleSearchSelect(result: SearchResult) {
@@ -360,7 +362,11 @@ function handleSearchSelect(result: SearchResult) {
       @close="closeStarter"
     />
 
-    <ProfileModal v-if="isProfileOpen" @close="closeProfile" />
+    <ProfileModal
+      v-if="isProfileOpen"
+      @close="closeProfile"
+      @export-backup="exportData"
+    />
 
     <QuickAddModal
       v-if="overlay === 'quick-add'"

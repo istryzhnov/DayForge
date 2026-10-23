@@ -209,5 +209,8 @@ export function createMemorySnapshotBackend(): SnapshotBackend {
     async remove(id) {
       records = records.filter((record) => record.id !== id)
     },
+    async clear() {
+      records = []
+    },
   }
 }

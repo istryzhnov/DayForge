@@ -62,6 +62,32 @@
   margin-top: 8px;
 }
 
+/* Account deletion sits above whatever opened it (profile or settings), and is
+   teleported to the body so no transformed ancestor can trap its fixed layer. */
+.account-delete {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1450;
+}
+
+.account-delete__card {
+  max-width: 440px;
+}
+
+.account-delete__card .modal-actions .btn {
+  width: auto;
+}
+
+.account-delete__label {
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  color: var(--text);
+}
+
 .new-goal-colors {
   display: flex;
   flex-wrap: wrap;
