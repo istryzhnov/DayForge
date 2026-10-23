@@ -32,6 +32,8 @@ export interface Goal {
   notes?: string
   /** Analytics-only figures; never touches time entries. Absent means none. */
   billing?: { fixedPrice?: number; manualHours?: number; note?: string }
+  /** Spend limit: tracked hours and/or earnings. Absent means no budget. */
+  budget?: { hours?: number; amount?: number; period: 'total' | 'month' }
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

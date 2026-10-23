@@ -130,6 +130,7 @@ const {
   handleChangeGoalStatus,
   handleChangeGoalTheme,
   handleChangeGoalIcon,
+  handleChangeGoalBudget,
   handleChangeGoalBoard,
   handleChangeGoalNotes,
   handleSetBoardStage,
@@ -347,6 +348,7 @@ function handleSearchSelect(result: SearchResult) {
         @change-goal-theme="handleChangeGoalTheme"
         @change-goal-rate="handleChangeGoalRate"
         @change-goal-icon="handleChangeGoalIcon"
+        @change-goal-budget="handleChangeGoalBudget"
         @change-goal-board="handleChangeGoalBoard"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"

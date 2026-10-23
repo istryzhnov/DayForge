@@ -38,6 +38,9 @@ import { useProjectBilling } from '../../features/analytics/composables/useProje
 import { useFormat } from '../../composables/useFormat'
 import { useUndoToast } from '../../composables/useUndoToast'
 import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
+import { useProjectBudget } from '../../features/analytics/composables/useProjectBudget'
+import type { ProjectBudget } from '../../features/analytics/composables/projectBudget'
+import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
 
 export type ActiveView =
   | 'goals'
@@ -470,6 +473,17 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     projectBilling.updateGoalBilling(goalId, billing)
   }
 
+  const projectBudget = useProjectBudget(goalSpace.goals)
+  // Watches tracked time and posts the 80% / 100% notices; no UI of its own.
+  useBudgetAlerts(goalSpace.goals, goalSpace.taskTemplates)
+
+  function handleChangeGoalBudget(
+    goalId: ID,
+    budget: ProjectBudget | undefined,
+  ) {
+    projectBudget.updateGoalBudget(goalId, budget)
+  }
+
   function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
     goalSpace.updateGoalIcon(goalId, icon)
   }
@@ -583,6 +597,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalBilling,
     handleChangeGoalTheme,
     handleChangeGoalIcon,
+    handleChangeGoalBudget,
     handleChangeGoalBoard,
     handleChangeGoalNotes,
     handleSetBoardStage,

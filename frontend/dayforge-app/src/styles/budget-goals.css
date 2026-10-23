@@ -1,0 +1,228 @@
+/* --- project budgets: header chip and settings editor --------------------- */
+
+.budget-chip {
+  display: inline-grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 220px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: calc(12px * var(--text-scale));
+  line-height: 1.2;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel-soft) 50%, transparent);
+}
+
+.budget-chip__text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.budget-chip__text strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-chip__bar,
+.income-goal__meter {
+  display: block;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+.budget-chip__bar > span,
+.income-goal__meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
+.budget-chip.is-warn {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+}
+
+.budget-chip.is-over {
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 55%, var(--line));
+}
+
+.budget-chip.is-over .budget-chip__bar > span {
+  background: var(--danger);
+}
+
+.budget-editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.budget-period {
+  margin-top: 4px;
+}
+
+/* --- analytics: monthly income goal -------------------------------------- */
+
+.income-goal {
+  margin: 12px 0;
+}
+
+.income-goal__empty,
+.income-goal__body,
+.income-goal__form {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: calc(16px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  text-align: left;
+}
+
+.income-goal__empty {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  border-style: dashed;
+}
+
+.income-goal__empty strong {
+  font-size: calc(15px * var(--text-scale));
+  color: var(--accent);
+}
+
+.income-goal__empty:hover,
+.income-goal__empty:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.income-goal__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.income-goal__earned {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.income-goal__edit {
+  padding: 4px 10px;
+  font-size: calc(12px * var(--text-scale));
+}
+
+.income-goal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  font-size: calc(13px * var(--text-scale));
+}
+
+.income-goal__percent {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.income-goal__pace {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.income-goal__pace.is-behind {
+  color: var(--danger);
+}
+
+.income-goal__pace.is-reached,
+.income-goal__pace.is-on-track {
+  color: var(--accent);
+}
+
+.income-goal__hint {
+  margin: 0;
+}
+
+.income-goal__field {
+  display: grid;
+  gap: 4px;
+}
+
+.income-goal__field input {
+  /* 16px stops iOS from zooming the page when the field is focused. */
+  font-size: 16px;
+  min-width: 0;
+}
+
+.income-goal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.income-goal__actions .btn,
+.income-goal__edit {
+  min-height: 36px;
+}
+
+/* --- analytics: plan versus actual --------------------------------------- */
+
+.plan-vs-actual__state {
+  display: block;
+  margin-top: 2px;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.plan-vs-actual__diff {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.plan-vs-actual__diff.is-over,
+.plan-vs-actual__diff.is-unplanned {
+  color: var(--danger);
+}
+
+.plan-vs-actual__diff.is-under {
+  color: var(--accent);
+}
+
+.plan-vs-actual__state.is-over,
+.plan-vs-actual__state.is-unplanned {
+  color: var(--danger);
+}
+
+.plan-vs-actual__state.is-under {
+  color: var(--accent);
+}
+
+.plan-vs-actual__total th,
+.plan-vs-actual__total td {
+  font-weight: 700;
+  color: var(--text);
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 420px) {
+  .budget-chip {
+    max-width: 100%;
+  }
+
+  .income-goal__head .btn {
+    width: 100%;
+  }
+}

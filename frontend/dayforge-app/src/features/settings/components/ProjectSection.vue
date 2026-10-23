@@ -5,6 +5,8 @@ import { useTheme } from '../../../composables/useTheme'
 import { checkedValue } from '../../../composables/inputValue'
 import ProjectThemeEditor from './ProjectThemeEditor.vue'
 import ProjectBillingSection from './ProjectBillingSection.vue'
+import ProjectBudgetSection from './ProjectBudgetSection.vue'
+import type { ProjectBudget } from '../../analytics/composables/projectBudget'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useProjectSection } from '../composables/useProjectSection'
@@ -16,6 +18,7 @@ const emit = defineEmits<{
   (e: 'update-status', status: GoalStatus): void
   (e: 'update-theme', theme: GoalTheme | undefined): void
   (e: 'update-rate', hourlyRate: number | undefined): void
+  (e: 'update-budget', budget: ProjectBudget | undefined): void
   (e: 'update-icon', icon: string | undefined): void
   (e: 'update-board', enabled: boolean): void
   (e: 'delete'): void
@@ -149,6 +152,11 @@ const {
     <ProjectBillingSection
       :goal="goal"
       @update-rate="(rate) => emit('update-rate', rate)"
+    />
+
+    <ProjectBudgetSection
+      :goal="goal"
+      @update-budget="(budget) => emit('update-budget', budget)"
     />
 
     <DisclosureSection label="Danger zone">

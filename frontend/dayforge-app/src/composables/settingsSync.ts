@@ -1,4 +1,9 @@
-import { useSettings, DEFAULT_SETTINGS, type AppSettings } from './useSettings'
+import {
+  useSettings,
+  DEFAULT_SETTINGS,
+  type AppSettings,
+  type GoalSettings,
+} from './useSettings'
 import { readJson, writeJson } from '../lib/storage'
 import { stableStringify } from '../sync/diff'
 import type { SyncCollection } from '../sync/engine'
@@ -87,7 +92,13 @@ export function createSettingsCollection(): SyncCollection {
     SYNCED_SECTIONS.forEach((section) => {
       const value = row[section]
       if (typeof value !== 'object' || value === null) return
-      update(section, value as Partial<AppSettings[typeof section]>)
+      // A cleared income goal is left out of the row, so it is named here to
+      // reset the local one; a plain spread would keep the old figure.
+      const patch =
+        section === 'goals'
+          ? { monthlyIncome: (value as GoalSettings).monthlyIncome }
+          : value
+      update(section, patch as Partial<AppSettings[typeof section]>)
     })
 
     stamp = {

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
 import ProjectToolbar from './ProjectToolbar.vue'
+import ProjectBudgetChip from './ProjectBudgetChip.vue'
+import type { BudgetStanding } from '../../analytics/composables/projectBudget'
 
 const props = defineProps<{
   title: string
@@ -14,6 +16,7 @@ const props = defineProps<{
   boardEnabled: boolean
   hasNotes: boolean
   notesOpen: boolean
+  budget: BudgetStanding | null
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +37,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
 
     <div class="goal-panel-header__aside">
       <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
+      <ProjectBudgetChip v-if="budget" :standing="budget" />
       <ProjectToolbar
         v-if="showToolbar"
         :board-enabled="boardEnabled"

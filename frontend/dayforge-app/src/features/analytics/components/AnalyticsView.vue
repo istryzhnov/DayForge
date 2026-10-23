@@ -8,6 +8,8 @@ import ProjectShareChart from './ProjectShareChart.vue'
 import ProjectRatesDialog from './ProjectRatesDialog.vue'
 import ProjectBillingDialog from './ProjectBillingDialog.vue'
 import HabitMonthSection from './HabitMonthSection.vue'
+import IncomeGoalCard from './IncomeGoalCard.vue'
+import PlanVsActualSection from './PlanVsActualSection.vue'
 import {
   PERIOD_OPTIONS,
   useTimerAnalytics,
@@ -149,6 +151,8 @@ function saveBilling(billing: ProjectBilling | undefined) {
       </button>
     </div>
 
+    <IncomeGoalCard :goals="goals" :templates="templates" />
+
     <p
       v-if="summary.byTask.length === 0 && projectRows.length === 0"
       class="timer-history__empty"
@@ -254,6 +258,14 @@ function saveBilling(billing: ProjectBilling | undefined) {
           </table>
         </div>
       </template>
+
+      <PlanVsActualSection
+        :period="period"
+        :goals="goals"
+        :templates="templates"
+        :daily-tasks="dailyTasks"
+        :actual="summary.byProject"
+      />
 
       <template v-if="summary.byTask.length">
         <p class="sidebar-caption">By task</p>

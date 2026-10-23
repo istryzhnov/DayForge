@@ -7,6 +7,7 @@ import {
   IDLE_RETURN_MINUTE_OPTIONS,
   LONG_RUN_HOUR_OPTIONS,
 } from './timer/reminders'
+import { sanitizeMonthlyIncome } from '../features/analytics/composables/incomeGoal'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -106,6 +107,11 @@ export const CURRENCY_OPTIONS = [
   { id: 'CAD', label: 'CAD $' },
 ] as const
 
+export interface GoalSettings {
+  /** Earnings target for the calendar month, in timer.currency. Absent means none. */
+  monthlyIncome?: number
+}
+
 export interface AppSettings {
   notifications: NotificationSettings
   calendar: CalendarSettings
@@ -113,6 +119,7 @@ export interface AppSettings {
   format: FormatSettings
   accessibility: AccessibilitySettings
   timer: TimerSettings
+  goals: GoalSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -167,6 +174,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     longRunHours: 3,
     idleReturnMinutes: 15,
   },
+  // The key is listed so sync treats monthlyIncome as a known field, not an
+  // unknown one to hold on to; an undefined value means no goal.
+  goals: { monthlyIncome: undefined },
 }
 
 const settings = reactive<AppSettings>(clone(DEFAULT_SETTINGS))
@@ -425,6 +435,10 @@ function sanitize(input: unknown): AppSettings {
         defaults.timer.idleReturnMinutes,
       ),
     },
+    goals: {
+      ...asSection<GoalSettings>(raw.goals),
+      monthlyIncome: sanitizeMonthlyIncome(asSection<GoalSettings>(raw.goals).monthlyIncome),
+    },
   }
 }
 
@@ -449,6 +463,7 @@ function assign(next: AppSettings) {
   settings.format = next.format
   settings.accessibility = next.accessibility
   settings.timer = next.timer
+  settings.goals = next.goals
 }
 
 const KNOWN_SECTIONS: ReadonlyArray<string> = [
@@ -458,6 +473,7 @@ const KNOWN_SECTIONS: ReadonlyArray<string> = [
   'format',
   'accessibility',
   'timer',
+  'goals',
 ]
 
 /** Sections a newer version stored, kept so this one does not erase them. */

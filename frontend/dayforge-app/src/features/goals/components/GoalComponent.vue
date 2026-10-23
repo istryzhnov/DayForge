@@ -18,6 +18,7 @@ import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
+import { useProjectBudgetStatus } from '../../analytics/composables/useProjectBudgetStatus'
 
 // Opened on demand (board toggle, notes button), so kept out of the first chunk.
 const ProjectBoard = defineAsyncComponent(
@@ -89,6 +90,13 @@ const showBoard = computed(
 /** The board shows this project's tasks only, whatever day the list shows. */
 const boardTemplates = computed(() =>
   props.templates.filter((template) => template.goalId === props.goal?.id),
+)
+
+/** The header chip: how far this project is through its budget, if it has one. */
+const budgetStatus = useProjectBudgetStatus(
+  () => (props.isAllMode ? null : props.goal),
+  () => props.goals,
+  () => props.templates,
 )
 
 const notesOpen = ref(false)
@@ -172,6 +180,7 @@ const {
       :board-enabled="showBoard"
       :has-notes="!!goal?.notes"
       :notes-open="notesOpen"
+      :budget="budgetStatus"
       @set-board="
         (enabled) => goal && emit('change-goal-board', goal.id, enabled)
       "
