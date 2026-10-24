@@ -402,6 +402,12 @@ function verifySettingsRow() {
   const customised = { ...current, timer: { ...(current.timer as object), longRunHours: 6 } }
   check('a new field set away from its default counts as an edit', !onlyGrewWithDefaults(olderSignature, customised))
   check('an unreadable stamp counts as an edit', !onlyGrewWithDefaults('not json', current))
+
+  const beforeNudgeTime = JSON.parse(JSON.stringify(current)) as Record<string, Record<string, unknown>>
+  delete beforeNudgeTime.notifications.endOfDayTime
+  check('the evening nudge time at its default is not an edit', onlyGrewWithDefaults(stableStringify(beforeNudgeTime), current))
+  const movedNudge = { ...current, notifications: { ...(current.notifications as object), endOfDayTime: '21:00' } }
+  check('an evening nudge time moved off its default is an edit', !onlyGrewWithDefaults(stableStringify(beforeNudgeTime), movedNudge))
 }
 
 function verifyBackupFixture() {
@@ -1045,7 +1051,10 @@ function verifyTimerReminders() {
   check('away time on the hour drops the minutes', formatAwayTime(60 * MIN) === '1 h')
   check('very short away time has its own wording', formatAwayTime(10 * 1000) === 'less than a minute')
 
-  check('the evening nudge waits for 18:00', !isEndOfDay(new Date(2026, 9, 21, 17, 59)) && isEndOfDay(new Date(2026, 9, 21, 18, 0)))
+  check('the evening nudge waits for its set time', !isEndOfDay(new Date(2026, 9, 21, 17, 59), '18:00') && isEndOfDay(new Date(2026, 9, 21, 18, 0), '18:00'))
+  check('the evening nudge defaults to 22:00', DEFAULT_SETTINGS.notifications.endOfDayTime === '22:00')
+  check('the default evening nudge stays quiet before 22:00', !isEndOfDay(new Date(2026, 9, 21, 21, 59), DEFAULT_SETTINGS.notifications.endOfDayTime) && isEndOfDay(new Date(2026, 9, 21, 22, 0), DEFAULT_SETTINGS.notifications.endOfDayTime))
+  check('a later evening nudge time is honoured', !isEndOfDay(new Date(2026, 9, 21, 19, 0), '23:30') && isEndOfDay(new Date(2026, 9, 21, 23, 30), '23:30'))
   check('the nudge counts its blocks in words', plannedNudgeLabel(1).startsWith('1 planned block') && plannedNudgeLabel(3).startsWith('3 planned blocks'))
 
   const now = localAt(2026, 10, 21, 10, 0)

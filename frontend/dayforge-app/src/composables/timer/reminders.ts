@@ -10,9 +10,6 @@ export const LONG_RUN_HOUR_OPTIONS = [0, 1, 2, 3, 4, 6, 8] as const
 /** 0 switches the away prompt off. */
 export const IDLE_RETURN_MINUTE_OPTIONS = [0, 10, 15, 30, 60] as const
 
-/** Local hour from which the end-of-day "log your planned blocks" nudge may fire. */
-export const END_OF_DAY_HOUR = 18
-
 /** How long after a block's start it counts as started without a timer. */
 export const PLANNED_START_GRACE_MS = 5 * MINUTE_MS
 
@@ -101,8 +98,11 @@ export function formatAwayTime(ms: number): string {
   return `${hours} h ${minutes} min`
 }
 
-export function isEndOfDay(date: Date): boolean {
-  return date.getHours() >= END_OF_DAY_HOUR
+/** Whether the local clock has reached the end-of-day nudge time (`HH:mm`). */
+export function isEndOfDay(date: Date, nudgeTime: string): boolean {
+  const [hours, minutes] = nudgeTime.split(':').map(Number)
+  const now = date.getHours() * 60 + date.getMinutes()
+  return now >= hours * 60 + minutes
 }
 
 export function plannedNudgeLabel(count: number): string {

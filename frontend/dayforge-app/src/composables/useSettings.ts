@@ -54,6 +54,8 @@ export interface NotificationSettings {
   plannedStartReminder: boolean
   /** In the evening, offer to log planned blocks that have no time yet. */
   endOfDayNudge: boolean
+  /** When the evening nudge may appear, local `HH:mm`. */
+  endOfDayTime: TimeOfDay
 }
 
 /** Stands in for tasks that belong to no project in the calendar filter. */
@@ -137,6 +139,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     quietTo: '08:00',
     plannedStartReminder: true,
     endOfDayNudge: true,
+    endOfDayTime: '22:00',
   },
   calendar: {
     hiddenGoalIds: [],
@@ -292,6 +295,10 @@ function sanitize(input: unknown): AppSettings {
       endOfDayNudge: asBoolean(
         notifications.endOfDayNudge,
         defaults.notifications.endOfDayNudge,
+      ),
+      endOfDayTime: asTime(
+        notifications.endOfDayTime,
+        defaults.notifications.endOfDayTime,
       ),
     },
     calendar: {

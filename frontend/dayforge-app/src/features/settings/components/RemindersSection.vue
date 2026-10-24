@@ -82,9 +82,23 @@ const { settings, update, resetSection } = useSettings()
       />
       <span>
         <strong>Evening nudge to log planned blocks</strong>
-        <em>After 6 pm, once a day, if finished blocks have no time logged.</em>
+        <em>
+          After {{ settings.notifications.endOfDayTime }}, once a day, if
+          finished blocks have no time logged.
+        </em>
       </span>
     </label>
+
+    <div v-if="settings.notifications.endOfDayNudge" class="settings-times">
+      <label>
+        Summary at
+        <input
+          type="time"
+          :value="settings.notifications.endOfDayTime"
+          @change="update('notifications', { endOfDayTime: textValue($event) })"
+        />
+      </label>
+    </div>
 
     <p class="sidebar-caption">Sound</p>
 

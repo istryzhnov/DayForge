@@ -246,7 +246,8 @@ function checkPlannedStart(tasks: DailyTask[], now: number) {
 
 function checkEndOfDay(tasks: DailyTask[], now: number) {
   if (!useSettings().settings.notifications.endOfDayNudge) return
-  if (!isEndOfDay(new Date(now))) return
+  const { endOfDayTime } = useSettings().settings.notifications
+  if (!isEndOfDay(new Date(now), endOfDayTime)) return
 
   const today = getTodayISODate()
   if (stored.endOfDayNudgeDate === today) return
