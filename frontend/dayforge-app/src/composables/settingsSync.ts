@@ -47,6 +47,37 @@ function readHeld(): Record<string, unknown> {
   return isPlainObject(stored) ? stored : {}
 }
 
+/**
+ * Whether `current` equals what `previous` recorded once the keys `previous`
+ * never had are ignored, and every such key still holds its default value.
+ */
+function matchesWithDefaults(previous: unknown, current: unknown, defaults: unknown): boolean {
+  if (!isPlainObject(previous) || !isPlainObject(current)) {
+    return stableStringify(previous) === stableStringify(current)
+  }
+  const fallback = isPlainObject(defaults) ? defaults : {}
+  return Object.keys(current).every((key) =>
+    key in previous
+      ? matchesWithDefaults(previous[key], current[key], fallback[key])
+      : stableStringify(current[key]) === stableStringify(fallback[key]),
+  ) && Object.keys(previous).every((key) => key in current)
+}
+
+export function onlyGrewWithDefaults(
+  previousSignature: string,
+  payload: Record<string, unknown>,
+): boolean {
+  try {
+    return matchesWithDefaults(
+      JSON.parse(previousSignature),
+      payload,
+      pick(DEFAULT_SETTINGS),
+    )
+  } catch {
+    return false
+  }
+}
+
 export function createSettingsCollection(): SyncCollection {
   const { settings, update } = useSettings()
 
@@ -68,7 +99,12 @@ export function createSettingsCollection(): SyncCollection {
     const payload = pick(settings)
     const signature = stableStringify(payload)
     if (signature !== stamp.signature) {
-      stamp = { signature, updatedAt: new Date().toISOString() }
+      // A new build that only adds settings at their defaults is not an edit,
+      // so it keeps the old stamp instead of outranking newer devices.
+      const updatedAt = onlyGrewWithDefaults(stamp.signature, payload)
+        ? stamp.updatedAt
+        : new Date().toISOString()
+      stamp = { signature, updatedAt }
       writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
     }
 

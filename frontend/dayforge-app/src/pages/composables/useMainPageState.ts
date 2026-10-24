@@ -464,6 +464,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalRate(goalId, hourlyRate)
   }
 
+  function handleChangeGoalClient(goalId: ID, clientId: ID | undefined) {
+    goalSpace.updateGoalClient(goalId, clientId)
+  }
+
   const projectBilling = useProjectBilling(goalSpace.goals)
 
   function handleChangeGoalBilling(
@@ -594,6 +598,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalDetails,
     handleChangeGoalStatus,
     handleChangeGoalRate,
+    handleChangeGoalClient,
     handleChangeGoalBilling,
     handleChangeGoalTheme,
     handleChangeGoalIcon,

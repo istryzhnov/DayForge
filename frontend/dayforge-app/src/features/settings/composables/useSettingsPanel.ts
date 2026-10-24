@@ -10,6 +10,7 @@ export const SETTINGS_SECTION = {
   TIMER: 'timer',
   BEHAVIOR: 'behavior',
   FORMAT: 'format',
+  CLIENTS: 'clients',
   DATA: 'data',
 } as const
 
@@ -89,6 +90,13 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
     icon: '⚡',
     label: 'Behaviour',
     description: 'What the app does on its own.',
+  },
+  {
+    id: SETTINGS_SECTION.CLIENTS,
+    group: SETTINGS_GROUP.PLANNER,
+    icon: '👥',
+    label: 'Clients',
+    description: 'Who you bill, and which projects go to them.',
   },
   {
     id: SETTINGS_SECTION.FORMAT,

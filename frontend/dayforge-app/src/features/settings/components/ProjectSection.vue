@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
-import type { GoalStatus } from '../../../entities/types'
+import type { GoalStatus, ID } from '../../../entities/types'
 import { useTheme } from '../../../composables/useTheme'
+import { useSettings } from '../../../composables/useSettings'
 import { checkedValue } from '../../../composables/inputValue'
 import ProjectThemeEditor from './ProjectThemeEditor.vue'
 import ProjectBillingSection from './ProjectBillingSection.vue'
@@ -20,11 +22,25 @@ const emit = defineEmits<{
   (e: 'update-rate', hourlyRate: number | undefined): void
   (e: 'update-budget', budget: ProjectBudget | undefined): void
   (e: 'update-icon', icon: string | undefined): void
+  (e: 'update-client', clientId: ID | undefined): void
   (e: 'update-board', enabled: boolean): void
   (e: 'delete'): void
 }>()
 
 const { themeMode, surfaces, effectivePalette } = useTheme()
+const { settings } = useSettings()
+
+/** Archived clients stay out of the picker unless this project already uses one. */
+const clientOptions = computed(() =>
+  settings.billing.clients.filter(
+    (client) => !client.archived || client.id === props.goal.clientId,
+  ),
+)
+
+function handleClientChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  emit('update-client', value === '' ? undefined : value)
+}
 
 const {
   title,
@@ -63,6 +79,22 @@ const {
         @blur="commitTitle"
       />
     </label>
+
+    <p class="sidebar-caption">Client</p>
+
+    <label class="settings-field">
+      Billed to
+      <select :value="goal.clientId ?? ''" @change="handleClientChange">
+        <option value="">No client</option>
+        <option v-for="client in clientOptions" :key="client.id" :value="client.id">
+          {{ client.name }}{{ client.archived ? ' (archived)' : '' }}
+        </option>
+      </select>
+    </label>
+
+    <p v-if="clientOptions.length === 0" class="settings-group-hint">
+      No clients yet. Add them under Settings, then Clients.
+    </p>
 
     <DisclosureSection label="Icon">
       <div class="project-icon-picker">

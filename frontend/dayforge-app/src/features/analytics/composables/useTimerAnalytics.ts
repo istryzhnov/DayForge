@@ -39,6 +39,14 @@ import {
   totalsByDay,
   type TaskTotal,
 } from '../../../composables/timer/entries'
+import {
+  ALL_CLIENTS_FILTER_ID,
+  NO_CLIENT_FILTER_ID,
+  billingMonthOf,
+  clientKeyFor,
+  clientSummaries,
+  outstandingSummary,
+} from './clientBilling'
 
 export const PERIOD_OPTIONS: { id: AnalyticsPeriod; label: string }[] = [
   { id: ANALYTICS_PERIOD.THIS_MONTH, label: 'This month' },
@@ -84,8 +92,54 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
       ),
   )
 
+  // --- client filter -----------------------------------------------------
+
+  /** A client's id, `ALL_CLIENTS_FILTER_ID`, or `NO_CLIENT_FILTER_ID`. */
+  const clientFilter = ref<string>(ALL_CLIENTS_FILTER_ID)
+
+  const clientIds = computed(
+    () => new Set(settings.billing.clients.map((client) => client.id)),
+  )
+
+  const goalsById = computed(
+    () => new Map(sources.getGoals().map((goal) => [goal.id, goal])),
+  )
+
+  function matchesClientFilter(goalId?: ID): boolean {
+    if (clientFilter.value === ALL_CLIENTS_FILTER_ID) return true
+    const goal = goalId ? goalsById.value.get(goalId) : undefined
+    return clientKeyFor(goal, clientIds.value) === clientFilter.value
+  }
+
+  /** Entries of the chosen client only; every figure below starts from here. */
+  const filteredEntries = computed(() =>
+    entries.value.filter((entry) => matchesClientFilter(entry.goalId)),
+  )
+
+  const filteredGoals = computed(() =>
+    sources.getGoals().filter((goal) => matchesClientFilter(goal.id)),
+  )
+
+  const filteredTemplates = computed(() =>
+    sources.getTemplates().filter((template) =>
+      matchesClientFilter(template.goalId),
+    ),
+  )
+
+  const clientLabel = computed(() => {
+    if (clientFilter.value === ALL_CLIENTS_FILTER_ID) return 'All clients'
+    if (clientFilter.value === NO_CLIENT_FILTER_ID) return 'No client'
+    return (
+      settings.billing.clients.find(
+        (client) => client.id === clientFilter.value,
+      )?.name ?? 'Client'
+    )
+  })
+
   const range = computed(() => periodRange(period.value, new Date()))
-  const inRange = computed(() => entriesInRange(entries.value, range.value))
+  const inRange = computed(() =>
+    entriesInRange(filteredEntries.value, range.value),
+  )
 
   const summary = computed(() => summarize(inRange.value, goalTitleById.value))
 
@@ -107,11 +161,41 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   const isAllTime = computed(() => period.value === ANALYTICS_PERIOD.ALL)
 
   const allTimeSummary = computed(() =>
-    summarize(entries.value, goalTitleById.value),
+    summarize(filteredEntries.value, goalTitleById.value),
   )
 
   const allTimeEarnings = computed(() =>
-    breakdownEarnings(entries.value, rateLookup.value),
+    breakdownEarnings(filteredEntries.value, rateLookup.value),
+  )
+
+  // --- by client and payments -------------------------------------------
+
+  const billingMonth = computed(() => billingMonthOf(range.value))
+
+  /** Every client's figures for the period. The client filter narrows it. */
+  const clientRows = computed(() =>
+    clientSummaries({
+      periodEntries: inRange.value,
+      allEntries: filteredEntries.value,
+      goals: filteredGoals.value,
+      clients: settings.billing.clients,
+      lookup: rateLookup.value,
+      isAllTime: isAllTime.value,
+    }),
+  )
+
+  /** Payment records of the chosen client, or of every client. */
+  const paymentsInFilter = computed(() =>
+    settings.billing.payments.filter(
+      (payment) =>
+        clientFilter.value === ALL_CLIENTS_FILTER_ID ||
+        payment.clientId === clientFilter.value,
+    ),
+  )
+
+  /** Balance, not a period figure: every unpaid invoice, whatever the period. */
+  const outstanding = computed(() =>
+    outstandingSummary(paymentsInFilter.value, Date.now()),
   )
 
   const hasFixedPrice = computed(() =>
@@ -174,7 +258,9 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     )
 
     const keys = new Set(periodByKey.keys())
-    if (isAllTime.value) goals.forEach((goal) => keys.add(goal.id))
+    if (isAllTime.value) {
+      filteredGoals.value.forEach((goal) => keys.add(goal.id))
+    }
 
     const rows = [...keys].map((key): ProjectRow => {
       const goal = goalById.get(key)
@@ -301,7 +387,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
   const habits = computed(() =>
     habitStats({
-      templates: sources.getTemplates(),
+      templates: filteredTemplates.value,
       dailyTasks: sources.getDailyTasks(),
       from: bounds.value.from,
       to: bounds.value.to,
@@ -459,5 +545,19 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     taskMoneyLabel,
     barWidth,
     copyReport,
+    clientFilter,
+    clientLabel,
+    clientRows,
+    billingMonth,
+    outstanding,
+    filteredTemplates,
+    /** Entries of the period and client filter, for exports. */
+    periodEntries: inRange,
+    periodBounds: bounds,
+    rateOf: (taskId?: ID, goalId?: ID) =>
+      rateForTask(rateLookup.value, taskId, goalId),
+    currency: computed(() => settings.timer.currency),
+    goalsById,
+    clientIds,
   }
 }

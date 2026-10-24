@@ -108,6 +108,7 @@ export function useSettingsMenu(props: MenuProps) {
         format.clock,
         '24-hour',
       )}`,
+      clients: plural(settings.billing.clients.length, 'client'),
       data: [
         plural(props.dataStats.goals, 'project'),
         plural(props.dataStats.templates, 'task'),

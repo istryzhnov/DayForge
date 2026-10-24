@@ -1,6 +1,7 @@
 import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
+import type { BillingSettings } from '../entities/BillingEntity'
 import { PRIORITY } from '../entities/constants'
 import { readJson, writeJson } from '../lib/storage'
 import {
@@ -8,6 +9,7 @@ import {
   LONG_RUN_HOUR_OPTIONS,
 } from './timer/reminders'
 import { sanitizeMonthlyIncome } from '../features/analytics/composables/incomeGoal'
+import { sanitizeClients, sanitizePayments } from './billing/clients'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -120,6 +122,8 @@ export interface AppSettings {
   accessibility: AccessibilitySettings
   timer: TimerSettings
   goals: GoalSettings
+  /** Clients and payment status; synced with the rest of the settings row. */
+  billing: BillingSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -177,6 +181,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
   // The key is listed so sync treats monthlyIncome as a known field, not an
   // unknown one to hold on to; an undefined value means no goal.
   goals: { monthlyIncome: undefined },
+  billing: {
+    clients: [],
+    payments: [],
+  },
 }
 
 const settings = reactive<AppSettings>(clone(DEFAULT_SETTINGS))
@@ -241,8 +249,14 @@ function sanitize(input: unknown): AppSettings {
   const format = asSection<FormatSettings>(raw.format)
   const accessibility = asSection<AccessibilitySettings>(raw.accessibility)
   const timer = asSection<TimerSettings>(raw.timer)
+  const billing = asSection<BillingSettings>(raw.billing)
 
   return {
+    billing: {
+      ...billing,
+      clients: sanitizeClients(billing.clients),
+      payments: sanitizePayments(billing.payments),
+    },
     notifications: {
       ...notifications,
       leadMinutes: clampNumber(
@@ -464,6 +478,7 @@ function assign(next: AppSettings) {
   settings.accessibility = next.accessibility
   settings.timer = next.timer
   settings.goals = next.goals
+  settings.billing = next.billing
 }
 
 const KNOWN_SECTIONS: ReadonlyArray<string> = [
@@ -474,6 +489,7 @@ const KNOWN_SECTIONS: ReadonlyArray<string> = [
   'accessibility',
   'timer',
   'goals',
+  'billing',
 ]
 
 /** Sections a newer version stored, kept so this one does not erase them. */

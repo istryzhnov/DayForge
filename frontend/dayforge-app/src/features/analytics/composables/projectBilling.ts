@@ -87,7 +87,8 @@ function parseNumberField(
   max: number,
   label: string,
 ): { value?: number; error?: string } {
-  const trimmed = text.trim().replace(',', '.')
+  // A number input bound with v-model arrives as a number, not as text.
+  const trimmed = String(text).trim().replace(',', '.')
   if (trimmed === '') return {}
 
   const value = Number(trimmed)

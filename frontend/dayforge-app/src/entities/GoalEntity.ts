@@ -24,6 +24,8 @@ export interface Goal {
   accentColor?: string
   /** What an hour on this project is worth; falls back to the global rate. */
   hourlyRate?: number
+  /** The client this project is billed to. Absent means no client. */
+  clientId?: ID
   /** Id from the built-in project icon set; absent means no icon. */
   icon?: string
   /** Shows the List / Board switch on this project. Absent means off. */

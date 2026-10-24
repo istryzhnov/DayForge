@@ -8,6 +8,7 @@
 @import './styles/timer.css';
 @import './styles/analytics-billing.css';
 @import './styles/budget-goals.css';
+@import './styles/clients-billing.css';
 @import './styles/board.css';
 /* Last: its `data-pattern` rules rely on import order to outrank the
    theme-specific `.app-content` background in layout.css. */

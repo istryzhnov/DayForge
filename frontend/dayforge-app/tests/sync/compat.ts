@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { diffRows, snapshotRows, stableStringify } from '../../src/sync/diff'
+import { onlyGrewWithDefaults } from '../../src/composables/settingsSync'
 import { mergeCollection, mergeRow } from '../../src/sync/merge'
 import { partitionLive, restampForRestore } from '../../src/sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow } from '../../src/sync/types'
@@ -95,6 +96,25 @@ import {
   TIME_ENTRY_SOURCE,
   TIMER_MODE,
 } from '../../src/entities/constants'
+import { CLIENT_LIMITS, sanitizeClients, sanitizePayments } from '../../src/composables/billing/clients'
+import {
+  NO_CLIENT_FILTER_ID,
+  OVERDUE_AFTER_DAYS,
+  clientSummaries,
+  isOverdue,
+  outstandingSummary,
+  withPaymentAmount,
+  withPaymentStatus,
+} from '../../src/features/analytics/composables/clientBilling'
+import {
+  CSV_BOM,
+  buildCsv,
+  buildReportLines,
+  csvField,
+  reportTotals,
+} from '../../src/features/analytics/composables/billingExport'
+import { buildPrintHtml } from '../../src/features/analytics/composables/printReport'
+import { PAYMENT_STATUS, type Client, type PaymentRecord } from '../../src/entities/BillingEntity'
 import type { TimeEntry } from '../../src/entities/TimerEntity'
 
 let failures = 0
@@ -368,6 +388,20 @@ function verifySettingsRow() {
   })
   const removed = heldFromRow(bare, SYNCED_SECTIONS, DEFAULT_SETTINGS)
   check('a field the other device removed is no longer held', Object.keys(removed).length === 0)
+
+  section('Settings stamp survives an update that only adds defaults')
+  const current = JSON.parse(JSON.stringify(localSections)) as Record<string, unknown>
+  const older = JSON.parse(JSON.stringify(current)) as Record<string, Record<string, unknown>>
+  delete older.billing
+  delete older.goals
+  delete older.timer.longRunHours
+  const olderSignature = stableStringify(older)
+  check('new sections and fields at their defaults are not an edit', onlyGrewWithDefaults(olderSignature, current))
+  const edited = { ...current, notifications: { ...(current.notifications as object), leadMinutes: 30 } }
+  check('a real change still counts as an edit', !onlyGrewWithDefaults(olderSignature, edited))
+  const customised = { ...current, timer: { ...(current.timer as object), longRunHours: 6 } }
+  check('a new field set away from its default counts as an edit', !onlyGrewWithDefaults(olderSignature, customised))
+  check('an unreadable stamp counts as an edit', !onlyGrewWithDefaults('not json', current))
 }
 
 function verifyBackupFixture() {
@@ -1346,9 +1380,249 @@ function verifyBudgetPlanIncome() {
   )
 }
 
+function timeEntry(
+  id: string,
+  goalId: string | undefined,
+  startIso: string,
+  minutes: number,
+  taskTitle?: string,
+): TimeEntry {
+  const start = Date.parse(startIso)
+  return {
+    id,
+    sessionId: `session-${id}`,
+    startedAt: startIso,
+    endedAt: new Date(start + minutes * 60 * 1000).toISOString(),
+    mode: 'stopwatch',
+    source: 'timer',
+    goalId,
+    taskTitle,
+    updatedAt: startIso,
+  } as unknown as TimeEntry
+}
+
+function verifyClientsAndBilling() {
+  section('Clients, payment status and the report export')
+
+  const clients = sanitizeClients([
+    { id: 'c1', name: '  Acme  ', email: ' a@acme.test ', notes: '', archived: true, extra: 1 },
+    { id: 'c1', name: 'Duplicate id' },
+    { id: 'c2', name: '   ' },
+    { id: '', name: 'No id' },
+    'junk',
+    { id: 'c3', name: 'x'.repeat(200) },
+  ])
+  check('clients: duplicate ids, blank names and junk are dropped', clients.length === 2)
+  check(
+    'clients: names and emails are trimmed, blanks removed, unknown fields kept',
+    same(clients[0], { id: 'c1', name: 'Acme', email: 'a@acme.test', archived: true, extra: 1 }),
+    clients[0],
+  )
+  check(
+    'clients: long names are capped',
+    clients[1].name.length === CLIENT_LIMITS.NAME_MAX,
+  )
+
+  const payments = sanitizePayments([
+    { clientId: 'c1', month: '2026-09', status: 'invoiced', amount: 1200, invoicedAt: T0 },
+    { clientId: 'c1', month: '2026-09', status: 'paid' },
+    { clientId: 'c2', month: '2026-13', status: 'paid' },
+    { clientId: 'c2', month: '2026-08', status: 'unbilled' },
+    { clientId: 'c3', month: '2026-08', status: 'paid', amount: -5, paidAt: 'soon' },
+  ])
+  check('payments: one record per client and month, bad months and unbilled rows dropped', payments.length === 2, payments)
+  check('payments: the record gets its key', payments[0].key === 'c1:2026-09')
+  check(
+    'payments: a bad amount or date is removed, not kept',
+    payments[1].amount === undefined && payments[1].paidAt === undefined,
+    payments[1],
+  )
+
+  check(
+    'csv: plain text is not quoted',
+    csvField('plain') === 'plain' && csvField(3.5) === '3.5',
+  )
+  check(
+    'csv: commas, quotes, line breaks and semicolons are quoted',
+    csvField('a,b') === '"a,b"' &&
+      csvField('say "hi"') === '"say ""hi"""' &&
+      csvField('line\nbreak') === '"line\nbreak"' &&
+      csvField('x;y') === '"x;y"',
+  )
+  check('csv: spaces at the ends are quoted', csvField(' pad ') === '" pad "')
+  check(
+    'csv: text starting with a formula character is neutralised',
+    csvField('=SUM(A1)', true) === "'=SUM(A1)" && csvField('-3', false) === '-3',
+  )
+
+  const goals = [
+    { id: 'g1', title: 'Site, redesign', status: 'active', createdAt: T0, updatedAt: T0, clientId: 'c1' },
+    { id: 'g2', title: 'Logo', status: 'active', createdAt: T0, updatedAt: T0 },
+  ] as unknown as Goal[]
+  const reportClients: Client[] = [{ id: 'c1', name: 'Acme; Ltd' }]
+  const entries = [
+    timeEntry('e1', 'g1', '2026-09-02T10:00:00.000Z', 120, 'Layout "v2"'),
+    timeEntry('e2', 'g2', '2026-09-02T13:00:00.000Z', 30, 'Sketches'),
+    timeEntry('e3', undefined, '2026-09-02T09:00:00.000Z', 15),
+  ]
+  const lines = buildReportLines({
+    entries,
+    goals,
+    clients: reportClients,
+    rateOf: (_taskId, goalId) => (goalId === 'g1' ? 50 : 0),
+  })
+
+  check('report: lines are in time order', lines.map((line) => line.taskTitle).join('|') === '|Layout "v2"|Sketches', lines)
+  const totals = reportTotals(lines)
+  check('report: totals add up the duration and amount', Math.abs(totals.ms - 165 * 60 * 1000) < 1 && Math.abs(totals.amount - 100) < 1e-9, totals)
+
+  const csv = buildCsv(lines, 'USD')
+  const rows = csv.slice(1).split('\r\n').filter((row) => row !== '')
+  check('csv: starts with a UTF-8 byte order mark', csv.charCodeAt(0) === 0xfeff && csv.startsWith(CSV_BOM))
+  check(
+    'csv: header names the columns and the currency',
+    rows[0] === 'Date,Start,End,Duration (h),Client,Project,Task,Rate (USD),Amount (USD)',
+    rows[0],
+  )
+  check(
+    'csv: a row keeps quoted client, project and task text',
+    rows[2].includes('"Acme; Ltd"') && rows[2].includes('"Site, redesign"') && rows[2].includes('"Layout ""v2"""'),
+    rows[2],
+  )
+  check('csv: duration is decimal hours and amount is rounded', rows[2].includes(',2.00,') && rows[2].endsWith(',50.00,100.00'), rows[2])
+  check(
+    'csv: the last row is the totals',
+    rows[rows.length - 1] === 'Total,,,2.75,,,,,100.00',
+    rows[rows.length - 1],
+  )
+  check('csv: entries without a project say so', rows[1].includes('Without a project') && rows[1].includes('No client'), rows[1])
+
+  const lookup = buildRateLookup([], goals, 40)
+  const billed = [...goals]
+  billed[0] = { ...billed[0], billing: { fixedPrice: 1000 } } as Goal
+  const summaries = clientSummaries({
+    periodEntries: [timeEntry('p1', 'g1', '2026-09-02T10:00:00.000Z', 120), timeEntry('p2', 'g2', '2026-09-02T13:00:00.000Z', 60)],
+    allEntries: [timeEntry('p1', 'g1', '2026-09-02T10:00:00.000Z', 120), timeEntry('p2', 'g2', '2026-09-02T13:00:00.000Z', 60)],
+    goals: billed,
+    clients: reportClients,
+    lookup,
+    isAllTime: true,
+  })
+  check(
+    'by client: a fixed price replaces the hourly earnings of its projects',
+    summaries[0].clientId === 'c1' && summaries[0].earned === 1000 && summaries[0].hasFixedPrice && summaries[0].ms === 2 * 60 * 60 * 1000,
+    summaries,
+  )
+  check(
+    'by client: projects without a client are one row at their own rate',
+    summaries[1].key === NO_CLIENT_FILTER_ID && Math.abs(summaries[1].earned - 40) < 1e-9,
+    summaries[1],
+  )
+
+  const T_NOW = Date.parse('2026-10-25T12:00:00.000Z')
+  const DAY = 24 * 60 * 60 * 1000
+  const started = withPaymentStatus([], 'c1', '2026-09', PAYMENT_STATUS.INVOICED, T0, 1200)
+  check(
+    'payments: invoicing stores the amount and the date, not a paid date',
+    started.length === 1 && started[0].amount === 1200 && started[0].invoicedAt === T0 && started[0].paidAt === undefined,
+    started,
+  )
+  const paid = withPaymentStatus(started, 'c1', '2026-09', PAYMENT_STATUS.PAID, T1)
+  check(
+    'payments: paying keeps the invoice date and stamps the paid date',
+    paid.length === 1 && paid[0].invoicedAt === T0 && paid[0].paidAt === T1 && paid[0].amount === 1200,
+    paid,
+  )
+  const reopened = withPaymentStatus(paid, 'c1', '2026-09', PAYMENT_STATUS.INVOICED, T2)
+  check('payments: moving back to invoiced clears the paid date', reopened[0].paidAt === undefined && reopened[0].invoicedAt === T0)
+  check('payments: unbilled removes the record', withPaymentStatus(paid, 'c1', '2026-09', PAYMENT_STATUS.UNBILLED, T2).length === 0)
+  check(
+    'payments: clearing an amount removes the field',
+    withPaymentAmount(started, 'c1', '2026-09', undefined)[0].amount === undefined,
+  )
+
+  const ledger: PaymentRecord[] = [
+    { key: 'c1:2026-07', clientId: 'c1', month: '2026-07', status: PAYMENT_STATUS.INVOICED, amount: 1000, invoicedAt: new Date(T_NOW - 31 * DAY).toISOString() },
+    { key: 'c1:2026-08', clientId: 'c1', month: '2026-08', status: PAYMENT_STATUS.INVOICED, amount: 500.25, invoicedAt: new Date(T_NOW - 29 * DAY).toISOString() },
+    { key: 'c2:2026-08', clientId: 'c2', month: '2026-08', status: PAYMENT_STATUS.PAID, amount: 300, invoicedAt: new Date(T_NOW - 60 * DAY).toISOString() },
+    { key: 'c2:2026-09', clientId: 'c2', month: '2026-09', status: PAYMENT_STATUS.INVOICED, invoicedAt: new Date(T_NOW - DAY).toISOString() },
+  ]
+  const owed = outstandingSummary(ledger, T_NOW)
+  check(
+    'outstanding: sums invoiced amounts, leaves out paid ones',
+    Math.abs(owed.total - 1500.25) < 1e-9 && owed.count === 3,
+    owed,
+  )
+  check(
+    'outstanding: counts overdue invoices (over 30 days) and invoices with no amount',
+    owed.overdueCount === 1 && Math.abs(owed.overdueTotal - 1000) < 1e-9 && owed.withoutAmountCount === 1,
+    owed,
+  )
+  check(
+    'overdue: exactly 30 days is not yet overdue',
+    !isOverdue({ ...ledger[1], invoicedAt: new Date(T_NOW - OVERDUE_AFTER_DAYS * DAY).toISOString() }, T_NOW),
+  )
+  check(
+    'payments: a client filter narrows the outstanding total',
+    outstandingSummary(ledger.filter((p) => p.clientId === 'c2'), T_NOW).total === 0,
+  )
+
+  const html = buildPrintHtml({
+    authorName: 'Ada <b>Lovelace</b>',
+    clientLabel: 'Acme',
+    periodLabel: 'This month',
+    from: '2026-09-01',
+    to: '2026-09-30',
+    currency: 'USD',
+    locale: 'en-GB',
+    generatedAt: 'now',
+    lines: [
+      { ...lines[1], projectTitle: '<img src=x onerror=alert(1)>', taskTitle: '<script>x</script>' },
+    ],
+  })
+  check('print: user text is escaped', html.includes('&lt;script&gt;x&lt;/script&gt;') && !html.includes('<script>x'))
+  check('print: no script runs in the report', !/<script/i.test(html))
+  check('print: the author name is shown escaped', html.includes('Ada &lt;b&gt;Lovelace&lt;/b&gt;'))
+
+  const backup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [{ ...goals[0] }],
+    taskTemplates: [],
+    dailyTasks: [],
+    settings: { billing: { clients, payments } },
+  })
+  check('backup: a project keeps its client', backup?.goals[0].clientId === 'c1')
+  const restored = backup?.settings as { billing?: { clients?: unknown; payments?: unknown } } | undefined
+  check(
+    'backup: clients and payments travel in the settings',
+    same(restored?.billing?.clients, clients) && same(restored?.billing?.payments, payments),
+  )
+
+  const plainProject = goalRow({ id: 'goal-g', updatedAt: T0 })
+  const withClient = goalRow({ id: 'goal-g', clientId: 'c1', updatedAt: T1 })
+  check(
+    'sync: a project client survives a whole-row merge in either direction',
+    mergeRow(SYNC_TABLE.GOALS, plainProject, withClient).row.clientId === 'c1' &&
+      mergeRow(SYNC_TABLE.GOALS, withClient, plainProject).row.clientId === 'c1',
+  )
+
+  const settingsRow: Record<string, unknown> = { id: 'settings', updatedAt: T1 }
+  SYNCED_SECTIONS.forEach((section) => {
+    settingsRow[section] = clone(DEFAULT_SETTINGS[section])
+  })
+  settingsRow.billing = { clients, payments }
+  check(
+    'sync: billing is a synced settings section, not held back',
+    !('billing' in heldFromRow(settingsRow, SYNCED_SECTIONS, DEFAULT_SETTINGS)) &&
+      (SYNCED_SECTIONS as readonly string[]).includes('billing'),
+  )
+}
+
 function main() {
   verifyTimerReminders()
   verifyBudgetPlanIncome()
+  verifyClientsAndBilling()
   verifyUpcomingTasks()
   verifyAccountDeletionWipe()
   verifyBoardFields()

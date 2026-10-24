@@ -126,6 +126,7 @@ const {
   handleDeleteGoal,
   handleChangeGoalRate,
   handleChangeGoalBilling,
+  handleChangeGoalClient,
   handleChangeGoalDetails,
   handleChangeGoalStatus,
   handleChangeGoalTheme,
@@ -349,6 +350,7 @@ function handleSearchSelect(result: SearchResult) {
         @change-goal-rate="handleChangeGoalRate"
         @change-goal-icon="handleChangeGoalIcon"
         @change-goal-budget="handleChangeGoalBudget"
+        @change-goal-client="handleChangeGoalClient"
         @change-goal-board="handleChangeGoalBoard"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"
