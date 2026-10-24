@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import {
-  PRIORITY,
-  RECURRENCE_TYPE,
-  TASK_STATUS,
-} from '../../../entities/constants'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { PRIORITY } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
 import { useFormat } from '../../../composables/useFormat'
+import { useTimer } from '../../../composables/useTimer'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
 import {
   BOARD_COLUMNS,
+  BOARD_COLUMN,
   type BoardCard as BoardCardModel,
   type BoardColumn,
 } from '../composables/boardModel'
 import type { BoardCardDrag } from '../composables/useBoardDrag'
 import TaskNotesButton from '../../tasks/components/TaskNotesButton.vue'
+import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
+import BoardCardMenu from './BoardCardMenu.vue'
+import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 
 const props = defineProps<{
   card: BoardCardModel
@@ -30,6 +32,7 @@ const emit = defineEmits<{
 
 const { formatDate, formatTime } = useFormat()
 const isCoarsePointer = useIsCoarsePointer()
+const timer = useTimer()
 
 // On touch a held card is picked up and follows the finger; a quick tap is
 // still a tap, and a sideways swipe still scrolls the columns.
@@ -46,27 +49,74 @@ function onPointerDownCard(event: PointerEvent) {
   props.drag.startWithMouse(event)
 }
 
-const row = computed(() => props.card.row)
-const isDone = computed(() => row.value.status === TASK_STATUS.DONE)
-const isMajor = computed(() => row.value.priority === PRIORITY.MAJOR)
+const isDone = computed(() => props.card.done)
+const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
 const priorityLabel = computed(() => (isMajor.value ? 'Major' : 'Minor'))
+const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
 
-const repeats = computed(() => {
-  const recurrence = props.card.template?.recurrence
-  return !!recurrence && recurrence.type !== RECURRENCE_TYPE.NONE
-})
+const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
+  'notesButton',
+)
+/** Set from the menu: the notes button shows while its popover is open. */
+const notesRequested = ref(false)
+const hasNotes = computed(() => !!props.card.template.notes?.trim())
+const showNotes = computed(() => hasNotes.value || notesRequested.value)
 
-/** A one-off task shows its date; a repeating one shows that it repeats. */
-const scheduleLabel = computed(() => {
-  const recurrence = props.card.template?.recurrence
-  if (!recurrence) return ''
-  const time = row.value.startTime ? ` ${formatTime(row.value.startTime)}` : ''
-  if (repeats.value) return `Repeats${time}`
-  const date = formatDate(recurrence.startDate, {
-    month: 'short',
-    day: 'numeric',
+const menuPos = ref<{ x: number; y: number } | null>(null)
+
+/** Desktop right-click; on touch a held card is a drag, so the ⋯ button covers it. */
+function onContextMenu(event: MouseEvent) {
+  if (isCoarsePointer.value) return
+  event.preventDefault()
+  menuPos.value = { x: event.clientX, y: event.clientY }
+}
+
+/** Anchored under the ⋯ button, so the keyboard gets a sensible spot too. */
+function openMenuFromButton(event: MouseEvent) {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  menuPos.value = { x: rect.left, y: rect.bottom + 4 }
+}
+
+async function addNote() {
+  notesRequested.value = true
+  await nextTick()
+  notesButton.value?.openPopover()
+}
+
+function onNotesClosed() {
+  notesRequested.value = false
+}
+
+function toggleTimer() {
+  toggleTaskTimer({
+    taskId: props.card.templateId,
+    taskTitle: props.card.title,
+    goalId: props.card.template.goalId,
   })
-  return `${date}${time}`
+}
+
+/**
+ * Today's card says nothing about the day; any other day is named, so a card
+ * for tomorrow or an overdue one is easy to tell apart.
+ */
+const scheduleLabel = computed(() => {
+  const { card } = props
+  const time = card.startTime ? formatTime(card.startTime) : ''
+  const isToday = card.date === getTodayISODate()
+
+  if (card.isRepeating) {
+    if (!card.date) return 'Repeats'
+    const day = isToday
+      ? ''
+      : formatDate(card.date, { month: 'short', day: 'numeric' })
+    return ['Repeats', day && `· ${day}`, time].filter(Boolean).join(' ')
+  }
+
+  if (!card.date) return time
+  const day = isToday
+    ? ''
+    : formatDate(card.date, { month: 'short', day: 'numeric' })
+  return [day, time].filter(Boolean).join(' ')
 })
 
 const columnTitle = computed(
@@ -85,18 +135,20 @@ function onMoveChange(event: Event) {
       'is-done': isDone,
       'is-lifted': isLifted,
       'is-dragging': isDragging,
+      'is-timing': isTiming,
     }"
     :data-card-id="card.id"
     @pointerdown="onPointerDownCard"
+    @contextmenu="onContextMenu"
   >
     <button
       type="button"
       class="board-card__body"
-      :aria-label="`${row.title}, ${columnTitle}`"
+      :aria-label="`${card.title}, ${columnTitle}`"
       @click="emit('open')"
     >
       <span class="board-card__title" :class="{ 'task-done': isDone }">
-        {{ row.title }}
+        {{ card.title }}
       </span>
 
       <span class="board-card__meta">
@@ -111,7 +163,7 @@ function onMoveChange(event: Event) {
         <span
           v-if="scheduleLabel"
           class="board-chip"
-          :title="repeats ? 'Repeats' : 'Scheduled date'"
+          :title="card.isRepeating ? 'Repeats' : 'Scheduled date'"
         >
           {{ scheduleLabel }}
         </span>
@@ -128,10 +180,35 @@ function onMoveChange(event: Event) {
 
     <div class="board-card__foot">
       <TaskNotesButton
-        :notes="card.template?.notes"
-        :title="row.title"
+        v-if="showNotes"
+        ref="notesButton"
+        :notes="card.template.notes"
+        :title="card.title"
         @save="(notes) => emit('save-notes', notes)"
+        @close="onNotesClosed"
       />
+
+      <!-- Stopped here so a press on the timer never starts a drag. -->
+      <TaskTimerButton
+        class="board-card__timer"
+        :task-id="card.templateId"
+        :title="card.title"
+        :goal-id="card.template.goalId"
+        :rollup-task-ids="card.childTemplateIds"
+        @pointerdown.stop
+      />
+
+      <button
+        type="button"
+        class="board-card__more"
+        aria-label="More actions"
+        aria-haspopup="menu"
+        title="More actions"
+        @pointerdown.stop
+        @click.stop="openMenuFromButton"
+      >
+        ⋯
+      </button>
 
       <label class="board-card__move">
         <span>Move to</span>
@@ -140,11 +217,22 @@ function onMoveChange(event: Event) {
             v-for="column in BOARD_COLUMNS"
             :key="column.key"
             :value="column.key"
+            :disabled="column.key === BOARD_COLUMN.DONE && !card.canFinish"
           >
             {{ column.title }}
           </option>
         </select>
       </label>
     </div>
+    <BoardCardMenu
+      v-if="menuPos"
+      :x="menuPos.x"
+      :y="menuPos.y"
+      :has-notes="hasNotes"
+      :is-timer-active="isTiming"
+      @add-note="addNote"
+      @toggle-timer="toggleTimer"
+      @close="menuPos = null"
+    />
   </article>
 </template>

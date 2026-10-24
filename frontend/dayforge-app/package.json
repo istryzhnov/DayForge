@@ -10,6 +10,7 @@
     "verify:sync": "tsc -p tsconfig.verify.json && node -e \"require('node:fs').writeFileSync('.verify-out/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && node .verify-out/tests/sync/verify.js && node .verify-out/tests/sync/compat.js"
   },
   "dependencies": {
+    "@sentry/vue": "11.4.0",
     "@supabase/supabase-js": "^2.117.2",
     "vue": "3.5.43"
   },

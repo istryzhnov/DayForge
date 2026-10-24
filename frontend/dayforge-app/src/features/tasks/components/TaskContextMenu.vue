@@ -15,6 +15,10 @@ const props = defineProps<{
   isScheduled: boolean
   /** Billing at its own rate, so the entry offers to change it instead. */
   hasOwnRate: boolean
+  /** Has a note already, so the entry offers to edit it instead. */
+  hasNotes: boolean
+  /** Running on this task, so the entry offers to stop it instead. */
+  isTimerActive: boolean
 }>()
 
 const emit = defineEmits<{
@@ -25,6 +29,8 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'add-to-this'): void
   (e: 'toggle-check'): void
+  (e: 'add-note'): void
+  (e: 'toggle-timer'): void
   (e: 'set-as-project'): void
   (e: 'show-habit'): void
   (e: 'close'): void
@@ -73,6 +79,30 @@ const { menuPositionStyle } = useContextMenu({
       "
     >
       {{ isScheduled ? 'Change the time' : 'Add to calendar' }}
+    </button>
+    <button
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('add-note')
+          emit('close')
+        }
+      "
+    >
+      {{ hasNotes ? 'Edit note' : 'Add note' }}
+    </button>
+    <button
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('toggle-timer')
+          emit('close')
+        }
+      "
+    >
+      {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
     </button>
     <DisclosureSection label="More" class="task-context-menu__more">
       <button

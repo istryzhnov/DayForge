@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
@@ -17,9 +17,15 @@ import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
 import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
 import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
-import ProjectBoard from '../../board/components/ProjectBoard.vue'
-import ProjectNotesPanel from './ProjectNotesPanel.vue'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
+
+// Opened on demand (board toggle, notes button), so kept out of the first chunk.
+const ProjectBoard = defineAsyncComponent(
+  () => import('../../board/components/ProjectBoard.vue'),
+)
+const ProjectNotesPanel = defineAsyncComponent(
+  () => import('./ProjectNotesPanel.vue'),
+)
 
 const props = defineProps<{
   goal: Goal | null
@@ -67,6 +73,8 @@ const emit = defineEmits<{
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'move-task-to', payload: TaskDropPayload): void
   (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
+  (e: 'clear-board-done', templateIds: ID[]): void
+  (e: 'toggle-planned', templateId: ID, date: ISODate): void
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (e: 'change-goal-notes', goalId: ID, notes: string): void
   (e: 'select-date', date: ISODate): void
@@ -76,6 +84,11 @@ const emit = defineEmits<{
 // changes and the list is the only view.
 const showBoard = computed(
   () => !props.isAllMode && props.goal?.boardEnabled === true,
+)
+
+/** The board shows this project's tasks only, whatever day the list shows. */
+const boardTemplates = computed(() =>
+  props.templates.filter((template) => template.goalId === props.goal?.id),
 )
 
 const notesOpen = ref(false)
@@ -180,9 +193,13 @@ const {
 
     <ProjectBoard
       v-if="showBoard"
-      :tasks="tasks"
-      :templates="templates"
+      :rows="dailyTasks"
+      :templates="boardTemplates"
       @toggle-done="(dailyTaskId) => emit('toggle-done', dailyTaskId)"
+      @toggle-planned="
+        (templateId, date) => emit('toggle-planned', templateId, date)
+      "
+      @clear-done="(templateIds) => emit('clear-board-done', templateIds)"
       @set-board-stage="
         (templateId, stage) => emit('set-board-stage', templateId, stage)
       "

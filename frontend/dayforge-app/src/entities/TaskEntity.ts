@@ -38,6 +38,12 @@ export interface TaskTemplate {
    * "todo". Done is not stored here: it is the row's own status.
    */
   boardStage?: BoardStage
+  /**
+   * When the board's Done column was last cleared for this task. A done card
+   * is hidden while its completion is not later than this. Clearing only
+   * hides the card; nothing else reads it.
+   */
+  boardClearedAt?: ISODateTime
 }
 
 /** Optional scheduling captured while creating a task. */

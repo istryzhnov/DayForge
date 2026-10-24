@@ -45,7 +45,7 @@ export function useProjectRateField(
   )
 
   function commit() {
-    const trimmed = draft.value.trim()
+    const trimmed = String(draft.value ?? '').trim()
     if (trimmed === '') {
       actions.onUpdate(undefined)
       return

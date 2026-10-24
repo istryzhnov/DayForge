@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="index, follow" />
+    <title>DayForge · Plan your day, track your time, keep your habits</title>
+    <meta name="description" content="DayForge is a free planner that combines tasks and projects, habits, calendar, time tracking with hourly rates and analytics, a kanban board and notes. It works offline and syncs across devices." />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#ff7a2f" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
+    <link rel="canonical" href="https://day-forge-app-is.netlify.app/about" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DayForge" />
+    <meta property="og:title" content="DayForge · Plan your day, track your time, keep your habits" />
+    <meta property="og:description" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline and syncs across your devices." />
+    <meta property="og:url" content="https://day-forge-app-is.netlify.app/about" />
+    <meta property="og:image" content="https://day-forge-app-is.netlify.app/landing/og.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="DayForge task list across projects, with coloured project tags, done tasks and upcoming times" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DayForge · Plan your day, track your time, keep your habits" />
+    <meta name="twitter:description" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline and syncs across your devices." />
+    <meta name="twitter:image" content="https://day-forge-app-is.netlify.app/landing/og.jpg" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #fbfbfa;
+        --panel: #ffffff;
+        --panel-soft: #f3f3f2;
+        --line: #dfdfdf;
+        --text: #171717;
+        --muted: #6c6c6c;
+        --accent: #ff7a2f;
+        --accent-ink: #171717;
+        --icon: #d95a1a;
+        --link: #b5480f;
+        --focus: #b5480f;
+        --shadow: 0 18px 38px rgba(20, 20, 20, 0.12);
+        --shadow-sm: 0 6px 14px rgba(20, 20, 20, 0.08);
+        --font-ui: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --bg: #0a0a0b;
+          --panel: #141415;
+          --panel-soft: #1a1a1c;
+          --line: #2d2d31;
+          --text: #f4f4f4;
+          --muted: #a6a6ae;
+          --accent: #ff7a2f;
+          --accent-ink: #141415;
+          --icon: #ff7a2f;
+          --link: #ff9a5c;
+          --focus: #ff9a5c;
+          --shadow: 0 22px 44px rgba(0, 0, 0, 0.32);
+          --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.22);
+        }
+      }
+
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      @media (prefers-reduced-motion: no-preference) {
+        html { scroll-behavior: smooth; }
+      }
+      html, body { margin: 0; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-ui);
+        font-size: 16px;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+      img, svg { display: block; max-width: 100%; }
+      a { color: var(--link); }
+      :focus-visible {
+        outline: 3px solid var(--focus);
+        outline-offset: 3px;
+        border-radius: 6px;
+      }
+      .skip {
+        position: absolute;
+        left: 16px;
+        top: -100px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        z-index: 10;
+      }
+      .skip:focus { top: 12px; }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .wrap {
+        width: 100%;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      @media (min-width: 720px) {
+        .wrap { padding: 0 28px; }
+      }
+
+      /* Brand wordmark, mirrors src/components/BrandWordmark.vue */
+      .brand {
+        display: inline-flex;
+        align-items: baseline;
+        white-space: nowrap;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+        color: var(--text);
+      }
+      .brand__mark {
+        width: 0.74em;
+        height: 0.74em;
+        margin-right: 0.06em;
+        align-self: baseline;
+        fill: currentColor;
+      }
+      .brand__now { fill: var(--accent); }
+
+      /* Header */
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 18px;
+        padding-bottom: 18px;
+      }
+      .top .brand { flex: none; }
+      .top nav .btn--small { padding: 7px 12px; white-space: nowrap; }
+      .top nav a.btn--primary,
+      .top nav a.btn--primary:hover { color: var(--accent-ink); }
+      .top .brand { font-size: 1.25rem; }
+      .top nav {
+        display: flex;
+        align-items: center;
+        gap: 4px 16px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .top nav a {
+        color: var(--muted);
+        text-decoration: none;
+        font-size: 0.95rem;
+        padding: 6px 2px;
+      }
+      .top nav a:hover { color: var(--text); }
+      .top nav .hide-sm { display: none; }
+      @media (min-width: 640px) {
+        .top nav .hide-sm { display: inline; }
+      }
+
+      /* Buttons */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font: inherit;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.15s ease, border-color 0.15s ease;
+      }
+      .btn--primary {
+        background: var(--accent);
+        color: var(--accent-ink);
+        box-shadow: var(--shadow-sm);
+      }
+      .btn--primary:hover { filter: brightness(1.05); }
+      .btn--ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--line);
+      }
+      .btn--ghost:hover { background: var(--panel-soft); }
+      .btn--small { min-height: 38px; padding: 7px 14px; font-size: 0.95rem; }
+
+      /* Sections */
+      section { padding: 56px 0; }
+      @media (min-width: 720px) {
+        section { padding: 88px 0; }
+      }
+      .eyebrow {
+        margin: 0 0 10px;
+        color: var(--muted);
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+      h1, h2, h3 { line-height: 1.15; margin: 0; letter-spacing: -0.02em; }
+      h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); }
+      h3 { font-size: 1.1rem; letter-spacing: -0.01em; }
+      .lead {
+        color: var(--muted);
+        font-size: clamp(1.02rem, 2.4vw, 1.2rem);
+        max-width: 620px;
+      }
+      .section-head { max-width: 680px; margin-bottom: 32px; }
+      .section-head p { margin: 14px 0 0; color: var(--muted); }
+
+      /* Hero */
+      .hero { padding-top: 40px; padding-bottom: 40px; text-align: center; }
+      @media (min-width: 720px) {
+        .hero { padding-top: 64px; padding-bottom: 56px; }
+      }
+      .hero h1 {
+        font-size: clamp(2.3rem, 7vw, 4.4rem);
+        font-weight: 800;
+        display: inline-flex;
+        align-items: baseline;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .hero h1 .brand { font-size: 1em; }
+      .hero .lead {
+        margin: 18px auto 0;
+        font-size: clamp(1.1rem, 3vw, 1.35rem);
+      }
+      .cta {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        justify-content: center;
+        margin-top: 30px;
+      }
+      @media (min-width: 480px) {
+        .cta { flex-direction: row; }
+      }
+      .hero .cta { align-items: stretch; }
+      .shot {
+        margin: 48px auto 0;
+        max-width: 1120px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+      }
+      .shot img { width: 100%; height: auto; }
+
+      /* Why */
+      .why-grid {
+        display: grid;
+        gap: 16px;
+      }
+      @media (min-width: 760px) {
+        .why-grid { grid-template-columns: 1fr 1fr; }
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+      }
+      .card p { margin: 10px 0 0; color: var(--muted); }
+      .card--compare h3 { font-size: 0.85rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+      .card--compare .verdict { margin-top: 8px; color: var(--text); font-size: 1.12rem; font-weight: 700; line-height: 1.35; }
+      .pillars {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 560px) {
+        .pillars { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (min-width: 960px) {
+        .pillars { grid-template-columns: repeat(4, 1fr); }
+      }
+      .pillar {
+        border-top: 2px solid var(--accent);
+        padding: 14px 4px 4px;
+      }
+      .pillar h3 { font-size: 1rem; }
+      .pillar p { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
+
+      /* Features */
+      .features {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 620px) {
+        .features { grid-template-columns: repeat(2, 1fr); }
+      }
+      @media (min-width: 1000px) {
+        .features { grid-template-columns: repeat(4, 1fr); }
+      }
+      .feature { display: flex; flex-direction: column; gap: 12px; }
+      .feature__icon {
+        width: 40px;
+        height: 40px;
+        padding: 9px;
+        border-radius: 10px;
+        background: var(--panel-soft);
+        color: var(--icon);
+      }
+      .feature__icon svg { width: 100%; height: 100%; }
+      .feature p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+      kbd {
+        font-family: var(--font-mono);
+        font-size: 0.85em;
+        border: 1px solid var(--line);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+        padding: 0 5px;
+        background: var(--panel-soft);
+        color: var(--text);
+      }
+
+      /* How it works + screenshots */
+      .steps {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr;
+        counter-reset: step;
+        margin: 0 0 48px;
+        padding: 0;
+        list-style: none;
+      }
+      @media (min-width: 760px) {
+        .steps { grid-template-columns: repeat(3, 1fr); }
+      }
+      .steps li {
+        counter-increment: step;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 22px;
+      }
+      .steps li::before {
+        content: counter(step);
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-weight: 800;
+        margin-bottom: 12px;
+      }
+      .steps p { margin: 8px 0 0; color: var(--muted); }
+      .gallery { display: grid; gap: 40px; margin: 0; }
+      .gallery figure { margin: 0; }
+      .gallery img {
+        width: 100%;
+        height: auto;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: var(--shadow-sm);
+      }
+      .gallery figcaption {
+        margin-top: 14px;
+        color: var(--muted);
+      }
+      .gallery figcaption strong { color: var(--text); display: block; font-size: 1.05rem; margin-bottom: 2px; }
+
+      /* FAQ */
+      .faq { max-width: 760px; }
+      .faq details {
+        border-bottom: 1px solid var(--line);
+        padding: 4px 0;
+      }
+      .faq details:first-child { border-top: 1px solid var(--line); }
+      .faq summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        min-height: 52px;
+        font-weight: 700;
+        font-size: 1.05rem;
+      }
+      .faq summary::-webkit-details-marker { display: none; }
+      .faq summary::after {
+        content: '+';
+        flex: none;
+        width: 28px;
+        height: 28px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--panel-soft);
+        color: var(--text);
+        font-weight: 500;
+        font-size: 1.1rem;
+        line-height: 1;
+      }
+      .faq details[open] summary::after { content: '\2212'; }
+      .faq details p {
+        margin: 0 0 18px;
+        color: var(--muted);
+      }
+
+      /* Final CTA + footer */
+      .final {
+        text-align: center;
+      }
+      .final .card {
+        padding: 40px 24px;
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      .final p { color: var(--muted); margin: 14px auto 0; max-width: 520px; }
+      .final .cta { margin-top: 26px; }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 28px 0 40px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      footer .wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      @media (min-width: 720px) {
+        footer .wrap { flex-direction: row; justify-content: space-between; align-items: center; }
+      }
+      footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+      footer a { color: var(--muted); }
+      footer a:hover { color: var(--text); }
+      footer .brand { font-size: 1rem; }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="wrap top">
+      <a class="brand" href="/about" aria-label="DayForge home">
+        <svg class="brand__mark" viewBox="8 8 48 48" aria-hidden="true" focusable="false">
+          <path d="M8 8H32A24 24 0 0 1 50.73 17H8Z" />
+          <path class="brand__now" d="M8 21H53.33A24 24 0 0 1 55.92 30H8Z" />
+          <path d="M8 34H55.92A24 24 0 0 1 53.33 43H8Z" />
+          <path d="M8 47H50.73A24 24 0 0 1 32 56H8Z" />
+        </svg>
+        <span aria-hidden="true">ayForge</span>
+      </a>
+      <nav aria-label="Page sections">
+        <a class="hide-sm" href="#why">Why DayForge</a>
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <a class="btn btn--primary btn--small" href="/">Open DayForge</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap">
+          <p class="eyebrow">Planner for tasks, habits and time</p>
+          <h1 id="hero-title">
+            <svg class="brand__mark" viewBox="8 8 48 48" aria-hidden="true" focusable="false" style="width:0.74em;height:0.74em;margin-right:0.06em;align-self:baseline;fill:currentColor">
+              <path d="M8 8H32A24 24 0 0 1 50.73 17H8Z" />
+              <path style="fill:var(--accent)" d="M8 21H53.33A24 24 0 0 1 55.92 30H8Z" />
+              <path d="M8 34H55.92A24 24 0 0 1 53.33 43H8Z" />
+              <path d="M8 47H50.73A24 24 0 0 1 32 56H8Z" />
+            </svg>
+            <span aria-hidden="true">ayForge</span>
+            <span class="sr-only">DayForge</span>
+          </h1>
+          <p class="lead">Plan your day, track your time, keep your habits — in one place that works offline.</p>
+          <div class="cta">
+            <a class="btn btn--primary" href="/">Open DayForge</a>
+            <a class="btn btn--ghost" href="#how">See how it works</a>
+          </div>
+          <figure class="shot">
+            <img src="/landing/today.webp" width="1440" height="900" alt="DayForge task list across projects, with coloured project tags, done tasks and upcoming times" fetchpriority="high" />
+          </figure>
+        </div>
+      </section>
+
+      <section id="why" aria-labelledby="why-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Why DayForge</p>
+            <h2 id="why-title">One place for the plan, the hours and the habits</h2>
+            <p>Most tools cover one part of the job. DayForge keeps them together, so the time you log is tied to the work it was for.</p>
+          </div>
+          <div class="why-grid">
+            <div class="card card--compare">
+              <h3>Compared with Toggl</h3>
+              <p class="verdict">Toggl tracks time. DayForge also shows what the time was for.</p>
+              <p>Your tasks, projects, calendar and habits sit next to the timer, and earnings come from the hourly rates and fixed prices you set per project.</p>
+            </div>
+            <div class="card card--compare">
+              <h3>Compared with Notion</h3>
+              <p class="verdict">Notion is a blank canvas. DayForge is ready on the first day.</p>
+              <p>You do not have to build the system yourself. The planner, timer and analytics work out of the box, and they keep working offline, without a connection.</p>
+            </div>
+          </div>
+          <div class="pillars">
+            <div class="pillar">
+              <h3>Plan + habits + time + earnings</h3>
+              <p>Everything about your day, in one app, with the numbers next to the plan.</p>
+            </div>
+            <div class="pillar">
+              <h3>Offline first</h3>
+              <p>Your data lives on your device. The app opens and works without a connection.</p>
+            </div>
+            <div class="pillar">
+              <h3>Fast with the keyboard</h3>
+              <p>Quick add, search with <kbd>Ctrl</kbd> + <kbd>K</kbd> and shortcuts for the things you do most.</p>
+            </div>
+            <div class="pillar">
+              <h3>Free to start</h3>
+              <p>No account needed to begin. Sign in with Google only when you want to sync.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" aria-labelledby="features-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">Features</p>
+            <h2 id="features-title">Everything a working day needs</h2>
+          </div>
+          <div class="features">
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9h8M8 13h5"/><circle cx="6.5" cy="9" r="0.6" fill="currentColor"/></svg>
+              </span>
+              <h3>Tasks and projects</h3>
+              <p>Group work into projects with their own colours. Add tasks with a date, a time and a repeat, and see what is next.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h3M13 14h3M8 17h3" /></svg>
+              </span>
+              <h3>Calendar</h3>
+              <p>Day, week and month views. Filter by project to see one part of your work at a time.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
+              </span>
+              <h3>Timer, rates and analytics</h3>
+              <p>Start a timer on any task. Set an hourly rate or a fixed price per project and see what your hours are worth.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l4.5 4.5L20 6.5"/><path d="M4 4.5h2M4 19.5h2"/></svg>
+              </span>
+              <h3>Habits and streaks</h3>
+              <p>Track the habits you want to keep. Each day you complete one adds to your streak, and a monthly view shows the pattern.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>
+              </span>
+              <h3>Optional kanban board</h3>
+              <p>Turn on a board for any project and move tasks between columns. Drag tasks between them.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>
+              </span>
+              <h3>Notes</h3>
+              <p>Write notes on tasks and on projects, so the context stays next to the work it belongs to.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
+              </span>
+              <h3>Search with Ctrl+K</h3>
+              <p>Find any task, project or note from anywhere in the app. One shortcut, no menus to dig through.</p>
+            </article>
+            <article class="card feature">
+              <span class="feature__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M11 17.5h2"/><path d="M12 8v5m-2.5-2.5L12 13l2.5-2.5"/></svg>
+              </span>
+              <h3>Installable app and sync</h3>
+              <p>Install DayForge from the browser and use it like an app. Sign in with Google to keep your devices in sync.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">How it works</p>
+            <h2 id="how-title">From an empty page to a planned day</h2>
+          </div>
+          <ol class="steps">
+            <li>
+              <h3>Set up your day</h3>
+              <p>The first-day setup asks a few questions and adds starter tasks, so you begin with a plan instead of a blank list.</p>
+            </li>
+            <li>
+              <h3>Plan and track</h3>
+              <p>Schedule tasks on the calendar, start the timer when you begin, and keep your habits ticking off each day.</p>
+            </li>
+            <li>
+              <h3>Review the results</h3>
+              <p>Check your week in the calendar and your hours and earnings in analytics. Adjust the plan from what you see.</p>
+            </li>
+          </ol>
+
+          <div class="gallery">
+            <figure>
+              <img src="/landing/calendar-week.webp" width="1440" height="900" alt="DayForge week calendar with timed tasks colour-coded by project" />
+              <figcaption><strong>Week calendar</strong>Timed tasks by project, from one week at a glance.</figcaption>
+            </figure>
+            <figure>
+              <img src="/landing/analytics.webp" width="1440" height="900" alt="DayForge analytics showing tracked hours, earnings at an hourly rate and time share by project" />
+              <figcaption><strong>Analytics</strong>Tracked hours and earnings per project, with fixed prices next to hourly rates.</figcaption>
+            </figure>
+            <figure>
+              <img src="/landing/board.webp" width="1440" height="900" alt="DayForge kanban board for a project with tasks in To do, In progress and Done columns" />
+              <figcaption><strong>Project board</strong>An optional kanban view for any project.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" aria-labelledby="faq-title">
+        <div class="wrap">
+          <div class="section-head">
+            <p class="eyebrow">FAQ</p>
+            <h2 id="faq-title">Questions people ask</h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Is it free?</summary>
+              <p>Yes. You can start for free and you do not need an account. Signing in with Google is optional and only adds sync between your devices.</p>
+            </details>
+            <details>
+              <summary>Does it work offline?</summary>
+              <p>Yes. The app opens and works without a connection, and your changes are saved on the device. When you are online and signed in, they sync to your other devices.</p>
+            </details>
+            <details>
+              <summary>Where is my data stored?</summary>
+              <p>On your device, in your browser. If you sign in with Google, your projects, tasks and tracked time are also synced to a database so your devices can share them. Without signing in, nothing leaves your browser.</p>
+            </details>
+            <details>
+              <summary>Can I use it on my phone?</summary>
+              <p>Yes. Open DayForge in your phone's browser and install it from the browser menu (for example "Add to Home Screen"). It then opens like an app.</p>
+            </details>
+            <details>
+              <summary>How do I delete my data?</summary>
+              <p>Open Settings, go to Backup and data and choose "Delete all projects and tasks". A short undo is available, and if you are signed in it also clears your account on every device. To delete your account and server data, email <a href="mailto:thetotemofficial@gmail.com">thetotemofficial@gmail.com</a>. Clearing the site data in your browser removes the local copy.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="final" aria-labelledby="final-title">
+        <div class="wrap">
+          <div class="card">
+            <h2 id="final-title">Start with today</h2>
+            <p>Open DayForge, set up your first day and see how the plan, the timer and your habits fit together.</p>
+            <div class="cta">
+              <a class="btn btn--primary" href="/">Open DayForge</a>
+              <a class="btn btn--ghost" href="#features">Back to features</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <a class="brand" href="/about" aria-label="DayForge home">
+          <svg class="brand__mark" viewBox="8 8 48 48" aria-hidden="true" focusable="false">
+            <path d="M8 8H32A24 24 0 0 1 50.73 17H8Z" />
+            <path class="brand__now" d="M8 21H53.33A24 24 0 0 1 55.92 30H8Z" />
+            <path d="M8 34H55.92A24 24 0 0 1 53.33 43H8Z" />
+            <path d="M8 47H50.73A24 24 0 0 1 32 56H8Z" />
+          </svg>
+          <span aria-hidden="true">ayForge</span>
+        </a>
+        <nav aria-label="Legal and app links">
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/terms.html">Terms of Service</a>
+          <a href="/">Open the app</a>
+        </nav>
+        <p style="margin:0">&copy; 2026 DayForge</p>
+      </div>
+    </footer>
+  </body>
+</html>

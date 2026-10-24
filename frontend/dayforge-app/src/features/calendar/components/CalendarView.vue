@@ -23,6 +23,8 @@ import {
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import { useCalendarDayView } from '../composables/useCalendarDayView'
+import { useTimer } from '../../../composables/useTimer'
+import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useCalendarNow } from '../composables/useCalendarNow'
 
 const props = defineProps<{
@@ -110,6 +112,23 @@ const {
 })
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
+
+const timer = useTimer()
+const isContextTaskTiming = computed(
+  () =>
+    !!contextMenuTask.value &&
+    timer.isActiveTask(contextMenuTask.value.templateId),
+)
+
+function toggleContextMenuTaskTimer() {
+  const task = contextMenuTask.value
+  if (!task) return
+  toggleTaskTimer({
+    taskId: task.templateId,
+    taskTitle: task.title,
+    goalId: task.goalId,
+  })
+}
 
 /** Notes live on the task's template, not on the day row the panel shows. */
 const selectedTaskNotes = computed(
@@ -335,7 +354,9 @@ function iconFor(goalId: ID | undefined) {
         :x="contextMenuPos.x"
         :y="contextMenuPos.y"
         :is-done="contextMenuTask.status === TASK_STATUS.DONE"
+        :is-timer-active="isContextTaskTiming"
         @toggle-check="toggleContextMenuTaskDone"
+        @toggle-timer="toggleContextMenuTaskTimer"
         @close="closeContextMenu"
       />
 

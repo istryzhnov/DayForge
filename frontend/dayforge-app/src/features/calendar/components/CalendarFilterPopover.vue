@@ -21,7 +21,7 @@ const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
   { id: 'month', label: 'Month' },
 ]
 
-const { isGoalVisible, toggleGoal, showAll, isFilterActive } =
+const { isGoalVisible, toggleGoal, showAll, hideAll, isFilterActive } =
   useCalendarFilter()
 
 const isOpen = ref(false)
@@ -29,6 +29,12 @@ const rootRef = useTemplateRef<HTMLElement>('rootRef')
 const triggerRef = useTemplateRef<HTMLButtonElement>('triggerRef')
 
 const liveGoals = computed(() => props.goals.filter((goal) => !goal.deletedAt))
+
+const isEverythingHidden = computed(
+  () =>
+    !isGoalVisible(undefined) &&
+    liveGoals.value.every((goal) => !isGoalVisible(goal.id)),
+)
 
 function accentFor(goal: Goal): string | undefined {
   return (
@@ -122,14 +128,24 @@ onUnmounted(() => {
       <div class="calendar-filter__section">
         <div class="calendar-filter__section-head">
           <p class="calendar-filter__caption">Projects</p>
-          <button
-            v-if="isFilterActive"
-            class="btn btn-ghost calendar-filter__show-all"
-            type="button"
-            @click="showAll"
-          >
-            Show all
-          </button>
+          <div class="calendar-filter__bulk">
+            <button
+              v-if="isFilterActive"
+              class="btn btn-ghost calendar-filter__show-all"
+              type="button"
+              @click="showAll"
+            >
+              Show all
+            </button>
+            <button
+              v-if="!isEverythingHidden"
+              class="btn btn-ghost calendar-filter__show-all"
+              type="button"
+              @click="hideAll(liveGoals.map((goal) => goal.id))"
+            >
+              Hide all
+            </button>
+          </div>
         </div>
 
         <ul class="calendar-filter__list">

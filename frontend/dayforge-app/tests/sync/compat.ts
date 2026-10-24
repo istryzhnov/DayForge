@@ -29,7 +29,7 @@ import type { Goal } from '../../src/entities/GoalEntity'
 import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
 import { collectUpcoming } from '../../src/features/tasks/composables/useUpcomingTasks'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
-import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove } from '../../src/features/board/composables/boardModel'
+import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove, type BoardColumn } from '../../src/features/board/composables/boardModel'
 import {
   parseBillingDraft,
   projectFigures,
@@ -446,16 +446,146 @@ function verifyBoardFields() {
   check('a doing stage reads as in progress', columnOf(row, task as unknown as TaskTemplate) === BOARD_COLUMN.DOING)
   check('a done row reads as done whatever its stage', columnOf({ ...row, status: 'done' }, task as unknown as TaskTemplate) === BOARD_COLUMN.DONE)
 
-  const cards = buildBoardCards([row, { ...row, id: 'task-b::2026-09-03', templateId: 'other', parentDailyTaskId: row.id }], [task as unknown as TaskTemplate])
-  check('a nested row is counted on its parent card, not shown twice', cards.doing.length === 1 && cards.todo.length === 0 && cards.doing[0].subtasksTotal === 1)
+  const cleared = { ...clone(task), boardClearedAt: T1 }
+  check('boardClearedAt survives partitionLive', partitionLive(SYNC_TABLE.TASK_TEMPLATES, [clone(cleared)]).live[0].boardClearedAt === T1)
+  check(
+    'boardClearedAt is not lost when a newer edit comes from another device',
+    mergeCollection(
+      SYNC_TABLE.TASK_TEMPLATES,
+      [{ ...clone(cleared), boardClearedAt: undefined, updatedAt: T0 }],
+      [{ ...clone(cleared), updatedAt: T2 }],
+    ).merged[0]?.boardClearedAt === T1,
+  )
+  check(
+    'an undo that clears boardClearedAt beats the older value',
+    mergeCollection(
+      SYNC_TABLE.TASK_TEMPLATES,
+      [{ ...clone(cleared), boardClearedAt: undefined, updatedAt: T2 }],
+      [{ ...clone(cleared), updatedAt: T1 }],
+    ).merged[0]?.boardClearedAt === undefined,
+  )
+  check('boardClearedAt survives restore from undo', restampForRestore(clone(cleared) as unknown as SyncedRow).boardClearedAt === T1)
+  const clearedBackup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [clone(project)],
+    taskTemplates: [clone(cleared)],
+    dailyTasks: [],
+  })
+  check(
+    'boardClearedAt survives a backup round trip',
+    clearedBackup !== null && (clearedBackup.taskTemplates[0] as unknown as SyncedRow).boardClearedAt === T1,
+  )
+  check('a task never cleared has no boardClearedAt key', !('boardClearedAt' in task))
 
   const oneOff = task as unknown as TaskTemplate
   const repeating = { ...task, recurrence: { type: 'daily', startDate: '2026-09-01' } } as unknown as TaskTemplate
-  check('moving a one-off to done only toggles it', same(planBoardMove(row, oneOff, BOARD_COLUMN.DONE), { toggleDone: true, stage: undefined }))
-  check('finishing a repeating task clears its stage', same(planBoardMove(row, repeating, BOARD_COLUMN.DONE), { toggleDone: true, stage: null }))
-  const doneRow = { ...row, status: 'done' } as unknown as DailyTask
-  check('moving out of done un-completes it and sets the stage', same(planBoardMove(doneRow, oneOff, BOARD_COLUMN.DOING), { toggleDone: true, stage: 'doing' }))
-  check('moving back to to do clears the stage', same(planBoardMove(row, oneOff, BOARD_COLUMN.TODO), { toggleDone: false, stage: null }))
+  const openOf = (cards: ReturnType<typeof buildBoardCards>) => [...cards.todo, ...cards.doing][0]
+  const openCard = openOf(buildBoardCards([row], [oneOff], BOARD_DAY))
+  const repeatingCard = openOf(buildBoardCards([row], [repeating], BOARD_DAY))
+  check('a card exists for the open task', openCard !== undefined)
+  check('moving an open one-off to done only toggles it', same(planBoardMove(openCard, BOARD_COLUMN.DONE), { toggleDone: true }))
+  check('a repeating card on its own day can be finished', repeatingCard !== undefined && repeatingCard.canFinish && same(planBoardMove(repeatingCard, BOARD_COLUMN.DONE), { toggleDone: true }))
+  const doneCard = buildBoardCards([{ ...row, status: 'done', completedAt: T1 }], [oneOff], BOARD_DAY).done[0]
+  check('moving out of done un-completes it and sets the stage', same(planBoardMove(doneCard, BOARD_COLUMN.DOING), { toggleDone: true, stage: 'doing' }))
+  check('moving back to to do clears the stage', same(planBoardMove(openCard, BOARD_COLUMN.TODO), { toggleDone: false, stage: null }))
+}
+
+// --- persistence across days -------------------------------------------------
+
+const BOARD_DAY = '2026-09-10'
+const BOARD_NEXT_DAY = '2026-09-11'
+
+function weekdayOf(isoDate: string): number {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(year, month - 1, day).getDay()
+}
+
+function verifyBoardPersistence() {
+  section('The board follows the project, not the day it is viewed')
+
+  const template = (id: string, extra: Record<string, unknown> = {}) =>
+    templateRow({ id, title: id, ...extra }) as unknown as TaskTemplate
+  const rowOf = (templateId: string, date: string, extra: Record<string, unknown> = {}) =>
+    dailyRow({ id: `${templateId}::${date}`, templateId, date, title: templateId, ...extra }) as unknown as DailyTask
+
+  const open = template('task-open', { order: 1 })
+  const oldDone = template('task-old-done', { order: 2 })
+  const future = template('task-future', { order: 3, recurrence: { type: 'none', startDate: '2026-09-14' } })
+  const daily = template('task-daily', { order: 4, recurrence: { type: 'daily', startDate: '2026-09-01' } })
+  const habit = template('task-habit', { order: 5, recurrence: { type: 'daily', startDate: '2026-09-01' } })
+  const weekly = template('task-weekly', { order: 6, recurrence: { type: 'weekly', startDate: '2026-09-01', daysOfWeek: [weekdayOf(BOARD_NEXT_DAY)] } })
+  const undated = template('task-undated', { order: 7, recurrence: { type: 'weekly', startDate: '2026-09-01', daysOfWeek: [] } })
+  const proj = template('task-proj', { order: 8 })
+  const child = template('task-child', { order: 9, parentTemplateId: 'task-proj' })
+  const inactive = template('task-gone', { order: 10, isActive: false })
+  const templates = [open, oldDone, future, daily, habit, weekly, undated, proj, child, inactive]
+
+  const rows = [
+    rowOf('task-open', BOARD_DAY),
+    rowOf('task-old-done', '2026-09-08', { status: 'done', completedAt: '2026-09-08T12:00:00.000Z' }),
+    rowOf('task-future', '2026-09-14'),
+    rowOf('task-daily', BOARD_DAY),
+    rowOf('task-habit', BOARD_DAY, { status: 'done', completedAt: `${BOARD_DAY}T08:00:00.000Z` }),
+    rowOf('task-proj', BOARD_DAY),
+    rowOf('task-child', BOARD_DAY, { parentDailyTaskId: `task-proj::${BOARD_DAY}` }),
+    rowOf('task-gone', BOARD_DAY),
+  ]
+
+  const cards = buildBoardCards(rows, templates, BOARD_DAY)
+  const ids = (column: BoardColumn) => cards[column].map((card) => card.id)
+  const cardOf = (id: string) => [...cards.todo, ...cards.doing, ...cards.done].find((card) => card.id === id)
+
+  check('an open task shows in To do, dated today', ids('todo').includes('task-open') && cardOf('task-open')?.date === BOARD_DAY)
+  check('an earlier day\'s finished one-off stays in Done', ids('done').includes('task-old-done'))
+  check('a task scheduled ahead shows with its date', cardOf('task-future')?.date === '2026-09-14' && ids('todo').includes('task-future'))
+  check('a repeating task shows once, for today', ids('todo').filter((id) => id === 'task-daily').length === 1 && cardOf('task-daily')?.canFinish === true)
+  check('a repeating task done today is in Done', ids('done').includes('task-habit'))
+  check('a repeating task not due today shows its next date and cannot be finished', cardOf('task-weekly')?.date === BOARD_NEXT_DAY && cardOf('task-weekly')?.canFinish === false)
+  check('a subtask is counted on its project card, not shown on its own', !cardOf('task-child') && cardOf('task-proj')?.subtasksTotal === 1 && cardOf('task-proj')?.subtasksDone === 0)
+  check('the project card carries its subtask ids for the timer rollup', same(cardOf('task-proj')?.childTemplateIds, ['task-child']))
+  check('an inactive task is left off the board', !cardOf('task-gone'))
+
+  const todoOrder = ids('todo')
+  check(
+    'To do lists overdue or today first, upcoming next, undated last',
+    todoOrder.indexOf('task-open') < todoOrder.indexOf('task-future') &&
+      todoOrder.indexOf('task-future') < todoOrder.indexOf('task-undated') &&
+      todoOrder[todoOrder.length - 1] === 'task-undated',
+    todoOrder,
+  )
+
+  const nextDay = buildBoardCards(rows, templates, BOARD_NEXT_DAY)
+  check('a finished one-off is still in Done the next day', nextDay.done.some((card) => card.id === 'task-old-done'))
+  check('an open task is still on the board the next day', nextDay.todo.some((card) => card.id === 'task-open'))
+  check('a habit done today is back in To do tomorrow', nextDay.todo.some((card) => card.id === 'task-habit') && !nextDay.done.some((card) => card.id === 'task-habit'))
+
+  const clearedAt = `${BOARD_DAY}T09:00:00.000Z`
+  const clearedTemplates = templates.map((item) =>
+    item.id === 'task-old-done' || item.id === 'task-habit' ? { ...item, boardClearedAt: clearedAt } : item,
+  ) as TaskTemplate[]
+  const afterClear = buildBoardCards(rows, clearedTemplates, BOARD_DAY)
+  check('clear done hides a cleared one-off and a cleared habit from Done', afterClear.done.length === 0)
+  check('clear done leaves open cards alone', afterClear.todo.some((card) => card.id === 'task-open'))
+  check('clearing does not remove the rows', rows.length === 8)
+
+  const recompleted = buildBoardCards(
+    [...rows.filter((row) => row.templateId !== 'task-habit'), rowOf('task-habit', BOARD_DAY, { status: 'done', completedAt: `${BOARD_DAY}T10:30:00.000Z` })],
+    clearedTemplates,
+    BOARD_DAY,
+  )
+  check('a card un-finished and finished again after clearing comes back', recompleted.done.some((card) => card.id === 'task-habit'))
+
+  const twoDone = buildBoardCards(
+    [rowOf('task-old-done', '2026-09-08', { status: 'done', completedAt: '2026-09-08T12:00:00.000Z' }), rowOf('task-habit', BOARD_DAY, { status: 'done', completedAt: `${BOARD_DAY}T08:00:00.000Z` })],
+    [oldDone, habit],
+    BOARD_DAY,
+  )
+  check('Done sorts by completion, newest first', twoDone.done.map((card) => card.id).join(',') === 'task-habit,task-old-done')
+
+  const moveOnFuture = buildBoardCards(rows, templates, BOARD_DAY).todo.find((card) => card.id === 'task-weekly')
+  check('a repeating task not due today cannot be moved to Done', moveOnFuture !== undefined && same(planBoardMove(moveOnFuture, BOARD_COLUMN.DONE), { toggleDone: false }))
+  check('a repeating task not due today can still change column', moveOnFuture !== undefined && same(planBoardMove(moveOnFuture, BOARD_COLUMN.DOING), { toggleDone: false, stage: 'doing' }))
 }
 
 /** Analytics-only project figures: sync, backup, validation and the period math. */
@@ -686,6 +816,7 @@ function verifyUpcomingTasks() {
 function main() {
   verifyUpcomingTasks()
   verifyBoardFields()
+  verifyBoardPersistence()
   verifyProjectNotes()
   verifyProjectBilling()
   verifyRowsFromNewerBuild()

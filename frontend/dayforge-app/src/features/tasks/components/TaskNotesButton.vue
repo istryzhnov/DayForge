@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'save', notes: string): void
+  /** The popover went away, so the parent can hide a button with no notes. */
+  (e: 'close'): void
 }>()
 
 const { isOpen, open, release } = useNotesPopoverSlot()
@@ -26,14 +28,22 @@ function onClick() {
     popover.value?.commitAndClose(true)
     return
   }
-  open()
+  openPopover()
+}
+
+/** Opens the popover from outside, e.g. "Add note" in the row's menu. */
+function openPopover() {
+  if (!isOpen.value) open()
 }
 
 function onClose(returnFocus: boolean) {
   release()
+  emit('close')
   if (!returnFocus) return
   nextTick(() => button.value?.focus())
 }
+
+defineExpose({ openPopover })
 </script>
 
 <template>

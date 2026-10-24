@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
@@ -11,6 +12,8 @@ import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
 import TaskNotesButton from './TaskNotesButton.vue'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
+import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
+import { useTimer } from '../../../composables/useTimer'
 
 const props = defineProps<{
   node: TaskNode
@@ -51,6 +54,37 @@ const props = defineProps<{
 function onRowPointerDown(event: PointerEvent) {
   onPointerDown(event)
   props.drag?.startWithMouse(event)
+}
+
+const timer = useTimer()
+const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
+  'notesButton',
+)
+
+/** Set from the menu: the notes button shows while its popover is open. */
+const notesRequested = ref(false)
+const hasNotes = computed(() => !!props.node.template?.notes?.trim())
+const showNotes = computed(() => hasNotes.value || notesRequested.value)
+const isTimerActive = computed(() =>
+  timer.isActiveTask(props.node.task.templateId),
+)
+
+async function addNote() {
+  notesRequested.value = true
+  await nextTick()
+  notesButton.value?.openPopover()
+}
+
+function onNotesClosed() {
+  notesRequested.value = false
+}
+
+function toggleTimer() {
+  toggleTaskTimer({
+    taskId: props.node.task.templateId,
+    taskTitle: props.node.task.title,
+    goalId: props.node.task.goalId,
+  })
 }
 
 const {
@@ -164,9 +198,12 @@ const {
 
     <div class="actions">
       <TaskNotesButton
+        v-if="showNotes"
+        ref="notesButton"
         :notes="node.template?.notes"
         :title="node.task.title"
         @save="saveNotes"
+        @close="onNotesClosed"
       />
 
       <TaskTimerButton
@@ -201,7 +238,11 @@ const {
     :can-move="!isNested"
     :is-scheduled="!!node.task.startTime"
     :has-own-rate="hasOwnRate"
+    :has-notes="hasNotes"
+    :is-timer-active="isTimerActive"
     @edit="openEditor(false)"
+    @add-note="addNote"
+    @toggle-timer="toggleTimer"
     @schedule="openEditor(true)"
     @set-rate="openRateEditor"
     @move="onMoveTask(node.task.templateId)"

@@ -13,6 +13,7 @@ import { SYNC_TABLES, type AppliedRecord, type SyncTransport } from '../sync/typ
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAuth } from './useAuth'
 import { useTombstones } from './useTombstones'
+import { reportError } from '../lib/errorReporter'
 import { createSettingsCollection } from './settingsSync'
 import { createTimerCollection } from './timerSync'
 
@@ -79,6 +80,7 @@ const engine = createSyncEngine({
     read: () => readJson<SyncMeta | null>(META_STORAGE_KEY, null),
     write: (meta) => writeJson(META_STORAGE_KEY, meta),
   },
+  onError: (error, stage) => reportError(error, { area: 'sync', stage }),
   ringLogPersistence: {
     read: () => readJson<AppliedRecord[] | null>(RING_LOG_STORAGE_KEY, null),
     write: (records) => writeJson(RING_LOG_STORAGE_KEY, records),

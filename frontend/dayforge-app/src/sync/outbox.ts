@@ -30,6 +30,8 @@ export interface OutboxDeps {
   persistence?: OutboxPersistence
   onChange?: () => void
   onApplied?: (records: AppliedRecord[]) => void
+  /** A whole-batch failure, reported without its payload. */
+  onError?: (error: unknown) => void
   debounceMs?: number
   baseBackoffMs?: number
   maxBackoffMs?: number
@@ -229,6 +231,7 @@ export function createOutbox(deps: OutboxDeps): Outbox {
       }
     } catch (error) {
       // A whole-batch failure is a transport problem, so everything retries.
+      deps.onError?.(error)
       const message = error instanceof Error ? error.message : String(error)
       lastError = message
       due.forEach((mutation) => {

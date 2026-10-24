@@ -484,6 +484,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.setTaskBoardStage(templateId, stage)
   }
 
+  function handleClearBoardDone(templateIds: ID[]) {
+    goalSpace.clearBoardDone(templateIds)
+  }
+
   function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
     goalSpace.updateGoalTheme(goalId, theme)
   }
@@ -580,6 +584,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalBoard,
     handleChangeGoalNotes,
     handleSetBoardStage,
+    handleClearBoardDone,
     handleSetTaskRate,
   }
 }
