@@ -14,6 +14,8 @@ import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
 import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useTimer } from '../../../composables/useTimer'
+import { useLogPlanned } from '../../../composables/useLogPlanned'
+import { blockFromTask } from '../../../composables/timer/plannedBlocks'
 
 const props = defineProps<{
   node: TaskNode
@@ -85,6 +87,17 @@ function toggleTimer() {
     taskTitle: props.node.task.title,
     goalId: props.node.task.goalId,
   })
+}
+
+const planned = useLogPlanned()
+
+/** Read when the menu opens, so the item reflects the entries as they stand. */
+function canLogPlanned(): boolean {
+  return planned.canLog(blockFromTask(props.node.task))
+}
+
+function logPlanned() {
+  planned.logBlock(blockFromTask(props.node.task))
 }
 
 const {
@@ -240,7 +253,9 @@ const {
     :has-own-rate="hasOwnRate"
     :has-notes="hasNotes"
     :is-timer-active="isTimerActive"
+    :can-log-planned="canLogPlanned()"
     @edit="openEditor(false)"
+    @log-planned="logPlanned"
     @add-note="addNote"
     @toggle-timer="toggleTimer"
     @schedule="openEditor(true)"

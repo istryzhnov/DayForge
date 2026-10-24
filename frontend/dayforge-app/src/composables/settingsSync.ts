@@ -1,4 +1,9 @@
-import { useSettings, DEFAULT_SETTINGS, type AppSettings } from './useSettings'
+import {
+  useSettings,
+  DEFAULT_SETTINGS,
+  type AppSettings,
+  type GoalSettings,
+} from './useSettings'
 import { readJson, writeJson } from '../lib/storage'
 import { stableStringify } from '../sync/diff'
 import type { SyncCollection } from '../sync/engine'
@@ -42,6 +47,37 @@ function readHeld(): Record<string, unknown> {
   return isPlainObject(stored) ? stored : {}
 }
 
+/**
+ * Whether `current` equals what `previous` recorded once the keys `previous`
+ * never had are ignored, and every such key still holds its default value.
+ */
+function matchesWithDefaults(previous: unknown, current: unknown, defaults: unknown): boolean {
+  if (!isPlainObject(previous) || !isPlainObject(current)) {
+    return stableStringify(previous) === stableStringify(current)
+  }
+  const fallback = isPlainObject(defaults) ? defaults : {}
+  return Object.keys(current).every((key) =>
+    key in previous
+      ? matchesWithDefaults(previous[key], current[key], fallback[key])
+      : stableStringify(current[key]) === stableStringify(fallback[key]),
+  ) && Object.keys(previous).every((key) => key in current)
+}
+
+export function onlyGrewWithDefaults(
+  previousSignature: string,
+  payload: Record<string, unknown>,
+): boolean {
+  try {
+    return matchesWithDefaults(
+      JSON.parse(previousSignature),
+      payload,
+      pick(DEFAULT_SETTINGS),
+    )
+  } catch {
+    return false
+  }
+}
+
 export function createSettingsCollection(): SyncCollection {
   const { settings, update } = useSettings()
 
@@ -63,7 +99,12 @@ export function createSettingsCollection(): SyncCollection {
     const payload = pick(settings)
     const signature = stableStringify(payload)
     if (signature !== stamp.signature) {
-      stamp = { signature, updatedAt: new Date().toISOString() }
+      // A new build that only adds settings at their defaults is not an edit,
+      // so it keeps the old stamp instead of outranking newer devices.
+      const updatedAt = onlyGrewWithDefaults(stamp.signature, payload)
+        ? stamp.updatedAt
+        : new Date().toISOString()
+      stamp = { signature, updatedAt }
       writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
     }
 
@@ -87,7 +128,13 @@ export function createSettingsCollection(): SyncCollection {
     SYNCED_SECTIONS.forEach((section) => {
       const value = row[section]
       if (typeof value !== 'object' || value === null) return
-      update(section, value as Partial<AppSettings[typeof section]>)
+      // A cleared income goal is left out of the row, so it is named here to
+      // reset the local one; a plain spread would keep the old figure.
+      const patch =
+        section === 'goals'
+          ? { monthlyIncome: (value as GoalSettings).monthlyIncome }
+          : value
+      update(section, patch as Partial<AppSettings[typeof section]>)
     })
 
     stamp = {

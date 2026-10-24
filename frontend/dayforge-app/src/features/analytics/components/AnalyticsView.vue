@@ -1,19 +1,35 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import type { PaymentStatus } from '../../../entities/BillingEntity'
 import type { ID } from '../../../entities/types'
+import { useSettings } from '../../../composables/useSettings'
+import { useAuth } from '../../../composables/useAuth'
 import DayBarChart from './DayBarChart.vue'
 import ProjectShareChart from './ProjectShareChart.vue'
 import ProjectRatesDialog from './ProjectRatesDialog.vue'
 import ProjectBillingDialog from './ProjectBillingDialog.vue'
 import HabitMonthSection from './HabitMonthSection.vue'
+import IncomeGoalCard from './IncomeGoalCard.vue'
+import PlanVsActualSection from './PlanVsActualSection.vue'
+import ClientSummaryTable from './ClientSummaryTable.vue'
 import {
   PERIOD_OPTIONS,
   useTimerAnalytics,
 } from '../composables/useTimerAnalytics'
 import type { ProjectBilling } from '../composables/projectBilling'
 import { FIXED_BASIS } from '../composables/projectBilling'
+import {
+  ALL_CLIENTS_FILTER_ID,
+  NO_CLIENT_FILTER_ID,
+} from '../composables/clientBilling'
+import { useClientPayments } from '../composables/useClientPayments'
+
+/** The export code is only fetched when someone opens the dialog. */
+const BillingExportDialog = defineAsyncComponent(
+  () => import('./BillingExportDialog.vue'),
+)
 
 const props = defineProps<{
   goals: Goal[]
@@ -56,11 +72,57 @@ const {
   taskMoneyLabel,
   barWidth,
   copyReport,
+  clientFilter,
+  clientLabel,
+  clientRows,
+  billingMonth,
+  outstanding,
+  filteredTemplates,
+  periodEntries,
+  periodBounds,
+  rateOf,
+  currency,
 } = useTimerAnalytics({
   getGoals: () => props.goals,
   getTemplates: () => props.templates,
   getDailyTasks: () => props.dailyTasks,
 })
+
+const { settings } = useSettings()
+const { setStatus, setAmount } = useClientPayments()
+const { user } = useAuth()
+
+const isExportOpen = ref(false)
+
+const hasClients = computed(() => settings.billing.clients.length > 0)
+
+/** Archived clients stay in the filter so their history can still be seen. */
+const clientChoices = computed(() =>
+  settings.billing.clients.map((client) => ({
+    id: client.id,
+    label: client.archived ? `${client.name} (archived)` : client.name,
+  })),
+)
+
+function formatMoney(value: number): string {
+  return new Intl.NumberFormat(settings.format.locale, {
+    style: 'currency',
+    currency: currency.value,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+
+function handleSetStatus(
+  clientId: ID,
+  status: PaymentStatus,
+  amount: number,
+) {
+  setStatus(clientId, billingMonth.value, status, amount)
+}
+
+function handleSetAmount(clientId: ID, amount: number | undefined) {
+  setAmount(clientId, billingMonth.value, amount)
+}
 
 const editingGoal = computed(() =>
   props.goals.find((goal) => goal.id === editingGoalId.value),
@@ -89,9 +151,19 @@ function saveBilling(billing: ProjectBilling | undefined) {
           Where your tracked hours went, and what they are worth.
         </p>
       </div>
-      <button class="btn btn-ghost" type="button" @click="copyReport">
-        {{ copied ? 'Copied' : 'Copy report' }}
-      </button>
+      <div class="analytics__actions">
+        <button class="btn btn-ghost" type="button" @click="copyReport">
+          {{ copied ? 'Copied' : 'Copy report' }}
+        </button>
+        <button
+          class="btn btn-ghost"
+          type="button"
+          :disabled="periodEntries.length === 0"
+          @click="isExportOpen = true"
+        >
+          Export
+        </button>
+      </div>
     </header>
 
     <div class="settings-chips">
@@ -104,6 +176,35 @@ function saveBilling(billing: ProjectBilling | undefined) {
         @click="period = option.id"
       >
         {{ option.label }}
+      </button>
+    </div>
+
+    <div v-if="hasClients" class="settings-chips analytics__clients">
+      <button
+        class="theme-chip"
+        :class="{ active: clientFilter === ALL_CLIENTS_FILTER_ID }"
+        type="button"
+        @click="clientFilter = ALL_CLIENTS_FILTER_ID"
+      >
+        All clients
+      </button>
+      <button
+        v-for="choice in clientChoices"
+        :key="choice.id"
+        class="theme-chip"
+        :class="{ active: clientFilter === choice.id }"
+        type="button"
+        @click="clientFilter = choice.id"
+      >
+        {{ choice.label }}
+      </button>
+      <button
+        class="theme-chip"
+        :class="{ active: clientFilter === NO_CLIENT_FILTER_ID }"
+        type="button"
+        @click="clientFilter = NO_CLIENT_FILTER_ID"
+      >
+        No client
       </button>
     </div>
 
@@ -147,7 +248,28 @@ function saveBilling(billing: ProjectBilling | undefined) {
           Then every row shows what it earned
         </span>
       </button>
+      <div
+        v-if="hasClients"
+        class="analytics__card analytics__card--money"
+        data-testid="outstanding-card"
+      >
+        <span class="analytics__card-label">Outstanding</span>
+        <strong class="analytics__card-value" :title="formatMoney(outstanding.total)">
+          {{ formatMoney(outstanding.total) }}
+        </strong>
+        <span class="analytics__card-note">
+          {{ outstanding.count }} invoiced, unpaid
+          <template v-if="outstanding.overdueCount > 0">
+            · {{ outstanding.overdueCount }} overdue (30+ days)
+          </template>
+          <template v-if="outstanding.withoutAmountCount > 0">
+            · {{ outstanding.withoutAmountCount }} without an amount
+          </template>
+        </span>
+      </div>
     </div>
+
+    <IncomeGoalCard :goals="goals" :templates="templates" />
 
     <p
       v-if="summary.byTask.length === 0 && projectRows.length === 0"
@@ -170,6 +292,25 @@ function saveBilling(billing: ProjectBilling | undefined) {
           :format-share="shareLabel"
         />
       </div>
+
+      <template v-if="hasClients && clientRows.length">
+        <p class="sidebar-caption">By client</p>
+        <p class="analytics__hint">
+          Status is kept per client for {{ billingMonth }}, the month this
+          period ends in. Invoiced amounts count towards Outstanding until they
+          are marked paid.
+        </p>
+        <ClientSummaryTable
+          :rows="clientRows"
+          :payments="settings.billing.payments"
+          :month="billingMonth"
+          :locale="settings.format.locale"
+          :money="formatMoney"
+          :hours="hoursLabel"
+          @set-status="handleSetStatus"
+          @set-amount="handleSetAmount"
+        />
+      </template>
 
       <template v-if="projectRows.length">
         <p class="sidebar-caption">By project</p>
@@ -255,6 +396,14 @@ function saveBilling(billing: ProjectBilling | undefined) {
         </div>
       </template>
 
+      <PlanVsActualSection
+        :period="period"
+        :goals="goals"
+        :templates="templates"
+        :daily-tasks="dailyTasks"
+        :actual="summary.byProject"
+      />
+
       <template v-if="summary.byTask.length">
         <p class="sidebar-caption">By task</p>
         <div class="analytics__tasks">
@@ -324,8 +473,24 @@ function saveBilling(billing: ProjectBilling | undefined) {
 
     <HabitMonthSection
       :goals="goals"
-      :templates="templates"
+      :templates="filteredTemplates"
       :daily-tasks="dailyTasks"
+    />
+
+    <BillingExportDialog
+      v-if="isExportOpen"
+      :entries="periodEntries"
+      :goals="goals"
+      :clients="settings.billing.clients"
+      :rate-of="rateOf"
+      :currency="currency"
+      :locale="settings.format.locale"
+      :from="periodBounds.from"
+      :to="periodBounds.to"
+      :period-label="periodLabel"
+      :client-label="clientLabel"
+      :author-name="user?.name ?? undefined"
+      @close="isExportOpen = false"
     />
 
     <ProjectRatesDialog

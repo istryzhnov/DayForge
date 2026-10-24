@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useBackupFile } from '../composables/useBackupFile'
+import DeleteAccountDialog from '../../profile/components/DeleteAccountDialog.vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useSync } from '../../../composables/useSync'
 import { useFormat } from '../../../composables/useFormat'
@@ -32,6 +33,7 @@ const summary = computed(
 )
 
 const snapshots = ref<SnapshotRecord[]>([])
+const isDeleteAccountOpen = ref(false)
 
 async function loadSnapshots() {
   snapshots.value = await sync.snapshots.list()
@@ -162,9 +164,41 @@ function clearEverything() {
       Reversible from the undo toast until it disappears — export first if you
       want a copy that lasts.
       <template v-if="auth.isSignedIn.value">
-        It clears your account too, on every device.
+        Your account itself stays. The deletion reaches every device signed in
+        to it.
+      </template>
+      <template v-else>
+        No account exists for this data, so this only clears projects and tasks
+        stored in this browser.
       </template>
     </p>
+
+    <template v-if="auth.isSignedIn.value">
+      <p class="sidebar-caption">Account</p>
+
+      <button
+        class="btn btn-ghost settings-action settings-action--danger"
+        type="button"
+        :disabled="!sync.isOnline.value"
+        @click="isDeleteAccountOpen = true"
+      >
+        Delete account
+      </button>
+      <p v-if="!sync.isOnline.value" class="settings-group-hint">
+        Connect to the internet to delete your account.
+      </p>
+      <p v-else class="settings-group-hint">
+        Permanently deletes your account and every project, task, habit and
+        time entry stored on the server, then erases this device's copy too.
+        This cannot be undone.
+      </p>
+
+      <DeleteAccountDialog
+        v-if="isDeleteAccountOpen"
+        @close="isDeleteAccountOpen = false"
+        @export-backup="emit('export')"
+      />
+    </template>
 
     <p class="settings-group-hint legal-links">
       <a href="/terms.html" target="_blank" rel="noopener">Terms of Service</a>

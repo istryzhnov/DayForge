@@ -8,7 +8,11 @@ import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
 import UndoToast from '../components/UndoToast.vue'
 import ShortcutTipToast from '../components/ShortcutTipToast.vue'
+import TimerAwayDialog from '../components/TimerAwayDialog.vue'
+import TimeEntryEditor from '../features/timer/components/TimeEntryEditor.vue'
+import { useEntryEditRequest } from '../composables/entryEditRequest'
 import { useProfilePanel } from '../features/profile/composables/useProfilePanel'
+import { showAccountDeletedNotice } from '../features/profile/composables/useAccountDeletion'
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
@@ -122,10 +126,12 @@ const {
   handleDeleteGoal,
   handleChangeGoalRate,
   handleChangeGoalBilling,
+  handleChangeGoalClient,
   handleChangeGoalDetails,
   handleChangeGoalStatus,
   handleChangeGoalTheme,
   handleChangeGoalIcon,
+  handleChangeGoalBudget,
   handleChangeGoalBoard,
   handleChangeGoalNotes,
   handleSetBoardStage,
@@ -143,6 +149,7 @@ useHotkeys({
 const { overlay, closeOverlay } = useHotkeyOverlay()
 
 const { isOpen: isSettingsOpen } = useSettingsPanel()
+const { editRequest, closeEntryEdit } = useEntryEditRequest()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
 
@@ -178,6 +185,7 @@ function warmLazyViews() {
 }
 
 onMounted(warmLazyViews)
+onMounted(showAccountDeletedNotice)
 
 /** Opens the project, moves to the day of a finished task, and flashes its row. */
 function handleSearchSelect(result: SearchResult) {
@@ -341,6 +349,8 @@ function handleSearchSelect(result: SearchResult) {
         @change-goal-theme="handleChangeGoalTheme"
         @change-goal-rate="handleChangeGoalRate"
         @change-goal-icon="handleChangeGoalIcon"
+        @change-goal-budget="handleChangeGoalBudget"
+        @change-goal-client="handleChangeGoalClient"
         @change-goal-board="handleChangeGoalBoard"
         @change-goal-details="handleChangeGoalDetails"
         @change-goal-status="handleChangeGoalStatus"
@@ -360,7 +370,11 @@ function handleSearchSelect(result: SearchResult) {
       @close="closeStarter"
     />
 
-    <ProfileModal v-if="isProfileOpen" @close="closeProfile" />
+    <ProfileModal
+      v-if="isProfileOpen"
+      @close="closeProfile"
+      @export-backup="exportData"
+    />
 
     <QuickAddModal
       v-if="overlay === 'quick-add'"
@@ -382,6 +396,15 @@ function handleSearchSelect(result: SearchResult) {
     />
 
     <UndoToast />
+
+    <TimerAwayDialog />
+
+    <TimeEntryEditor
+      v-if="editRequest"
+      :entry="editRequest"
+      @saved="closeEntryEdit"
+      @close="closeEntryEdit"
+    />
 
     <ShortcutTipToast />
 

@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { diffRows, snapshotRows, stableStringify } from '../../src/sync/diff'
+import { onlyGrewWithDefaults } from '../../src/composables/settingsSync'
 import { mergeCollection, mergeRow } from '../../src/sync/merge'
 import { partitionLive, restampForRestore } from '../../src/sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow } from '../../src/sync/types'
@@ -23,7 +24,31 @@ import {
   SYNCED_SECTIONS,
   withHeld,
 } from '../../src/composables/settingsRow'
+import {
+  crossedMidnight,
+  formatAwayTime,
+  isAwayLongEnough,
+  isEndOfDay,
+  isLongRunDue,
+  plannedNudgeLabel,
+  sittingRunningMs,
+  sittingStartMs,
+  splitStretchAroundAway,
+} from '../../src/composables/timer/reminders'
+import {
+  blockLogState,
+  loggableBlocks,
+  pickPlannedStart,
+  planBlockEntry,
+  type PlannedBlock,
+} from '../../src/composables/timer/plannedBlocks'
+import { createIdleTimer, transition } from '../../src/composables/timer/machine'
 import { DEFAULT_SETTINGS } from '../../src/composables/useSettings'
+import {
+  appStorageKeys,
+  clearLocalAppData,
+  isDeleteConfirmed,
+} from '../../src/sync/accountDeletion'
 import { parseBackupFile } from '../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../src/entities/GoalEntity'
 import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
@@ -36,6 +61,61 @@ import {
   sameBilling,
   sanitizeBilling,
 } from '../../src/features/analytics/composables/projectBilling'
+import {
+  budgetLevelOf,
+  budgetStanding,
+  budgetStandingOf,
+  isLevelUp,
+  parseBudgetDraft,
+  sanitizeBudget,
+} from '../../src/features/analytics/composables/projectBudget'
+import {
+  projectEarnings,
+  totalEarned,
+} from '../../src/features/analytics/composables/projectEarnings'
+import {
+  blockDurationMs,
+  planBounds,
+  plannedMsByProject,
+  planVsActual,
+} from '../../src/features/analytics/composables/planVsActual'
+import {
+  elapsedWorkingDays,
+  incomeGoalStatus,
+  sanitizeMonthlyIncome,
+  workingDaysInMonth,
+} from '../../src/features/analytics/composables/incomeGoal'
+import { buildRateLookup } from '../../src/composables/timer/rates'
+import {
+  ANALYTICS_PERIOD,
+  NO_PROJECT_KEY,
+  type ProjectTotal,
+} from '../../src/composables/timer/analytics'
+import {
+  RECURRENCE_TYPE,
+  TIME_ENTRY_SOURCE,
+  TIMER_MODE,
+} from '../../src/entities/constants'
+import { CLIENT_LIMITS, sanitizeClients, sanitizePayments } from '../../src/composables/billing/clients'
+import {
+  NO_CLIENT_FILTER_ID,
+  OVERDUE_AFTER_DAYS,
+  clientSummaries,
+  isOverdue,
+  outstandingSummary,
+  withPaymentAmount,
+  withPaymentStatus,
+} from '../../src/features/analytics/composables/clientBilling'
+import {
+  CSV_BOM,
+  buildCsv,
+  buildReportLines,
+  csvField,
+  reportTotals,
+} from '../../src/features/analytics/composables/billingExport'
+import { buildPrintHtml } from '../../src/features/analytics/composables/printReport'
+import { PAYMENT_STATUS, type Client, type PaymentRecord } from '../../src/entities/BillingEntity'
+import type { TimeEntry } from '../../src/entities/TimerEntity'
 
 let failures = 0
 let checks = 0
@@ -308,6 +388,26 @@ function verifySettingsRow() {
   })
   const removed = heldFromRow(bare, SYNCED_SECTIONS, DEFAULT_SETTINGS)
   check('a field the other device removed is no longer held', Object.keys(removed).length === 0)
+
+  section('Settings stamp survives an update that only adds defaults')
+  const current = JSON.parse(JSON.stringify(localSections)) as Record<string, unknown>
+  const older = JSON.parse(JSON.stringify(current)) as Record<string, Record<string, unknown>>
+  delete older.billing
+  delete older.goals
+  delete older.timer.longRunHours
+  const olderSignature = stableStringify(older)
+  check('new sections and fields at their defaults are not an edit', onlyGrewWithDefaults(olderSignature, current))
+  const edited = { ...current, notifications: { ...(current.notifications as object), leadMinutes: 30 } }
+  check('a real change still counts as an edit', !onlyGrewWithDefaults(olderSignature, edited))
+  const customised = { ...current, timer: { ...(current.timer as object), longRunHours: 6 } }
+  check('a new field set away from its default counts as an edit', !onlyGrewWithDefaults(olderSignature, customised))
+  check('an unreadable stamp counts as an edit', !onlyGrewWithDefaults('not json', current))
+
+  const beforeNudgeTime = JSON.parse(JSON.stringify(current)) as Record<string, Record<string, unknown>>
+  delete beforeNudgeTime.notifications.endOfDayTime
+  check('the evening nudge time at its default is not an edit', onlyGrewWithDefaults(stableStringify(beforeNudgeTime), current))
+  const movedNudge = { ...current, notifications: { ...(current.notifications as object), endOfDayTime: '21:00' } }
+  check('an evening nudge time moved off its default is an edit', !onlyGrewWithDefaults(stableStringify(beforeNudgeTime), movedNudge))
 }
 
 function verifyBackupFixture() {
@@ -813,8 +913,727 @@ function verifyUpcomingTasks() {
   check('a yearly rule reads as every year', describeRecurrence({ type: 'yearly', startDate: FROM }) === 'Every year')
 }
 
+function verifyAccountDeletionWipe() {
+  section('account deletion: local wipe')
+
+  const store = new Map<string, string>([
+    ['dayforge-goals', '[]'],
+    ['dayforge-sync-outbox-v1', '{"pending":[],"dead":[],"seq":0}'],
+    ['dayforge-auth-v1', '{}'],
+    ['unrelated-key', 'kept'],
+  ])
+  const storage = {
+    get length() {
+      return store.size
+    },
+    key: (index: number) => [...store.keys()][index] ?? null,
+    removeItem: (key: string) => {
+      store.delete(key)
+    },
+  }
+
+  check(
+    'finds only the app keys, auth session included',
+    same(appStorageKeys(storage).sort(), [
+      'dayforge-auth-v1',
+      'dayforge-goals',
+      'dayforge-sync-outbox-v1',
+    ]),
+  )
+
+  const removed = clearLocalAppData(storage)
+  check('reports how many keys it removed', removed === 3, removed)
+  check(
+    'leaves keys that are not the app\'s alone',
+    same([...store.keys()], ['unrelated-key']),
+    [...store.keys()],
+  )
+  check('a second wipe removes nothing', clearLocalAppData(storage) === 0)
+
+  check(
+    'the confirmation word must be typed exactly, padding aside',
+    isDeleteConfirmed(' DELETE ') &&
+      !isDeleteConfirmed('delete') &&
+      !isDeleteConfirmed('DELETE!') &&
+      !isDeleteConfirmed(''),
+  )
+}
+
+const MIN = 60 * 1000
+const HOUR = 60 * MIN
+
+function localAt(year: number, month: number, day: number, hours: number, minutes: number): number {
+  return new Date(year, month - 1, day, hours, minutes).getTime()
+}
+
+function entryAt(sessionId: string, startedAt: number, endedAt: number, taskId?: string): TimeEntry {
+  return {
+    id: `entry-${sessionId}-${startedAt}`,
+    sessionId,
+    startedAt: new Date(startedAt).toISOString(),
+    endedAt: new Date(endedAt).toISOString(),
+    mode: TIMER_MODE.STOPWATCH,
+    taskId,
+    source: 'timer',
+    updatedAt: T0,
+  } as TimeEntry
+}
+
+function blockTask(id: string, date: string, startTime: string | undefined, endTime: string | undefined, status = 'todo'): DailyTask {
+  return {
+    id: `${id}::${date}`,
+    date,
+    templateId: id,
+    title: `Block ${id}`,
+    priority: 'minor',
+    tagIds: [],
+    status,
+    startTime,
+    endTime,
+  } as DailyTask
+}
+
+function verifyTimerReminders() {
+  section('Timer reminders: long runs, away time, planned blocks')
+
+  check('a long run is not due before its threshold', !isLongRunDue(3 * HOUR - 1, 3))
+  check('a long run is due exactly at its threshold', isLongRunDue(3 * HOUR, 3))
+  check('a long run never fires when switched off', !isLongRunDue(9 * HOUR, 0))
+
+  const sitting = 'sit-a'
+  const entries = [
+    entryAt(sitting, localAt(2026, 10, 21, 8, 0), localAt(2026, 10, 21, 9, 0)),
+    entryAt(sitting, localAt(2026, 10, 21, 9, 30), localAt(2026, 10, 21, 10, 0)),
+    entryAt('sit-b', localAt(2026, 10, 21, 6, 0), localAt(2026, 10, 21, 11, 0)),
+  ]
+  check(
+    'a sitting counts its recorded stretches and the running one, not other sittings',
+    sittingRunningMs(entries, sitting, 10 * MIN) === 100 * MIN,
+  )
+  check(
+    'a sitting is dated from its earliest recorded stretch',
+    sittingStartMs(entries, sitting, localAt(2026, 10, 21, 10, 5)) === localAt(2026, 10, 21, 8, 0),
+  )
+  check(
+    'a run that began the day before has crossed midnight',
+    crossedMidnight(localAt(2026, 10, 24, 23, 50), localAt(2026, 10, 25, 0, 10)),
+  )
+  check(
+    'a run that began and is still going the same day has not',
+    !crossedMidnight(localAt(2026, 10, 24, 8, 0), localAt(2026, 10, 24, 23, 59)),
+  )
+
+  check('an away spell shorter than the threshold is ignored', !isAwayLongEnough(15 * MIN - 1, 15))
+  check('an away spell at the threshold asks', isAwayLongEnough(15 * MIN, 15))
+  check('away prompts never fire when switched off', !isAwayLongEnough(5 * HOUR, 0))
+
+  const split = splitStretchAroundAway(0, 40 * MIN, 100 * MIN)
+  check('only the time before the tab was hidden is kept', split.keptEndsAt === 40 * MIN)
+  check('the timer resumes at the moment of return', split.resumeAt === 100 * MIN)
+  check(
+    'a stretch that started during the away spell keeps nothing',
+    splitStretchAroundAway(50 * MIN, 40 * MIN, 100 * MIN).keptEndsAt === null,
+  )
+
+  const settings = DEFAULT_SETTINGS.timer
+  const timer = transition(createIdleTimer(), { type: 'start', sessionId: 'trim', mode: TIMER_MODE.STOPWATCH }, 0, settings).timer
+  const pausedAway = transition(timer, { type: 'pause' }, 40 * MIN, settings)
+  const resumed = transition(pausedAway.timer, { type: 'resume' }, 100 * MIN, settings)
+  const stopped = transition(resumed.timer, { type: 'stop' }, 130 * MIN, settings)
+  const trimmed = [...pausedAway.entries, ...stopped.entries].reduce(
+    (total, draft) => total + (draft.endedAt - draft.startedAt),
+    0,
+  )
+  check('discarding the away time leaves only the minutes that were actually worked', trimmed === 70 * MIN, trimmed / MIN)
+
+  check('away time reads as an hour and minutes', formatAwayTime(80 * MIN) === '1 h 20 min')
+  check('away time under an hour reads in minutes', formatAwayTime(45 * MIN) === '45 min')
+  check('away time on the hour drops the minutes', formatAwayTime(60 * MIN) === '1 h')
+  check('very short away time has its own wording', formatAwayTime(10 * 1000) === 'less than a minute')
+
+  check('the evening nudge waits for its set time', !isEndOfDay(new Date(2026, 9, 21, 17, 59), '18:00') && isEndOfDay(new Date(2026, 9, 21, 18, 0), '18:00'))
+  check('the evening nudge defaults to 22:00', DEFAULT_SETTINGS.notifications.endOfDayTime === '22:00')
+  check('the default evening nudge stays quiet before 22:00', !isEndOfDay(new Date(2026, 9, 21, 21, 59), DEFAULT_SETTINGS.notifications.endOfDayTime) && isEndOfDay(new Date(2026, 9, 21, 22, 0), DEFAULT_SETTINGS.notifications.endOfDayTime))
+  check('a later evening nudge time is honoured', !isEndOfDay(new Date(2026, 9, 21, 19, 0), '23:30') && isEndOfDay(new Date(2026, 9, 21, 23, 30), '23:30'))
+  check('the nudge counts its blocks in words', plannedNudgeLabel(1).startsWith('1 planned block') && plannedNudgeLabel(3).startsWith('3 planned blocks'))
+
+  const now = localAt(2026, 10, 21, 10, 0)
+  const blocks = {
+    past: { templateId: 'past', title: 'Past', date: '2026-10-20', startTime: '09:00', endTime: '10:00' },
+    endsNow: { templateId: 'endsNow', title: 'Ends now', date: '2026-10-21', startTime: '09:00', endTime: '10:00' },
+    later: { templateId: 'later', title: 'Later', date: '2026-10-21', startTime: '10:30', endTime: '11:00' },
+    noEnd: { templateId: 'noEnd', title: 'No end', date: '2026-10-20', startTime: '13:00' },
+    overlapped: { templateId: 'overlapped', title: 'Overlapped', date: '2026-10-20', startTime: '14:00', endTime: '15:00' },
+    touching: { templateId: 'touching', title: 'Touching', date: '2026-10-20', startTime: '16:00', endTime: '17:00' },
+  }
+  const logged = [
+    entryAt('x', localAt(2026, 10, 20, 14, 30), localAt(2026, 10, 20, 15, 30), 'other'),
+    entryAt('y', localAt(2026, 10, 20, 15, 0), localAt(2026, 10, 20, 16, 0)),
+  ]
+  check('a finished block with nothing over it is loggable', blockLogState(blocks.past, [], now) === 'loggable')
+  check('a block that ends right now is loggable', blockLogState(blocks.endsNow, [], now) === 'loggable')
+  check('a block that has not ended yet is not loggable', blockLogState(blocks.later, [], now) === 'not-finished')
+  check('a block without an end time is not loggable', blockLogState(blocks.noEnd, [], now) === 'no-end')
+  check('a block with time already over it is not loggable', blockLogState(blocks.overlapped, logged, now) === 'logged')
+  check('an entry that only touches a block does not block it', blockLogState(blocks.touching, [logged[1]], now) === 'loggable')
+  check('any overlapping entry counts, whatever task it belongs to', blockLogState(blocks.overlapped, [logged[0]], now) === 'logged')
+
+  const loggable = loggableBlocks(Object.values(blocks) as PlannedBlock[], logged, now).map((block) => block.templateId)
+  check('the blocks that qualify are the finished, unlogged ones', same(loggable, ['past', 'endsNow', 'touching']), loggable)
+
+  const planned = planBlockEntry(blocks.past as PlannedBlock, [], now)
+  check(
+    'a planned block is logged exactly to its times, against its task',
+    planned.ok &&
+      planned.payload.startedAt === new Date(localAt(2026, 10, 20, 9, 0)).toISOString() &&
+      planned.payload.endedAt === new Date(localAt(2026, 10, 20, 10, 0)).toISOString() &&
+      planned.payload.taskId === 'past',
+  )
+  check('an overlapping block is refused, not written over', !planBlockEntry(blocks.overlapped as PlannedBlock, logged, now).ok)
+  check('a block that has not ended is refused', !planBlockEntry(blocks.later as PlannedBlock, [], now).ok)
+
+  const tasks = [
+    blockTask('t1', '2026-10-21', '09:00', '10:00'),
+    blockTask('t2', '2026-10-21', '09:30', '10:30'),
+    blockTask('done', '2026-10-21', '09:10', '09:40', 'done'),
+    blockTask('later', '2026-10-21', '10:30', '11:00'),
+  ]
+  const today = '2026-10-21'
+  const none = (): boolean => false
+  check(
+    'a block started less than five minutes ago is not prompted',
+    pickPlannedStart(tasks, today, localAt(2026, 10, 21, 9, 4), [], none) === null,
+  )
+  check(
+    'a due block is prompted once five minutes have passed',
+    pickPlannedStart(tasks, today, localAt(2026, 10, 21, 9, 5), [], none)?.templateId === 't1',
+  )
+  check(
+    'the most recently started due block is the one prompted',
+    pickPlannedStart(tasks, today, localAt(2026, 10, 21, 10, 0), [], none)?.templateId === 't2',
+  )
+  check(
+    'a done block is never prompted',
+    pickPlannedStart(tasks.filter((task) => task.templateId !== 't2'), today, localAt(2026, 10, 21, 9, 45), [], (task) => task.templateId === 't1') === null,
+  )
+  check(
+    'a dismissed block is skipped',
+    pickPlannedStart(tasks, today, localAt(2026, 10, 21, 9, 20), [], (task) => task.templateId === 't1') === null,
+  )
+  check(
+    'a block already tracked since it began is not prompted',
+    pickPlannedStart(tasks, today, localAt(2026, 10, 21, 9, 20), [entryAt('q', localAt(2026, 10, 21, 9, 6), localAt(2026, 10, 21, 9, 15), 't1')], none) === null,
+  )
+}
+
+/** Budget, plan vs actual and the monthly income goal: sync, backup and the math. */
+function verifyBudgetPlanIncome() {
+  section('Project budget, plan vs actual and monthly income goal')
+
+  const HOUR = 60 * 60 * 1000
+  const MIN = 60 * 1000
+  const near = (left: number, right: number) => Math.abs(left - right) < 1e-9
+
+  const budgeted = goalRow({
+    id: 'goal-f',
+    budget: { hours: 20, amount: 1500, period: 'month' },
+    updatedAt: T1,
+  })
+  const unbudgeted = goalRow({ id: 'goal-f', updatedAt: T0 })
+
+  check(
+    'a budget survives a whole-row merge in either direction',
+    same(mergeRow(SYNC_TABLE.GOALS, unbudgeted, budgeted).row.budget, budgeted.budget) &&
+      same(mergeRow(SYNC_TABLE.GOALS, budgeted, unbudgeted).row.budget, budgeted.budget),
+  )
+
+  const budgetBackup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [clone(budgeted)],
+    taskTemplates: [],
+    dailyTasks: [],
+  })
+  check(
+    'a budget survives a backup round trip',
+    budgetBackup !== null && same(budgetBackup.goals[0].budget, budgeted.budget),
+  )
+
+  check(
+    'the income goal is a synced settings section',
+    (SYNCED_SECTIONS as readonly string[]).includes('goals') &&
+      DEFAULT_SETTINGS.goals.monthlyIncome === undefined &&
+      'monthlyIncome' in DEFAULT_SETTINGS.goals,
+  )
+  const settingsRemote: Record<string, unknown> = {
+    id: 'settings',
+    updatedAt: T1,
+    ...clone(DEFAULT_SETTINGS),
+    goals: { monthlyIncome: 3000 },
+  }
+  check(
+    'a monthly income goal from another device is read as a known section',
+    !('goals' in heldFromRow(settingsRemote, SYNCED_SECTIONS, DEFAULT_SETTINGS)),
+  )
+
+  check(
+    'a budget keeps valid limits and its period',
+    same(sanitizeBudget({ hours: 20, amount: 1500, period: 'month' }), { hours: 20, amount: 1500, period: 'month' }),
+  )
+  check(
+    'a budget drops limits out of range',
+    sanitizeBudget({ hours: -1, amount: 1e9, period: 'month' }) === undefined,
+  )
+  check(
+    'a budget with one limit left keeps just that limit',
+    same(sanitizeBudget({ hours: 5, amount: 0, period: 'month' }), { hours: 5, period: 'month' }),
+  )
+  check(
+    'a budget with no limit is no budget, and an unknown period is the whole project',
+    sanitizeBudget({ period: 'total' }) === undefined &&
+      sanitizeBudget('x') === undefined &&
+      sanitizeBudget({ hours: 5, period: 'year' })?.period === 'total',
+  )
+
+  const emptyBudget = parseBudgetDraft({ hours: '', amount: ' ', period: 'total' })
+  check('an empty budget draft means no budget', emptyBudget.ok && emptyBudget.budget === undefined)
+  const commaBudget = parseBudgetDraft({ hours: '12,5', amount: '', period: 'month' })
+  check('a comma decimal is read as a point in a budget', commaBudget.ok && commaBudget.budget?.hours === 12.5)
+  check(
+    'a zero or negative budget limit is refused',
+    !parseBudgetDraft({ hours: '0', amount: '', period: 'total' }).ok &&
+      !parseBudgetDraft({ hours: '', amount: '-3', period: 'total' }).ok,
+  )
+
+  check(
+    'the warning lines sit at 80% and 100%',
+    budgetLevelOf(0.79) === 'ok' && budgetLevelOf(0.8) === 'warn' && budgetLevelOf(0.99) === 'warn' && budgetLevelOf(1) === 'over',
+  )
+
+  const hoursOnly = budgetStanding({ hours: 20, period: 'total' }, { trackedMs: 16 * HOUR, earned: 0 })
+  check(
+    'hours progress is tracked time over the limit',
+    near(hoursOnly.fraction, 0.8) && hoursOnly.level === 'warn' && hoursOnly.amountFraction === null,
+  )
+  const bothLimits = budgetStanding(
+    { hours: 20, amount: 1000, period: 'total' },
+    { trackedMs: 5 * HOUR, earned: 900 },
+  )
+  check(
+    'with both limits the larger fraction decides',
+    near(bothLimits.fraction, 0.9) && bothLimits.level === 'warn' && near(bothLimits.hoursFraction ?? 0, 0.25),
+  )
+  const moneyOver = budgetStanding({ amount: 1000, period: 'total' }, { trackedMs: 0, earned: 1100 })
+  check('earnings past the money limit are over budget', near(moneyOver.fraction, 1.1) && moneyOver.level === 'over')
+
+  check(
+    'a notice fires only when the level goes up',
+    isLevelUp(undefined, 'warn') &&
+      isLevelUp('warn', 'over') &&
+      !isLevelUp('warn', 'warn') &&
+      !isLevelUp('over', 'warn') &&
+      !isLevelUp(undefined, 'ok'),
+  )
+
+  // Oct 25 2026: the monthly scope counts only October's time.
+  const now = new Date(2026, 9, 25, 12)
+  const entryOn = (id: string, when: Date, hours: number): TimeEntry => ({
+    id,
+    sessionId: `session-${id}`,
+    startedAt: new Date(when.getTime()).toISOString(),
+    endedAt: new Date(when.getTime() + hours * HOUR).toISOString(),
+    mode: TIMER_MODE.STOPWATCH,
+    goalId: 'goal-b',
+    source: TIME_ENTRY_SOURCE.TIMER,
+    updatedAt: T1,
+  })
+  const lastMonthEntry = entryOn('sep', new Date(2026, 8, 20, 9), 8)
+  const thisMonthEntry = entryOn('oct', new Date(2026, 9, 10, 9), 2)
+  const goalB = goalRow({ id: 'goal-b', title: 'Brand', budget: { hours: 5, period: 'month' } }) as unknown as Goal
+  const context = {
+    allEntries: [lastMonthEntry, thisMonthEntry],
+    goals: [goalB],
+    lookup: buildRateLookup([], [goalB], 50),
+    now,
+  }
+
+  const monthly = budgetStandingOf(goalB, context)
+  check('a monthly budget counts only this month', monthly !== null && near(monthly.fraction, 0.4) && monthly.level === 'ok')
+  const total = budgetStandingOf({ ...goalB, budget: { hours: 5, period: 'total' } }, context)
+  check('a total budget counts everything tracked', total !== null && near(total.fraction, 2) && total.level === 'over')
+  check('no budget means no standing', budgetStandingOf({ ...goalB, budget: undefined }, context) === null)
+
+  const priced = { ...goalB, budget: undefined, billing: { fixedPrice: 1000 } } as Goal
+  const pricedMonth = projectEarnings({
+    allEntries: [lastMonthEntry, thisMonthEntry],
+    periodEntries: [thisMonthEntry],
+    goals: [priced],
+    lookup: buildRateLookup([], [priced], 50),
+    isAllTime: false,
+  })
+  check('month earnings pro-rate a fixed price by the tracked share', near(totalEarned(pricedMonth), 200))
+
+  check('a 45-minute block counts its real length', blockDurationMs('09:00', '09:45', 60) === 45 * MIN)
+  check('a block with only a start uses the calendar default', blockDurationMs('12:00', undefined, 60) === 60 * MIN)
+  check('a block without a start is not on the grid', blockDurationMs(undefined, '10:00', 60) === 0)
+  check('a block that ends before it starts counts for nothing', blockDurationMs('10:00', '09:00', 60) === 0)
+
+  const tpl = (id: string, overrides: Record<string, unknown>) =>
+    ({ id, title: id, priority: 'minor', order: 0, tagIds: [], isActive: true, createdAt: T0, updatedAt: T0, ...overrides }) as TaskTemplate
+  const standup = tpl('standup', {
+    goalId: 'goal-a',
+    startTime: '09:00',
+    endTime: '10:30',
+    recurrence: { type: RECURRENCE_TYPE.DAILY, startDate: '2026-10-01' },
+  })
+  const review = tpl('review', {
+    goalId: 'goal-a',
+    startTime: '10:00',
+    endTime: '11:00',
+    recurrence: { type: RECURRENCE_TYPE.WEEKLY, daysOfWeek: [1, 3], startDate: '2026-10-01' },
+  })
+  const errand = tpl('errand', {
+    startTime: '12:00',
+    recurrence: { type: RECURRENCE_TYPE.NONE, startDate: '2026-10-20' },
+  })
+  const retired = tpl('retired', {
+    goalId: 'goal-a',
+    startTime: '08:00',
+    endTime: '11:00',
+    isActive: false,
+    recurrence: { type: RECURRENCE_TYPE.DAILY, startDate: '2026-10-01' },
+  })
+  // A day row replaces the repeat's projection on its date: 14 Oct is a Wednesday.
+  const movedReview = {
+    id: 'review::2026-10-14',
+    date: '2026-10-14',
+    goalId: 'goal-a',
+    templateId: 'review',
+    title: 'review',
+    priority: 'minor',
+    tagIds: [],
+    status: 'todo',
+    startTime: '14:00',
+    endTime: '15:30',
+  } as DailyTask
+
+  const plan = plannedMsByProject(
+    { templates: [standup, review, errand, retired], dailyTasks: [movedReview], defaultDurationMinutes: 60 },
+    '2026-10-01',
+    '2026-10-31',
+  )
+  // Standup: 31 days x 90 min. Review: 8 Mon/Wed x 60 min, with 14 Oct at 90 min from its row.
+  check('planned time adds repeats and day rows without counting a day twice', plan.get('goal-a') === (31 * 90 + 7 * 60 + 90) * MIN)
+  check('a one-off block with no end uses the default length, no project', plan.get(NO_PROJECT_KEY) === 60 * MIN)
+  check('an inactive task is not planned', plan.get('goal-a') === 3300 * MIN)
+  check('a range that stops early counts only its days', plannedMsByProject(
+    { templates: [standup], dailyTasks: [], defaultDurationMinutes: 60 },
+    '2026-10-01',
+    '2026-10-07',
+  ).get('goal-a') === 7 * 90 * MIN)
+
+  check('this month plans the whole month', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-25', null), { from: '2026-10-01', to: '2026-10-31' }))
+  check('last month plans the whole previous month', same(planBounds(ANALYTICS_PERIOD.LAST_MONTH, '2026-10-25', null), { from: '2026-09-01', to: '2026-09-30' }))
+  check('this week runs Monday to Sunday', same(planBounds(ANALYTICS_PERIOD.THIS_WEEK, '2026-10-25', null), { from: '2026-10-19', to: '2026-10-25' }))
+  check('all time runs from the first day to today', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', '2026-08-03'), { from: '2026-08-03', to: '2026-10-25' }))
+  check('all time with nothing recorded is today alone', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', null), { from: '2026-10-25', to: '2026-10-25' }))
+
+  const goalA = goalRow({ id: 'goal-a', title: 'Work' }) as unknown as Goal
+  const underPlan = planVsActual(
+    new Map([['goal-a', 3300 * MIN]]),
+    [{ goalId: 'goal-a', title: 'Work', totalMs: 3000 * MIN, taskCount: 2 }],
+    [goalA],
+  )
+  const rowA = underPlan.rows.find((row) => row.key === 'goal-a')
+  check(
+    'a project under its plan shows the shortfall and its share',
+    rowA !== undefined && rowA.diffMs === -300 * MIN && rowA.state === 'under' && near(rowA.percent ?? 0, (-300 / 3300) * 100),
+  )
+
+  const withUnplanned = planVsActual(
+    new Map([['goal-a', 3300 * MIN]]),
+    [
+      { goalId: 'goal-a', title: 'Work', totalMs: 3300 * MIN, taskCount: 2 },
+      { title: 'Without a project', totalMs: 30 * MIN, taskCount: 1 },
+    ],
+    [goalA],
+  )
+  check('a project exactly on plan reads as on plan', withUnplanned.rows.find((row) => row.key === 'goal-a')?.state === 'on')
+  const stray = withUnplanned.rows.find((row) => row.key === NO_PROJECT_KEY)
+  check('time on a project with no plan is unplanned, with no percent', stray?.state === 'unplanned' && stray.percent === null)
+  check(
+    'the overall line sums both and reads over plan',
+    withUnplanned.total.plannedMs === 3300 * MIN && withUnplanned.total.actualMs === 3330 * MIN && withUnplanned.total.state === 'over',
+  )
+
+  check('working days in October 2026 are Monday to Friday', workingDaysInMonth(now) === 22)
+  check('17 working days have passed by 25 October', elapsedWorkingDays(now) === 17)
+
+  const behind = incomeGoalStatus(3000, 1700, now)
+  check(
+    'the pace projects earnings across the working days',
+    behind !== null && near(behind.forecast ?? 0, 2200) && behind.state === 'behind' && near(behind.behindBy, 800),
+  )
+  check('a pace that reaches the goal is on track', incomeGoalStatus(3000, 2500, now)?.state === 'on-track')
+  check('earnings past the goal say so', incomeGoalStatus(3000, 3100, now)?.state === 'reached')
+  check('no goal means no status', incomeGoalStatus(undefined, 100, now) === null)
+  check('before the first working day there is no pace yet', incomeGoalStatus(3000, 0, new Date(2026, 10, 1, 12))?.state === 'pending')
+  check(
+    'a monthly goal is kept only when it is a positive, finite amount',
+    sanitizeMonthlyIncome(3000) === 3000 &&
+      sanitizeMonthlyIncome(0) === undefined &&
+      sanitizeMonthlyIncome(-5) === undefined &&
+      sanitizeMonthlyIncome('3000') === undefined &&
+      sanitizeMonthlyIncome(Number.NaN) === undefined &&
+      sanitizeMonthlyIncome(10_000_001) === undefined,
+  )
+}
+
+function timeEntry(
+  id: string,
+  goalId: string | undefined,
+  startIso: string,
+  minutes: number,
+  taskTitle?: string,
+): TimeEntry {
+  const start = Date.parse(startIso)
+  return {
+    id,
+    sessionId: `session-${id}`,
+    startedAt: startIso,
+    endedAt: new Date(start + minutes * 60 * 1000).toISOString(),
+    mode: 'stopwatch',
+    source: 'timer',
+    goalId,
+    taskTitle,
+    updatedAt: startIso,
+  } as unknown as TimeEntry
+}
+
+function verifyClientsAndBilling() {
+  section('Clients, payment status and the report export')
+
+  const clients = sanitizeClients([
+    { id: 'c1', name: '  Acme  ', email: ' a@acme.test ', notes: '', archived: true, extra: 1 },
+    { id: 'c1', name: 'Duplicate id' },
+    { id: 'c2', name: '   ' },
+    { id: '', name: 'No id' },
+    'junk',
+    { id: 'c3', name: 'x'.repeat(200) },
+  ])
+  check('clients: duplicate ids, blank names and junk are dropped', clients.length === 2)
+  check(
+    'clients: names and emails are trimmed, blanks removed, unknown fields kept',
+    same(clients[0], { id: 'c1', name: 'Acme', email: 'a@acme.test', archived: true, extra: 1 }),
+    clients[0],
+  )
+  check(
+    'clients: long names are capped',
+    clients[1].name.length === CLIENT_LIMITS.NAME_MAX,
+  )
+
+  const payments = sanitizePayments([
+    { clientId: 'c1', month: '2026-09', status: 'invoiced', amount: 1200, invoicedAt: T0 },
+    { clientId: 'c1', month: '2026-09', status: 'paid' },
+    { clientId: 'c2', month: '2026-13', status: 'paid' },
+    { clientId: 'c2', month: '2026-08', status: 'unbilled' },
+    { clientId: 'c3', month: '2026-08', status: 'paid', amount: -5, paidAt: 'soon' },
+  ])
+  check('payments: one record per client and month, bad months and unbilled rows dropped', payments.length === 2, payments)
+  check('payments: the record gets its key', payments[0].key === 'c1:2026-09')
+  check(
+    'payments: a bad amount or date is removed, not kept',
+    payments[1].amount === undefined && payments[1].paidAt === undefined,
+    payments[1],
+  )
+
+  check(
+    'csv: plain text is not quoted',
+    csvField('plain') === 'plain' && csvField(3.5) === '3.5',
+  )
+  check(
+    'csv: commas, quotes, line breaks and semicolons are quoted',
+    csvField('a,b') === '"a,b"' &&
+      csvField('say "hi"') === '"say ""hi"""' &&
+      csvField('line\nbreak') === '"line\nbreak"' &&
+      csvField('x;y') === '"x;y"',
+  )
+  check('csv: spaces at the ends are quoted', csvField(' pad ') === '" pad "')
+  check(
+    'csv: text starting with a formula character is neutralised',
+    csvField('=SUM(A1)', true) === "'=SUM(A1)" && csvField('-3', false) === '-3',
+  )
+
+  const goals = [
+    { id: 'g1', title: 'Site, redesign', status: 'active', createdAt: T0, updatedAt: T0, clientId: 'c1' },
+    { id: 'g2', title: 'Logo', status: 'active', createdAt: T0, updatedAt: T0 },
+  ] as unknown as Goal[]
+  const reportClients: Client[] = [{ id: 'c1', name: 'Acme; Ltd' }]
+  const entries = [
+    timeEntry('e1', 'g1', '2026-09-02T10:00:00.000Z', 120, 'Layout "v2"'),
+    timeEntry('e2', 'g2', '2026-09-02T13:00:00.000Z', 30, 'Sketches'),
+    timeEntry('e3', undefined, '2026-09-02T09:00:00.000Z', 15),
+  ]
+  const lines = buildReportLines({
+    entries,
+    goals,
+    clients: reportClients,
+    rateOf: (_taskId, goalId) => (goalId === 'g1' ? 50 : 0),
+  })
+
+  check('report: lines are in time order', lines.map((line) => line.taskTitle).join('|') === '|Layout "v2"|Sketches', lines)
+  const totals = reportTotals(lines)
+  check('report: totals add up the duration and amount', Math.abs(totals.ms - 165 * 60 * 1000) < 1 && Math.abs(totals.amount - 100) < 1e-9, totals)
+
+  const csv = buildCsv(lines, 'USD')
+  const rows = csv.slice(1).split('\r\n').filter((row) => row !== '')
+  check('csv: starts with a UTF-8 byte order mark', csv.charCodeAt(0) === 0xfeff && csv.startsWith(CSV_BOM))
+  check(
+    'csv: header names the columns and the currency',
+    rows[0] === 'Date,Start,End,Duration (h),Client,Project,Task,Rate (USD),Amount (USD)',
+    rows[0],
+  )
+  check(
+    'csv: a row keeps quoted client, project and task text',
+    rows[2].includes('"Acme; Ltd"') && rows[2].includes('"Site, redesign"') && rows[2].includes('"Layout ""v2"""'),
+    rows[2],
+  )
+  check('csv: duration is decimal hours and amount is rounded', rows[2].includes(',2.00,') && rows[2].endsWith(',50.00,100.00'), rows[2])
+  check(
+    'csv: the last row is the totals',
+    rows[rows.length - 1] === 'Total,,,2.75,,,,,100.00',
+    rows[rows.length - 1],
+  )
+  check('csv: entries without a project say so', rows[1].includes('Without a project') && rows[1].includes('No client'), rows[1])
+
+  const lookup = buildRateLookup([], goals, 40)
+  const billed = [...goals]
+  billed[0] = { ...billed[0], billing: { fixedPrice: 1000 } } as Goal
+  const summaries = clientSummaries({
+    periodEntries: [timeEntry('p1', 'g1', '2026-09-02T10:00:00.000Z', 120), timeEntry('p2', 'g2', '2026-09-02T13:00:00.000Z', 60)],
+    allEntries: [timeEntry('p1', 'g1', '2026-09-02T10:00:00.000Z', 120), timeEntry('p2', 'g2', '2026-09-02T13:00:00.000Z', 60)],
+    goals: billed,
+    clients: reportClients,
+    lookup,
+    isAllTime: true,
+  })
+  check(
+    'by client: a fixed price replaces the hourly earnings of its projects',
+    summaries[0].clientId === 'c1' && summaries[0].earned === 1000 && summaries[0].hasFixedPrice && summaries[0].ms === 2 * 60 * 60 * 1000,
+    summaries,
+  )
+  check(
+    'by client: projects without a client are one row at their own rate',
+    summaries[1].key === NO_CLIENT_FILTER_ID && Math.abs(summaries[1].earned - 40) < 1e-9,
+    summaries[1],
+  )
+
+  const T_NOW = Date.parse('2026-10-25T12:00:00.000Z')
+  const DAY = 24 * 60 * 60 * 1000
+  const started = withPaymentStatus([], 'c1', '2026-09', PAYMENT_STATUS.INVOICED, T0, 1200)
+  check(
+    'payments: invoicing stores the amount and the date, not a paid date',
+    started.length === 1 && started[0].amount === 1200 && started[0].invoicedAt === T0 && started[0].paidAt === undefined,
+    started,
+  )
+  const paid = withPaymentStatus(started, 'c1', '2026-09', PAYMENT_STATUS.PAID, T1)
+  check(
+    'payments: paying keeps the invoice date and stamps the paid date',
+    paid.length === 1 && paid[0].invoicedAt === T0 && paid[0].paidAt === T1 && paid[0].amount === 1200,
+    paid,
+  )
+  const reopened = withPaymentStatus(paid, 'c1', '2026-09', PAYMENT_STATUS.INVOICED, T2)
+  check('payments: moving back to invoiced clears the paid date', reopened[0].paidAt === undefined && reopened[0].invoicedAt === T0)
+  check('payments: unbilled removes the record', withPaymentStatus(paid, 'c1', '2026-09', PAYMENT_STATUS.UNBILLED, T2).length === 0)
+  check(
+    'payments: clearing an amount removes the field',
+    withPaymentAmount(started, 'c1', '2026-09', undefined)[0].amount === undefined,
+  )
+
+  const ledger: PaymentRecord[] = [
+    { key: 'c1:2026-07', clientId: 'c1', month: '2026-07', status: PAYMENT_STATUS.INVOICED, amount: 1000, invoicedAt: new Date(T_NOW - 31 * DAY).toISOString() },
+    { key: 'c1:2026-08', clientId: 'c1', month: '2026-08', status: PAYMENT_STATUS.INVOICED, amount: 500.25, invoicedAt: new Date(T_NOW - 29 * DAY).toISOString() },
+    { key: 'c2:2026-08', clientId: 'c2', month: '2026-08', status: PAYMENT_STATUS.PAID, amount: 300, invoicedAt: new Date(T_NOW - 60 * DAY).toISOString() },
+    { key: 'c2:2026-09', clientId: 'c2', month: '2026-09', status: PAYMENT_STATUS.INVOICED, invoicedAt: new Date(T_NOW - DAY).toISOString() },
+  ]
+  const owed = outstandingSummary(ledger, T_NOW)
+  check(
+    'outstanding: sums invoiced amounts, leaves out paid ones',
+    Math.abs(owed.total - 1500.25) < 1e-9 && owed.count === 3,
+    owed,
+  )
+  check(
+    'outstanding: counts overdue invoices (over 30 days) and invoices with no amount',
+    owed.overdueCount === 1 && Math.abs(owed.overdueTotal - 1000) < 1e-9 && owed.withoutAmountCount === 1,
+    owed,
+  )
+  check(
+    'overdue: exactly 30 days is not yet overdue',
+    !isOverdue({ ...ledger[1], invoicedAt: new Date(T_NOW - OVERDUE_AFTER_DAYS * DAY).toISOString() }, T_NOW),
+  )
+  check(
+    'payments: a client filter narrows the outstanding total',
+    outstandingSummary(ledger.filter((p) => p.clientId === 'c2'), T_NOW).total === 0,
+  )
+
+  const html = buildPrintHtml({
+    authorName: 'Ada <b>Lovelace</b>',
+    clientLabel: 'Acme',
+    periodLabel: 'This month',
+    from: '2026-09-01',
+    to: '2026-09-30',
+    currency: 'USD',
+    locale: 'en-GB',
+    generatedAt: 'now',
+    lines: [
+      { ...lines[1], projectTitle: '<img src=x onerror=alert(1)>', taskTitle: '<script>x</script>' },
+    ],
+  })
+  check('print: user text is escaped', html.includes('&lt;script&gt;x&lt;/script&gt;') && !html.includes('<script>x'))
+  check('print: no script runs in the report', !/<script/i.test(html))
+  check('print: the author name is shown escaped', html.includes('Ada &lt;b&gt;Lovelace&lt;/b&gt;'))
+
+  const backup = parseBackupFile({
+    format: 'dayforge-backup',
+    version: 1,
+    goals: [{ ...goals[0] }],
+    taskTemplates: [],
+    dailyTasks: [],
+    settings: { billing: { clients, payments } },
+  })
+  check('backup: a project keeps its client', backup?.goals[0].clientId === 'c1')
+  const restored = backup?.settings as { billing?: { clients?: unknown; payments?: unknown } } | undefined
+  check(
+    'backup: clients and payments travel in the settings',
+    same(restored?.billing?.clients, clients) && same(restored?.billing?.payments, payments),
+  )
+
+  const plainProject = goalRow({ id: 'goal-g', updatedAt: T0 })
+  const withClient = goalRow({ id: 'goal-g', clientId: 'c1', updatedAt: T1 })
+  check(
+    'sync: a project client survives a whole-row merge in either direction',
+    mergeRow(SYNC_TABLE.GOALS, plainProject, withClient).row.clientId === 'c1' &&
+      mergeRow(SYNC_TABLE.GOALS, withClient, plainProject).row.clientId === 'c1',
+  )
+
+  const settingsRow: Record<string, unknown> = { id: 'settings', updatedAt: T1 }
+  SYNCED_SECTIONS.forEach((section) => {
+    settingsRow[section] = clone(DEFAULT_SETTINGS[section])
+  })
+  settingsRow.billing = { clients, payments }
+  check(
+    'sync: billing is a synced settings section, not held back',
+    !('billing' in heldFromRow(settingsRow, SYNCED_SECTIONS, DEFAULT_SETTINGS)) &&
+      (SYNCED_SECTIONS as readonly string[]).includes('billing'),
+  )
+}
+
 function main() {
+  verifyTimerReminders()
+  verifyBudgetPlanIncome()
+  verifyClientsAndBilling()
   verifyUpcomingTasks()
+  verifyAccountDeletionWipe()
   verifyBoardFields()
   verifyBoardPersistence()
   verifyProjectNotes()

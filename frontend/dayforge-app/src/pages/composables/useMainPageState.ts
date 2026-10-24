@@ -24,6 +24,7 @@ import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
 import { noteManualTaskAdded } from '../../composables/useShortcutTip'
 import { useTimer } from '../../composables/useTimer'
+import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
 import { useSync } from '../../composables/useSync'
 import { useAuth } from '../../composables/useAuth'
@@ -37,6 +38,9 @@ import { useProjectBilling } from '../../features/analytics/composables/useProje
 import { useFormat } from '../../composables/useFormat'
 import { useUndoToast } from '../../composables/useUndoToast'
 import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
+import { useProjectBudget } from '../../features/analytics/composables/useProjectBudget'
+import type { ProjectBudget } from '../../features/analytics/composables/projectBudget'
+import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
 
 export type ActiveView =
   | 'goals'
@@ -200,6 +204,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   const notifications = useTaskNotifications(goalSpace.dailyTasks)
   const timer = useTimer()
+  initTimerReminders(goalSpace.dailyTasks)
 
   /** Turns a sitting that was timed with no task attached into a real one. */
   function handleSaveTimerAsTask(title: string) {
@@ -459,6 +464,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateGoalRate(goalId, hourlyRate)
   }
 
+  function handleChangeGoalClient(goalId: ID, clientId: ID | undefined) {
+    goalSpace.updateGoalClient(goalId, clientId)
+  }
+
   const projectBilling = useProjectBilling(goalSpace.goals)
 
   function handleChangeGoalBilling(
@@ -466,6 +475,17 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     billing: ProjectBilling | undefined,
   ) {
     projectBilling.updateGoalBilling(goalId, billing)
+  }
+
+  const projectBudget = useProjectBudget(goalSpace.goals)
+  // Watches tracked time and posts the 80% / 100% notices; no UI of its own.
+  useBudgetAlerts(goalSpace.goals, goalSpace.taskTemplates)
+
+  function handleChangeGoalBudget(
+    goalId: ID,
+    budget: ProjectBudget | undefined,
+  ) {
+    projectBudget.updateGoalBudget(goalId, budget)
   }
 
   function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
@@ -578,9 +598,11 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleChangeGoalDetails,
     handleChangeGoalStatus,
     handleChangeGoalRate,
+    handleChangeGoalClient,
     handleChangeGoalBilling,
     handleChangeGoalTheme,
     handleChangeGoalIcon,
+    handleChangeGoalBudget,
     handleChangeGoalBoard,
     handleChangeGoalNotes,
     handleSetBoardStage,

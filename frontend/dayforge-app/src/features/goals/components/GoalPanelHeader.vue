@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GoalHeader from './GoalHeader.vue'
+import type { BudgetStanding } from '../../analytics/composables/projectBudget'
 
 defineProps<{
   title: string
@@ -13,6 +14,7 @@ defineProps<{
   boardEnabled: boolean
   hasNotes: boolean
   notesOpen: boolean
+  budget: BudgetStanding | null
 }>()
 
 const emit = defineEmits<{
@@ -34,6 +36,7 @@ const emit = defineEmits<{
     :board-enabled="boardEnabled"
     :has-notes="hasNotes"
     :notes-open="notesOpen"
+    :budget="budget"
     @set-board="(enabled) => emit('set-board', enabled)"
     @toggle-notes="emit('toggle-notes')"
   />

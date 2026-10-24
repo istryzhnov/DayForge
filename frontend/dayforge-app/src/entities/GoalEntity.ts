@@ -24,6 +24,8 @@ export interface Goal {
   accentColor?: string
   /** What an hour on this project is worth; falls back to the global rate. */
   hourlyRate?: number
+  /** The client this project is billed to. Absent means no client. */
+  clientId?: ID
   /** Id from the built-in project icon set; absent means no icon. */
   icon?: string
   /** Shows the List / Board switch on this project. Absent means off. */
@@ -32,6 +34,8 @@ export interface Goal {
   notes?: string
   /** Analytics-only figures; never touches time entries. Absent means none. */
   billing?: { fixedPrice?: number; manualHours?: number; note?: string }
+  /** Spend limit: tracked hours and/or earnings. Absent means no budget. */
+  budget?: { hours?: number; amount?: number; period: 'total' | 'month' }
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

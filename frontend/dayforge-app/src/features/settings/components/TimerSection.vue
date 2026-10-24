@@ -15,8 +15,21 @@ import {
   rangeValue,
   textValue,
 } from '../../../composables/inputValue'
+import {
+  IDLE_RETURN_MINUTE_OPTIONS,
+  LONG_RUN_HOUR_OPTIONS,
+} from '../../../composables/timer/reminders'
 
 const { settings, update, resetSection } = useSettings()
+
+function longRunLabel(hours: number): string {
+  return hours === 0 ? 'Off' : `${hours} h`
+}
+
+function idleLabel(minutes: number): string {
+  if (minutes === 0) return 'Off'
+  return minutes === 60 ? '1 h' : `${minutes} min`
+}
 </script>
 
 <template>
@@ -53,6 +66,40 @@ const { settings, update, resetSection } = useSettings()
         @click="update('timer', { defaultCountdownMinutes: minutes })"
       >
         {{ minutes }} min
+      </button>
+    </div>
+
+    <p class="sidebar-caption">Reminders while running</p>
+    <p class="settings-group-hint">
+      These only work while DayForge is open, in a tab or the installed app.
+      A closed tab cannot remind you.
+    </p>
+
+    <p class="settings-group-hint">Remind me after the timer has run</p>
+    <div class="settings-chips">
+      <button
+        v-for="hours in LONG_RUN_HOUR_OPTIONS"
+        :key="hours"
+        class="theme-chip"
+        :class="{ active: settings.timer.longRunHours === hours }"
+        type="button"
+        @click="update('timer', { longRunHours: hours })"
+      >
+        {{ longRunLabel(hours) }}
+      </button>
+    </div>
+
+    <p class="settings-group-hint">Ask what to do after I was away for</p>
+    <div class="settings-chips">
+      <button
+        v-for="minutes in IDLE_RETURN_MINUTE_OPTIONS"
+        :key="minutes"
+        class="theme-chip"
+        :class="{ active: settings.timer.idleReturnMinutes === minutes }"
+        type="button"
+        @click="update('timer', { idleReturnMinutes: minutes })"
+      >
+        {{ idleLabel(minutes) }}
       </button>
     </div>
 

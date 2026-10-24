@@ -1,0 +1,114 @@
+/* Clients, export and payment status. Kept apart from analytics-billing.css. */
+
+.analytics__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.analytics__clients {
+  margin-top: -4px;
+}
+
+/* --- settings: clients ------------------------------------------------- */
+
+.settings-client-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.settings-client {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+}
+
+.settings-client--archived {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+}
+
+.settings-client__name {
+  color: var(--muted);
+}
+
+@media (max-width: 640px) {
+  .settings-client-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- analytics: by client ---------------------------------------------- */
+
+.analytics-table--clients td,
+.analytics-table--clients th {
+  vertical-align: top;
+}
+
+.analytics-invoice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.analytics-status {
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+}
+
+.analytics-status--invoiced {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  color: var(--accent);
+}
+
+.analytics-status--paid {
+  border-color: color-mix(in srgb, #22c55e 60%, var(--line));
+  color: #16a34a;
+}
+
+.analytics-amount {
+  width: 96px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- export dialog ----------------------------------------------------- */
+
+.billing-export__summary {
+  margin: 8px 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .analytics__actions .btn {
+    flex: 1 1 auto;
+  }
+}
+
+/* --- print view (opened in its own window; see printReport.ts) --------- */

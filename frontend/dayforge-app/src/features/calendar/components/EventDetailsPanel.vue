@@ -21,10 +21,13 @@ const props = defineProps<{
   goals: Goal[]
   /** Goal this task is tagged with, if any. */
   currentGoalId: ID | null
+  /** A finished, scheduled block with no time logged over it yet. */
+  canLogPlanned?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'log-planned'): void
   (e: 'unschedule', taskId: ID): void
   (
     e: 'update-time',
@@ -158,6 +161,14 @@ function onNotesKeydown(event: KeyboardEvent) {
       <div class="event-details__actions">
         <button class="btn btn-primary" type="button" @click="save">
           Save
+        </button>
+        <button
+          v-if="canLogPlanned"
+          class="btn btn-ghost"
+          type="button"
+          @click="emit('log-planned')"
+        >
+          Log as planned
         </button>
         <button
           class="btn btn-ghost"

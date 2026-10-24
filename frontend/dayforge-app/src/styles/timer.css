@@ -672,6 +672,7 @@
 }
 
 .analytics-table-wrap {
+  position: relative; /* contains the absolutely placed visually-hidden headers */
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;

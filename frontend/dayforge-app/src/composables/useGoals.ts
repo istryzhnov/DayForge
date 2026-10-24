@@ -150,6 +150,19 @@ export function useGoals() {
     goal.updatedAt = new Date().toISOString()
   }
 
+  /** Absent means the project bills to no client. */
+  function updateGoalClient(goalId: ID, clientId: ID | undefined) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal || goal.clientId === clientId) return
+
+    if (clientId === undefined) {
+      delete goal.clientId
+    } else {
+      goal.clientId = clientId
+    }
+    goal.updatedAt = new Date().toISOString()
+  }
+
   /** A buried copy never belongs in the list the sidebar reads. */
   function liveOnly(list: Goal[]): Goal[] {
     return keepLive(SYNC_TABLE.GOALS, list)
@@ -191,6 +204,7 @@ export function useGoals() {
     updateGoalStatus,
     updateGoalTheme,
     updateGoalRate,
+    updateGoalClient,
     updateGoalIcon,
     updateGoalBoard,
     updateGoalNotes,

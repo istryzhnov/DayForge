@@ -5,15 +5,24 @@ const undoWindowMs = computed(
   () => useSettings().settings.behavior.undoWindowSeconds * 1000,
 )
 
+/** One button of a message. */
+export interface ToastAction {
+  label: string
+  run: () => void
+}
+
 /**
- * One message at a time, with a single action. Most are "Undo"; a notice can
- * name its own action instead, such as "Show" after scheduling a task elsewhere.
+ * One message at a time. Most are "Undo"; a notice can name its own action
+ * instead, such as "Show" after scheduling a task elsewhere. A message may also
+ * carry secondary buttons and stay up until the user answers it.
  */
 type PendingAction = {
   id: number
   label: string
   actionLabel: string
   run: () => void
+  secondary: ToastAction[]
+  sticky: boolean
 }
 
 const pending = ref<PendingAction | null>(null)
@@ -28,10 +37,18 @@ function clearTimer() {
 }
 
 export function useUndoToast() {
-  function show(label: string, actionLabel: string, run: () => void) {
+  function show(
+    label: string,
+    actionLabel: string,
+    run: () => void,
+    secondary: ToastAction[] = [],
+    sticky = false,
+  ) {
     clearTimer()
     nextId += 1
-    pending.value = { id: nextId, label, actionLabel, run }
+    pending.value = { id: nextId, label, actionLabel, run, secondary, sticky }
+
+    if (sticky) return
 
     const offeredId = nextId
     timerId = window.setTimeout(() => {
@@ -48,11 +65,32 @@ export function useUndoToast() {
     show(label, actionLabel, run)
   }
 
-  function runPendingAction() {
+  /**
+   * The first action is the main button; the rest sit beside it. A sticky
+   * message waits for an answer instead of fading out.
+   */
+  function offerChoices(
+    label: string,
+    actions: ToastAction[],
+    options: { sticky?: boolean } = {},
+  ) {
+    const [primary, ...secondary] = actions
+    if (!primary) return
+    show(label, primary.label, primary.run, secondary, options.sticky ?? false)
+  }
+
+  /** Index 0 is the main button, 1 onwards the secondary ones in order. */
+  function runPendingAction(index = 0) {
     const current = pending.value
     clearTimer()
     pending.value = null
-    current?.run()
+    if (!current) return
+
+    const action: ToastAction | undefined =
+      index === 0
+        ? { label: current.actionLabel, run: current.run }
+        : current.secondary[index - 1]
+    action?.run()
   }
 
   function dismissUndo() {
@@ -64,6 +102,7 @@ export function useUndoToast() {
     pending,
     offerUndo,
     offerNotice,
+    offerChoices,
     runPendingAction,
     dismissUndo,
     undoWindowMs,

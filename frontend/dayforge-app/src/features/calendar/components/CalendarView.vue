@@ -26,6 +26,8 @@ import { useCalendarDayView } from '../composables/useCalendarDayView'
 import { useTimer } from '../../../composables/useTimer'
 import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import { useLogPlanned } from '../../../composables/useLogPlanned'
+import { blockFromTask } from '../../../composables/timer/plannedBlocks'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -128,6 +130,16 @@ function toggleContextMenuTaskTimer() {
     taskTitle: task.title,
     goalId: task.goalId,
   })
+}
+
+const planned = useLogPlanned()
+
+function canLogPlanned(task: DailyTask | null): boolean {
+  return !!task && planned.canLog(blockFromTask(task))
+}
+
+function logPlannedFor(task: DailyTask | null) {
+  if (task) planned.logBlock(blockFromTask(task))
 }
 
 /** Notes live on the task's template, not on the day row the panel shows. */
@@ -355,8 +367,10 @@ function iconFor(goalId: ID | undefined) {
         :y="contextMenuPos.y"
         :is-done="contextMenuTask.status === TASK_STATUS.DONE"
         :is-timer-active="isContextTaskTiming"
+        :can-log-planned="canLogPlanned(contextMenuTask)"
         @toggle-check="toggleContextMenuTaskDone"
         @toggle-timer="toggleContextMenuTaskTimer"
+        @log-planned="logPlannedFor(contextMenuTask)"
         @close="closeContextMenu"
       />
 
@@ -368,6 +382,8 @@ function iconFor(goalId: ID | undefined) {
         :goals="goals"
         :current-goal-id="selectedTask.goalId ?? null"
         :notes="selectedTaskNotes"
+        :can-log-planned="canLogPlanned(selectedTask)"
+        @log-planned="logPlannedFor(selectedTask)"
         @close="closeDetails"
         @unschedule="unscheduleAndClose"
         @update-time="updateTimeAndClose"

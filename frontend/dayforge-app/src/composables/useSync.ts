@@ -33,6 +33,8 @@ let initialized = false
 let channel: RealtimeChannel | null = null
 let realtimeTimer: number | undefined
 let lastAutoSyncAt = 0
+/** Set for the rest of this page's life once the account is being deleted. */
+let stopped = false
 
 function currentUserId(): string | null {
   return useAuth().user.value?.id ?? null
@@ -41,7 +43,7 @@ function currentUserId(): string | null {
 /** Built once a session exists, and thrown away when it goes. */
 function currentTransport(): SyncTransport | null {
   const client = getSupabase()
-  if (!client || currentUserId() === null) return null
+  if (!client || stopped || currentUserId() === null) return null
   if (!transport) {
     transport = createSupabaseTransport({ client, userId: currentUserId })
   }
@@ -204,6 +206,19 @@ export function useSync() {
     watchSession()
   }
 
+  /**
+   * Stops every path that could send or pull for this page: timers, the live
+   * channel, the outbox, and any later trigger. Used just before an account is
+   * deleted, so nothing re-creates rows the server has just removed.
+   */
+  function stopSync() {
+    stopped = true
+    if (realtimeTimer !== undefined) window.clearTimeout(realtimeTimer)
+    realtimeTimer = undefined
+    unsubscribeRealtime()
+    engine.onSignedOut()
+  }
+
   return {
     register,
     status: engine.status,
@@ -212,5 +227,7 @@ export function useSync() {
     deadLetters: () => engine.outbox.dead,
     log: () => engine.log.entries,
     snapshots,
+    isOnline: online,
+    stopSync,
   }
 }

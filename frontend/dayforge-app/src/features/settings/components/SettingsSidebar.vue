@@ -2,7 +2,9 @@
 import { computed, onMounted, onUnmounted } from 'vue'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
+import type { ProjectBudget } from '../../analytics/composables/projectBudget'
 import SettingsMenu from './SettingsMenu.vue'
+import ClientsSection from './ClientsSection.vue'
 import ThemeSection from './ThemeSection.vue'
 import ColorsSection from './ColorsSection.vue'
 import WorkspaceSection from './WorkspaceSection.vue'
@@ -31,6 +33,8 @@ const emit = defineEmits<{
   (e: 'change-goal-theme', goalId: ID, theme: GoalTheme | undefined): void
   (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
   (e: 'change-goal-icon', goalId: ID, icon: string | undefined): void
+  (e: 'change-goal-budget', goalId: ID, budget: ProjectBudget | undefined): void
+  (e: 'change-goal-client', goalId: ID, clientId: ID | undefined): void
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (
     e: 'change-goal-details',
@@ -75,6 +79,16 @@ function handleGoalRate(hourlyRate: number | undefined) {
 function handleGoalIcon(icon: string | undefined) {
   if (!props.activeGoal) return
   emit('change-goal-icon', props.activeGoal.id, icon)
+}
+
+function handleGoalBudget(budget: ProjectBudget | undefined) {
+  if (!props.activeGoal) return
+  emit('change-goal-budget', props.activeGoal.id, budget)
+}
+
+function handleGoalClient(clientId: ID | undefined) {
+  if (!props.activeGoal) return
+  emit('change-goal-client', props.activeGoal.id, clientId)
 }
 
 function handleGoalBoard(enabled: boolean) {
@@ -161,6 +175,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
       <FormatSection v-else-if="activeSection === 'format'" />
 
+      <ClientsSection v-else-if="activeSection === 'clients'" />
+
       <DataSection
         v-else-if="activeSection === 'data'"
         :stats="dataStats"
@@ -178,7 +194,9 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         @update-status="handleGoalStatus"
         @update-theme="handleGoalTheme"
         @update-rate="handleGoalRate"
+        @update-budget="handleGoalBudget"
         @update-icon="handleGoalIcon"
+        @update-client="handleGoalClient"
         @update-board="handleGoalBoard"
         @delete="handleGoalDelete"
       />

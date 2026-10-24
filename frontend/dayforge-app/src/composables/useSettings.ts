@@ -1,8 +1,15 @@
 import { reactive, watch } from 'vue'
 import type { Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
+import type { BillingSettings } from '../entities/BillingEntity'
 import { PRIORITY } from '../entities/constants'
 import { readJson, writeJson } from '../lib/storage'
+import {
+  IDLE_RETURN_MINUTE_OPTIONS,
+  LONG_RUN_HOUR_OPTIONS,
+} from './timer/reminders'
+import { sanitizeMonthlyIncome } from '../features/analytics/composables/incomeGoal'
+import { sanitizeClients, sanitizePayments } from './billing/clients'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -43,6 +50,12 @@ export interface NotificationSettings {
   quietHours: boolean
   quietFrom: TimeOfDay
   quietTo: TimeOfDay
+  /** Offer to start the timer on a block that began without one. */
+  plannedStartReminder: boolean
+  /** In the evening, offer to log planned blocks that have no time yet. */
+  endOfDayNudge: boolean
+  /** When the evening nudge may appear, local `HH:mm`. */
+  endOfDayTime: TimeOfDay
 }
 
 /** Stands in for tasks that belong to no project in the calendar filter. */
@@ -98,6 +111,11 @@ export const CURRENCY_OPTIONS = [
   { id: 'CAD', label: 'CAD $' },
 ] as const
 
+export interface GoalSettings {
+  /** Earnings target for the calendar month, in timer.currency. Absent means none. */
+  monthlyIncome?: number
+}
+
 export interface AppSettings {
   notifications: NotificationSettings
   calendar: CalendarSettings
@@ -105,6 +123,9 @@ export interface AppSettings {
   format: FormatSettings
   accessibility: AccessibilitySettings
   timer: TimerSettings
+  goals: GoalSettings
+  /** Clients and payment status; synced with the rest of the settings row. */
+  billing: BillingSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -116,6 +137,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     quietHours: false,
     quietFrom: '22:00',
     quietTo: '08:00',
+    plannedStartReminder: true,
+    endOfDayNudge: true,
+    endOfDayTime: '22:00',
   },
   calendar: {
     hiddenGoalIds: [],
@@ -154,6 +178,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
     sound: true,
     hourlyRate: 0,
     currency: 'USD',
+    longRunHours: 3,
+    idleReturnMinutes: 15,
+  },
+  // The key is listed so sync treats monthlyIncome as a known field, not an
+  // unknown one to hold on to; an undefined value means no goal.
+  goals: { monthlyIncome: undefined },
+  billing: {
+    clients: [],
+    payments: [],
   },
 }
 
@@ -219,8 +252,14 @@ function sanitize(input: unknown): AppSettings {
   const format = asSection<FormatSettings>(raw.format)
   const accessibility = asSection<AccessibilitySettings>(raw.accessibility)
   const timer = asSection<TimerSettings>(raw.timer)
+  const billing = asSection<BillingSettings>(raw.billing)
 
   return {
+    billing: {
+      ...billing,
+      clients: sanitizeClients(billing.clients),
+      payments: sanitizePayments(billing.payments),
+    },
     notifications: {
       ...notifications,
       leadMinutes: clampNumber(
@@ -249,6 +288,18 @@ function sanitize(input: unknown): AppSettings {
         defaults.notifications.quietFrom,
       ),
       quietTo: asTime(notifications.quietTo, defaults.notifications.quietTo),
+      plannedStartReminder: asBoolean(
+        notifications.plannedStartReminder,
+        defaults.notifications.plannedStartReminder,
+      ),
+      endOfDayNudge: asBoolean(
+        notifications.endOfDayNudge,
+        defaults.notifications.endOfDayNudge,
+      ),
+      endOfDayTime: asTime(
+        notifications.endOfDayTime,
+        defaults.notifications.endOfDayTime,
+      ),
     },
     calendar: {
       ...calendar,
@@ -394,6 +445,20 @@ function sanitize(input: unknown): AppSettings {
         CURRENCY_OPTIONS.map((option) => option.id),
         defaults.timer.currency,
       ),
+      longRunHours: oneOf<number>(
+        timer.longRunHours,
+        LONG_RUN_HOUR_OPTIONS,
+        defaults.timer.longRunHours,
+      ),
+      idleReturnMinutes: oneOf<number>(
+        timer.idleReturnMinutes,
+        IDLE_RETURN_MINUTE_OPTIONS,
+        defaults.timer.idleReturnMinutes,
+      ),
+    },
+    goals: {
+      ...asSection<GoalSettings>(raw.goals),
+      monthlyIncome: sanitizeMonthlyIncome(asSection<GoalSettings>(raw.goals).monthlyIncome),
     },
   }
 }
@@ -419,6 +484,8 @@ function assign(next: AppSettings) {
   settings.format = next.format
   settings.accessibility = next.accessibility
   settings.timer = next.timer
+  settings.goals = next.goals
+  settings.billing = next.billing
 }
 
 const KNOWN_SECTIONS: ReadonlyArray<string> = [
@@ -428,6 +495,8 @@ const KNOWN_SECTIONS: ReadonlyArray<string> = [
   'format',
   'accessibility',
   'timer',
+  'goals',
+  'billing',
 ]
 
 /** Sections a newer version stored, kept so this one does not erase them. */
