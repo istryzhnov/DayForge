@@ -71,7 +71,7 @@ function idleLabel(minutes: number): string {
 
     <p class="sidebar-caption">Reminders while running</p>
     <p class="settings-group-hint">
-      These only work while DayForge is open, in a tab or the installed app.
+      In the app, these show while DayForge is open. Turn on "Notify me when the app is closed" in Reminders to get them as push notifications too.
       A closed tab cannot remind you.
     </p>
 

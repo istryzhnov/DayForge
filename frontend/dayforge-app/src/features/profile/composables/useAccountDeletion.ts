@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { getSupabase } from '../../../lib/supabaseClient'
 import { reportError } from '../../../lib/errorReporter'
 import { useAuth } from '../../../composables/useAuth'
+import { releasePushSubscription } from '../../../composables/usePushReminders'
 import { useSync } from '../../../composables/useSync'
 import { useUndoToast } from '../../../composables/useUndoToast'
 import {
@@ -40,6 +41,9 @@ export function useAccountDeletion() {
     error.value = null
 
     try {
+      // Removes this browser's push subscription while the row can still be
+      // deleted; the account delete below clears the server side anyway.
+      await releasePushSubscription()
       const { error: rpcError } = await client.rpc('delete_my_account')
       if (rpcError) throw new Error(rpcError.message)
     } catch (caught) {

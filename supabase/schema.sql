@@ -262,6 +262,8 @@ begin
   delete from public.settings where user_id = me;
   delete from public.active_timer where user_id = me;
   delete from public.deletions where user_id = me;
+  delete from public.push_subscriptions where user_id = me;
+  delete from public.push_log where user_id = me;
 
   delete from auth.users where id = me;
 end;
@@ -269,3 +271,63 @@ $$;
 
 revoke all on function public.delete_my_account() from public, anon;
 grant execute on function public.delete_my_account() to authenticated;
+
+-- 7. Web Push reminders ----------------------------------------------------
+
+-- One row per browser or installed app that turned "Notify me when the app is
+-- closed" on. The endpoint is the push service's own address for that
+-- browser, so it is unique. Written by the signed-in user from the app; read
+-- and pruned by the push-reminders Edge Function with the service role.
+create table if not exists public.push_subscriptions (
+  id           uuid        primary key default gen_random_uuid(),
+  user_id      uuid        not null references auth.users (id) on delete cascade,
+  endpoint     text        not null unique,
+  p256dh       text        not null,
+  auth         text        not null,
+  user_agent   text,
+  timezone     text,
+  created_at   timestamptz not null default now(),
+  last_used_at timestamptz
+);
+
+create index if not exists push_subscriptions_user_idx
+  on public.push_subscriptions (user_id);
+
+alter table public.push_subscriptions enable row level security;
+
+drop policy if exists own_rows on public.push_subscriptions;
+drop policy if exists own_select on public.push_subscriptions;
+drop policy if exists own_insert on public.push_subscriptions;
+drop policy if exists own_delete on public.push_subscriptions;
+
+create policy own_select on public.push_subscriptions
+  for select to authenticated
+  using (auth.uid() = user_id);
+
+create policy own_insert on public.push_subscriptions
+  for insert to authenticated
+  with check (auth.uid() = user_id);
+
+create policy own_delete on public.push_subscriptions
+  for delete to authenticated
+  using (auth.uid() = user_id);
+
+revoke all on public.push_subscriptions from anon, authenticated;
+grant select, insert, delete on public.push_subscriptions to authenticated;
+
+-- What has already been pushed, so each reminder goes out once. `kind` is one
+-- of 'long-run', 'planned-start', 'end-of-day'; `ref` is that kind's dedupe key
+-- (see supabase/functions/push-reminders/rules.ts). Service role only: no
+-- policy and no grant for signed-in users, so the app cannot read it.
+create table if not exists public.push_log (
+  user_id uuid        not null references auth.users (id) on delete cascade,
+  kind    text        not null,
+  ref     text        not null,
+  sent_at timestamptz not null default now(),
+  constraint push_log_unique unique (user_id, kind, ref)
+);
+
+create index if not exists push_log_sent_idx on public.push_log (sent_at);
+
+alter table public.push_log enable row level security;
+revoke all on public.push_log from anon, authenticated;

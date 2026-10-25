@@ -7,6 +7,11 @@
   - Everything else (non-GET, cross-origin such as Supabase/Google, OAuth
     callback URLs, /auth/ paths) is never intercepted.
 
+  - Push: shows the reminder sent by the push-reminders Edge Function. The
+    payload carries the same `tag` the open app uses for its own browser
+    notifications, so the two replace each other rather than stacking.
+  - notificationclick: focuses an open DayForge window, or opens one.
+
   Bump CACHE_VERSION whenever this file's caching logic changes. Old caches
   are removed on activate.
 
@@ -15,7 +20,7 @@
   the next load.
 */
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const CACHE_PREFIX = 'dayforge-shell-'
 const CACHE_NAME = `${CACHE_PREFIX}${CACHE_VERSION}`
 const SHELL_URL = '/index.html'
@@ -105,6 +110,70 @@ async function handleAsset(event) {
   }
   return response
 }
+
+const NOTIFICATION_ICON = '/logo-192.png'
+
+function readPushPayload(event) {
+  if (!event.data) return {}
+  try {
+    return event.data.json()
+  } catch {
+    return { body: event.data.text() }
+  }
+}
+
+// Only same-origin paths are opened from a notification.
+function safeTargetUrl(value) {
+  try {
+    const target = new URL(typeof value === 'string' ? value : '/', self.location.origin)
+    return target.origin === self.location.origin ? target.href : self.location.origin + '/'
+  } catch {
+    return self.location.origin + '/'
+  }
+}
+
+self.addEventListener('push', (event) => {
+  const data = readPushPayload(event)
+  const url = safeTargetUrl(data.url)
+  const options = {
+    body: typeof data.body === 'string' ? data.body : '',
+    tag: typeof data.tag === 'string' ? data.tag : undefined,
+    // Same tag replaces silently: no second sound for a reminder already shown.
+    renotify: false,
+    icon: NOTIFICATION_ICON,
+    badge: NOTIFICATION_ICON,
+    data: { url },
+  }
+  if (Array.isArray(data.actions)) options.actions = data.actions.slice(0, 2)
+
+  // Every push must show a notification, or the browser may stop delivering.
+  event.waitUntil(
+    self.registration.showNotification(
+      typeof data.title === 'string' && data.title ? data.title : 'DayForge',
+      options,
+    ),
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = safeTargetUrl(event.notification.data && event.notification.data.url)
+
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      })
+      for (const client of windows) {
+        if (new URL(client.url).origin === self.location.origin) {
+          return client.focus()
+        }
+      }
+      return self.clients.openWindow(url)
+    })(),
+  )
+})
 
 self.addEventListener('fetch', (event) => {
   const { request } = event
