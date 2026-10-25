@@ -9,7 +9,7 @@
     "verbatimModuleSyntax": false,
     "allowImportingTsExtensions": false,
     "outDir": "./.verify-out",
-    "rootDir": ".",
+    "rootDir": "../..",
     "types": ["node"],
     "noEmit": false,
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.verify.tsbuildinfo"

@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { getSupabase, isSyncConfigured } from '../lib/supabaseClient'
+import { releasePushSubscription } from './usePushReminders'
 
 export interface AuthUser {
   id: string
@@ -115,6 +116,8 @@ export function useAuth() {
 
     isBusy.value = true
     try {
+      // Needs the session to delete this browser's push row, so it runs first.
+      await releasePushSubscription()
       await supabase.auth.signOut()
       user.value = null
     } catch (caught) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useSettings } from '../../../composables/useSettings'
 import { MINUTE_STEPS } from '../composables/settingsOptions'
@@ -7,6 +8,8 @@ import {
   fractionValue,
   textValue,
 } from '../../../composables/inputValue'
+import { useAuth } from '../../../composables/useAuth'
+import { usePushReminders } from '../../../composables/usePushReminders'
 
 defineProps<{
   notificationsSupported: boolean
@@ -18,6 +21,26 @@ const emit = defineEmits<{
 }>()
 
 const { settings, update, resetSection } = useSettings()
+const { user, isSignedIn } = useAuth()
+const push = usePushReminders()
+
+watch(
+  () => user.value?.id,
+  (userId) => {
+    if (userId) void push.refresh(userId)
+  },
+  { immediate: true },
+)
+
+function togglePush() {
+  const userId = user.value?.id
+  if (!userId) return
+  if (push.status.value === 'on') {
+    void push.disable()
+  } else {
+    void push.enable(userId)
+  }
+}
 </script>
 
 <template>
@@ -53,7 +76,7 @@ const { settings, update, resetSection } = useSettings()
 
     <p class="sidebar-caption">Planned blocks</p>
     <p class="settings-group-hint">
-      Only works while DayForge is open, in a tab or the installed app.
+      In the app, these show while DayForge is open. Turn on "Notify me when the app is closed" to get them as push notifications too.
     </p>
 
     <label class="settings-toggle">
@@ -99,6 +122,42 @@ const { settings, update, resetSection } = useSettings()
         />
       </label>
     </div>
+
+    <template v-if="isSignedIn">
+      <p class="sidebar-caption">When the app is closed</p>
+
+      <p
+        v-if="push.status.value === 'unavailable' || push.status.value === 'ios-install'"
+        class="settings-group-hint"
+      >
+        {{ push.reason.value }}
+      </p>
+
+      <template v-else>
+        <label class="settings-toggle">
+          <input
+            type="checkbox"
+            :checked="push.status.value === 'on'"
+            :disabled="push.busy.value"
+            @change="togglePush"
+          />
+          <span>
+            <strong>Notify me when the app is closed</strong>
+            <em>
+              Timer and planned-block reminders arrive as browser
+              notifications. They are checked every few minutes, so they can
+              come a little late. Works on this device only.
+            </em>
+          </span>
+        </label>
+        <p v-if="push.status.value === 'denied'" class="settings-group-hint">
+          Notifications are blocked for this site in the browser settings.
+        </p>
+        <p v-if="push.error.value" class="settings-group-hint" role="alert">
+          {{ push.error.value }}
+        </p>
+      </template>
+    </template>
 
     <p class="sidebar-caption">Sound</p>
 

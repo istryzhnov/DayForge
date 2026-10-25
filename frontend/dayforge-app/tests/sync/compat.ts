@@ -37,13 +37,28 @@ import {
 } from '../../src/composables/timer/reminders'
 import {
   blockLogState,
+  localMs,
   loggableBlocks,
   pickPlannedStart,
   planBlockEntry,
   type PlannedBlock,
 } from '../../src/composables/timer/plannedBlocks'
+import {
+  decideReminders,
+  isEndOfDayMinutes,
+  isLongRunDue as serverIsLongRunDue,
+  isWithinQuietMinutes,
+  loggableCount,
+  pickPlannedStart as serverPickPlannedStart,
+  PLANNED_START_GRACE_MS as SERVER_PLANNED_START_GRACE_MS,
+  plannedNudgeLabel as serverPlannedNudgeLabel,
+  sittingRunningMs as serverSittingRunningMs,
+  type Clock,
+  type ServerTask,
+  type ServerTimer,
+} from '../../../../supabase/functions/push-reminders/rules'
 import { createIdleTimer, transition } from '../../src/composables/timer/machine'
-import { DEFAULT_SETTINGS } from '../../src/composables/useSettings'
+import { DEFAULT_SETTINGS, isWithinQuietHours } from '../../src/composables/useSettings'
 import {
   appStorageKeys,
   clearLocalAppData,
@@ -413,7 +428,7 @@ function verifySettingsRow() {
 function verifyBackupFixture() {
   section('Backup v1 fixture parses without losing a field')
 
-  const fixturePath = join(__dirname, '..', '..', '..', 'tests', 'sync', 'fixtures', 'backup-v1.json')
+  const fixturePath = join(process.cwd(), 'tests', 'sync', 'fixtures', 'backup-v1.json')
   const fixture = JSON.parse(readFileSync(fixturePath, 'utf8')) as Record<string, unknown>
   const parsed = parseBackupFile(fixture)
 
@@ -440,7 +455,7 @@ function verifyBackupFixture() {
 function verifyNewerBackup() {
   section('Backup from a newer build (version 99) is accepted with its fields')
 
-  const fixturePath = join(__dirname, '..', '..', '..', 'tests', 'sync', 'fixtures', 'backup-v1.json')
+  const fixturePath = join(process.cwd(), 'tests', 'sync', 'fixtures', 'backup-v1.json')
   const future = JSON.parse(readFileSync(fixturePath, 'utf8')) as Record<string, any>
   future.version = 99
   future.goals[0].futureField = { color: 'teal' }
@@ -1628,7 +1643,236 @@ function verifyClientsAndBilling() {
   )
 }
 
+/**
+ * The Edge Function's reminder rules (supabase/functions/push-reminders/rules.ts)
+ * must agree with the in-app rules on every case that matters, and the
+ * messages must carry the same tags so one replaces the other.
+ */
+function verifyPushReminderParity() {
+  section('Web Push reminders: the server rules agree with the in-app rules')
+
+  const hours = [0, 1, 3, 8]
+  const runs = [0, 3 * HOUR - 1, 3 * HOUR, 9 * HOUR]
+  const longRunAgrees = hours.every((h) =>
+    runs.every((ms) => isLongRunDue(ms, h) === serverIsLongRunDue(ms, h)),
+  )
+  check('long-run: the server and the app agree at every threshold', longRunAgrees)
+
+  const sitting = 'sit-p'
+  const sittingEntries = [
+    entryAt(sitting, localAt(2026, 10, 21, 8, 0), localAt(2026, 10, 21, 9, 0)),
+    entryAt(sitting, localAt(2026, 10, 21, 9, 30), localAt(2026, 10, 21, 10, 0)),
+    entryAt('sit-other', localAt(2026, 10, 21, 6, 0), localAt(2026, 10, 21, 11, 0)),
+  ]
+  check(
+    'long-run: the server counts a sitting the same way',
+    serverSittingRunningMs(sittingEntries, sitting, 10 * MIN) === sittingRunningMs(sittingEntries, sitting, 10 * MIN),
+  )
+
+  const nudgeCases: Array<[number, number, string]> = [
+    [17, 59, '18:00'], [18, 0, '18:00'], [21, 59, '22:00'], [22, 0, '22:00'], [23, 30, '23:30'], [19, 0, '23:30'],
+  ]
+  check(
+    'end of day: the server fires at the same minute as the app',
+    nudgeCases.every(([h, m, time]) =>
+      isEndOfDay(new Date(2026, 9, 21, h, m), time) === isEndOfDayMinutes(h * 60 + m, time),
+    ),
+  )
+
+  const quietCases: Array<[number, number]> = [[21, 59], [22, 0], [3, 0], [7, 59], [8, 0], [12, 0]]
+  check(
+    'quiet hours: a window that crosses midnight is judged the same way',
+    quietCases.every(([h, m]) =>
+      isWithinQuietHours(new Date(2026, 9, 21, h, m), '22:00', '08:00') ===
+      isWithinQuietMinutes(h * 60 + m, '22:00', '08:00'),
+    ),
+  )
+  check(
+    'quiet hours: an empty window (start equals end) is silent on both sides',
+    !isWithinQuietHours(new Date(2026, 9, 21, 9, 0), '09:00', '09:00') &&
+      !isWithinQuietMinutes(9 * 60, '09:00', '09:00'),
+  )
+
+  const day = '2026-10-21'
+  const now = localAt(2026, 10, 21, 10, 0)
+  const clock: Clock = {
+    now,
+    today: day,
+    minutesOfDay: 10 * 60,
+    localMs,
+  }
+  const planTasks = [
+    blockTask('t1', day, '09:00', '10:00'),
+    blockTask('t2', day, '09:30', '10:30'),
+    blockTask('done', day, '09:10', '09:40', 'done'),
+    blockTask('later', day, '10:30', '11:00'),
+  ]
+  const planEntries = [entryAt('q', localAt(2026, 10, 21, 9, 6), localAt(2026, 10, 21, 9, 15), 't1')]
+  const none = (): boolean => false
+
+  const pickClient = pickPlannedStart(planTasks, day, now, planEntries, none)
+  const pickServer = serverPickPlannedStart(planTasks as unknown as ServerTask[], day, now, planEntries, localMs, none)
+  check(
+    'planned start: the same block is picked (most recent due, not done, not tracked)',
+    pickClient?.templateId === 't2' && pickServer?.templateId === 't2',
+    { client: pickClient?.templateId, server: pickServer?.templateId },
+  )
+  check(
+    'planned start: the grace period matches the app',
+    SERVER_PLANNED_START_GRACE_MS === 5 * MIN,
+  )
+
+  const endBlocks = planTasks.map((task) => ({
+    templateId: task.templateId,
+    title: task.title,
+    date: task.date,
+    startTime: task.startTime,
+    endTime: task.endTime,
+  })) as PlannedBlock[]
+  const clientLoggable = loggableBlocks(endBlocks, sittingEntries, now).length
+  const serverLoggable = loggableCount(endBlocks, sittingEntries, now, localMs)
+  check('end of day: the same blocks count as unlogged', clientLoggable === serverLoggable, { clientLoggable, serverLoggable })
+  check(
+    'end of day: the nudge wording is shared',
+    serverPlannedNudgeLabel(1) === plannedNudgeLabel(1) && serverPlannedNudgeLabel(3) === plannedNudgeLabel(3),
+  )
+
+  // Message tags and dedupe keys, through the full decision.
+  const runningTimer: ServerTimer = {
+    sessionId: 'sit-x',
+    status: 'running',
+    startedAt: localAt(2026, 10, 21, 5, 0),
+    task: { taskId: 't1', taskTitle: 'Deep work' },
+  }
+  const longRun = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 8, 30) },
+    settings: null,
+    timer: runningTimer,
+    entries: [],
+    tasks: [],
+    wasSent: () => false,
+  })
+  check(
+    'a long run pushes once, tagged like the in-app browser notification',
+    longRun.length === 1 &&
+      longRun[0].kind === 'long-run' &&
+      longRun[0].tag === 'long-sit-x' &&
+      longRun[0].ref === 'sit-x:3' &&
+      longRun[0].body === 'Timer on "Deep work" has been running for 3 h',
+    longRun,
+  )
+  const longRunSent = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 8, 30) },
+    settings: null,
+    timer: runningTimer,
+    entries: [],
+    tasks: [],
+    wasSent: (kind, ref) => kind === 'long-run' && ref === 'sit-x:3',
+  })
+  check('a long run already pushed is not pushed again', longRunSent.length === 0)
+
+  const plannedDue = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 9, 10), minutesOfDay: 9 * 60 + 10 },
+    settings: null,
+    timer: null,
+    entries: [],
+    tasks: [planTasks[0]] as unknown as ServerTask[],
+    wasSent: () => false,
+  })
+  check(
+    'planned start pushes a block started 5+ minutes ago with nothing running, tagged like the app',
+    plannedDue.length === 1 &&
+      plannedDue[0].kind === 'planned-start' &&
+      plannedDue[0].tag === `planned-${planTasks[0].id}` &&
+      plannedDue[0].ref === planTasks[0].id &&
+      plannedDue[0].body === '"Block t1" started 10 min ago',
+    plannedDue,
+  )
+  const plannedWhileRunning = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 9, 10), minutesOfDay: 9 * 60 + 10 },
+    settings: null,
+    timer: { ...runningTimer, startedAt: localAt(2026, 10, 21, 9, 0) },
+    entries: [],
+    tasks: [planTasks[0]] as unknown as ServerTask[],
+    wasSent: () => false,
+  })
+  check(
+    'planned start is held back while a timer is running',
+    !plannedWhileRunning.some((message) => message.kind === 'planned-start'),
+  )
+  const plannedSent = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 9, 10), minutesOfDay: 9 * 60 + 10 },
+    settings: null,
+    timer: null,
+    entries: [],
+    tasks: [planTasks[0]] as unknown as ServerTask[],
+    wasSent: (kind, ref) => kind === 'planned-start' && ref === planTasks[0].id,
+  })
+  check('planned start is sent once per block', plannedSent.length === 0)
+
+  // The block is also due for a planned-start push; these cases are about the nudge.
+  const plannedAlreadySent = (kind: string): boolean => kind === 'planned-start'
+  const nudgeClock = { ...clock, now: localAt(2026, 10, 21, 22, 0), minutesOfDay: 22 * 60 }
+  const nudgeTasks = [blockTask('n1', day, '09:00', '10:00')] as unknown as ServerTask[]
+  const nudge = decideReminders({
+    clock: nudgeClock,
+    settings: null,
+    timer: null,
+    entries: [],
+    tasks: nudgeTasks,
+    wasSent: plannedAlreadySent,
+  })
+  check(
+    'end of day pushes at 22:00 by default when a finished block has no time',
+    nudge.length === 1 && nudge[0].kind === 'end-of-day' && nudge[0].body === plannedNudgeLabel(1) && nudge[0].ref === day,
+    nudge,
+  )
+  check(
+    'end of day stays quiet before its time',
+    decideReminders({
+      clock: { ...nudgeClock, minutesOfDay: 21 * 60 + 59 },
+      settings: null,
+      timer: null,
+      entries: [],
+      tasks: nudgeTasks,
+      wasSent: plannedAlreadySent,
+    }).length === 0,
+  )
+  check(
+    'end of day is sent once a day',
+    decideReminders({
+      clock: nudgeClock,
+      settings: null,
+      timer: null,
+      entries: [],
+      tasks: nudgeTasks,
+      wasSent: (kind, ref) => plannedAlreadySent(kind) || (kind === 'end-of-day' && ref === day),
+    }).length === 0,
+  )
+
+  const quiet = decideReminders({
+    clock: { ...nudgeClock, minutesOfDay: 23 * 60 },
+    settings: { notifications: { quietHours: true, quietFrom: '22:00', quietTo: '08:00' } },
+    timer: { ...runningTimer, startedAt: localAt(2026, 10, 20, 1, 0) },
+    entries: [],
+    tasks: nudgeTasks,
+    wasSent: () => false,
+  })
+  check('quiet hours silence every server push', quiet.length === 0, quiet)
+
+  const longRunOff = decideReminders({
+    clock: { ...clock, now: localAt(2026, 10, 21, 12, 0), minutesOfDay: 12 * 60 },
+    settings: { timer: { longRunHours: 0 } },
+    timer: runningTimer,
+    entries: [],
+    tasks: [],
+    wasSent: () => false,
+  })
+  check('a long run never pushes when switched off', longRunOff.length === 0)
+}
+
 function main() {
+  verifyPushReminderParity()
   verifyTimerReminders()
   verifyBudgetPlanIncome()
   verifyClientsAndBilling()
