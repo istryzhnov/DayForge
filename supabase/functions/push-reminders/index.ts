@@ -155,7 +155,7 @@ function constantTimeEquals(a: string, b: string): boolean {
   return difference === 0
 }
 
-/** The cron job sends the service role key; CRON_SECRET is an alternative. */
+/** The cron job sends CRON_SECRET; the service role key is accepted for manual calls. */
 function isAuthorized(request: Request): boolean {
   const header = request.headers.get('authorization') ?? ''
   if (!header.startsWith('Bearer ')) return false

@@ -15,9 +15,13 @@
 --     "create extension" lines in step 4 and run them as the postgres role).
 --   - Replace <PROJECT_REF> in step 4 with your project ref (the part of the
 --     project URL before .supabase.co).
---   - Store the service role key in Vault once, under the name used in step 4:
---       select vault.create_secret('<service role key>', 'service_role_key');
---     Do not paste the key into this file.
+--   - Pick a long random secret, give it to the Edge Function as CRON_SECRET
+--     (supabase secrets set CRON_SECRET=...), and store the same value in
+--     Vault once, under the name used in step 4:
+--       select vault.create_secret('<cron secret>', 'cron_secret');
+--     Do not paste the secret into this file. The service role key is not
+--     used here: newer projects hand functions a different key, so a copy of
+--     the old one is rejected.
 --
 -- Run steps 1 to 3 first. Run step 4 after the Edge Function is deployed and
 -- the secrets are set (see the setup notes).
@@ -131,7 +135,7 @@ select cron.schedule(
       'Authorization', 'Bearer ' || (
         select decrypted_secret
         from vault.decrypted_secrets
-        where name = 'service_role_key'
+        where name = 'cron_secret'
         limit 1
       )
     ),
