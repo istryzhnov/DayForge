@@ -147,6 +147,13 @@ import {
 import { buildPrintHtml } from '../../src/features/analytics/composables/printReport'
 import { PAYMENT_STATUS, type Client, type PaymentRecord } from '../../src/entities/BillingEntity'
 import type { TimeEntry } from '../../src/entities/TimerEntity'
+import {
+  capitalizeFirst,
+  formatCalendarDayTitle,
+  formatCalendarMonthTitle,
+  formatCalendarWeekday,
+  formatCalendarWeekTitle,
+} from '../../src/features/calendar/composables/calendarTitles'
 
 let failures = 0
 let checks = 0
@@ -2230,6 +2237,34 @@ function verifyMoneyTab() {
   )
 }
 
+function verifyCalendarTitles() {
+  section('Calendar titles: one locale, normal capitalisation')
+
+  check(
+    'the day title is a plain sentence with English names',
+    formatCalendarDayTitle('2026-10-27') === 'Tuesday 27 October',
+    formatCalendarDayTitle('2026-10-27'),
+  )
+  check(
+    'the month title names the month and year',
+    formatCalendarMonthTitle('2026-10-01') === 'October 2026',
+    formatCalendarMonthTitle('2026-10-01'),
+  )
+  check(
+    'a week across two months names both months',
+    formatCalendarWeekTitle('2026-10-26') === '26 Oct – 1 Nov 2026',
+    formatCalendarWeekTitle('2026-10-26'),
+  )
+  check(
+    'weekday headers use the short English name',
+    formatCalendarWeekday('2026-10-27') === 'Tue',
+  )
+  check(
+    'capitalizeFirst leaves empty text and other letters alone',
+    capitalizeFirst('') === '' && capitalizeFirst('october') === 'October',
+  )
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -2252,6 +2287,7 @@ function main() {
   verifyProjectProgress()
   verifyMoneyTab()
   verifyTimerHistoryLabels()
+  verifyCalendarTitles()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

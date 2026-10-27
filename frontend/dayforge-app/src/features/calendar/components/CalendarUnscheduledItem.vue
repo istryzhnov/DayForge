@@ -54,11 +54,12 @@ const { isLifted, onPointerDown } = usePressGesture({
       })
     "
   >
+    <span class="calendar-view__unscheduled-dot" aria-hidden="true"></span>
     <ProjectIcon
       v-if="icon"
       class="calendar-view__unscheduled-icon"
       :icon="icon"
     />
-    {{ task.title }}
+    <span class="calendar-view__unscheduled-name">{{ task.title }}</span>
   </div>
 </template>

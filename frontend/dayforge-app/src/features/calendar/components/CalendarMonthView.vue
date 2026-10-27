@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import {
+import type {
+  MonthDayCell,
   useCalendarMonth,
-  type MonthDayCell,
 } from '../composables/useCalendarMonth'
 import { useFormat } from '../../../composables/useFormat'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
@@ -12,8 +10,8 @@ import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 const { formatTime } = useFormat()
 
 const props = defineProps<{
-  templates: TaskTemplate[]
-  dailyTasks: DailyTask[]
+  /** Owned by the calendar toolbar, which drives the same month. */
+  month: ReturnType<typeof useCalendarMonth>
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
@@ -24,19 +22,7 @@ const emit = defineEmits<{
   (e: 'open-day', date: ISODate): void
 }>()
 
-const {
-  monthLabel,
-  weekdayLabels,
-  days,
-  monthSummary,
-  goToPreviousMonth,
-  goToNextMonth,
-  goToTodayMonth,
-} = useCalendarMonth({
-  getTemplates: () => props.templates,
-  getDailyTasks: () => props.dailyTasks,
-  getCurrentDate: () => props.currentDate,
-})
+const { weekdayLabels, days, monthSummary } = props.month
 
 /** Only a few fit in a cell; the rest collapse into a "+N" hint. */
 const VISIBLE_EVENTS = 3
@@ -52,32 +38,7 @@ function hiddenCount(day: MonthDayCell) {
 
 <template>
   <section class="calendar-month">
-    <header class="calendar-month__header">
-      <button
-        class="btn btn-ghost btn-icon"
-        type="button"
-        aria-label="Previous month"
-        @click="goToPreviousMonth"
-      >
-        <AppIcon name="chevron-left" :size="16" />
-      </button>
-      <div class="calendar-month__title">
-        <strong>{{ monthLabel }}</strong>
-        <button class="btn btn-ghost" type="button" @click="goToTodayMonth">
-          Today
-        </button>
-      </div>
-      <button
-        class="btn btn-ghost btn-icon"
-        type="button"
-        aria-label="Next month"
-        @click="goToNextMonth"
-      >
-        <AppIcon name="chevron-right" :size="16" />
-      </button>
-    </header>
-
-    <p class="calendar-month__summary">
+    <p class="calendar-month__summary ui-oneline">
       {{ monthSummary.tasks }} tasks · {{ monthSummary.hours }}h scheduled
       <template v-if="monthSummary.busiestDay?.scheduledMinutes">
         · busiest {{ monthSummary.busiestDay.date }}
@@ -131,7 +92,7 @@ function hiddenCount(day: MonthDayCell) {
               class="calendar-month__event-icon"
               :icon="goalIconById[event.goalId]"
             />
-            {{ event.title }}
+            <span class="calendar-month__event-title">{{ event.title }}</span>
           </span>
 
           <span v-if="hiddenCount(day)" class="calendar-month__more">

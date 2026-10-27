@@ -4,7 +4,6 @@ import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   getTodayISODate,
-  parseISODate,
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
 import {
@@ -16,8 +15,11 @@ import {
 import { pxPerMinute, minutesFromDayStart } from './useCalendarGrid'
 import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
 import { useSettings } from '../../../composables/useSettings'
-import { useFormat } from '../../../composables/useFormat'
 import { useCalendarFilter } from './useCalendarFilter'
+import {
+  formatCalendarWeekday,
+  formatCalendarWeekTitle,
+} from './calendarTitles'
 
 const DAYS_PER_WEEK = 7
 
@@ -55,7 +57,6 @@ export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
 
 export function useCalendarWeek(options: WeekOptions) {
   const { settings } = useSettings()
-  const { locale } = useFormat()
   const { isGoalVisible } = useCalendarFilter()
 
   // Follows `currentDate` until the user pages to another week.
@@ -108,9 +109,7 @@ export function useCalendarWeek(options: WeekOptions) {
 
       return {
         date,
-        weekdayLabel: parseISODate(date).toLocaleDateString(locale.value, {
-          weekday: 'short',
-        }),
+        weekdayLabel: formatCalendarWeekday(date),
         dayNumber: Number(date.split('-')[2]),
         isToday: date === today,
         scheduled,
@@ -122,23 +121,7 @@ export function useCalendarWeek(options: WeekOptions) {
     })
   })
 
-  const weekLabel = computed(() => {
-    const start = parseISODate(anchor.value)
-    const end = parseISODate(addDaysToISODate(anchor.value, 6))
-    const sameMonth = start.getMonth() === end.getMonth()
-
-    const startText = start.toLocaleDateString(locale.value, {
-      day: 'numeric',
-      ...(sameMonth ? {} : { month: 'short' }),
-    })
-    const endText = end.toLocaleDateString(locale.value, {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    })
-
-    return `${startText} – ${endText}`
-  })
+  const weekLabel = computed(() => formatCalendarWeekTitle(anchor.value))
 
   const weekSummary = computed(() => {
     const total = days.value.reduce((sum, day) => sum + day.totalCount, 0)
