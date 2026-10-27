@@ -1042,6 +1042,38 @@ body.is-dragging-task {
   outline-offset: 2px;
 }
 
+/* The N key means nothing without a keyboard. */
+@media (pointer: coarse), (max-width: 720px) {
+  .task-composer__key {
+    display: none;
+  }
+}
+
+/* Phone: the field gets the first line to itself, and the project, calendar
+   and Add share the second, with Add at the end. */
+@media (max-width: 720px) {
+  .task-composer__row {
+    padding: 6px 6px 6px 14px;
+  }
+
+  .task-composer__input {
+    flex-basis: calc(100% - 32px);
+  }
+
+  .task-composer__row .project-picker {
+    flex: 1 1 auto;
+  }
+
+  .task-composer__row .project-picker .task-composer__target {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+
+  .task-composer__add {
+    margin-left: auto;
+  }
+}
+
 /* Notes button on a row, next to the timer. Same pill family as the timer. */
 .task-notes-action {
   display: inline-flex;
