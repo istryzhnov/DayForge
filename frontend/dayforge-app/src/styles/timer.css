@@ -976,6 +976,71 @@
 /* --- charts-------------------------------------------------------------- */
 
 /* Stacks on whatever room the pane actually has, settings drawer included. */
+/* Tab panels are one column on a phone, in markup order. The wide layout
+   below places the same children into two columns (3fr / 2fr). */
+.analytics__split,
+.analytics__area--lead {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* The project list and top tasks sit on cards, like the chart beside them. */
+.analytics__area--list {
+  padding: 6px;
+}
+
+.analytics__area--tasks {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.analytics__area--tasks .ui-section-label {
+  margin: 0;
+}
+
+@container analytics (min-width: 900px) {
+  .analytics__split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    column-gap: 20px;
+    align-items: start;
+  }
+
+  .analytics__split--time {
+    grid-template-areas:
+      'chart list'
+      'tasks list';
+  }
+
+  .analytics__split--money {
+    grid-template-areas:
+      'lead list'
+      'clients list';
+  }
+
+  .analytics__split--time .analytics__area--chart {
+    grid-area: chart;
+  }
+
+  .analytics__split--time .analytics__area--tasks {
+    grid-area: tasks;
+  }
+
+  .analytics__area--list {
+    grid-area: list;
+  }
+
+  .analytics__area--lead {
+    grid-area: lead;
+  }
+
+  .analytics__area--clients {
+    grid-area: clients;
+  }
+}
+
 .analytics__charts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
