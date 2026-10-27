@@ -55,7 +55,6 @@ const {
   visibleTasks,
   showsMoney,
   copied,
-  habits,
   daySeries,
   chartTodayKey,
   seriesCaption,
@@ -65,8 +64,6 @@ const {
   averagePerHour,
   hoursLabel,
   shareLabel,
-  percentLabel,
-  projectNameOf,
   projectRows,
   hasAdjustments,
   taskMoneyLabel,
@@ -299,8 +296,9 @@ function saveBilling(billing: ProjectBilling | undefined) {
         Nothing tracked in {{ periodLabel.toLowerCase() }} yet.
       </p>
 
-      <template v-else>
-        <div v-if="visibleTasks.length" class="analytics__charts">
+      <!-- Phone: one column in this order. Wide screens: chart and top tasks left, projects right. -->
+      <div v-else class="analytics__split analytics__split--time">
+        <div v-if="visibleTasks.length" class="analytics__charts analytics__area--chart">
           <DayBarChart
             :points="daySeries.points"
             :caption="seriesCaption"
@@ -309,9 +307,13 @@ function saveBilling(billing: ProjectBilling | undefined) {
           />
         </div>
 
-        <ProjectProgressList v-if="progressRows.length" :rows="progressRows" />
+        <ProjectProgressList
+          v-if="progressRows.length"
+          class="analytics__area--list"
+          :rows="progressRows"
+        />
 
-        <template v-if="visibleTasks.length">
+        <div v-if="visibleTasks.length" class="analytics__area--tasks">
           <p class="sidebar-caption">Top tasks</p>
           <div class="analytics__tasks">
             <div v-for="task in topTasks" :key="task.key" class="time-total">
@@ -343,8 +345,8 @@ function saveBilling(billing: ProjectBilling | undefined) {
           >
             All {{ visibleTasks.length }} tasks
           </button>
-        </template>
-      </template>
+        </div>
+      </div>
     </div>
 
     <div
@@ -354,73 +356,81 @@ function saveBilling(billing: ProjectBilling | undefined) {
       role="tabpanel"
       aria-labelledby="analytics-tab-money"
     >
-      <IncomeGoalCard :goals="goals" :templates="templates" />
+      <div class="analytics__split analytics__split--money">
+        <div class="analytics__area--lead">
+          <IncomeGoalCard :goals="goals" :templates="templates" />
 
-      <!-- Without a monthly goal, the card above has no total, so the period's earnings show here. -->
-      <div
-        v-if="showsMoney && !hasMonthlyGoal"
-        class="ui-card money-stat money-stat--total"
-      >
-        <div class="ui-stat ui-stat--large">
-          <span class="ui-stat__label">Earned</span>
-          <strong class="ui-stat__value" :title="totalMoneyLabel">
-            {{ totalMoneyLabel }}
-          </strong>
-        </div>
-      </div>
+          <!-- Without a monthly goal, the card above has no total, so the period's earnings show here. -->
+          <div
+            v-if="showsMoney && !hasMonthlyGoal"
+            class="ui-card money-stat money-stat--total"
+          >
+            <div class="ui-stat ui-stat--large">
+              <span class="ui-stat__label">Earned</span>
+              <strong class="ui-stat__value" :title="totalMoneyLabel">
+                {{ totalMoneyLabel }}
+              </strong>
+            </div>
+          </div>
 
-      <div class="money-stats">
-        <div v-if="showsMoney" class="ui-card money-stat">
-          <div class="ui-stat">
-            <span class="ui-stat__label">Avg / h</span>
-            <strong class="ui-stat__value">
-              {{ averageLabel }}
-            </strong>
+          <div class="money-stats">
+            <div v-if="showsMoney" class="ui-card money-stat">
+              <div class="ui-stat">
+                <span class="ui-stat__label">Avg / h</span>
+                <strong class="ui-stat__value">
+                  {{ averageLabel }}
+                </strong>
+              </div>
+            </div>
+            <button
+              v-else
+              class="ui-card money-stat money-stat--action"
+              type="button"
+              @click="isRatesOpen = true"
+            >
+              <span class="ui-stat__label">Earned</span>
+              <span class="money-stat__action">Set an hourly rate</span>
+            </button>
+            <div
+              v-if="hasClients"
+              class="ui-card money-stat"
+              data-testid="outstanding-card"
+            >
+              <div class="ui-stat">
+                <span class="ui-stat__label">Unpaid · {{ outstanding.count }}</span>
+                <strong class="ui-stat__value" :title="formatMoney(outstanding.total)">
+                  {{ formatMoney(outstanding.total) }}
+                </strong>
+              </div>
+            </div>
           </div>
         </div>
-        <button
-          v-else
-          class="ui-card money-stat money-stat--action"
-          type="button"
-          @click="isRatesOpen = true"
-        >
-          <span class="ui-stat__label">Earned</span>
-          <span class="money-stat__action">Set an hourly rate</span>
-        </button>
-        <div
-          v-if="hasClients"
-          class="ui-card money-stat"
-          data-testid="outstanding-card"
-        >
-          <div class="ui-stat">
-            <span class="ui-stat__label">Unpaid · {{ outstanding.count }}</span>
-            <strong class="ui-stat__value" :title="formatMoney(outstanding.total)">
-              {{ formatMoney(outstanding.total) }}
-            </strong>
-          </div>
-        </div>
-      </div>
 
-      <ProjectEarningsList
-        v-if="showsMoney && projectRows.length"
-        :rows="projectRows"
-        :money="formatMoney"
-        @edit="editingGoalId = $event"
-      />
-
-      <template v-if="hasClients && clientRows.length">
-        <p class="sidebar-caption">By client</p>
-        <ClientSummaryTable
-          :rows="clientRows"
-          :payments="settings.billing.payments"
-          :month="billingMonth"
-          :locale="settings.format.locale"
+        <ProjectEarningsList
+          v-if="showsMoney && projectRows.length"
+          class="analytics__area--list"
+          :rows="projectRows"
           :money="formatMoney"
-          :hours="hoursLabel"
-          @set-status="handleSetStatus"
-          @set-amount="handleSetAmount"
+          @edit="editingGoalId = $event"
         />
-      </template>
+
+        <div
+          v-if="hasClients && clientRows.length"
+          class="analytics__area--clients"
+        >
+          <p class="sidebar-caption">By client</p>
+          <ClientSummaryTable
+            :rows="clientRows"
+            :payments="settings.billing.payments"
+            :month="billingMonth"
+            :locale="settings.format.locale"
+            :money="formatMoney"
+            :hours="hoursLabel"
+            @set-status="handleSetStatus"
+            @set-amount="handleSetAmount"
+          />
+        </div>
+      </div>
     </div>
 
     <div
@@ -435,45 +445,6 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :templates="filteredTemplates"
         :daily-tasks="dailyTasks"
       />
-
-      <template v-if="habits.length">
-        <p class="sidebar-caption">Repeating tasks</p>
-        <div class="analytics-table-wrap">
-          <table class="analytics-table">
-            <thead>
-              <tr>
-                <th class="analytics-table__name">Task</th>
-                <th class="analytics-table__sub">Project</th>
-                <th class="analytics-table__num">Done</th>
-                <th class="analytics-table__num">Of</th>
-                <th class="analytics-table__num">Streak</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="habit in habits" :key="habit.templateId">
-                <td class="analytics-table__name" :title="habit.title">
-                  {{ habit.title }}
-                </td>
-                <td
-                  class="analytics-table__sub analytics-table__muted"
-                  :title="projectNameOf(habit.goalId)"
-                >
-                  {{ projectNameOf(habit.goalId) }}
-                </td>
-                <td class="analytics-table__num">
-                  {{ habit.completed }}
-                  <em>{{ percentLabel(habit.completionRate) }}</em>
-                </td>
-                <td class="analytics-table__num">{{ habit.expected }}</td>
-                <td class="analytics-table__num">
-                  {{ habit.currentStreak }}
-                  <em>best {{ habit.longestStreak }}</em>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </template>
     </div>
 
     <BillingExportDialog

@@ -740,13 +740,6 @@
   white-space: nowrap;
 }
 
-.analytics-table__sub {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .analytics-table .analytics-table__num {
   text-align: right;
   white-space: nowrap;
@@ -774,10 +767,6 @@
 
   .analytics-table__name {
     min-width: 96px;
-  }
-
-  .analytics-table__sub {
-    display: none;
   }
 
   .analytics-table__num em {
@@ -954,22 +943,85 @@
   background: var(--line);
 }
 
-.habits__body {
+/* The stats and habit rows; on wide screens they sit left of the calendar. */
+.habits__lead {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+  align-content: start;
   min-width: 0;
 }
 
-@media (min-width: 1280px) {
-  .habits__body {
-    grid-template-columns: minmax(0, 1fr) auto;
+/* Tab panels are one column on a phone, in markup order. The wide layout
+   below places the same children into two columns (3fr / 2fr). */
+.analytics__split,
+.analytics__area--lead {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+
+@container analytics (min-width: 900px) {
+  .analytics__split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    column-gap: 20px;
     align-items: start;
   }
 
-  .habits__body > .habits__heat {
-    position: sticky;
-    top: 16px;
+  .analytics__split--time {
+    grid-template-areas:
+      'chart list'
+      'tasks list';
+  }
+
+  .analytics__split--money {
+    grid-template-areas:
+      'lead list'
+      'clients list';
+  }
+
+  .analytics__split--time .analytics__area--chart {
+    grid-area: chart;
+  }
+
+  .analytics__split--time .analytics__area--tasks {
+    grid-area: tasks;
+  }
+
+  .analytics__area--list {
+    grid-area: list;
+  }
+
+  .analytics__area--lead {
+    grid-area: lead;
+  }
+
+  .analytics__area--clients {
+    grid-area: clients;
+  }
+
+  .habits {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas:
+      'cap nav'
+      'lead heat';
+    column-gap: 20px;
+  }
+
+  .habits__cap {
+    grid-area: cap;
+  }
+
+  .habits__nav {
+    grid-area: nav;
+  }
+
+  .habits__lead {
+    grid-area: lead;
+  }
+
+  .habits__heat {
+    grid-area: heat;
   }
 }
 

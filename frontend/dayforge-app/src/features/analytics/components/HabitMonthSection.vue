@@ -37,7 +37,7 @@ const {
 
 <template>
   <section class="habits">
-    <p class="sidebar-caption">Habits</p>
+    <p class="sidebar-caption habits__cap">Habits</p>
 
     <div class="habits__nav">
       <button
@@ -60,41 +60,41 @@ const {
       </button>
     </div>
 
-    <p v-if="!hasRepeating" class="timer-history__empty">
+    <p v-if="!hasRepeating" class="timer-history__empty habits__lead">
       No habits yet — make a task repeat to track it here
     </p>
-    <p v-else-if="view.rows.length === 0" class="timer-history__empty">
+    <p v-else-if="view.rows.length === 0" class="timer-history__empty habits__lead">
       No habits due in {{ monthLabel }}
     </p>
 
     <template v-else>
-      <div class="analytics__cards">
-        <div class="analytics__card">
-          <span class="analytics__card-label">Completion</span>
-          <strong class="analytics__card-value">
-            {{ percentLabel(view.completionRate) }}
-          </strong>
-          <span class="analytics__card-note">
-            {{ view.completed }} of {{ view.expected }} due so far
-          </span>
+      <div class="habits__lead">
+        <div class="analytics__cards">
+          <div class="analytics__card">
+            <span class="analytics__card-label">Completion</span>
+            <strong class="analytics__card-value">
+              {{ percentLabel(view.completionRate) }}
+            </strong>
+            <span class="analytics__card-note">
+              {{ view.completed }} of {{ view.expected }} due so far
+            </span>
+          </div>
+          <div class="analytics__card">
+            <span class="analytics__card-label">Full days</span>
+            <strong class="analytics__card-value">{{ view.fullDays }}</strong>
+            <span class="analytics__card-note">every habit done</span>
+          </div>
+          <div class="analytics__card">
+            <span class="analytics__card-label">Streak</span>
+            <strong class="analytics__card-value">
+              {{ view.currentStreak }}
+            </strong>
+            <span class="analytics__card-note">
+              {{ view.currentStreak === 1 ? 'day in a row' : 'days in a row' }}
+            </span>
+          </div>
         </div>
-        <div class="analytics__card">
-          <span class="analytics__card-label">Full days</span>
-          <strong class="analytics__card-value">{{ view.fullDays }}</strong>
-          <span class="analytics__card-note">every habit done</span>
-        </div>
-        <div class="analytics__card">
-          <span class="analytics__card-label">Streak</span>
-          <strong class="analytics__card-value">
-            {{ view.currentStreak }}
-          </strong>
-          <span class="analytics__card-note">
-            {{ view.currentStreak === 1 ? 'day in a row' : 'days in a row' }}
-          </span>
-        </div>
-      </div>
 
-      <div class="habits__body">
         <ul class="habits__rows">
           <HabitMonthRow
             v-for="row in view.rows"
@@ -106,41 +106,41 @@ const {
             :cell-label="cellLabel"
           />
         </ul>
-
-        <figure class="analytics-chart habits__heat">
-          <figcaption class="analytics-chart__caption">
-            Daily completion
-          </figcaption>
-          <div class="habits__legend" aria-hidden="true">
-            <span>Less</span>
-            <i class="habits__day is-missed"></i>
-            <i class="habits__day is-partial"></i>
-            <i class="habits__day is-full"></i>
-            <span>More</span>
-          </div>
-          <div class="habits__weekdays" aria-hidden="true">
-            <span v-for="label in weekdayLabels" :key="label">{{ label }}</span>
-          </div>
-          <ol class="habits__grid">
-            <li
-              v-for="(day, index) in calendarCells"
-              :key="day?.date ?? `blank-${index}`"
-              class="habits__day"
-              :class="
-                day
-                  ? [`is-${dayTone(day)}`, { 'is-today': day.date === todayISO }]
-                  : 'is-blank'
-              "
-              :role="day ? 'img' : undefined"
-              :aria-hidden="day ? undefined : 'true'"
-              :aria-label="day ? dayLabel(day) : undefined"
-              :title="day ? dayLabel(day) : undefined"
-            >
-              {{ day ? dayNumberOf(day.date) : '' }}
-            </li>
-          </ol>
-        </figure>
       </div>
+
+      <figure class="analytics-chart habits__heat">
+        <figcaption class="analytics-chart__caption">
+          Daily completion
+        </figcaption>
+        <div class="habits__legend" aria-hidden="true">
+          <span>Less</span>
+          <i class="habits__day is-missed"></i>
+          <i class="habits__day is-partial"></i>
+          <i class="habits__day is-full"></i>
+          <span>More</span>
+        </div>
+        <div class="habits__weekdays" aria-hidden="true">
+          <span v-for="label in weekdayLabels" :key="label">{{ label }}</span>
+        </div>
+        <ol class="habits__grid">
+          <li
+            v-for="(day, index) in calendarCells"
+            :key="day?.date ?? `blank-${index}`"
+            class="habits__day"
+            :class="
+              day
+                ? [`is-${dayTone(day)}`, { 'is-today': day.date === todayISO }]
+                : 'is-blank'
+            "
+            :role="day ? 'img' : undefined"
+            :aria-hidden="day ? undefined : 'true'"
+            :aria-label="day ? dayLabel(day) : undefined"
+            :title="day ? dayLabel(day) : undefined"
+          >
+            {{ day ? dayNumberOf(day.date) : '' }}
+          </li>
+        </ol>
+      </figure>
     </template>
   </section>
 </template>
