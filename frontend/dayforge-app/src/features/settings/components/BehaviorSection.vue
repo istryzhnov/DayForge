@@ -1,14 +1,59 @@
 <script setup lang="ts">
-import { useSettings } from '../../../composables/useSettings'
+import { computed } from 'vue'
+import type { Goal } from '../../../entities/GoalEntity'
+import { GOAL_STATUS } from '../../../entities/constants'
+import {
+  START_VIEW,
+  useSettings,
+  type StartView,
+} from '../../../composables/useSettings'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
+import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 import {
   PRIORITY_OPTIONS,
   START_VIEW_OPTIONS,
 } from '../composables/settingsOptions'
-import { checkedValue, rangeValue } from '../../../composables/inputValue'
+import {
+  checkedValue,
+  rangeValue,
+  textValue,
+} from '../../../composables/inputValue'
+
+const props = defineProps<{
+  goals: Goal[]
+}>()
 
 const { settings, update, resetSection } = useSettings()
 const { openShortcuts } = useHotkeyOverlay()
+
+const startProjects = computed(() =>
+  sortGoals(props.goals.filter((goal) => goal.status !== GOAL_STATUS.ARCHIVED)),
+)
+
+/** A start project that was deleted since counts as All Tasks, as on load. */
+const startsOnProject = computed(
+  () =>
+    settings.behavior.startView === START_VIEW.GOALS &&
+    props.goals.some((goal) => goal.id === settings.behavior.startGoalId),
+)
+
+/** The project chip sits right after All Tasks, the views follow. */
+const otherViews = START_VIEW_OPTIONS.filter(
+  (option) => option.id !== START_VIEW.GOALS,
+)
+
+function startOnAllTasks() {
+  update('behavior', { startView: START_VIEW.GOALS, startGoalId: null })
+}
+
+function startOnProject(goalId = startProjects.value[0]?.id) {
+  if (!goalId) return
+  update('behavior', { startView: START_VIEW.GOALS, startGoalId: goalId })
+}
+
+function startOnView(view: StartView) {
+  update('behavior', { startView: view })
+}
 </script>
 
 <template>
@@ -16,16 +61,49 @@ const { openShortcuts } = useHotkeyOverlay()
     <p class="sidebar-caption">Open on start</p>
     <div class="settings-chips">
       <button
-        v-for="option in START_VIEW_OPTIONS"
+        class="theme-chip"
+        :class="{
+          active:
+            settings.behavior.startView === START_VIEW.GOALS &&
+            !startsOnProject,
+        }"
+        type="button"
+        @click="startOnAllTasks"
+      >
+        All tasks
+      </button>
+      <button
+        v-if="startProjects.length > 0"
+        class="theme-chip"
+        :class="{ active: startsOnProject }"
+        type="button"
+        @click="startOnProject()"
+      >
+        A project
+      </button>
+      <button
+        v-for="option in otherViews"
         :key="option.id"
         class="theme-chip"
         :class="{ active: settings.behavior.startView === option.id }"
         type="button"
-        @click="update('behavior', { startView: option.id })"
+        @click="startOnView(option.id)"
       >
         {{ option.label }}
       </button>
     </div>
+
+    <label v-if="startsOnProject" class="settings-select">
+      <span>Project</span>
+      <select
+        :value="settings.behavior.startGoalId ?? ''"
+        @change="startOnProject(textValue($event))"
+      >
+        <option v-for="goal in startProjects" :key="goal.id" :value="goal.id">
+          {{ goal.title }}
+        </option>
+      </select>
+    </label>
 
     <p class="sidebar-caption">New items are</p>
     <div class="settings-chips">
@@ -55,20 +133,6 @@ const { openShortcuts } = useHotkeyOverlay()
           Off leaves an undated task on the day it was made instead of moving it
           to today.
         </em>
-      </span>
-    </label>
-
-    <label class="settings-toggle">
-      <input
-        type="checkbox"
-        :checked="settings.behavior.autoSelectFirstGoal"
-        @change="
-          update('behavior', { autoSelectFirstGoal: checkedValue($event) })
-        "
-      />
-      <span>
-        <strong>Open the first project on load</strong>
-        <em>Off starts on "All Projects", with nothing filtered out.</em>
       </span>
     </label>
 

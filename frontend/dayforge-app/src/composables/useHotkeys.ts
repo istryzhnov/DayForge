@@ -2,6 +2,7 @@ import { onMounted, onUnmounted, ref, type Ref } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
 import type { ID } from '../entities/types'
 import { GOAL_STATUS } from '../entities/constants'
+import { sortGoals } from './goalSpace/goalOrder'
 import type { ActiveView } from '../pages/composables/useMainPageState'
 import { useSettings } from './useSettings'
 import { useTimer } from './useTimer'
@@ -168,7 +169,7 @@ export function useHotkeys(actions: HotkeyActions) {
   }
 
   function cycleGoal(step: number) {
-    const visible = actions.goals.value.filter(
+    const visible = sortGoals(actions.goals.value).filter(
       (goal) => goal.status !== GOAL_STATUS.ARCHIVED,
     )
     if (visible.length === 0) return

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
+import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 
 type SidebarProps = {
   goals: Goal[]
@@ -12,6 +13,7 @@ type SidebarActions = {
   onSelectGoal: (goalId: ID | null) => void
   onCreateGoal: (title: string, description: string, color: string) => void
   onDeleteGoal: (goalId: ID) => void
+  onReorderGoals: (orderedIds: ID[]) => void
 }
 
 export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
@@ -20,18 +22,44 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
 
   /** An archived project leaves the list, but never while it is the open one. */
   const listedGoals = computed(() =>
-    props.goals.filter(
-      (goal) =>
-        goal.status !== GOAL_STATUS.ARCHIVED || goal.id === props.activeGoalId,
+    sortGoals(
+      props.goals.filter(
+        (goal) =>
+          goal.status !== GOAL_STATUS.ARCHIVED ||
+          goal.id === props.activeGoalId,
+      ),
     ),
   )
 
   const archivedGoals = computed(() =>
-    props.goals.filter(
-      (goal) =>
-        goal.status === GOAL_STATUS.ARCHIVED && goal.id !== props.activeGoalId,
+    sortGoals(
+      props.goals.filter(
+        (goal) =>
+          goal.status === GOAL_STATUS.ARCHIVED &&
+          goal.id !== props.activeGoalId,
+      ),
     ),
   )
+
+  function reorderGoals(orderedIds: ID[]) {
+    actions.onReorderGoals(orderedIds)
+  }
+
+  /** Touch has no drag for projects, so the menu moves one a step instead. */
+  function moveGoalFromMenu(step: -1 | 1) {
+    const goal = contextMenuGoal.value
+    closeGoalContextMenu()
+    if (!goal) return
+
+    const ids = listedGoals.value.map((item) => item.id)
+    const index = ids.indexOf(goal.id)
+    const target = index + step
+    if (index === -1 || target < 0 || target >= ids.length) return
+
+    ids.splice(index, 1)
+    ids.splice(target, 0, goal.id)
+    reorderGoals(ids)
+  }
 
   function toggleArchived() {
     showArchived.value = !showArchived.value
@@ -93,5 +121,7 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     openGoalContextMenu,
     closeGoalContextMenu,
     deleteGoalFromMenu,
+    reorderGoals,
+    moveGoalFromMenu,
   }
 }

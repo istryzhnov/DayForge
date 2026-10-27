@@ -36,3 +36,23 @@
 :root[data-motion='reduced'] .nav-goal-btn.is-drop-flash {
   animation: none;
 }
+
+/* Dragging a project to another place in the sidebar; see useGoalReorder.ts.
+   A line on the edge it would land against, so rows do not shift. */
+.nav-goal-btn.is-reordering {
+  opacity: 0.45;
+}
+
+.nav-goal-btn.is-reorder-above {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.nav-goal-btn.is-reorder-below {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+body.is-reordering-goals,
+body.is-reordering-goals .nav-goal-btn {
+  cursor: grabbing;
+  user-select: none;
+}

@@ -1,5 +1,5 @@
 import { reactive, watch } from 'vue'
-import type { Priority, TimeOfDay } from '../entities/types'
+import type { ID, Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
 import type { BillingSettings } from '../entities/BillingEntity'
 import { PRIORITY } from '../entities/constants'
@@ -18,6 +18,8 @@ export const START_VIEW = {
   CALENDAR: 'calendar',
   PLANNED: 'planned',
   ARCHIVE: 'archive',
+  TIMER: 'timer',
+  ANALYTICS: 'analytics',
 } as const
 
 export type StartView = (typeof START_VIEW)[keyof typeof START_VIEW]
@@ -82,8 +84,8 @@ export interface BehaviorSettings {
   /** Roll unfinished open tasks onto today. Off leaves them on their own day. */
   carryForward: boolean
   undoWindowSeconds: number
-  /** Open the first project on load instead of "All Projects". */
-  autoSelectFirstGoal: boolean
+  /** With startView "goals": the project to open, or null for All Tasks. */
+  startGoalId: ID | null
   /** Single-key commands (N, Space, G then A…) while focus is not in a field. */
   keyboardShortcuts: boolean
 }
@@ -155,7 +157,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     defaultPriority: PRIORITY.MINOR,
     carryForward: true,
     undoWindowSeconds: 9,
-    autoSelectFirstGoal: true,
+    startGoalId: null,
     keyboardShortcuts: true,
   },
   format: {
@@ -359,10 +361,10 @@ function sanitize(input: unknown): AppSettings {
         60,
         defaults.behavior.undoWindowSeconds,
       ),
-      autoSelectFirstGoal: asBoolean(
-        behavior.autoSelectFirstGoal,
-        defaults.behavior.autoSelectFirstGoal,
-      ),
+      startGoalId:
+        typeof behavior.startGoalId === 'string' && behavior.startGoalId
+          ? behavior.startGoalId
+          : null,
       keyboardShortcuts: asBoolean(
         behavior.keyboardShortcuts,
         defaults.behavior.keyboardShortcuts,

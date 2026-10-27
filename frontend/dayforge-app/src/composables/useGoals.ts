@@ -5,7 +5,7 @@ import { migrateGoals } from './goalSpace/goalMigration'
 import { normalizeNotes } from './goalSpace/notes'
 import { GOALS_STORAGE_KEY } from './goalSpace/storage'
 import { readJson, writeJson } from '../lib/storage'
-import { useSettings } from './useSettings'
+import { START_VIEW, useSettings } from './useSettings'
 import { useTombstones } from './useTombstones'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 
@@ -168,27 +168,40 @@ export function useGoals() {
     return keepLive(SYNC_TABLE.GOALS, list)
   }
 
+  /**
+   * A fresh load opens on what the settings name: All Tasks unless a project
+   * is picked there. The project open last time is not brought back.
+   */
   function selectInitialGoal() {
-    if (activeGoalId.value !== null) return
-    if (!useSettings().settings.behavior.autoSelectFirstGoal) return
-    if (goals.value.length === 0) return
-    activeGoalId.value = goals.value[0].id
+    const { startView, startGoalId } = useSettings().settings.behavior
+    activeGoalId.value =
+      startView === START_VIEW.GOALS &&
+      goals.value.some((goal) => goal.id === startGoalId)
+        ? startGoalId
+        : null
   }
 
   function loadFromStorage() {
     const stored = readJson<GoalsStoragePayload | Goal[]>(GOALS_STORAGE_KEY, [])
+    const list = Array.isArray(stored) ? stored : (stored.goals ?? [])
 
-    if (Array.isArray(stored)) {
-      migrateGoals(stored)
-      goals.value = liveOnly(stored)
-      selectInitialGoal()
-      return
-    }
-
-    goals.value = liveOnly(stored.goals ?? [])
+    goals.value = liveOnly(list)
     migrateGoals(goals.value)
-    activeGoalId.value = stored.activeGoalId ?? null
     selectInitialGoal()
+  }
+
+  /**
+   * Puts the given projects first, in that order, and numbers them. Only the
+   * ones whose place changed are stamped, so a sync carries the move along.
+   */
+  function reorderGoals(orderedIds: ID[]) {
+    const now = new Date().toISOString()
+    orderedIds.forEach((id, index) => {
+      const goal = goals.value.find((item) => item.id === id)
+      if (!goal || goal.order === index) return
+      goal.order = index
+      goal.updatedAt = now
+    })
   }
 
   return {
@@ -208,6 +221,7 @@ export function useGoals() {
     updateGoalIcon,
     updateGoalBoard,
     updateGoalNotes,
+    reorderGoals,
     loadFromStorage,
   }
 }

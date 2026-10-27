@@ -36,6 +36,8 @@ export interface Goal {
   billing?: { fixedPrice?: number; manualHours?: number; note?: string }
   /** Spend limit: tracked hours and/or earnings. Absent means no budget. */
   budget?: { hours?: number; amount?: number; period: 'total' | 'month' }
+  /** Place in the sidebar, set by dragging. Absent sorts after, by creation. */
+  order?: number
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
 }

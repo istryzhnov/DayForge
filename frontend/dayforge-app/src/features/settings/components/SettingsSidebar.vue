@@ -19,6 +19,7 @@ import ProjectSection from './ProjectSection.vue'
 import { sectionMeta, useSettingsPanel } from '../composables/useSettingsPanel'
 
 const props = defineProps<{
+  goals: Goal[]
   activeGoal: Goal | null
   notificationsSupported: boolean
   notificationsEnabled: boolean
@@ -172,7 +173,10 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
       <TimerSection v-else-if="activeSection === 'timer'" />
 
-      <BehaviorSection v-else-if="activeSection === 'behavior'" />
+      <BehaviorSection
+        v-else-if="activeSection === 'behavior'"
+        :goals="goals"
+      />
 
       <FormatSection v-else-if="activeSection === 'format'" />
 
