@@ -230,6 +230,7 @@ function handleSearchSelect(result: SearchResult) {
         @select-view="selectView"
         @toggle-notifications="toggleNotifications"
         @delete-goal="handleDeleteGoal"
+        @reorder-goals="goalSpace.reorderGoals"
       />
     </aside>
 
@@ -348,6 +349,7 @@ function handleSearchSelect(result: SearchResult) {
          overlay drawer once the shell runs out of room. -->
     <aside v-if="isSettingsOpen" class="app-settings">
       <SettingsSidebar
+        :goals="goals"
         :active-goal="activeGoal"
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"

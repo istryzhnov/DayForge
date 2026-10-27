@@ -13,6 +13,7 @@ import SyncStatusDot from '../../sync/components/SyncStatusDot.vue'
 import SidebarProfileButton from '../../profile/components/SidebarProfileButton.vue'
 import type { SyncStatus } from '../../../sync/types'
 import { useSidebarState } from '../composables/useSidebarState'
+import { useGoalReorder } from '../composables/useGoalReorder'
 import { useMobileNav } from '../composables/useMobileNav'
 import { useSettings } from '../../../composables/useSettings'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
@@ -43,6 +44,7 @@ const emit = defineEmits<{
   (e: 'select-view', view: ActiveView): void
   (e: 'toggle-notifications'): void
   (e: 'delete-goal', goalId: ID): void
+  (e: 'reorder-goals', orderedIds: ID[]): void
 }>()
 
 const {
@@ -60,6 +62,8 @@ const {
   openGoalContextMenu,
   closeGoalContextMenu,
   deleteGoalFromMenu,
+  reorderGoals,
+  moveGoalFromMenu,
 } = useSidebarState(props, {
   onSelectGoal: (goalId) => {
     emit('select-goal', goalId)
@@ -68,7 +72,24 @@ const {
   onCreateGoal: (title, description, color) =>
     emit('create-goal', title, description, color),
   onDeleteGoal: (goalId) => emit('delete-goal', goalId),
+  onReorderGoals: (orderedIds) => emit('reorder-goals', orderedIds),
 })
+
+const listedGoalIds = computed(() => listedGoals.value.map((goal) => goal.id))
+
+const {
+  draggingId: reorderingId,
+  dropTargetId: reorderTargetId,
+  dropAbove: reorderAbove,
+  onPointerDown: onGoalPointerDown,
+} = useGoalReorder(() => listedGoalIds.value, reorderGoals)
+
+/** The menu only offers a step the project can actually take. */
+const menuGoalIndex = computed(() =>
+  contextMenuGoal.value
+    ? listedGoalIds.value.indexOf(contextMenuGoal.value.id)
+    : -1,
+)
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
 const { openShortcuts, openSearch } = useHotkeyOverlay()
@@ -221,8 +242,15 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :is-active="goal.id === activeGoalId"
       :task-count="taskCountByGoal[goal.id] ?? 0"
       :theme-vars="goalVarsById[goal.id]"
+      :data-reorder-goal-id="goal.id"
+      :class="{
+        'is-reordering': reorderingId === goal.id,
+        'is-reorder-above': reorderTargetId === goal.id && reorderAbove,
+        'is-reorder-below': reorderTargetId === goal.id && !reorderAbove,
+      }"
       @select="selectGoal(goal.id)"
       @context-menu="openGoalContextMenu"
+      @pointerdown="onGoalPointerDown($event, goal.id)"
     />
 
     <template v-if="archivedGoals.length > 0">
@@ -347,6 +375,11 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :x="contextMenuPos.x"
       :y="contextMenuPos.y"
       :goal-title="contextMenuGoal.title"
+      :can-move-up="menuGoalIndex > 0"
+      :can-move-down="
+        menuGoalIndex !== -1 && menuGoalIndex < listedGoalIds.length - 1
+      "
+      @move="moveGoalFromMenu"
       @delete="deleteGoalFromMenu"
       @close="closeGoalContextMenu"
     />
