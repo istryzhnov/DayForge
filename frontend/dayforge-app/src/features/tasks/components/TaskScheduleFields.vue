@@ -9,8 +9,13 @@ import {
   useTaskScheduleState,
 } from '../composables/useTaskScheduleState'
 
+// Owned by the parent when it binds `enabled`, otherwise kept here.
+const isEnabled = defineModel<boolean>('enabled', { default: false })
+
+// A composer with its own calendar button hides the checkbox.
+defineProps<{ hideToggle?: boolean }>()
+
 const {
-  isEnabled,
   date,
   startTime,
   endTime,
@@ -28,14 +33,18 @@ const {
   buildSchedule,
   load,
   reset,
-} = useTaskScheduleState()
+} = useTaskScheduleState(isEnabled)
 
 // The owning composer reads the payload on submit and clears it afterwards.
 defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
 </script>
 
 <template>
-  <ComposerToggleSection v-model="isEnabled" label="Schedule on the calendar">
+  <ComposerToggleSection
+    v-model="isEnabled"
+    label="Schedule on the calendar"
+    :hide-toggle="hideToggle"
+  >
     <div class="task-schedule__fields">
       <div class="task-schedule__row">
         <label class="task-schedule__field">

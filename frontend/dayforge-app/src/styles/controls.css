@@ -7,8 +7,6 @@ select,
 .settings-times select,
 .event-details__field select,
 .task-schedule__field select,
-.composer-assign__field select,
-.goal-form-card select,
 .timer-field select,
 .timer-view__picker {
   appearance: none;
@@ -58,8 +56,6 @@ select:focus-visible,
   .settings-times select,
   .event-details__field select,
   .task-schedule__field select,
-  .composer-assign__field select,
-  .goal-form-card select,
   .timer-field select,
   .timer-view__picker {
     font-size: max(16px, calc(16px * var(--text-scale)));
@@ -151,13 +147,8 @@ input[type='checkbox']:disabled {
 @media (max-width: 720px) {
   .btn,
   .theme-chip,
-  .goal-settings-btn,
   .goal-settings__item {
     min-height: 40px;
-  }
-
-  .goal-panel-header__aside {
-    --header-control-height: 40px;
   }
 
   .task-add-btn,

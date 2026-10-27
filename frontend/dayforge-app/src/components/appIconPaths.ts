@@ -93,6 +93,16 @@ export const APP_ICON_PATHS = {
   stop: ['M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z'],
   maximize: ['M15 3h6v6', 'M9 21H3v-6', 'M21 3l-7 7', 'M3 21l7-7'],
   'more-horizontal': ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
+  repeat: [
+    'M17 2l4 4-4 4',
+    'M3 11V9a3 3 0 0 1 3-3h15',
+    'M7 22l-4-4 4-4',
+    'M21 13v2a3 3 0 0 1-3 3H3',
+  ],
+  flame: [
+    'M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .5 2 1.5 3 2.5 3 0-3-1-5 0-8z',
+  ],
+  'file-text': ['M6 3h9l4 4v14H6z', 'M14 3v5h5M9 13h7M9 17h5'],
 } as const
 
 export type AppIconName = keyof typeof APP_ICON_PATHS

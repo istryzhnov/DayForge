@@ -195,29 +195,12 @@ export function useTaskTree(props: TaskTreeProps) {
     })
   })
 
-  const totalCount = computed(() => props.tasks.length)
-  const projectCount = computed(
-    () => props.tasks.filter((task) => task.priority === PRIORITY.MAJOR).length,
-  )
-  const taskCount = computed(
-    () => props.tasks.filter((task) => task.priority !== PRIORITY.MAJOR).length,
-  )
-
   const panelTitle = computed(() =>
     props.isAllMode ? 'All Tasks' : (props.goal?.title ?? 'Goal'),
-  )
-  const panelDescription = computed(() =>
-    props.isAllMode
-      ? 'Tasks across all projects'
-      : (props.goal?.description ?? 'Overview of this goal'),
   )
 
   return {
     taskGroups,
-    totalCount,
-    projectCount,
-    taskCount,
     panelTitle,
-    panelDescription,
   }
 }

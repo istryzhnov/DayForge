@@ -317,13 +317,12 @@ export function fullDayStreak({
   return fullDayStreakOf(dayTotalsOf(rows, dates), today)
 }
 
-export function habitMonthView({
-  templates,
-  dailyTasks,
-  month,
-  today,
-}: HabitMonthInput): HabitMonthView {
-  const dates = monthDates(month)
+function viewOfDates(
+  templates: TaskTemplate[],
+  dailyTasks: DailyTask[],
+  dates: ISODate[],
+  today: ISODate,
+): HabitMonthView {
   const rows = monthRowsOf(templates, dailyTasks, dates, today)
   const dayTotals = dayTotalsOf(rows, dates)
 
@@ -341,4 +340,47 @@ export function habitMonthView({
     fullDays: elapsed.filter((day) => day.done === day.total).length,
     currentStreak: fullDayStreak({ templates, dailyTasks, today }),
   }
+}
+
+export function habitMonthView({
+  templates,
+  dailyTasks,
+  month,
+  today,
+}: HabitMonthInput): HabitMonthView {
+  return viewOfDates(templates, dailyTasks, monthDates(month), today)
+}
+
+/** The last `days` days up to today, shaped like a month view. */
+export function habitWindowView({
+  templates,
+  dailyTasks,
+  days,
+  today,
+}: {
+  templates: TaskTemplate[]
+  dailyTasks: DailyTask[]
+  days: number
+  today: ISODate
+}): HabitMonthView {
+  const from = addDaysToISODate(today, -(days - 1))
+  return viewOfDates(templates, dailyTasks, datesBetween(from, today), today)
+}
+
+/** Current run of done days per habit, counted over the whole history. */
+export function habitStreaks({
+  templates,
+  dailyTasks,
+  today,
+}: {
+  templates: TaskTemplate[]
+  dailyTasks: DailyTask[]
+  today: ISODate
+}): Map<ID, number> {
+  const from = addDaysToISODate(today, -(MAX_DAYS_SCANNED - 1))
+  return new Map(
+    habitStats({ templates, dailyTasks, from, to: today, today }).map(
+      (stat) => [stat.templateId, stat.currentStreak],
+    ),
+  )
 }

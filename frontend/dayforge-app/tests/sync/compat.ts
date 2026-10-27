@@ -19,7 +19,13 @@ import {
   fullDayStreak,
   habitMonthView,
   habitStats,
+  habitStreaks,
+  habitWindowView,
 } from '../../src/composables/analytics/habits'
+import {
+  habitWindowDays,
+  monthTrackedMs,
+} from '../../src/features/goals/composables/projectPanelStats'
 import type { RecurrenceRule } from '../../src/entities/RecurrenceEntity'
 import type { ISODate } from '../../src/entities/types'
 import {
@@ -2212,6 +2218,107 @@ function verifyProjectProgress() {
   )
 }
 
+function verifyProjectPanelStats() {
+  section('Project panel: habit window, streaks and time this month')
+
+  const TODAY = '2026-10-10' as ISODate
+  const daily = (id: string, goalId?: string) =>
+    ({
+      id,
+      title: id,
+      priority: 'minor',
+      order: 0,
+      tagIds: [],
+      isActive: true,
+      goalId,
+      recurrence: { type: RECURRENCE_TYPE.DAILY, startDate: '2026-10-01' },
+      createdAt: T0,
+      updatedAt: T0,
+    }) as unknown as TaskTemplate
+  const doneOn = (templateId: string, dates: string[]) =>
+    dates.map(
+      (date) =>
+        ({
+          id: `${templateId}::${date}`,
+          date,
+          templateId,
+          title: templateId,
+          priority: 'minor',
+          tagIds: [],
+          status: 'done',
+          createdAt: T0,
+          updatedAt: T0,
+        }) as unknown as DailyTask,
+    )
+
+  check(
+    'the habit grid is 14 days beside Upcoming and 28 days when it stands alone',
+    habitWindowDays(true) === 14 && habitWindowDays(false) === 28,
+  )
+
+  const HOUR_MS = 60 * 60 * 1000
+  const sitting = (goalId: string, startedAt: string, minutes: number) =>
+    ({
+      id: `${goalId}-${startedAt}`,
+      sessionId: 's',
+      startedAt,
+      endedAt: new Date(Date.parse(startedAt) + minutes * 60 * 1000).toISOString(),
+      mode: 'stopwatch',
+      source: 'timer',
+      goalId,
+    }) as unknown as TimeEntry
+  const entries = [
+    sitting('goal-a', '2026-10-02T09:00:00.000Z', 90),
+    sitting('goal-b', '2026-10-03T09:00:00.000Z', 60),
+    sitting('goal-a', '2026-09-20T09:00:00.000Z', 120),
+  ]
+  const now = new Date(Date.UTC(2026, 9, 10, 12))
+  check(
+    'time this month counts only the project asked for, and only this month',
+    monthTrackedMs(entries, 'goal-a', now) === 1.5 * HOUR_MS &&
+      monthTrackedMs(entries, null, now) === 2.5 * HOUR_MS,
+    [monthTrackedMs(entries, 'goal-a', now), monthTrackedMs(entries, null, now)],
+  )
+
+  const reading = daily('read', 'goal-a')
+  const stretch = daily('stretch', 'goal-a')
+  const rows = [
+    ...doneOn('read', ['2026-10-08', '2026-10-09', TODAY]),
+    ...doneOn('stretch', ['2026-10-08', '2026-10-09']),
+  ]
+
+  const window14 = habitWindowView({
+    templates: [reading],
+    dailyTasks: rows,
+    days: 14,
+    today: TODAY,
+  })
+  check(
+    'the window is the last 14 days ending today, with today as the final cell',
+    window14.dayTotals.length === 14 &&
+      window14.dayTotals[0].date === '2026-09-27' &&
+      window14.dayTotals[13].date === TODAY &&
+      window14.rows[0].cells[13].state === 'done',
+    window14.dayTotals.map((day) => day.date),
+  )
+  check(
+    'a 28-day window reaches back four weeks from today',
+    habitWindowView({ templates: [reading], dailyTasks: rows, days: 28, today: TODAY })
+      .dayTotals[0].date === '2026-09-13',
+  )
+
+  const streaks = habitStreaks({
+    templates: [reading, stretch],
+    dailyTasks: rows,
+    today: TODAY,
+  })
+  check(
+    'a habit streak counts back from the last day, and an open today neither breaks nor extends it',
+    streaks.get('read') === 3 && streaks.get('stretch') === 2,
+    [...streaks],
+  )
+}
+
 function verifyMoneyTab() {
   section('Money tab: the goal per remaining day and earnings per hour')
 
@@ -2285,6 +2392,7 @@ function main() {
   verifyTaskNotes()
   verifyHabitUnification()
   verifyProjectProgress()
+  verifyProjectPanelStats()
   verifyMoneyTab()
   verifyTimerHistoryLabels()
   verifyCalendarTitles()
