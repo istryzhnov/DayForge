@@ -1,14 +1,33 @@
 <script setup lang="ts">
-import type { SeriesPoint } from '../../../composables/analytics/charts'
+import type { ISODate } from '../../../entities/types'
+import type { Bar, SeriesPoint } from '../../../composables/analytics/charts'
 import { useBarChartGeometry } from '../composables/useChartGeometry'
 
 const props = defineProps<{
   points: SeriesPoint[]
   caption: string
   formatHours: (totalMs: number) => string
+  /** The bucket holding today: a day, or the week it falls in. */
+  todayKey: ISODate
 }>()
 
 const { chart } = useBarChartGeometry(() => props.points)
+
+/** Days still ahead have no time yet, so they read as a neutral stub. */
+const FUTURE_STUB_PX = 2
+
+function barClass(bar: Bar): string {
+  if (bar.point.date > props.todayKey) return 'is-future'
+  return bar.point.date === props.todayKey ? 'is-today' : 'is-past'
+}
+
+function barTop(bar: Bar): number {
+  return bar.point.date > props.todayKey ? chart.value.baseline - FUTURE_STUB_PX : bar.y
+}
+
+function barHeight(bar: Bar): number {
+  return bar.point.date > props.todayKey ? FUTURE_STUB_PX : bar.height
+}
 </script>
 
 <template>
@@ -62,9 +81,10 @@ const { chart } = useBarChartGeometry(() => props.points)
             v-for="bar in chart.bars"
             :key="bar.point.date"
             :x="bar.x"
-            :y="bar.y"
+            :class="barClass(bar)"
+            :y="barTop(bar)"
             :width="bar.width"
-            :height="bar.height"
+            :height="barHeight(bar)"
             rx="2"
           >
             <title>

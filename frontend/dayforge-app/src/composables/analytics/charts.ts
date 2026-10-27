@@ -38,7 +38,7 @@ function shortLabel(date: ISODate): string {
 }
 
 /** Monday-first, matching the planner's week. */
-function startOfWeek(date: ISODate): ISODate {
+export function startOfWeek(date: ISODate): ISODate {
   const [year, month, day] = date.split('-').map(Number)
   const weekday = (new Date(year, month - 1, day).getDay() + 6) % 7
   return addDaysToISODate(date, -weekday)
@@ -204,35 +204,4 @@ export function buildBarChart(
     maxHours,
     isEmpty: points.every((point) => point.totalMs === 0),
   }
-}
-
-export interface ShareInput {
-  key: string
-  label: string
-  totalMs: number
-  color?: string
-}
-
-/** Everything past the top few slices is one "Other", so the ring stays legible. */
-export function foldSmallShares(
-  shares: ShareInput[],
-  maxSlices: number,
-): ShareInput[] {
-  const ranked = [...shares]
-    .filter((share) => share.totalMs > 0)
-    .sort((a, b) => b.totalMs - a.totalMs)
-
-  if (ranked.length <= maxSlices) return ranked
-
-  const kept = ranked.slice(0, maxSlices - 1)
-  const rest = ranked.slice(maxSlices - 1)
-
-  return [
-    ...kept,
-    {
-      key: '__other__',
-      label: `Other (${rest.length})`,
-      totalMs: rest.reduce((sum, share) => sum + share.totalMs, 0),
-    },
-  ]
 }

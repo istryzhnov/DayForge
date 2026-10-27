@@ -7,12 +7,11 @@ import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import { useAuth } from '../../../composables/useAuth'
 import DayBarChart from './DayBarChart.vue'
-import ProjectShareChart from './ProjectShareChart.vue'
+import ProjectProgressList from './ProjectProgressList.vue'
 import ProjectRatesDialog from './ProjectRatesDialog.vue'
 import ProjectBillingDialog from './ProjectBillingDialog.vue'
 import HabitMonthSection from './HabitMonthSection.vue'
 import IncomeGoalCard from './IncomeGoalCard.vue'
-import PlanVsActualSection from './PlanVsActualSection.vue'
 import ClientSummaryTable from './ClientSummaryTable.vue'
 import AnalyticsHero from './AnalyticsHero.vue'
 import {
@@ -20,9 +19,9 @@ import {
   useTimerAnalytics,
 } from '../composables/useTimerAnalytics'
 import { usePlanVsActual } from '../composables/usePlanVsActual'
+import { mergeProjectProgress } from '../composables/projectProgress'
 import { ANALYTICS_TAB, useAnalyticsTab } from '../composables/useAnalyticsTab'
 import type { ProjectBilling } from '../composables/projectBilling'
-import { FIXED_BASIS } from '../composables/projectBilling'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
@@ -57,21 +56,17 @@ const {
   copied,
   habits,
   daySeries,
+  chartTodayKey,
   seriesCaption,
-  projectShares,
   periodLabel,
   adjustedTotalMs,
   totalMoneyLabel,
-  durationLabel,
   hoursLabel,
   shareLabel,
   percentLabel,
   projectNameOf,
   projectRows,
   hasAdjustments,
-  projectShareLabel,
-  moneyLabel,
-  effectiveRateLabel,
   taskMoneyLabel,
   barWidth,
   copyReport,
@@ -91,13 +86,35 @@ const {
   getDailyTasks: () => props.dailyTasks,
 })
 
-const { result: planResult, bounds: planBounds } = usePlanVsActual({
+const { result: planResult } = usePlanVsActual({
   getPeriod: () => period.value,
   getGoals: () => props.goals,
   getTemplates: () => props.templates,
   getDailyTasks: () => props.dailyTasks,
   getActual: () => summary.value.byProject,
 })
+
+/** One row per project: tracked time against whatever is planned for it. */
+const progressRows = computed(() =>
+  mergeProjectProgress(
+    projectRows.value.map((row) => ({
+      key: row.key,
+      goalId: row.goalId,
+      title: row.title,
+      color: row.color,
+      taskCount: row.taskCount,
+      trackedMs: row.figures.ms,
+    })),
+    planResult.value.rows,
+  ),
+)
+
+/** The longest tasks are shown first; the rest sit behind the "All" chip. */
+const TOP_TASK_COUNT = 5
+const showAllTasks = ref(false)
+const topTasks = computed(() =>
+  showAllTasks.value ? visibleTasks.value : visibleTasks.value.slice(0, TOP_TASK_COUNT),
+)
 
 const tab = useAnalyticsTab()
 
@@ -278,101 +295,16 @@ function saveBilling(billing: ProjectBilling | undefined) {
             :points="daySeries.points"
             :caption="seriesCaption"
             :format-hours="hoursLabel"
-          />
-          <ProjectShareChart
-            :shares="projectShares"
-            caption="Share of time by project"
-            :format-hours="hoursLabel"
-            :format-share="shareLabel"
+            :today-key="chartTodayKey"
           />
         </div>
 
-        <template v-if="projectRows.length">
-          <p class="sidebar-caption">By project</p>
-          <div class="analytics-table-wrap">
-            <table class="analytics-table analytics-table--projects">
-              <thead>
-                <tr>
-                  <th class="analytics-table__name">Project</th>
-                  <th class="analytics-table__num analytics-table__tasks">Tasks</th>
-                  <th class="analytics-table__num">Hours</th>
-                  <th v-if="showsMoney" class="analytics-table__num">
-                    Effective rate / h
-                  </th>
-                  <th v-if="showsMoney" class="analytics-table__num">Earned</th>
-                  <th class="analytics-table__action">
-                    <span class="analytics-table__sr">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="project in projectRows" :key="project.key">
-                  <td class="analytics-table__name" :title="project.title">
-                    <span class="analytics-project__title">
-                      <span
-                        v-if="project.color"
-                        class="analytics-project__dot"
-                        :style="{ background: project.color }"
-                      ></span>
-                      {{ project.title }}
-                    </span>
-                    <span
-                      v-if="project.figures.fixedBasis || project.figures.manualHours"
-                      class="analytics-project__badges"
-                    >
-                      <span
-                        v-if="project.figures.fixedBasis === FIXED_BASIS.FIXED"
-                        class="analytics-badge"
-                      >
-                        Fixed
-                      </span>
-                      <span
-                        v-if="project.figures.fixedBasis === FIXED_BASIS.PRORATA"
-                        class="analytics-badge"
-                      >
-                        Fixed · pro-rata
-                      </span>
-                      <span v-if="project.figures.manualHours" class="analytics-badge">
-                        Manual hours
-                      </span>
-                    </span>
-                  </td>
-                  <td class="analytics-table__num analytics-table__tasks">
-                    {{ project.taskCount }}
-                  </td>
-                  <td class="analytics-table__num">
-                    {{ durationLabel(project.figures.ms) }}
-                    <em>{{ projectShareLabel(project.figures.ms) }}</em>
-                  </td>
-                  <td v-if="showsMoney" class="analytics-table__num">
-                    {{ effectiveRateLabel(project.figures.effectiveRate) }}
-                  </td>
-                  <td v-if="showsMoney" class="analytics-table__num">
-                    {{ moneyLabel(project.figures.earned) }}
-                  </td>
-                  <td class="analytics-table__action">
-                    <button
-                      v-if="project.editable"
-                      class="btn btn-ghost analytics-table__edit"
-                      type="button"
-                      :aria-label="`Edit figures for ${project.title}`"
-                      @click="editingGoalId = project.goalId ?? null"
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </template>
-
-        <PlanVsActualSection :result="planResult" :bounds="planBounds" />
+        <ProjectProgressList v-if="progressRows.length" :rows="progressRows" />
 
         <template v-if="visibleTasks.length">
-          <p class="sidebar-caption">By task</p>
+          <p class="sidebar-caption">Top tasks</p>
           <div class="analytics__tasks">
-            <div v-for="task in visibleTasks" :key="task.key" class="time-total">
+            <div v-for="task in topTasks" :key="task.key" class="time-total">
               <div class="time-total__row">
                 <span class="time-total__title">{{ task.title }}</span>
                 <span class="time-total__value">
@@ -390,6 +322,17 @@ function saveBilling(billing: ProjectBilling | undefined) {
               </span>
             </div>
           </div>
+
+          <button
+            v-if="visibleTasks.length > TOP_TASK_COUNT"
+            class="ui-chip"
+            :class="{ 'is-active': showAllTasks }"
+            type="button"
+            :aria-expanded="showAllTasks"
+            @click="showAllTasks = !showAllTasks"
+          >
+            All {{ visibleTasks.length }} tasks
+          </button>
         </template>
       </template>
     </div>

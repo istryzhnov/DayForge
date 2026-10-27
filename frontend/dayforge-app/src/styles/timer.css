@@ -761,8 +761,7 @@
     min-width: 96px;
   }
 
-  .analytics-table__sub,
-  .analytics-table__tasks {
+  .analytics-table__sub {
     display: none;
   }
 
@@ -1114,68 +1113,23 @@
   fill-opacity: 1;
 }
 
+/* Today stands out; earlier days recede; days ahead are neutral stubs. */
+.analytics-chart__bars rect.is-past {
+  fill-opacity: 0.45;
+}
+
+.analytics-chart__bars rect.is-today {
+  fill-opacity: 1;
+}
+
+.analytics-chart__bars rect.is-future {
+  fill: var(--line);
+  fill-opacity: 1;
+}
+
 .analytics-chart__empty {
   margin: 0;
   font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 
-.analytics-share {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-
-.analytics-share__ring {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.analytics-share__legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  display: grid;
-  gap: 5px;
-  font-size: calc(12px * var(--text-scale));
-}
-
-.analytics-share__legend li {
-  display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.analytics-share__swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: var(--accent);
-}
-
-.analytics-share__name {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.analytics-share__value {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.analytics-share__value em {
-  color: var(--muted);
-  font-style: normal;
-  margin-left: 6px;
-}
-
-@media (min-width: 1100px) {
-  .analytics__charts {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  }
-}

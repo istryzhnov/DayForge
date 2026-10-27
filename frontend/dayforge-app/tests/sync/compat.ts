@@ -101,6 +101,7 @@ import {
   plannedMsByProject,
   planVsActual,
 } from '../../src/features/analytics/composables/planVsActual'
+import { mergeProjectProgress } from '../../src/features/analytics/composables/projectProgress'
 import {
   elapsedWorkingDays,
   incomeGoalStatus,
@@ -2113,6 +2114,75 @@ function verifyHabitUnification() {
   )
 }
 
+function verifyProjectProgress() {
+  section('Time tab: one project list merges tracked time with plans')
+
+  const HOUR = 60 * 60 * 1000
+  const goals = [
+    { id: 'goal-b', title: 'Beta' },
+  ] as Goal[]
+  const planned = new Map<string, number>([
+    ['goal-a', 4 * HOUR],
+    ['goal-b', 2 * HOUR],
+    ['goal-c', 1 * HOUR],
+  ])
+  const actual: ProjectTotal[] = [
+    { goalId: 'goal-a', title: 'Alpha', totalMs: 5 * HOUR, taskCount: 2 },
+  ]
+  const plans = planVsActual(planned, actual, goals).rows
+
+  const merged = mergeProjectProgress(
+    [
+      { key: 'goal-a', goalId: 'goal-a', title: 'Alpha', color: '#123456', taskCount: 2, trackedMs: 5 * HOUR },
+      { key: 'goal-d', goalId: 'goal-d', title: 'Gamma', taskCount: 1, trackedMs: HOUR },
+    ],
+    plans,
+  )
+  const byKey = new Map(merged.map((row) => [row.key, row]))
+
+  check(
+    'a planned project keeps its plan and a diff against tracked time',
+    byKey.get('goal-a')?.plannedMs === 4 * HOUR &&
+      byKey.get('goal-a')?.planned === true &&
+      byKey.get('goal-a')?.diffMs === HOUR &&
+      byKey.get('goal-a')?.taskCount === 2,
+    merged,
+  )
+  check(
+    'a planned project with no time still shows, with an empty fill',
+    byKey.get('goal-b')?.title === 'Beta' &&
+      byKey.get('goal-b')?.trackedMs === 0 &&
+      byKey.get('goal-b')?.fill === 0 &&
+      byKey.get('goal-b')?.diffMs === -2 * HOUR,
+    merged,
+  )
+  check(
+    'a plan for a project no longer listed still shows, under its stored title',
+    byKey.get('goal-c')?.title === 'Deleted project' && byKey.get('goal-c')?.plannedMs === HOUR,
+    merged,
+  )
+  check(
+    'an unplanned project is neutral: no plan, no diff, full bar',
+    byKey.get('goal-d')?.planned === false &&
+      byKey.get('goal-d')?.diffMs === null &&
+      byKey.get('goal-d')?.fill === 1,
+    merged,
+  )
+  check(
+    'the bar fills to the share of the plan and never past full',
+    byKey.get('goal-a')?.fill === 1 &&
+      mergeProjectProgress(
+        [{ key: 'goal-a', title: 'Alpha', taskCount: 1, trackedMs: HOUR }],
+        plans,
+      )[0].fill === 0.25,
+  )
+  check(
+    'the list is ordered by the larger of tracked and planned time',
+    merged[0].key === 'goal-a' && merged[1].key === 'goal-b' && merged.length === 4,
+    merged.map((row) => row.key),
+  )
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -2132,6 +2202,7 @@ function main() {
   verifyNewerBackup()
   verifyTaskNotes()
   verifyHabitUnification()
+  verifyProjectProgress()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

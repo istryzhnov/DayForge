@@ -173,46 +173,6 @@
   min-height: 36px;
 }
 
-/* --- analytics: plan versus actual --------------------------------------- */
-
-.plan-vs-actual__state {
-  display: block;
-  margin-top: 2px;
-  font-size: calc(11px * var(--text-scale));
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.plan-vs-actual__diff {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.plan-vs-actual__diff.is-over,
-.plan-vs-actual__diff.is-unplanned {
-  color: var(--danger);
-}
-
-.plan-vs-actual__diff.is-under {
-  color: var(--accent);
-}
-
-.plan-vs-actual__state.is-over,
-.plan-vs-actual__state.is-unplanned {
-  color: var(--danger);
-}
-
-.plan-vs-actual__state.is-under {
-  color: var(--accent);
-}
-
-.plan-vs-actual__total th,
-.plan-vs-actual__total td {
-  font-weight: 700;
-  color: var(--text);
-  border-top: 1px solid var(--line);
-}
-
 @media (max-width: 420px) {
   .budget-chip {
     max-width: 100%;

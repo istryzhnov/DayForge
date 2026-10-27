@@ -32,7 +32,7 @@ import {
 import {
   SERIES_GRANULARITY,
   buildSeries,
-  type ShareInput,
+  startOfWeek,
 } from '../../../composables/analytics/charts'
 import { habitStats } from '../../../composables/analytics/habits'
 import {
@@ -383,23 +383,19 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     buildSeries(totalsByDay(inRange.value), bounds.value.from, bounds.value.to),
   )
 
+  /** The bar that holds today: its day, or the week it falls in. */
+  const chartTodayKey = computed(() => {
+    const today = getTodayISODate()
+    return daySeries.value.granularity === SERIES_GRANULARITY.WEEK
+      ? startOfWeek(today)
+      : today
+  })
+
   const seriesCaption = computed(() =>
     daySeries.value.granularity === SERIES_GRANULARITY.WEEK
       ? 'Tracked hours per week'
       : 'Tracked hours per day',
   )
-
-  const projectShares = computed<ShareInput[]>(() => {
-    const colors = projectColors(sources.getGoals())
-    return summary.value.byProject
-      .filter((project) => project.totalMs >= MINUTE_MS)
-      .map((project) => ({
-      key: projectKeyOf(project),
-      label: project.title,
-      totalMs: project.totalMs,
-      color: project.goalId ? colors.get(project.goalId) : undefined,
-    }))
-  })
 
   // --- habits --------------------------------------------------------------
 
@@ -541,8 +537,8 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     copied,
     habits,
     daySeries,
+    chartTodayKey,
     seriesCaption,
-    projectShares,
     periodLabel: computed(
       () =>
         PERIOD_OPTIONS.find((option) => option.id === period.value)?.label ??

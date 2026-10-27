@@ -1,24 +1,10 @@
 /* --- analytics: project figures (fixed price, manual hours) -------------- */
 
-.analytics-table--projects .analytics-table__name {
-  white-space: normal;
-}
-
 .analytics-project__title {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.analytics-project__dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 6px;
-  border-radius: 50%;
-  vertical-align: middle;
-  background: var(--line-soft);
 }
 
 .analytics-project__badges {
@@ -36,26 +22,6 @@
   white-space: nowrap;
   color: var(--accent);
   background: var(--accent-soft);
-}
-
-.analytics-table__action {
-  width: 1%;
-  text-align: right;
-  white-space: nowrap;
-}
-
-.analytics-table__edit {
-  padding: 4px 10px;
-  font-size: calc(12px * var(--text-scale));
-}
-
-.analytics-table__sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
 }
 
 /* --- project figures dialog ---------------------------------------------- */
