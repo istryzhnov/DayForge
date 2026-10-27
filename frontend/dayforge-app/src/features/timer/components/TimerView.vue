@@ -3,12 +3,12 @@ import { ref } from 'vue'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { MajorTaskOption } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { TIMER_MODE } from '../../../entities/constants'
+import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import TimerModePicker from './TimerModePicker.vue'
 import TimeEntryList from './TimeEntryList.vue'
-import TimeTotals from './TimeTotals.vue'
 import TimeEntryEditor from './TimeEntryEditor.vue'
 import AppIcon from '../../../components/AppIcon.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
@@ -29,8 +29,7 @@ const {
   displayLabel,
   progress,
   statusLabel,
-  taskLabel,
-  todayLabel,
+  todayTotalMs,
   hint,
   mode,
   selectMode,
@@ -64,6 +63,9 @@ function pickTask(event: Event) {
   emit('attach-task', templateId)
 }
 
+/** The one-line explanation sits behind the info button, not in the header. */
+const showInfo = ref(false)
+
 const isEditorOpen = ref(false)
 const editorEntry = ref<TimeEntry | null>(null)
 
@@ -81,17 +83,25 @@ function closeEditor() {
 <template>
   <section class="timer-view">
     <header class="timer-view__head">
-      <div>
-        <h2 class="timer-view__title">Timer</h2>
-        <p class="timer-view__subtitle">
-          One timer at a time. Starting another stops this one and keeps its
-          time.
-        </p>
-      </div>
-      <span class="timer-view__today">Today: {{ todayLabel }}</span>
+      <h2 class="timer-view__title">Timer</h2>
+      <button
+        class="ui-icon-btn"
+        type="button"
+        title="About the timer"
+        aria-label="About the timer"
+        :aria-expanded="showInfo"
+        @click="showInfo = !showInfo"
+      >
+        <AppIcon name="info" :size="16" />
+      </button>
     </header>
+    <p v-if="showInfo" class="timer-view__info ui-oneline">
+      One timer at a time. Starting another stops this one and keeps its time.
+    </p>
 
-    <div class="timer-view__stage">
+    <section class="ui-card timer-view__stage">
+      <TimerModePicker :mode="mode" @select="selectMode" />
+
       <TimerDisplay
         :value="displayLabel"
         :caption="statusLabel"
@@ -100,43 +110,41 @@ function closeEditor() {
         variant="large"
       />
 
-      <p class="timer-view__task">
-        {{ taskLabel }}
-        <button
-          v-if="timer.task"
-          class="timer-view__unlink"
-          type="button"
-          title="Detach the task"
-          aria-label="Detach the task"
-          @click="clearTask"
-        >
-          <AppIcon name="close" :size="12" />
-        </button>
-      </p>
-
       <!-- Where this sitting's time is booked: an existing task, or a new one. -->
       <div class="timer-view__assign">
-        <select
-          class="timer-view__picker"
-          :value="timer.task?.taskId ?? ''"
-          aria-label="Add this time to a task"
-          @change="pickTask"
-        >
-          <option value="">No task</option>
-          <optgroup
-            v-for="group in taskGroups"
-            :key="group.label"
-            :label="group.label"
+        <div class="timer-view__pick">
+          <select
+            class="timer-view__picker"
+            :value="timer.task?.taskId ?? ''"
+            aria-label="Add this time to a task"
+            @change="pickTask"
           >
-            <option
-              v-for="option in group.tasks"
-              :key="option.id"
-              :value="option.id"
+            <option value="">No task</option>
+            <optgroup
+              v-for="group in taskGroups"
+              :key="group.label"
+              :label="group.label"
             >
-              {{ option.title }}
-            </option>
-          </optgroup>
-        </select>
+              <option
+                v-for="option in group.tasks"
+                :key="option.id"
+                :value="option.id"
+              >
+                {{ option.title }}
+              </option>
+            </optgroup>
+          </select>
+          <button
+            v-if="timer.task"
+            class="ui-icon-btn"
+            type="button"
+            title="Detach task"
+            aria-label="Detach task"
+            @click="clearTask"
+          >
+            <AppIcon name="close" :size="14" />
+          </button>
+        </div>
 
         <DisclosureSection
           v-if="canNameSession"
@@ -161,10 +169,11 @@ function closeEditor() {
         </DisclosureSection>
       </div>
 
-      <p v-if="hint" class="timer-view__hint">{{ hint }}</p>
+      <p v-if="hint" class="timer-view__hint ui-oneline">{{ hint }}</p>
 
       <TimerControls
         :primary-label="primaryLabel"
+        :primary-icon="timer.status === TIMER_STATUS.RUNNING ? 'pause' : 'play'"
         :can-stop="canStop"
         :can-skip="canSkip"
         size="large"
@@ -172,19 +181,20 @@ function closeEditor() {
         @stop="stop"
         @skip="skipPhase"
       />
-    </div>
 
-    <p class="sidebar-caption">Mode</p>
-    <TimerModePicker :mode="mode" @select="selectMode" />
+      <p class="timer-view__today">
+        Today · {{ formatHoursMinutes(todayTotalMs) }}
+      </p>
+    </section>
 
     <template v-if="mode === TIMER_MODE.COUNTDOWN && isIdle">
-      <p class="settings-group-hint">Counts down from</p>
-      <div class="settings-chips">
+      <p class="ui-section-label">Counts down from</p>
+      <div class="ui-chips">
         <button
           v-for="minutes in COUNTDOWN_PRESETS"
           :key="minutes"
-          class="theme-chip"
-          :class="{ active: countdownMinutes === minutes }"
+          class="ui-chip"
+          :class="{ 'is-active': countdownMinutes === minutes }"
           type="button"
           @click="countdownMinutes = minutes"
         >
@@ -193,12 +203,10 @@ function closeEditor() {
       </div>
     </template>
 
-    <p class="sidebar-caption">Where the time went</p>
-    <TimeTotals />
-
     <header class="timer-view__history-head">
-      <p class="sidebar-caption">History</p>
-      <button class="btn btn-ghost" type="button" @click="openEditor(null)">
+      <p class="ui-section-label">History</p>
+      <button class="ui-chip timer-view__add" type="button" @click="openEditor(null)">
+        <AppIcon name="plus" :size="14" />
         Add entry
       </button>
     </header>

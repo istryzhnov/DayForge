@@ -112,7 +112,11 @@ import {
   workingDaysLeft,
 } from '../../src/features/analytics/composables/incomeGoal'
 import { buildRateLookup } from '../../src/composables/timer/rates'
-import { formatHoursMinutes } from '../../src/composables/timer/format'
+import {
+  formatDayHeading,
+  formatEntryDuration,
+  formatHoursMinutes,
+} from '../../src/composables/timer/format'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
@@ -1442,6 +1446,21 @@ function verifyBudgetPlanIncome() {
   )
 }
 
+function verifyTimerHistoryLabels() {
+  section('Timer history: entry durations and day headings')
+
+  const MINUTE = 60 * 1000
+  check('formatEntryDuration: under a minute reads <1 m, not seconds', formatEntryDuration(45 * 1000) === '<1 m')
+  check('formatEntryDuration: one millisecond still reads <1 m', formatEntryDuration(1) === '<1 m')
+  check('formatEntryDuration: nothing recorded reads 0 m', formatEntryDuration(0) === '0 m')
+  check('formatEntryDuration: a minute and up uses the hours and minutes total', formatEntryDuration(MINUTE) === '1 m')
+  check('formatEntryDuration: 2 h 5 m', formatEntryDuration(125 * MINUTE) === '2 h 5 m')
+
+  // Local-time dates, as the history groups them.
+  check('formatDayHeading: weekday, day and month in English', formatDayHeading(new Date(2026, 9, 25)) === 'Sunday, 25 October')
+  check('formatDayHeading: a single-digit day has no leading zero', formatDayHeading(new Date(2026, 8, 3)) === 'Thursday, 3 September')
+}
+
 function timeEntry(
   id: string,
   goalId: string | undefined,
@@ -2232,6 +2251,7 @@ function main() {
   verifyHabitUnification()
   verifyProjectProgress()
   verifyMoneyTab()
+  verifyTimerHistoryLabels()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

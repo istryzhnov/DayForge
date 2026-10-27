@@ -269,10 +269,7 @@ input[type='checkbox']:disabled {
     min-height: 40px;
   }
 
-  .event-details__close,
-  .undo-toast__close,
-  .timer-view__unlink,
-  .timer-entry__action {
+  .event-details__close {
     min-width: 40px;
     min-height: 40px;
   }

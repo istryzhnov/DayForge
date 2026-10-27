@@ -3,13 +3,15 @@ import type { TimeEntry } from '../../../entities/TimerEntity'
 import { TIMER_MODE, TIME_ENTRY_SOURCE } from '../../../entities/constants'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import { useSettings, CLOCK_FORMAT } from '../../../composables/useSettings'
-import { useFormat } from '../../../composables/useFormat'
+import { parseISODate } from '../../../composables/goalSpace/date'
 import {
   entryDurationMs,
   type DayGroup,
 } from '../../../composables/timer/entries'
 import {
-  formatShortDuration,
+  formatDayHeading,
+  formatEntryDuration,
+  formatHoursMinutes,
   formatTimeLabel,
 } from '../../../composables/timer/format'
 import { PHASE_LABELS } from '../../../composables/timer/pomodoro'
@@ -17,7 +19,6 @@ import { PHASE_LABELS } from '../../../composables/timer/pomodoro'
 export function useTimerHistory() {
   const { days, removeEntry } = useTimeEntries()
   const { settings } = useSettings()
-  const { formatDate } = useFormat()
 
   const uses12Hour = computed(
     () => settings.format.clock === CLOCK_FORMAT.H12,
@@ -38,7 +39,7 @@ export function useTimerHistory() {
   }
 
   function durationLabel(entry: TimeEntry): string {
-    return formatShortDuration(entryDurationMs(entry))
+    return formatEntryDuration(entryDurationMs(entry))
   }
 
   function kindLabel(entry: TimeEntry): string {
@@ -50,11 +51,11 @@ export function useTimerHistory() {
   }
 
   function dayLabel(group: DayGroup): string {
-    return formatDate(group.date)
+    return formatDayHeading(parseISODate(group.date))
   }
 
   function dayTotalLabel(group: DayGroup): string {
-    return formatShortDuration(group.totalMs)
+    return formatHoursMinutes(group.totalMs)
   }
 
   return {

@@ -42,6 +42,25 @@ export function formatHoursMinutes(ms: number): string {
   return `${hours} h ${minutes} m`
 }
 
+/** A history row's duration: "<1 m" under a minute, otherwise the hours-and-minutes total. */
+export function formatEntryDuration(ms: number): string {
+  // "45s" next to minute totals reads oddly in a log; "<1 m" says the same thing.
+  if (ms > 0 && ms < MINUTE_MS) return '<1 m'
+  return formatHoursMinutes(ms)
+}
+
+/** "Sunday, 25 October". Fixed English order, since the rest of the UI is English. */
+export function formatDayHeading(date: Date): string {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).formatToParts(date)
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  return `${pick('weekday')}, ${pick('day')} ${pick('month')}`
+}
+
 export function formatTimeLabel(
   isoDateTime: string,
   locale: string,

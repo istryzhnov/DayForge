@@ -232,7 +232,7 @@
 
 .timer-view__head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -242,61 +242,44 @@
   color: var(--text);
 }
 
-.timer-view__subtitle {
-  margin: 4px 0 0;
+.timer-view__info {
+  margin: 0;
   color: var(--muted);
-  font-size: 0.85rem;
-  max-width: 46ch;
+  font-size: calc(12px * var(--text-scale));
 }
 
-.timer-view__today {
-  color: var(--muted);
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-
+/* The mode tabs, dial and controls share one card. */
 .timer-view__stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  gap: 12px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: calc(18px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+  gap: 14px;
+  padding: 16px;
 }
 
-.timer-view__task {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text);
-}
-
-.timer-view__unlink {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-grid;
-  place-items: center;
-}
-
-.timer-view__unlink:hover {
-  color: var(--text);
+.timer-mode {
+  width: 100%;
 }
 
 .timer-view__assign {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  justify-items: center;
   gap: 8px;
 }
 
+.timer-view__pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+
 .timer-view__picker {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: calc(10px * var(--radius-scale));
   background: var(--panel-soft);
@@ -304,8 +287,6 @@
   font-family: inherit;
   font-size: calc(13px * var(--text-scale));
   padding: 8px 11px;
-  min-width: 200px;
-  max-width: 100%;
 }
 
 .timer-view__picker:focus {
@@ -345,9 +326,41 @@
 }
 
 .timer-view__hint {
+  max-width: 100%;
   margin: 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: calc(12px * var(--text-scale));
+}
+
+/* Start/stop: the one solid accent control on the page. */
+.timer-controls__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 160px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--accent);
+  color: var(--ring-check);
+  font: inherit;
+  font-size: calc(14px * var(--text-scale));
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.timer-controls__primary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.timer-view__today {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(13px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-view__history-head {
@@ -357,30 +370,96 @@
   gap: 12px;
 }
 
-.timer-view__history-head .sidebar-caption {
-  margin: 0;
+.timer-view__add {
+  gap: 6px;
 }
 
-/* --- totals per task ---------------------------------------------------- */
+/* --- history ------------------------------------------------------------ */
 
-.time-totals {
+.timer-history {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  gap: 14px;
 }
 
-.time-totals__head {
+.timer-history__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.timer-history__day {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.timer-history__day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.timer-history__day-total {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* One card per day; rows inside are split by hairlines. */
+.timer-history__list {
+  display: grid;
+  overflow: hidden;
+}
+
+.timer-entry {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
+  padding: 10px 8px 10px 14px;
 }
 
-.time-totals__grand {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
+.timer-entry + .timer-entry {
+  border-top: 1px solid var(--line-soft);
 }
+
+.timer-entry__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.timer-entry__title {
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.timer-entry__meta {
+  color: var(--muted);
+  font-size: calc(11px * var(--text-scale));
+}
+
+.timer-entry__duration {
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.timer-entry__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+/* --- per-task rows (Analytics uses these too) --------------------------- */
 
 .time-total {
   display: grid;
@@ -428,100 +507,6 @@
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
-}
-
-.time-total__sessions {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-/* --- history ------------------------------------------------------------ */
-
-.timer-history {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-}
-
-.timer-history__empty {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.timer-history__day {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-}
-
-.timer-history__day-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--text);
-  font-size: 0.85rem;
-}
-
-.timer-history__day-head span {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.timer-entry {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(11px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
-}
-
-.timer-entry__main {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.timer-entry__title {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timer-entry__meta,
-.timer-entry__note {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.timer-entry__duration {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.timer-entry__actions {
-  display: flex;
-  gap: 2px;
-}
-
-.timer-entry__action {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  padding: 4px 6px;
-}
-
-.timer-entry__action:hover {
-  color: var(--text);
 }
 
 /* --- entry editor ------------------------------------------------------- */

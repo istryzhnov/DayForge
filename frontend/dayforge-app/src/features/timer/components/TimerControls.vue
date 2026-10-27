@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { shortcutTitle } from '../../../composables/useHotkeys'
+import AppIcon from '../../../components/AppIcon.vue'
+import type { AppIconName } from '../../../components/appIconPaths'
 
 withDefaults(
   defineProps<{
     primaryLabel: string
+    primaryIcon?: AppIconName
     canStop: boolean
     canSkip: boolean
     size?: 'compact' | 'large'
   }>(),
-  { size: 'compact' },
+  { size: 'compact', primaryIcon: 'play' },
 )
 
 const emit = defineEmits<{
@@ -21,6 +24,17 @@ const emit = defineEmits<{
 <template>
   <div class="timer-controls" :class="`timer-controls--${size}`">
     <button
+      v-if="size === 'large'"
+      class="timer-controls__primary"
+      type="button"
+      :title="shortcutTitle(primaryLabel, 'Space')"
+      @click="emit('primary')"
+    >
+      <AppIcon :name="primaryIcon" :size="16" />
+      <span>{{ primaryLabel }}</span>
+    </button>
+    <button
+      v-else
       class="btn btn-primary"
       type="button"
       :title="shortcutTitle(primaryLabel, 'Space')"
@@ -31,7 +45,7 @@ const emit = defineEmits<{
 
     <button
       v-if="canSkip"
-      class="btn btn-ghost"
+      :class="size === 'large' ? 'ui-chip' : 'btn btn-ghost'"
       type="button"
       title="End this phase and move to the next"
       @click="emit('skip')"
@@ -41,7 +55,7 @@ const emit = defineEmits<{
 
     <button
       v-if="canStop"
-      class="btn btn-ghost"
+      :class="size === 'large' ? 'ui-chip' : 'btn btn-ghost'"
       type="button"
       title="Stop and record what has been worked"
       @click="emit('stop')"
