@@ -85,7 +85,11 @@ function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
 <template>
   <TaskComposer :shortcut="isAllMode && keyboardShortcuts" @submit="onSubmit">
     <template v-if="isAllMode" #target>
-      <ProjectPicker v-model="target" :options="targetOptions" />
+      <ProjectPicker
+        v-model="target"
+        :options="targetOptions"
+        data-tip-anchor="composer-project"
+      />
     </template>
   </TaskComposer>
 </template>

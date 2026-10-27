@@ -3,6 +3,7 @@ import { useTheme } from '../../../composables/useTheme'
 import {
   PALETTE_PRESETS,
   type PalettePreset,
+  samePalette,
 } from '../../../composables/theme/tokens'
 import { suggestedModeFor } from '../../../composables/theme/suggestions'
 
@@ -33,7 +34,7 @@ export function useThemeGallery() {
     return (
       preset.style === theme.themeStyle.value &&
       preset.mode === theme.themeMode.value &&
-      JSON.stringify(preset.colors) === JSON.stringify(theme.palette.value)
+      samePalette(preset.colors, theme.palette.value)
     )
   }
 

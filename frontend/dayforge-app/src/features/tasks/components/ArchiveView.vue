@@ -29,7 +29,7 @@ function whenLabel(task: ArchivedTask): string {
 
 <template>
   <section class="goal-panel">
-    <header class="goal-panel-header">
+    <header class="goal-panel-header" data-tip-anchor="archive-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
           <h2>What I did</h2>

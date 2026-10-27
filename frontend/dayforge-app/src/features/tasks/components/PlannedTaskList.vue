@@ -39,7 +39,7 @@ function whenLine(task: PlannedTask): string {
 
 <template>
   <section class="goal-panel">
-    <header class="goal-panel-header">
+    <header class="goal-panel-header" data-tip-anchor="planned-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
           <h2>Planned tasks</h2>

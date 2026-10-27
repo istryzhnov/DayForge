@@ -8,6 +8,7 @@ import {
   type StartView,
 } from '../../../composables/useSettings'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
+import { useTips } from '../../onboarding/composables/useTips'
 import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 import {
   PRIORITY_OPTIONS,
@@ -25,6 +26,7 @@ const props = defineProps<{
 
 const { settings, update, resetSection } = useSettings()
 const { openShortcuts } = useHotkeyOverlay()
+const { tipsOff, turnOn, turnOff, resetTips } = useTips()
 
 const startProjects = computed(() =>
   sortGoals(props.goals.filter((goal) => goal.status !== GOAL_STATUS.ARCHIVED)),
@@ -155,6 +157,25 @@ function startOnView(view: StartView) {
 
     <button class="btn btn-ghost" type="button" @click="openShortcuts">
       Show shortcuts
+    </button>
+
+    <label class="settings-toggle">
+      <input
+        type="checkbox"
+        :checked="!tipsOff"
+        @change="checkedValue($event) ? turnOn() : turnOff()"
+      />
+      <span>
+        <strong>Tips</strong>
+        <em>
+          Short notes that point at the control they explain. Close one with ×,
+          or turn them all off here.
+        </em>
+      </span>
+    </label>
+
+    <button class="btn btn-ghost" type="button" @click="resetTips">
+      Show all tips again
     </button>
 
     <label class="settings-slider">

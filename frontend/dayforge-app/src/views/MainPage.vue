@@ -5,7 +5,12 @@ import SidebarComponent from '../features/sidebar/components/SidebarComponent.vu
 import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
 import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
-import OnboardingHints from '../features/onboarding/components/OnboardingHints.vue'
+import CoachMark from '../features/onboarding/components/CoachMark.vue'
+import WelcomeFlow from '../features/onboarding/components/WelcomeFlow.vue'
+import {
+  useWelcomeStart,
+  welcomeOpen,
+} from '../features/onboarding/composables/useWelcome'
 import UndoToast from '../components/UndoToast.vue'
 import ShortcutTipToast from '../components/ShortcutTipToast.vue'
 import TimerAwayDialog from '../components/TimerAwayDialog.vue'
@@ -80,7 +85,6 @@ const {
   activeView,
   selectView,
   selectGoal,
-  isFirstRun,
   showStarter,
   openStarter,
   closeStarter,
@@ -139,7 +143,13 @@ const {
   handleSetBoardStage,
   handleClearBoardDone,
   handleSetTaskRate,
+  dataReady,
+  isFirstRun,
+  createFirstProject,
 } = useMainPageState(goalSpace)
+
+// Decides once the stored data is in, which useMainPageState signals on mount.
+useWelcomeStart(isFirstRun, dataReady)
 
 useHotkeys({
   goals: goalSpace.goals,
@@ -245,11 +255,6 @@ function handleSearchSelect(result: SearchResult) {
 
     <main class="app-content">
       <div class="app-content__inner">
-        <OnboardingHints
-          v-if="isFirstRun && activeView === 'goals'"
-          @open-starter="openStarter"
-        />
-
         <GoalComponent
           v-if="activeView === 'goals'"
           :goal="activeGoal"
@@ -415,6 +420,15 @@ function handleSearchSelect(result: SearchResult) {
     />
 
     <ShortcutTipToast />
+
+    <CoachMark :view="activeView" @action="openStarter" />
+
+    <WelcomeFlow
+      v-if="welcomeOpen"
+      @select-view="selectView"
+      @create-project="createFirstProject"
+      @use-template="openStarter"
+    />
 
     <TaskReminderPopup
       v-if="activeAlert"

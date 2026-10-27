@@ -39,6 +39,11 @@ import {
   verifyTimerHistoryLabels,
 } from './compat/timer'
 import { verifyCalendarTitles } from './compat/calendar'
+import {
+  verifyPrimaryButtonContrast,
+  verifyPresetReset,
+  verifyPresetMemory,
+} from './compat/theme'
 
 function main() {
   verifyPushReminderParity()
@@ -66,6 +71,9 @@ function main() {
   verifyCalendarTitles()
   verifyDayLists()
   verifyHabitStrip()
+  verifyPrimaryButtonContrast()
+  verifyPresetReset()
+  verifyPresetMemory()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

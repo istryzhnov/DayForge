@@ -1,4 +1,11 @@
-import { darken, lighten, mix, readableTextOn, withAlpha } from './color'
+import {
+  darken,
+  lighten,
+  mix,
+  readableButtonTextOn,
+  readableTextOn,
+  withAlpha,
+} from './color'
 
 export type ThemeMode = 'light' | 'dark'
 export type ThemeStyle = 'vivid' | 'minimal'
@@ -225,7 +232,7 @@ export function buildPaletteVars(
 
   if (picked.accent) {
     vars['--accent-soft'] = withAlpha(picked.accent, isDark ? 0.16 : 0.14)
-    vars['--ring-check'] = readableTextOn(picked.accent)
+    vars['--ring-check'] = readableButtonTextOn(picked.accent)
   }
 
   if (picked.minor) {
@@ -426,3 +433,57 @@ export const PALETTE_PRESETS: PalettePreset[] = [
     },
   },
 ]
+
+/** Same colours on the same keys, whatever order they were picked in. */
+export function samePalette(a: ThemePalette, b: ThemePalette): boolean {
+  const keysA = Object.keys(stripEmpty(a))
+  const keysB = Object.keys(stripEmpty(b))
+  return (
+    keysA.length === keysB.length &&
+    keysA.every((key) => a[key as ThemeColorKey] === b[key as ThemeColorKey])
+  )
+}
+
+/**
+ * The preset a stored theme sits on. A stored id wins when it names a real
+ * preset; otherwise the theme counts as a preset only when style, mode and
+ * colours all match one. Anything else is a custom theme, so null.
+ */
+export function presetIdFor(
+  stored: unknown,
+  style: ThemeStyle,
+  mode: ThemeMode,
+  colors: ThemePalette,
+): string | null {
+  if (
+    typeof stored === 'string' &&
+    PALETTE_PRESETS.some((preset) => preset.id === stored)
+  ) {
+    return stored
+  }
+  return (
+    PALETTE_PRESETS.find(
+      (preset) =>
+        preset.style === style &&
+        preset.mode === mode &&
+        samePalette(preset.colors, colors),
+    )?.id ?? null
+  )
+}
+
+/**
+ * The colours a reset goes back to. While the theme still has the style and
+ * mode of its remembered preset, that is the preset's own colours. Once the
+ * user has switched style or mode away from it, those colours no longer fit
+ * the theme, so the reset falls back to {}: the stylesheet's designed values
+ * for the style and mode now in force.
+ */
+export function presetBaseColors(
+  presetId: string | null,
+  style: ThemeStyle,
+  mode: ThemeMode,
+): ThemePalette {
+  const preset = PALETTE_PRESETS.find((candidate) => candidate.id === presetId)
+  if (!preset || preset.style !== style || preset.mode !== mode) return {}
+  return preset.colors
+}

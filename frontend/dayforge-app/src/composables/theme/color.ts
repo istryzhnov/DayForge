@@ -199,3 +199,39 @@ export function readableTextOn(color: string): string {
     ? dark
     : light
 }
+
+/**
+ * How much of the accent survives at the dark end of a primary button's
+ * gradient. Mirrors `color-mix(... 88%, black 12%)` in styles/buttons.css.
+ */
+export const PRIMARY_BUTTON_SHADE = 0.88
+
+/**
+ * Text colour for a primary button filled with `color`. The button fades to a
+ * darker shade of it, so the text has to clear WCAG AA (4.5:1) on that darker
+ * end as well, not only on the colour itself. Picks the candidate that does
+ * best on its weaker end.
+ */
+export function readableButtonTextOn(color: string): string {
+  const shade = mix(color, '#000000', PRIMARY_BUTTON_SHADE)
+  const candidates = [
+    mix(color, '#000000', 0.14),
+    mix(color, '#ffffff', 0.06),
+    '#000000',
+    '#ffffff',
+  ]
+
+  let best = candidates[0]
+  let bestScore = -1
+  for (const candidate of candidates) {
+    const score = Math.min(
+      contrastRatio(candidate, color),
+      contrastRatio(candidate, shade),
+    )
+    if (score > bestScore) {
+      best = candidate
+      bestScore = score
+    }
+  }
+  return best
+}
