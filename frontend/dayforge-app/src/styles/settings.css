@@ -882,12 +882,12 @@ textarea {
 
 :root[data-targets='large'] .sidebar-settings__trigger,
 :root[data-targets='large'] .sidebar-notify-trigger,
+:root[data-targets='large'] .sidebar-search-trigger,
 :root[data-targets='large'] .settings-panel__close {
   width: 42px;
   height: 42px;
 }
 
-:root[data-targets='large'] .task-add-btn,
 :root[data-targets='large'] .goal-settings__item,
 :root[data-targets='large'] .goal-settings-btn,
 :root[data-targets='large'] .settings-toggle {
