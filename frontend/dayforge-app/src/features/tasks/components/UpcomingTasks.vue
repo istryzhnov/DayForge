@@ -6,6 +6,7 @@ import AppIcon from '../../../components/AppIcon.vue'
 import { readJson, writeJson } from '../../../lib/storage'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useFormat } from '../../../composables/useFormat'
+import { panelDateLabel } from '../../../composables/panelDateLabel'
 import type {
   UpcomingDay,
   UpcomingItem,
@@ -21,7 +22,7 @@ const emit = defineEmits<{
   (e: 'select-date', date: ISODate): void
 }>()
 
-const { formatDate, formatTime } = useFormat()
+const { formatTime } = useFormat()
 
 const COLLAPSED_KEY = 'dayforge-upcoming-collapsed-v1'
 
@@ -44,7 +45,7 @@ function dotStyle(goalId: ID | undefined) {
 
 /** Short day, e.g. "Thu 29". */
 function dayLabel(date: ISODate) {
-  return formatDate(date, { weekday: 'short', day: 'numeric' })
+  return panelDateLabel(date, { weekday: 'short', day: 'numeric' })
 }
 
 function timeRange(item: UpcomingItem) {

@@ -4,7 +4,7 @@ import type {
   HabitDayState,
   HabitMonthView,
 } from '../../../composables/analytics/habits'
-import { useFormat } from '../../../composables/useFormat'
+import { panelDateLabel } from '../../../composables/panelDateLabel'
 
 type HabitProps = {
   view: HabitMonthView
@@ -19,14 +19,11 @@ const STATE_LABEL: Record<HabitDayState, string> = {
 }
 
 export function useHabitCalendar(props: HabitProps) {
-  // Same locale setting as the rest of the panel's dates.
-  const { formatDate } = useFormat()
-
   /** Start of the grid, the left-hand caption. */
   const rangeLabel = computed(() => {
     const first = props.view.dayTotals[0]
     if (!first) return ''
-    return formatDate(first.date, { day: 'numeric', month: 'short' })
+    return panelDateLabel(first.date, { day: 'numeric', month: 'short' })
   })
 
   /** "done / due · %" for the whole grid. */
@@ -36,7 +33,7 @@ export function useHabitCalendar(props: HabitProps) {
   })
 
   function cellLabel(date: ISODate, state: HabitDayState): string {
-    const text = formatDate(date, { day: 'numeric', month: 'short' })
+    const text = panelDateLabel(date, { day: 'numeric', month: 'short' })
     return `${text}: ${STATE_LABEL[state]}`
   }
 
