@@ -384,3 +384,14 @@ export function habitStreaks({
     ),
   )
 }
+
+/**
+ * The squares a habit row draws: up to today, so the month in progress has no
+ * empty future squares. A past month keeps every day.
+ */
+export function habitStripCells(
+  cells: HabitMonthCell[],
+  today: ISODate,
+): HabitMonthCell[] {
+  return cells.filter((cell) => cell.date <= today)
+}

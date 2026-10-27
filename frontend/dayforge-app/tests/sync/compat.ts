@@ -20,6 +20,7 @@ import {
   habitMonthView,
   habitStats,
   habitStreaks,
+  habitStripCells,
   habitWindowView,
 } from '../../src/composables/analytics/habits'
 import {
@@ -2399,6 +2400,16 @@ function verifyDayLists() {
   check('doneCountsOf: nothing done, zero counts', same(doneCountsOf([], '2026-10-27', 1), { thisWeek: 0, thisMonth: 0 }))
 }
 
+function verifyHabitStrip() {
+  section('Habit strip: squares run up to today, in order')
+
+  const cells = ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29'].map((date) => ({ date, state: 'off' as const }))
+  check('habitStripCells: a month in progress stops at today', same(habitStripCells(cells, '2026-10-27').map((cell) => cell.date), ['2026-10-26', '2026-10-27']))
+  check('habitStripCells: today is kept as the last square', habitStripCells(cells, '2026-10-27').at(-1)?.date === '2026-10-27')
+  check('habitStripCells: a past month keeps every day', habitStripCells(cells, '2026-12-01').length === 4)
+  check('habitStripCells: no square before the month, nothing left', habitStripCells(cells, '2026-10-25').length === 0)
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -2424,6 +2435,7 @@ function main() {
   verifyTimerHistoryLabels()
   verifyCalendarTitles()
   verifyDayLists()
+  verifyHabitStrip()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import type {
   HabitMonthCell,
   HabitMonthRow as HabitMonthRowData,
@@ -6,9 +7,11 @@ import type {
 
 defineProps<{
   row: HabitMonthRowData
+  /** The squares to draw, already cut at today. */
+  cells: HabitMonthCell[]
   color?: string
   projectName: string
-  percent: string
+  streak: number
   cellLabel: (cell: HabitMonthCell) => string
 }>()
 </script>
@@ -29,13 +32,22 @@ defineProps<{
         <span class="habits__title">{{ row.title }}</span>
       </p>
       <p class="habits__score">
-        {{ row.completed }}/{{ row.expected }}
-        <em>{{ percent }}</em>
+        <span>{{ row.completed }}/{{ row.expected }}</span>
+        <span class="habits__streak">
+          <AppIcon name="flame" :size="13" />
+          <span>{{ streak }}</span>
+        </span>
       </p>
     </div>
-    <div class="habits__strip">
+    <div
+      class="habits__strip"
+      :style="{
+        gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))`,
+        '--habit-color': color ?? 'var(--accent)',
+      }"
+    >
       <span
-        v-for="cell in row.cells"
+        v-for="cell in cells"
         :key="cell.date"
         class="habits__cell"
         :class="`is-${cell.state}`"
