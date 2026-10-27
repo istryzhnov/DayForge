@@ -78,6 +78,7 @@ import { collectUpcoming } from '../../src/features/tasks/composables/useUpcomin
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove, type BoardColumn } from '../../src/features/board/composables/boardModel'
 import {
+  earnedPerHour,
   parseBillingDraft,
   projectFigures,
   sameBilling,
@@ -103,10 +104,12 @@ import {
 } from '../../src/features/analytics/composables/planVsActual'
 import { mergeProjectProgress } from '../../src/features/analytics/composables/projectProgress'
 import {
+  amountPerDayNeeded,
   elapsedWorkingDays,
   incomeGoalStatus,
   sanitizeMonthlyIncome,
   workingDaysInMonth,
+  workingDaysLeft,
 } from '../../src/features/analytics/composables/incomeGoal'
 import { buildRateLookup } from '../../src/composables/timer/rates'
 import { formatHoursMinutes } from '../../src/composables/timer/format'
@@ -2183,6 +2186,31 @@ function verifyProjectProgress() {
   )
 }
 
+function verifyMoneyTab() {
+  section('Money tab: the goal per remaining day and earnings per hour')
+
+  const HOUR = 60 * 60 * 1000
+
+  check(
+    'working days left count from today through month end',
+    workingDaysLeft(new Date(2026, 9, 27)) === 4 &&
+      workingDaysLeft(new Date(2026, 9, 30)) === 1 &&
+      workingDaysLeft(new Date(2026, 9, 31)) === 0,
+  )
+  check(
+    'the amount per remaining day is the gap spread over the days left',
+    amountPerDayNeeded(3000, 1240, 4) === 440,
+  )
+  check(
+    'no amount per day once the goal is met or no working day is left',
+    amountPerDayNeeded(1000, 1000, 5) === null && amountPerDayNeeded(1000, 500, 0) === null,
+  )
+  check(
+    'earned per hour is null without hours, and divides by tracked hours otherwise',
+    earnedPerHour(1200, 2 * HOUR) === 600 && earnedPerHour(100, 0) === null,
+  )
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -2203,6 +2231,7 @@ function main() {
   verifyTaskNotes()
   verifyHabitUnification()
   verifyProjectProgress()
+  verifyMoneyTab()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

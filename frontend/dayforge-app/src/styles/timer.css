@@ -593,30 +593,6 @@
   background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
 }
 
-.analytics__card--money {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-.analytics__card--action {
-  cursor: pointer;
-  border-style: dashed;
-  font: inherit;
-  color: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.analytics__card--action:hover,
-.analytics__card--action:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-}
-
-.analytics__card--action:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  outline-offset: 2px;
-}
-
 .analytics__card-label {
   font-size: 0.72rem;
   font-weight: 600;
@@ -638,13 +614,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.analytics__card--action .analytics__card-value {
-  font-size: calc(15px * var(--text-scale));
-  line-height: 1.33;
-  color: var(--accent);
-  white-space: normal;
 }
 
 .analytics__card-note {
@@ -671,6 +640,52 @@
   .analytics__card-value {
     font-size: calc(18px * var(--text-scale));
   }
+}
+
+/* Money tab stat cards: built on ui-card and ui-stat, two to a row. */
+.money-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.money-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.money-stat--action {
+  cursor: pointer;
+  border-style: dashed;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.money-stat--action:hover,
+.money-stat--action:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.money-stat--action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.money-stat--action .ui-stat__label {
+  font-size: calc(11px * var(--text-scale));
+}
+
+.money-stat__action {
+  font-size: calc(15px * var(--text-scale));
+  font-weight: 700;
+  color: var(--accent);
 }
 
 .analytics-table-wrap {

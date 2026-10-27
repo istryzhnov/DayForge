@@ -24,6 +24,7 @@ import {
   rateForTask,
 } from '../../../composables/timer/rates'
 import {
+  earnedPerHour,
   projectFigures,
   sanitizeBilling,
   type ProjectBilling,
@@ -220,24 +221,6 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
         maximumFractionDigits: 2,
       }),
   )
-
-  const rateNote = computed(() => {
-    const { byGoal, byTask } = rateLookup.value
-    const base =
-      defaultRate.value > 0
-        ? `${defaultRate.value} per hour by default`
-        : 'no default rate'
-
-    const overrides: string[] = []
-    if (byGoal.size > 0) overrides.push(`${byGoal.size} project`)
-    if (byTask.size > 0) overrides.push(`${byTask.size} task`)
-    if (overrides.length === 0) return base
-
-    const count = byGoal.size + byTask.size
-    return `${base} · ${overrides.join(' and ')} ${
-      count === 1 ? 'override' : 'overrides'
-    }`
-  })
 
   function projectKeyOf(project: ProjectTotal): string {
     return project.goalId ?? NO_PROJECT_KEY
@@ -533,7 +516,6 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     visibleTasks,
     showsMoney,
     defaultRate,
-    rateNote,
     copied,
     habits,
     daySeries,
@@ -550,6 +532,10 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     adjustedTotalMs,
     totalLabel: computed(() => formatHoursMinutes(adjustedTotalMs.value)),
     totalMoneyLabel: computed(() => moneyLabel(adjustedTotalEarned.value)),
+    /** Earned per tracked hour over the period, or null with no hours. */
+    averagePerHour: computed(() =>
+      earnedPerHour(adjustedTotalEarned.value, adjustedTotalMs.value),
+    ),
     durationLabel,
     hoursLabel,
     shareLabel,

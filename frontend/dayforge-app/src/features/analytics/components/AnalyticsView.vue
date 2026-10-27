@@ -8,6 +8,7 @@ import { useSettings } from '../../../composables/useSettings'
 import { useAuth } from '../../../composables/useAuth'
 import DayBarChart from './DayBarChart.vue'
 import ProjectProgressList from './ProjectProgressList.vue'
+import ProjectEarningsList from './ProjectEarningsList.vue'
 import ProjectRatesDialog from './ProjectRatesDialog.vue'
 import ProjectBillingDialog from './ProjectBillingDialog.vue'
 import HabitMonthSection from './HabitMonthSection.vue'
@@ -20,6 +21,7 @@ import {
 } from '../composables/useTimerAnalytics'
 import { usePlanVsActual } from '../composables/usePlanVsActual'
 import { mergeProjectProgress } from '../composables/projectProgress'
+import { sanitizeMonthlyIncome } from '../composables/incomeGoal'
 import { ANALYTICS_TAB, useAnalyticsTab } from '../composables/useAnalyticsTab'
 import type { ProjectBilling } from '../composables/projectBilling'
 import {
@@ -52,7 +54,6 @@ const {
   summary,
   visibleTasks,
   showsMoney,
-  rateNote,
   copied,
   habits,
   daySeries,
@@ -61,6 +62,7 @@ const {
   periodLabel,
   adjustedTotalMs,
   totalMoneyLabel,
+  averagePerHour,
   hoursLabel,
   shareLabel,
   percentLabel,
@@ -147,6 +149,14 @@ function formatMoney(value: number): string {
     maximumFractionDigits: 2,
   }).format(value)
 }
+
+const hasMonthlyGoal = computed(
+  () => sanitizeMonthlyIncome(settings.goals.monthlyIncome) !== undefined,
+)
+
+const averageLabel = computed(() =>
+  averagePerHour.value === null ? '—' : formatMoney(averagePerHour.value),
+)
 
 function handleSetStatus(
   clientId: ID,
@@ -344,48 +354,59 @@ function saveBilling(billing: ProjectBilling | undefined) {
       role="tabpanel"
       aria-labelledby="analytics-tab-money"
     >
-      <div class="analytics__cards">
-        <div v-if="showsMoney" class="analytics__card analytics__card--money">
-          <span class="analytics__card-label">Earned</span>
-          <strong class="analytics__card-value" :title="totalMoneyLabel">
+      <IncomeGoalCard :goals="goals" :templates="templates" />
+
+      <!-- Without a monthly goal, the card above has no total, so the period's earnings show here. -->
+      <div
+        v-if="showsMoney && !hasMonthlyGoal"
+        class="ui-card money-stat money-stat--total"
+      >
+        <div class="ui-stat ui-stat--large">
+          <span class="ui-stat__label">Earned</span>
+          <strong class="ui-stat__value" :title="totalMoneyLabel">
             {{ totalMoneyLabel }}
           </strong>
-          <span class="analytics__card-note">{{ rateNote }}</span>
-        </div>
-        <button
-          v-else
-          class="analytics__card analytics__card--action"
-          type="button"
-          @click="isRatesOpen = true"
-        >
-          <span class="analytics__card-label">Earned</span>
-          <strong class="analytics__card-value">Set an hourly rate</strong>
-          <span class="analytics__card-note">
-            Then every row shows what it earned
-          </span>
-        </button>
-        <div
-          v-if="hasClients"
-          class="analytics__card analytics__card--money"
-          data-testid="outstanding-card"
-        >
-          <span class="analytics__card-label">Outstanding</span>
-          <strong class="analytics__card-value" :title="formatMoney(outstanding.total)">
-            {{ formatMoney(outstanding.total) }}
-          </strong>
-          <span class="analytics__card-note">
-            {{ outstanding.count }} invoiced, unpaid
-            <template v-if="outstanding.overdueCount > 0">
-              · {{ outstanding.overdueCount }} overdue (30+ days)
-            </template>
-            <template v-if="outstanding.withoutAmountCount > 0">
-              · {{ outstanding.withoutAmountCount }} without an amount
-            </template>
-          </span>
         </div>
       </div>
 
-      <IncomeGoalCard :goals="goals" :templates="templates" />
+      <div class="money-stats">
+        <div v-if="showsMoney" class="ui-card money-stat">
+          <div class="ui-stat">
+            <span class="ui-stat__label">Avg / h</span>
+            <strong class="ui-stat__value">
+              {{ averageLabel }}
+            </strong>
+          </div>
+        </div>
+        <button
+          v-else
+          class="ui-card money-stat money-stat--action"
+          type="button"
+          @click="isRatesOpen = true"
+        >
+          <span class="ui-stat__label">Earned</span>
+          <span class="money-stat__action">Set an hourly rate</span>
+        </button>
+        <div
+          v-if="hasClients"
+          class="ui-card money-stat"
+          data-testid="outstanding-card"
+        >
+          <div class="ui-stat">
+            <span class="ui-stat__label">Unpaid · {{ outstanding.count }}</span>
+            <strong class="ui-stat__value" :title="formatMoney(outstanding.total)">
+              {{ formatMoney(outstanding.total) }}
+            </strong>
+          </div>
+        </div>
+      </div>
+
+      <ProjectEarningsList
+        v-if="showsMoney && projectRows.length"
+        :rows="projectRows"
+        :money="formatMoney"
+        @edit="editingGoalId = $event"
+      />
 
       <template v-if="hasClients && clientRows.length">
         <p class="sidebar-caption">By client</p>
