@@ -63,10 +63,8 @@ const {
   totalMoneyLabel,
   averagePerHour,
   hoursLabel,
-  shareLabel,
   projectRows,
   hasAdjustments,
-  taskMoneyLabel,
   barWidth,
   copyReport,
   clientFilter,
@@ -309,29 +307,21 @@ function saveBilling(billing: ProjectBilling | undefined) {
 
         <ProjectProgressList
           v-if="progressRows.length"
-          class="analytics__area--list"
+          class="ui-card analytics__area--list"
           :rows="progressRows"
         />
 
-        <div v-if="visibleTasks.length" class="analytics__area--tasks">
-          <p class="sidebar-caption">Top tasks</p>
+        <div v-if="visibleTasks.length" class="ui-card analytics__area--tasks">
+          <p class="ui-section-label">Top tasks</p>
           <div class="analytics__tasks">
             <div v-for="task in topTasks" :key="task.key" class="time-total">
               <div class="time-total__row">
                 <span class="time-total__title">{{ task.title }}</span>
-                <span class="time-total__value">
-                  {{ hoursLabel(task.totalMs) }}
-                  <em v-if="showsMoney">{{ taskMoneyLabel(task) }}</em>
-                  <em v-else>{{ shareLabel(task.totalMs) }}</em>
-                </span>
+                <span class="time-total__value">{{ hoursLabel(task.totalMs) }}</span>
               </div>
               <div class="time-total__bar">
                 <span :style="{ width: barWidth(task.totalMs) }"></span>
               </div>
-              <span class="time-total__sessions">
-                {{ task.sessionCount }}
-                {{ task.sessionCount === 1 ? 'session' : 'sessions' }}
-              </span>
             </div>
           </div>
 

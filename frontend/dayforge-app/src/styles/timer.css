@@ -961,6 +961,21 @@
   min-width: 0;
 }
 
+/* The project list and top tasks sit on cards, like the chart beside them. */
+.analytics__area--list {
+  padding: 6px;
+}
+
+.analytics__area--tasks {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.analytics__area--tasks .ui-section-label {
+  margin: 0;
+}
+
 @container analytics (min-width: 900px) {
   .analytics__split {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);

@@ -21,10 +21,18 @@ function toggle(key: string) {
   expanded.value = next
 }
 
-function signedHours(diffMs: number): string {
-  const magnitude = formatHoursMinutes(Math.abs(diffMs))
-  if (magnitude === formatHoursMinutes(0)) return magnitude
-  return `${diffMs > 0 ? '+' : '−'}${magnitude}`
+/** The plan gap in words read at a glance: time still to go, or time over. */
+function gapLabel(row: ProjectProgress): string {
+  return row.diffMs !== null && row.diffMs > 0 ? 'Over' : 'Left'
+}
+
+function gapValue(row: ProjectProgress): string {
+  return row.diffMs === null ? '—' : formatHoursMinutes(Math.abs(row.diffMs))
+}
+
+function donePercent(row: ProjectProgress): string {
+  if (!row.planned || row.plannedMs <= 0) return '—'
+  return `${Math.round((row.trackedMs / row.plannedMs) * 100)}%`
 }
 
 function fillStyle(row: ProjectProgress) {
@@ -74,12 +82,12 @@ function fillStyle(row: ProjectProgress) {
 
       <dl v-if="isOpen(row.key)" class="ui-row__detail project-progress__detail">
         <div>
-          <dt>Plan</dt>
-          <dd>{{ row.planned ? formatHoursMinutes(row.plannedMs) : '—' }}</dd>
+          <dt>Done</dt>
+          <dd>{{ donePercent(row) }}</dd>
         </div>
         <div>
-          <dt>Diff</dt>
-          <dd>{{ row.diffMs === null ? '—' : signedHours(row.diffMs) }}</dd>
+          <dt>{{ gapLabel(row) }}</dt>
+          <dd>{{ gapValue(row) }}</dd>
         </div>
         <div>
           <dt>Tasks</dt>
