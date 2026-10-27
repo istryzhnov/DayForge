@@ -11,6 +11,8 @@ interface ImportMetaEnv {
 
 declare module '*.vue' {
   import type { DefineComponent } from 'vue'
+  // The standard Vue shim: any component's props and emits are allowed here.
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type, @typescript-eslint/no-explicit-any
   const component: DefineComponent<{}, {}, any>
   export default component
 }

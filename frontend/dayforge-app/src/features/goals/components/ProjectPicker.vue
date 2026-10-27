@@ -153,9 +153,9 @@ onBeforeUnmount(() =>
           {{ row.heading }}
         </p>
         <div
+          :id="`${listId}-${row.index}`"
           class="project-picker__option"
           :class="{ 'is-active': row.index === activeIndex }"
-          :id="`${listId}-${row.index}`"
           role="option"
           :data-index="row.index"
           :aria-selected="row.option.value === modelValue"

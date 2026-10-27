@@ -321,7 +321,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
     <TimerWidget @open-timer="chooseView('timer')" />
     <div class="sidebar-actions">
-      <button @click="openNewGoalForm" class="btn btn-primary">New Project</button>
+      <button class="btn btn-primary" @click="openNewGoalForm">New Project</button>
       <NewGoalComponent
         v-if="showNewGoalForm"
         @submit="createGoal"

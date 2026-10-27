@@ -1012,6 +1012,8 @@ async function verifyTwoDevices() {
   const rowsNow = laptop.rows.value
   laptop.rows.value = [...rowsNow]
   rowsNow.forEach((row) => {
+    // A write of the same value on purpose: it must not count as a change.
+    // eslint-disable-next-line no-self-assign
     row.parentDailyTaskId = row.parentDailyTaskId
   })
   await settle()
