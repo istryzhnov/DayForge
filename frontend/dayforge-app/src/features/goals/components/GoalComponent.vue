@@ -143,7 +143,6 @@ const {
   submitTask,
   submitMinor,
   submitSubtask,
-  submitQuickAdd,
   toggleDone,
   editTask,
   editNotes,
@@ -253,7 +252,6 @@ const projectColor = computed(() =>
       @set-as-project="(templateId) => setAsProject(templateId)"
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
-      @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
     />
 
 

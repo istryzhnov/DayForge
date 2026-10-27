@@ -40,42 +40,10 @@
   height: 22px;
 }
 
-.task-quick-add {
-  display: grid;
-  gap: 10px;
-  border: 1px dashed var(--line-soft);
-  border-radius: calc(18px * var(--radius-scale));
-  padding: 18px;
-  background: var(--panel-layer);
-}
 
-.task-quick-add__hint {
-  margin: 0;
-  color: var(--muted);
-  font-size: calc(13px * var(--text-scale));
-  text-align: center;
-}
 
-.task-quick-add__row {
-  display: flex;
-  gap: 8px;
-}
 
-.task-quick-add__row input {
-  flex: 1 1 auto;
-  min-width: 0;
-  border: 1px solid var(--line);
-  border-radius: calc(11px * var(--radius-scale));
-  background: var(--panel-soft);
-  color: var(--text);
-  padding: 11px 12px;
-  font-family: inherit;
-  font-size: inherit;
-}
 
-.task-quick-add__row input:focus {
-  outline: 1px solid var(--accent);
-}
 
 .task-done {
   text-decoration: line-through;
@@ -1304,25 +1272,10 @@ body.is-dragging-task {
     padding: 22px 16px;
   }
 
-  .task-quick-add {
-    padding: 14px;
-    border-radius: calc(16px * var(--radius-scale));
-  }
 
   /* The field needs the width more than the button does. */
-  .task-quick-add__row {
-    flex-wrap: wrap;
-  }
 
-  .task-quick-add__row input {
-    flex: 1 1 100%;
-    /* iOS zooms the page when a focused field is under 16px. */
-    font-size: max(16px, calc(16px * var(--text-scale)));
-  }
 
-  .task-quick-add__row .btn {
-    flex: 1 1 auto;
-  }
 
   .task-context-menu {
     min-width: 200px;

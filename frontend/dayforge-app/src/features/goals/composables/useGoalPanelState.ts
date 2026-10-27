@@ -6,7 +6,6 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../../../entities/types'
-import { useSettings } from '../../../composables/useSettings'
 import { useTaskTree } from '../../../composables/useTaskTree'
 import { useTheme } from '../../../composables/useTheme'
 import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
@@ -221,18 +220,6 @@ export function useGoalPanelState(
     actions.onAddSubtask(parentTemplateId, title, priority, schedule)
   }
 
-  function submitQuickAdd(title: string, schedule?: TaskSchedule) {
-    if (props.isAllMode) {
-      actions.onCreateAllModeMinor(title, undefined, undefined, schedule)
-      return
-    }
-    actions.onAddTask(
-      title,
-      useSettings().settings.behavior.defaultPriority,
-      schedule,
-    )
-  }
-
   function toggleDone(dailyTaskId: ID) {
     actions.onToggleDone(dailyTaskId)
   }
@@ -265,7 +252,6 @@ export function useGoalPanelState(
     submitTask,
     submitMinor,
     submitSubtask,
-    submitQuickAdd,
     toggleDone,
     editTask,
     editNotes,

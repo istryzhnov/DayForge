@@ -92,7 +92,8 @@
 
 .ui-tab {
   flex: 1 1 0;
-  min-width: 0;
+  /* A tab label is never cut: a tab is at least as wide as its word. */
+  min-width: max-content;
   height: 40px;
   margin: 0;
   padding: 0 12px;
@@ -105,8 +106,6 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .ui-tab.is-active {
