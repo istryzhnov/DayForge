@@ -29,6 +29,7 @@ import {
   NO_CLIENT_FILTER_ID,
 } from '../composables/clientBilling'
 import { useClientPayments } from '../composables/useClientPayments'
+import { projectColors } from '../../../composables/theme/goalTheme'
 
 /** The export code is only fetched when someone opens the dialog. */
 const BillingExportDialog = defineAsyncComponent(
@@ -103,6 +104,7 @@ const progressRows = computed(() =>
       trackedMs: row.figures.ms,
     })),
     planResult.value.rows,
+    projectColors(props.goals),
   ),
 )
 

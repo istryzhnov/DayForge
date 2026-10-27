@@ -29,11 +29,13 @@ export interface ProjectProgress {
 /**
  * One row per project: every project listed above, plus any planned project
  * with no time yet, so a plan with nothing tracked still shows. Plan rows are
- * matched by key, the same key the project list uses.
+ * matched by key, the same key the project list uses. A planned-only row takes
+ * its project's colour from `colorByGoal`, as the listed rows already have it.
  */
 export function mergeProjectProgress(
   sources: ProgressSource[],
   plans: PlanVsActualRow[],
+  colorByGoal: Map<string, string> = new Map(),
 ): ProjectProgress[] {
   const planByKey = new Map(plans.map((plan) => [plan.key, plan]))
   const listedKeys = new Set(sources.map((source) => source.key))
@@ -51,6 +53,7 @@ export function mergeProjectProgress(
           key: plan.key,
           goalId: plan.goalId,
           title: plan.title,
+          color: plan.goalId ? colorByGoal.get(plan.goalId) : undefined,
           taskCount: 0,
           trackedMs: plan.actualMs,
         },
