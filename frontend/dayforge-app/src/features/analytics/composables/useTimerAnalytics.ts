@@ -4,7 +4,7 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { formatShortDuration } from '../../../composables/timer/format'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
 import {
   ANALYTICS_PERIOD,
@@ -56,6 +56,7 @@ export const PERIOD_OPTIONS: { id: AnalyticsPeriod; label: string }[] = [
 ]
 
 const HOUR_MS = 60 * 60 * 1000
+const MINUTE_MS = 60 * 1000
 
 export interface ProjectRow {
   /** Same key the earnings maps use: the goal id, or the no-project key. */
@@ -142,6 +143,11 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   )
 
   const summary = computed(() => summarize(inRange.value, goalTitleById.value))
+
+  /** Tasks shown in the list and charts; sub-minute ones are left out, the totals are not. */
+  const visibleTasks = computed(() =>
+    summary.value.byTask.filter((task) => task.totalMs >= MINUTE_MS),
+  )
 
   const defaultRate = computed(() => settings.timer.hourlyRate)
 
@@ -242,7 +248,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
    * project gets a row too, so a project worked on without the timer can
    * still be given its hours or fixed price.
    */
-  const projectRows = computed<ProjectRow[]>(() => {
+  const allProjectRows = computed<ProjectRow[]>(() => {
     const goals = sources.getGoals()
     const colors = projectColors(goals)
     const goalById = new Map(goals.map((goal) => [goal.id, goal]))
@@ -301,16 +307,26 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     )
   })
 
+  /**
+   * Listed rows: a deleted or unfiled row under a minute is hidden, its time
+   * still counts in the totals. Live projects stay so their figures can be set.
+   */
+  const projectRows = computed(() =>
+    allProjectRows.value.filter(
+      (row) => row.editable || row.figures.ms >= MINUTE_MS,
+    ),
+  )
+
   const adjustedTotalMs = computed(() =>
-    projectRows.value.reduce((sum, row) => sum + row.figures.ms, 0),
+    allProjectRows.value.reduce((sum, row) => sum + row.figures.ms, 0),
   )
 
   const adjustedTotalEarned = computed(() =>
-    projectRows.value.reduce((sum, row) => sum + row.figures.earned, 0),
+    allProjectRows.value.reduce((sum, row) => sum + row.figures.earned, 0),
   )
 
   const hasAdjustments = computed(() =>
-    projectRows.value.some(
+    allProjectRows.value.some(
       (row) => row.figures.fixedBasis !== null || row.figures.manualHours,
     ),
   )
@@ -332,11 +348,11 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   }
 
   function durationLabel(totalMs: number): string {
-    return formatShortDuration(totalMs)
+    return formatHoursMinutes(totalMs)
   }
 
   function hoursLabel(totalMs: number): string {
-    return `${(totalMs / HOUR_MS).toFixed(2)} h`
+    return formatHoursMinutes(totalMs)
   }
 
   function shareLabel(totalMs: number): string {
@@ -375,7 +391,9 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
   const projectShares = computed<ShareInput[]>(() => {
     const colors = projectColors(sources.getGoals())
-    return summary.value.byProject.map((project) => ({
+    return summary.value.byProject
+      .filter((project) => project.totalMs >= MINUTE_MS)
+      .map((project) => ({
       key: projectKeyOf(project),
       label: project.title,
       totalMs: project.totalMs,
@@ -516,6 +534,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   return {
     period,
     summary,
+    visibleTasks,
     showsMoney,
     defaultRate,
     rateNote,
@@ -532,8 +551,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     hasAdjustments,
     projectRows,
     projectShareLabel,
-    totalLabel: computed(() => formatShortDuration(adjustedTotalMs.value)),
-    totalHoursLabel: computed(() => hoursLabel(adjustedTotalMs.value)),
+    totalLabel: computed(() => formatHoursMinutes(adjustedTotalMs.value)),
     totalMoneyLabel: computed(() => moneyLabel(adjustedTotalEarned.value)),
     durationLabel,
     hoursLabel,

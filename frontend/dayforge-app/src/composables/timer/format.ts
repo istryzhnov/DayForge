@@ -29,6 +29,19 @@ export function formatShortDuration(ms: number): string {
   return `${hours}h ${minutes}m`
 }
 
+/** "12 h 30 m" for analytics hours. Under a minute reads "0 m"; minutes round to whole. */
+export function formatHoursMinutes(ms: number): string {
+  if (ms < MINUTE_MS) return '0 m'
+
+  const totalMinutes = Math.round(ms / MINUTE_MS)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours === 0) return `${minutes} m`
+  if (minutes === 0) return `${hours} h`
+  return `${hours} h ${minutes} m`
+}
+
 export function formatTimeLabel(
   isoDateTime: string,
   locale: string,

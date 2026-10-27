@@ -101,6 +101,7 @@ import {
   workingDaysInMonth,
 } from '../../src/features/analytics/composables/incomeGoal'
 import { buildRateLookup } from '../../src/composables/timer/rates'
+import { formatHoursMinutes } from '../../src/composables/timer/format'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
@@ -1347,9 +1348,11 @@ function verifyBudgetPlanIncome() {
     '2026-10-07',
   ).get('goal-a') === 7 * 90 * MIN)
 
-  check('this month plans the whole month', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-25', null), { from: '2026-10-01', to: '2026-10-31' }))
+  check('this month plans from the 1st up to today, not the month end', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-25', null), { from: '2026-10-01', to: '2026-10-25' }))
+  check('this month early on stops at today too', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-05', null), { from: '2026-10-01', to: '2026-10-05' }))
   check('last month plans the whole previous month', same(planBounds(ANALYTICS_PERIOD.LAST_MONTH, '2026-10-25', null), { from: '2026-09-01', to: '2026-09-30' }))
   check('this week runs Monday to Sunday', same(planBounds(ANALYTICS_PERIOD.THIS_WEEK, '2026-10-25', null), { from: '2026-10-19', to: '2026-10-25' }))
+  check('this week mid-week stops at today', same(planBounds(ANALYTICS_PERIOD.THIS_WEEK, '2026-10-21', null), { from: '2026-10-19', to: '2026-10-21' }))
   check('all time runs from the first day to today', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', '2026-08-03'), { from: '2026-08-03', to: '2026-10-25' }))
   check('all time with nothing recorded is today alone', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', null), { from: '2026-10-25', to: '2026-10-25' }))
 
@@ -1380,6 +1383,30 @@ function verifyBudgetPlanIncome() {
     'the overall line sums both and reads over plan',
     withUnplanned.total.plannedMs === 3300 * MIN && withUnplanned.total.actualMs === 3330 * MIN && withUnplanned.total.state === 'over',
   )
+
+  const tiny = planVsActual(
+    new Map([['goal-a', 3300 * MIN]]),
+    [
+      { goalId: 'goal-a', title: 'Work', totalMs: 3300 * MIN, taskCount: 2 },
+      { title: 'Without a project', totalMs: 30 * 1000, taskCount: 1 },
+    ],
+    [goalA],
+  )
+  check('a sub-minute project with no plan is not listed', !tiny.rows.some((row) => row.key === NO_PROJECT_KEY))
+  check('a sub-minute project still counts in the overall line', tiny.total.actualMs === 3300 * MIN + 30 * 1000)
+  const plannedTiny = planVsActual(
+    new Map([['goal-a', 60 * MIN]]),
+    [{ goalId: 'goal-a', title: 'Work', totalMs: 30 * 1000, taskCount: 1 }],
+    [goalA],
+  )
+  check('a sub-minute project that has a plan stays listed', plannedTiny.rows.some((row) => row.key === 'goal-a'))
+
+  check('formatHoursMinutes: nothing, or under a minute, reads 0 m', formatHoursMinutes(0) === '0 m' && formatHoursMinutes(59 * 1000) === '0 m')
+  check('formatHoursMinutes: under an hour shows minutes only', formatHoursMinutes(45 * MIN) === '45 m')
+  check('formatHoursMinutes: a whole hour drops the minutes', formatHoursMinutes(60 * MIN) === '1 h')
+  check('formatHoursMinutes: hours and minutes', formatHoursMinutes(12.5 * HOUR) === '12 h 30 m')
+  check('formatHoursMinutes: 89.99 minutes rounds to 1 h 30 m', formatHoursMinutes(89.99 * MIN) === '1 h 30 m')
+  check('formatHoursMinutes: 59.6 minutes carries into the hour', formatHoursMinutes(59.6 * MIN) === '1 h')
 
   check('working days in October 2026 are Monday to Friday', workingDaysInMonth(now) === 22)
   check('17 working days have passed by 25 October', elapsedWorkingDays(now) === 17)

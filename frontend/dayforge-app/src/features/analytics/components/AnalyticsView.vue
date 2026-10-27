@@ -48,6 +48,7 @@ const editingGoalId = ref<ID | null>(null)
 const {
   period,
   summary,
+  visibleTasks,
   showsMoney,
   rateNote,
   copied,
@@ -57,7 +58,6 @@ const {
   projectShares,
   periodLabel,
   totalLabel,
-  totalHoursLabel,
   totalMoneyLabel,
   durationLabel,
   hoursLabel,
@@ -214,9 +214,8 @@ function saveBilling(billing: ProjectBilling | undefined) {
         <strong class="analytics__card-value" :title="totalLabel">
           {{ totalLabel }}
         </strong>
-        <span class="analytics__card-note">
-          {{ totalHoursLabel }}
-          <template v-if="hasAdjustments">· includes adjustments</template>
+        <span v-if="hasAdjustments" class="analytics__card-note">
+          includes adjustments
         </span>
       </div>
       <div class="analytics__card">
@@ -272,14 +271,14 @@ function saveBilling(billing: ProjectBilling | undefined) {
     <IncomeGoalCard :goals="goals" :templates="templates" />
 
     <p
-      v-if="summary.byTask.length === 0 && projectRows.length === 0"
+      v-if="visibleTasks.length === 0 && projectRows.length === 0"
       class="timer-history__empty"
     >
       Nothing tracked in {{ periodLabel.toLowerCase() }} yet.
     </p>
 
     <template v-else>
-      <div v-if="summary.byTask.length" class="analytics__charts">
+      <div v-if="visibleTasks.length" class="analytics__charts">
         <DayBarChart
           :points="daySeries.points"
           :caption="seriesCaption"
@@ -404,10 +403,10 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :actual="summary.byProject"
       />
 
-      <template v-if="summary.byTask.length">
+      <template v-if="visibleTasks.length">
         <p class="sidebar-caption">By task</p>
         <div class="analytics__tasks">
-          <div v-for="task in summary.byTask" :key="task.key" class="time-total">
+          <div v-for="task in visibleTasks" :key="task.key" class="time-total">
             <div class="time-total__row">
               <span class="time-total__title">{{ task.title }}</span>
               <span class="time-total__value">

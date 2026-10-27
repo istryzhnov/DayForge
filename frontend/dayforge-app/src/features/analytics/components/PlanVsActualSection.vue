@@ -4,6 +4,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { AnalyticsPeriod, ProjectTotal } from '../../../composables/timer/analytics'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import {
@@ -51,16 +52,15 @@ const result = computed(() =>
   planVsActual(planned.value, props.actual, props.goals),
 )
 
-const HOUR_MS = 60 * 60 * 1000
-
 function hours(ms: number): string {
-  return `${(ms / HOUR_MS).toFixed(2)} h`
+  return formatHoursMinutes(ms)
 }
 
 /** Signed, so an overrun reads as "+" and a shortfall as "−". */
 function signedHours(ms: number): string {
-  if (Math.abs(ms) < 1000) return '0.00 h'
-  return `${ms > 0 ? '+' : '−'}${hours(Math.abs(ms))}`
+  const label = formatHoursMinutes(Math.abs(ms))
+  if (label === '0 m') return label
+  return `${ms > 0 ? '+' : '−'}${label}`
 }
 
 function percentLabel(percent: number | null): string {

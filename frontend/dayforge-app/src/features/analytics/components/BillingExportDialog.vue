@@ -6,10 +6,10 @@ import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import { NO_PROJECT_KEY } from '../../../composables/timer/analytics'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import {
   buildCsv,
   buildReportLines,
-  hoursOf,
   reportFileName,
   reportTotals,
 } from '../composables/billingExport'
@@ -94,7 +94,7 @@ const money = computed(
 const summaryLabel = computed(() => {
   const count = lines.value.length
   const entriesLabel = `${count} ${count === 1 ? 'entry' : 'entries'}`
-  return `${entriesLabel} · ${hoursOf(totals.value.ms)} h · ${money.value.format(roundMoney(totals.value.amount))}`
+  return `${entriesLabel} · ${formatHoursMinutes(totals.value.ms)} · ${money.value.format(roundMoney(totals.value.amount))}`
 })
 
 /** Saves a text file through a temporary link, the same way the backup does. */
