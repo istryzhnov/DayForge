@@ -200,6 +200,39 @@ function saveBilling(billing: ProjectBilling | undefined) {
       </button>
     </div>
 
+    <!-- The client filter narrows every tab, so it sits above them. -->
+    <div v-if="hasClients" class="ui-chips" role="group" aria-label="Client">
+      <button
+        class="ui-chip"
+        :class="{ 'is-active': clientFilter === ALL_CLIENTS_FILTER_ID }"
+        type="button"
+        :aria-pressed="clientFilter === ALL_CLIENTS_FILTER_ID"
+        @click="clientFilter = ALL_CLIENTS_FILTER_ID"
+      >
+        All clients
+      </button>
+      <button
+        v-for="choice in clientChoices"
+        :key="choice.id"
+        class="ui-chip"
+        :class="{ 'is-active': clientFilter === choice.id }"
+        type="button"
+        :aria-pressed="clientFilter === choice.id"
+        @click="clientFilter = choice.id"
+      >
+        {{ choice.label }}
+      </button>
+      <button
+        class="ui-chip"
+        :class="{ 'is-active': clientFilter === NO_CLIENT_FILTER_ID }"
+        type="button"
+        :aria-pressed="clientFilter === NO_CLIENT_FILTER_ID"
+        @click="clientFilter = NO_CLIENT_FILTER_ID"
+      >
+        No client
+      </button>
+    </div>
+
     <AnalyticsHero
       :tracked-ms="adjustedTotalMs"
       :planned-ms="planResult.total.plannedMs"
@@ -410,38 +443,6 @@ function saveBilling(billing: ProjectBilling | undefined) {
       </div>
 
       <IncomeGoalCard :goals="goals" :templates="templates" />
-
-      <div v-if="hasClients" class="ui-chips" role="group" aria-label="Client">
-        <button
-          class="ui-chip"
-          :class="{ 'is-active': clientFilter === ALL_CLIENTS_FILTER_ID }"
-          type="button"
-          :aria-pressed="clientFilter === ALL_CLIENTS_FILTER_ID"
-          @click="clientFilter = ALL_CLIENTS_FILTER_ID"
-        >
-          All clients
-        </button>
-        <button
-          v-for="choice in clientChoices"
-          :key="choice.id"
-          class="ui-chip"
-          :class="{ 'is-active': clientFilter === choice.id }"
-          type="button"
-          :aria-pressed="clientFilter === choice.id"
-          @click="clientFilter = choice.id"
-        >
-          {{ choice.label }}
-        </button>
-        <button
-          class="ui-chip"
-          :class="{ 'is-active': clientFilter === NO_CLIENT_FILTER_ID }"
-          type="button"
-          :aria-pressed="clientFilter === NO_CLIENT_FILTER_ID"
-          @click="clientFilter = NO_CLIENT_FILTER_ID"
-        >
-          No client
-        </button>
-      </div>
 
       <template v-if="hasClients && clientRows.length">
         <p class="sidebar-caption">By client</p>
