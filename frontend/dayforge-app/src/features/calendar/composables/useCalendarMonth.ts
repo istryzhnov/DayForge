@@ -15,7 +15,10 @@ import {
   type DayEvent,
 } from './useCalendarOccurrences'
 import { useSettings } from '../../../composables/useSettings'
-import { useFormat } from '../../../composables/useFormat'
+import {
+  formatCalendarMonthTitle,
+  formatCalendarWeekday,
+} from './calendarTitles'
 import { useCalendarFilter } from './useCalendarFilter'
 
 /** Six weeks always fit a month, so the grid never changes height. */
@@ -59,7 +62,6 @@ function loadLevelFor(
 
 export function useCalendarMonth(options: MonthOptions) {
   const { settings } = useSettings()
-  const { formatMonth, weekdayLabels } = useFormat()
   const { isGoalVisible } = useCalendarFilter()
 
   // Which month is on screen. Follows `currentDate` until the user pages away.
@@ -69,7 +71,17 @@ export function useCalendarMonth(options: MonthOptions) {
     () => monthAnchor.value ?? startOfMonthISODate(options.getCurrentDate()),
   )
 
-  const monthLabel = computed(() => formatMonth(anchor.value))
+  const monthLabel = computed(() => formatCalendarMonthTitle(anchor.value))
+
+  // Header names follow the week start setting, counted from a known Sunday.
+  const weekdayLabels = computed(() => {
+    const start = settings.calendar.weekStartsOn
+    return Array.from({ length: DAYS_PER_WEEK }, (_, index) =>
+      formatCalendarWeekday(
+        addDaysToISODate('2024-01-07', (start + index) % DAYS_PER_WEEK),
+      ),
+    )
+  })
 
   const days = computed<MonthDayCell[]>(() => {
     const templates = options.getTemplates()

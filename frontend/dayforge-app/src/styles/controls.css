@@ -253,13 +253,6 @@ input[type='checkbox']:disabled {
     min-height: 40px;
   }
 
-  .calendar-view__header > .btn,
-  .calendar-week__header > .btn,
-  .calendar-month__header > .btn {
-    min-width: 40px;
-    min-height: 40px;
-  }
-
   .sidebar-settings__trigger,
   .sidebar-notify-trigger,
   .sidebar-search-trigger,

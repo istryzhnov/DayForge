@@ -3,7 +3,7 @@ import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
-import { useFormat } from '../../../composables/useFormat'
+import { formatCalendarDayTitle } from './calendarTitles'
 import type { GesturePoint } from '../../../composables/usePressGesture'
 import {
   columnStyle,
@@ -51,7 +51,6 @@ export function useCalendarDayView(
   const gridRef = useTemplateRef<HTMLElement>('gridRef')
   const unscheduledRef = useTemplateRef<HTMLElement>('unscheduledRef')
   const isCoarsePointer = useIsCoarsePointer()
-  const { formatDate } = useFormat()
 
   /** Clicking a day in the week or month view opens it in the day view. */
   function openDay(date: ISODate) {
@@ -66,7 +65,7 @@ export function useCalendarDayView(
     return element.getBoundingClientRect().height
   }
 
-  const dateLabel = computed(() => formatDate(props.currentDate))
+  const dateLabel = computed(() => formatCalendarDayTitle(props.currentDate))
 
   const { isGoalVisible } = useCalendarFilter()
 

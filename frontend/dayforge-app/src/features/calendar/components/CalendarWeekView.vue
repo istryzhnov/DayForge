@@ -1,11 +1,6 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { ID, ISODate } from '../../../entities/types'
-import {
-  useCalendarWeek,
-  type PositionedEvent,
-} from '../composables/useCalendarWeek'
+import type { ISODate, ID } from '../../../entities/types'
+import type { PositionedEvent, useCalendarWeek } from '../composables/useCalendarWeek'
 import {
   columnStyle,
   gridHeightPx,
@@ -24,8 +19,8 @@ const WEEK_INSET_PX = 2
 const WEEK_ICON_MIN_HEIGHT_PX = 24
 
 const props = defineProps<{
-  templates: TaskTemplate[]
-  dailyTasks: DailyTask[]
+  /** Owned by the calendar toolbar, which drives the same week. */
+  week: ReturnType<typeof useCalendarWeek>
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
@@ -36,18 +31,7 @@ const emit = defineEmits<{
   (e: 'open-day', date: ISODate): void
 }>()
 
-const {
-  days,
-  weekLabel,
-  weekSummary,
-  goToPreviousWeek,
-  goToNextWeek,
-  goToThisWeek,
-} = useCalendarWeek({
-  getTemplates: () => props.templates,
-  getDailyTasks: () => props.dailyTasks,
-  getCurrentDate: () => props.currentDate,
-})
+const { days, weekSummary } = props.week
 
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
 
@@ -68,32 +52,7 @@ function eventStyle(event: PositionedEvent) {
 
 <template>
   <section class="calendar-week">
-    <header class="calendar-week__header">
-      <button
-        class="btn btn-ghost btn-icon"
-        type="button"
-        aria-label="Previous week"
-        @click="goToPreviousWeek"
-      >
-        <AppIcon name="chevron-left" :size="16" />
-      </button>
-      <div class="calendar-week__title">
-        <strong>{{ weekLabel }}</strong>
-        <button class="btn btn-ghost" type="button" @click="goToThisWeek">
-          Today
-        </button>
-      </div>
-      <button
-        class="btn btn-ghost btn-icon"
-        type="button"
-        aria-label="Next week"
-        @click="goToNextWeek"
-      >
-        <AppIcon name="chevron-right" :size="16" />
-      </button>
-    </header>
-
-    <p class="calendar-week__summary">
+    <p class="calendar-week__summary ui-oneline">
       {{ weekSummary.done }}/{{ weekSummary.total }} done ·
       {{ weekSummary.hours }}h scheduled
     </p>
