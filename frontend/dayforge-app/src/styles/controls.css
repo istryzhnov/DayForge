@@ -287,6 +287,10 @@ input[type='checkbox']:disabled {
     min-width: 36px;
     min-height: 36px;
   }
+
+  .nav-goal-btn {
+    min-height: 40px;
+  }
 }
 
 /* --- progressive disclosure ---------------------------------------------- */

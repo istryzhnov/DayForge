@@ -34,8 +34,6 @@
     border-radius: calc(12px * var(--radius-scale));
     background: none;
     color: var(--text);
-    font: inherit;
-    font-size: calc(18px * var(--text-scale));
     cursor: pointer;
   }
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import {
@@ -52,8 +53,13 @@ function hiddenCount(day: MonthDayCell) {
 <template>
   <section class="calendar-month">
     <header class="calendar-month__header">
-      <button class="btn btn-ghost" type="button" @click="goToPreviousMonth">
-        ‹
+      <button
+        class="btn btn-ghost btn-icon"
+        type="button"
+        aria-label="Previous month"
+        @click="goToPreviousMonth"
+      >
+        <AppIcon name="chevron-left" :size="16" />
       </button>
       <div class="calendar-month__title">
         <strong>{{ monthLabel }}</strong>
@@ -61,8 +67,13 @@ function hiddenCount(day: MonthDayCell) {
           Today
         </button>
       </div>
-      <button class="btn btn-ghost" type="button" @click="goToNextMonth">
-        ›
+      <button
+        class="btn btn-ghost btn-icon"
+        type="button"
+        aria-label="Next month"
+        @click="goToNextMonth"
+      >
+        <AppIcon name="chevron-right" :size="16" />
       </button>
     </header>
 

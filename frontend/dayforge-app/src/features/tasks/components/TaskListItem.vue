@@ -3,6 +3,7 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
+import AppIcon from '../../../components/AppIcon.vue'
 import TaskComposer from './TaskComposer.vue'
 import TaskInlineEditor from './TaskInlineEditor.vue'
 import TaskRateEditor from './TaskRateEditor.vue'
@@ -163,7 +164,12 @@ const {
         :aria-label="isDone ? 'Mark as not done' : 'Mark as done'"
         @click="onToggleDone(node.task.id)"
       >
-        <span v-if="isDone" class="task-dot-check__mark">✓</span>
+        <AppIcon
+          v-if="isDone"
+          class="task-dot-check__mark"
+          name="check"
+          :size="14"
+        />
         <ProjectIcon
           v-else-if="node.goalIcon"
           class="task-dot-check__icon"
@@ -203,7 +209,8 @@ const {
             class="task-repeat-chip"
             :title="`Completed ${node.completedCount} times`"
           >
-            ✓ {{ node.completedCount }}
+            <AppIcon name="check" :size="11" />
+            {{ node.completedCount }}
           </span>
         </div>
       </div>

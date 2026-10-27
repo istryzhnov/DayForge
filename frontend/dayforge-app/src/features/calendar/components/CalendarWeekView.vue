@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import {
@@ -68,8 +69,13 @@ function eventStyle(event: PositionedEvent) {
 <template>
   <section class="calendar-week">
     <header class="calendar-week__header">
-      <button class="btn btn-ghost" type="button" @click="goToPreviousWeek">
-        ‹
+      <button
+        class="btn btn-ghost btn-icon"
+        type="button"
+        aria-label="Previous week"
+        @click="goToPreviousWeek"
+      >
+        <AppIcon name="chevron-left" :size="16" />
       </button>
       <div class="calendar-week__title">
         <strong>{{ weekLabel }}</strong>
@@ -77,8 +83,13 @@ function eventStyle(event: PositionedEvent) {
           Today
         </button>
       </div>
-      <button class="btn btn-ghost" type="button" @click="goToNextWeek">
-        ›
+      <button
+        class="btn btn-ghost btn-icon"
+        type="button"
+        aria-label="Next week"
+        @click="goToNextWeek"
+      >
+        <AppIcon name="chevron-right" :size="16" />
       </button>
     </header>
 

@@ -2,6 +2,7 @@
 import type { ArchiveBlock } from '../composables/useArchive'
 import type { ISODate } from '../../../entities/types'
 import { useFormat } from '../../../composables/useFormat'
+import AppIcon from '../../../components/AppIcon.vue'
 
 defineProps<{
   blocks: ArchiveBlock[]
@@ -34,12 +35,17 @@ function dayLabel(date: ISODate) {
             }}</strong>
             <span class="goal-inline-chip">{{ block.goalTitle }}</span>
           </div>
-          <span class="task-repeat-chip">✓ {{ block.tasks.length }}</span>
+          <span class="task-repeat-chip">
+            <AppIcon name="check" :size="11" />
+            {{ block.tasks.length }}
+          </span>
         </header>
 
         <div class="archive-block__tasks">
           <div v-for="task in block.tasks" :key="task.id" class="archive-task">
-            <span class="archive-task__check">✓</span>
+            <span class="archive-task__check">
+              <AppIcon name="check" :size="12" />
+            </span>
             <span class="archive-task__title">{{ task.title }}</span>
             <span class="archive-task__when">
               {{ dayLabel(task.date)

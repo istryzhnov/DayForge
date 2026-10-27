@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from './AppIcon.vue'
 import { useUndoToast } from '../composables/useUndoToast'
 
 const { pending, runPendingAction, dismissUndo, undoWindowMs } = useUndoToast()
@@ -41,7 +42,7 @@ function timerStyle(durationMs: number) {
       aria-label="Dismiss"
       @click="dismissUndo"
     >
-      ×
+      <AppIcon name="close" :size="14" />
     </button>
     <span
       v-if="!pending.sticky"

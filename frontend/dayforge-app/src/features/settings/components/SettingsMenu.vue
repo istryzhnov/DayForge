@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
+import AppIcon from '../../../components/AppIcon.vue'
 import { useSettingsMenu } from '../composables/useSettingsMenu'
 import type { SettingsSection } from '../composables/useSettingsPanel'
 
@@ -33,14 +34,18 @@ const { groups } = useSettingsMenu(props)
         :disabled="row.disabled"
         @click="emit('open', row.id)"
       >
-        <span class="settings-menu__icon" aria-hidden="true">{{
-          row.icon
-        }}</span>
+        <span class="settings-menu__icon" aria-hidden="true">
+          <AppIcon :name="row.icon" :size="15" />
+        </span>
         <span class="settings-menu__text">
           <strong>{{ row.label }}</strong>
           <em>{{ row.summary }}</em>
         </span>
-        <span class="settings-menu__chevron" aria-hidden="true">›</span>
+        <AppIcon
+          class="settings-menu__chevron"
+          name="chevron-right"
+          :size="16"
+        />
       </button>
     </section>
   </div>

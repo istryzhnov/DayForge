@@ -6,6 +6,7 @@ import { usePressGesture } from '../../../composables/usePressGesture'
 import { useFormat } from '../../../composables/useFormat'
 import { useTimer } from '../../../composables/useTimer'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import AppIcon from '../../../components/AppIcon.vue'
 import {
   BOARD_COLUMNS,
   BOARD_COLUMN,
@@ -173,7 +174,8 @@ function onMoveChange(event: Event) {
           class="board-chip"
           :title="`${card.subtasksDone} of ${card.subtasksTotal} subtasks done`"
         >
-          ✓ {{ card.subtasksDone }}/{{ card.subtasksTotal }}
+          <AppIcon name="check" :size="11" />
+          {{ card.subtasksDone }}/{{ card.subtasksTotal }}
         </span>
       </span>
     </button>
@@ -207,7 +209,7 @@ function onMoveChange(event: Event) {
         @pointerdown.stop
         @click.stop="openMenuFromButton"
       >
-        ⋯
+        <AppIcon name="more-horizontal" :size="16" />
       </button>
 
       <label class="board-card__move">

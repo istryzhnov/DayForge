@@ -62,7 +62,6 @@ function onContextMenu(event: MouseEvent) {
     :class="{
       active: isActive,
       'is-lifted': isLifted,
-      'is-themed': !!themeVars,
       'is-archived': isArchived,
       'is-drop-candidate': isDropCandidate,
       'is-drop-hover': isDropHover,
@@ -74,7 +73,11 @@ function onContextMenu(event: MouseEvent) {
     @contextmenu.prevent="onContextMenu"
     @pointerdown="onPointerDown"
   >
-    <span>{{ goal.title }}</span>
+    <span class="nav-goal-btn__main">
+      <!-- Its colour comes from the row's own theme vars, or the app accent. -->
+      <span class="nav-goal-btn__dot" aria-hidden="true"></span>
+      <span class="nav-goal-btn__name">{{ goal.title }}</span>
+    </span>
     <span class="goal-count">{{ taskCount }}</span>
   </button>
 </template>

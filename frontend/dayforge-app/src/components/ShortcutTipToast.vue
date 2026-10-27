@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from './AppIcon.vue'
 import { computed } from 'vue'
 import { useShortcutTip } from '../composables/useShortcutTip'
 import { useSettings } from '../composables/useSettings'
@@ -23,7 +24,7 @@ const isOpen = computed(
       aria-label="Dismiss tip"
       @click="dismissTip"
     >
-      ×
+      <AppIcon name="close" :size="14" />
     </button>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppIcon from '../../../components/AppIcon.vue'
 import type { ActiveView } from '../../../pages/composables/useMainPageState'
 import ProfileAvatar from '../../profile/components/ProfileAvatar.vue'
 import { useProfile } from '../../profile/composables/useProfile'
@@ -48,7 +49,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       :aria-expanded="isNavOpen"
       @click="openNav"
     >
-      <span aria-hidden="true">☰</span>
+      <AppIcon name="menu" :size="20" />
     </button>
 
     <p class="mobile-topbar__title">{{ title }}</p>
@@ -95,7 +96,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
         title="Quick add task"
         @click="openQuickAdd"
       >
-        <span aria-hidden="true">+</span>
+        <AppIcon name="plus" :size="20" />
       </button>
 
       <button

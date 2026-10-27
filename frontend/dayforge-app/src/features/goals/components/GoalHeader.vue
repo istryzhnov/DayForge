@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
 import ProjectToolbar from './ProjectToolbar.vue'
 import ProjectBudgetChip from './ProjectBudgetChip.vue'
@@ -55,7 +56,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
         :aria-expanded="isProjectSettingsOpen"
         @click="toggleProjectSettings"
       >
-        <span aria-hidden="true">⚙</span>
+        <AppIcon name="settings" :size="14" />
         <span>Project settings</span>
       </button>
     </div>

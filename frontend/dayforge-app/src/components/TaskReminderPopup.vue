@@ -32,7 +32,7 @@ const { formatTime } = useFormat()
           class="btn btn-primary"
           @click="emit('acknowledge')"
         >
-          Okay ✅
+          Okay
         </button>
       </div>
     </div>

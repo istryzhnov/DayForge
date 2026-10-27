@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { computed } from 'vue'
 import type {
   DailyTask,
@@ -219,8 +220,13 @@ function iconFor(goalId: ID | undefined) {
 
     <template v-else>
       <header class="calendar-view__header">
-        <button class="btn btn-ghost" type="button" @click="emit('prev-day')">
-          ‹
+        <button
+          class="btn btn-ghost btn-icon"
+          type="button"
+          aria-label="Previous day"
+          @click="emit('prev-day')"
+        >
+          <AppIcon name="chevron-left" :size="16" />
         </button>
         <div class="calendar-view__date">
           <strong>{{ dateLabel }}</strong>
@@ -228,8 +234,13 @@ function iconFor(goalId: ID | undefined) {
             Today
           </button>
         </div>
-        <button class="btn btn-ghost" type="button" @click="emit('next-day')">
-          ›
+        <button
+          class="btn btn-ghost btn-icon"
+          type="button"
+          aria-label="Next day"
+          @click="emit('next-day')"
+        >
+          <AppIcon name="chevron-right" :size="16" />
         </button>
       </header>
 
