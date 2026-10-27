@@ -1,10 +1,13 @@
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import type { TimerMode } from '../../../entities/TimerEntity'
 import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimer } from '../../../composables/useTimer'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { formatShortDuration } from '../../../composables/timer/format'
+import {
+  formatDuration,
+  formatShortDuration,
+} from '../../../composables/timer/format'
 import {
   PHASE_LABELS,
   focusesUntilLongBreak,
@@ -20,10 +23,18 @@ export const MODE_OPTIONS: { id: TimerMode; label: string }[] = [
 
 export function useTimerView() {
   const timer = useTimer()
-  const { settings } = useSettings()
+  const { settings, update } = useSettings()
   const { todayTotalMs } = useTimeEntries()
 
-  const countdownMinutes = ref(settings.timer.defaultCountdownMinutes)
+  /**
+   * The countdown length picked on the timer itself. It is remembered as the
+   * default, so the next countdown starts from it without a trip to Settings.
+   */
+  const countdownMinutes = computed({
+    get: () => settings.timer.defaultCountdownMinutes,
+    set: (minutes: number) =>
+      update('timer', { defaultCountdownMinutes: minutes }),
+  })
 
   const mode = computed(() => timer.timer.value.mode)
 
@@ -87,6 +98,12 @@ export function useTimerView() {
     mode,
     selectMode,
     countdownMinutes,
+    /** An idle countdown shows the length it will start from, not 00:00. */
+    dialLabel: computed(() =>
+      timer.isIdle.value && mode.value === TIMER_MODE.COUNTDOWN
+        ? formatDuration(countdownMinutes.value * 60_000)
+        : timer.displayLabel.value,
+    ),
     hint,
     canStop: computed(() => timer.timer.value.status !== TIMER_STATUS.IDLE),
     canSkip: computed(

@@ -43,24 +43,28 @@ const emit = defineEmits<{
       {{ primaryLabel }}
     </button>
 
+    <!-- Large: the same size as the main button, outlined, so the pair reads
+         as one row of actions. -->
     <button
       v-if="canSkip"
-      :class="size === 'large' ? 'ui-chip' : 'btn btn-ghost'"
+      :class="size === 'large' ? 'timer-controls__secondary' : 'btn btn-ghost'"
       type="button"
       title="End this phase and move to the next"
       @click="emit('skip')"
     >
-      Skip
+      <AppIcon v-if="size === 'large'" name="chevron-right" :size="16" />
+      <span>Skip</span>
     </button>
 
     <button
       v-if="canStop"
-      :class="size === 'large' ? 'ui-chip' : 'btn btn-ghost'"
+      :class="size === 'large' ? 'timer-controls__secondary' : 'btn btn-ghost'"
       type="button"
       title="Stop and record what has been worked"
       @click="emit('stop')"
     >
-      Stop
+      <AppIcon v-if="size === 'large'" name="stop" :size="16" />
+      <span>Stop</span>
     </button>
   </div>
 </template>
