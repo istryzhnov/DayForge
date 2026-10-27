@@ -2,7 +2,11 @@ import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../composables/useTheme'
 import { GOAL_STATUS } from '../../../entities/constants'
-import { LOCALE_OPTIONS, useSettings } from '../../../composables/useSettings'
+import {
+  LOCALE_OPTIONS,
+  START_VIEW,
+  useSettings,
+} from '../../../composables/useSettings'
 import { FONT_LABELS } from '../../../composables/theme/tokens'
 import type { AppIconName } from '../../../components/appIconPaths'
 import {
@@ -99,11 +103,11 @@ export function useSettingsMenu(props: MenuProps) {
         calendar.weekStartsOn === 1 ? 'week from Mon' : 'week from Sun'
       }`,
       timer: `${timer.focusMinutes} / ${timer.shortBreakMinutes} min · long break every ${timer.longBreakEvery}`,
-      behavior: `Opens ${labelOf(
-        START_VIEW_OPTIONS,
-        behavior.startView,
-        'Projects',
-      )}${behavior.keyboardShortcuts ? '' : ' · no shortcuts'}`,
+      behavior: `Opens ${
+        behavior.startView === START_VIEW.GOALS && behavior.startGoalId
+          ? 'a project'
+          : labelOf(START_VIEW_OPTIONS, behavior.startView, 'All tasks')
+      }${behavior.keyboardShortcuts ? '' : ' · no shortcuts'}`,
       format: `${labelOf(LOCALE_OPTIONS, format.locale, 'Українська')} · ${labelOf(
         CLOCK_OPTIONS,
         format.clock,

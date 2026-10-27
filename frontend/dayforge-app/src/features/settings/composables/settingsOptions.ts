@@ -57,8 +57,10 @@ export const MOTION_OPTIONS: SettingOption<Motion>[] = [
 ]
 
 export const START_VIEW_OPTIONS: SettingOption<StartView>[] = [
-  { id: START_VIEW.GOALS, label: 'Projects' },
+  { id: START_VIEW.GOALS, label: 'All tasks' },
+  { id: START_VIEW.TIMER, label: 'Timer' },
   { id: START_VIEW.CALENDAR, label: 'Calendar' },
+  { id: START_VIEW.ANALYTICS, label: 'Analytics' },
   { id: START_VIEW.PLANNED, label: 'Planned' },
   { id: START_VIEW.ARCHIVE, label: 'What I did' },
 ]
