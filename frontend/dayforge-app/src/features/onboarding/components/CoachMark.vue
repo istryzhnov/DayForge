@@ -9,7 +9,7 @@ import {
   watch,
 } from 'vue'
 import AppIcon from '../../../components/AppIcon.vue'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { useMediaQuery } from '../../../composables/useMediaQuery'
 import {
   isOnScreen,
   isSamePosition,
@@ -33,8 +33,15 @@ const MARGIN = 12
 const NEXT_DELAY_MS = 400
 
 const { isVisible, dismiss, turnOff } = useTips()
-const isCoarsePointer = useIsCoarsePointer()
+/** Touch or a phone-width screen: the same cut the phone layout uses. */
+const isMobile = useMediaQuery('(pointer: coarse), (max-width: 720px)')
 const bubble = useTemplateRef<HTMLElement>('bubble')
+
+function fitsDevice(tip: Tip): boolean {
+  if (tip.only === 'desktop') return !isMobile.value
+  if (tip.only === 'mobile') return isMobile.value
+  return true
+}
 
 /** Sidebar tips sit beside the goals list, so they also show on the goals screen. */
 const candidates = computed(() =>
@@ -44,6 +51,7 @@ const candidates = computed(() =>
         (tip) =>
           (tip.view === props.view ||
             (tip.view === 'sidebar' && props.view === 'goals')) &&
+          fitsDevice(tip) &&
           isVisible(tip.id),
       ),
 )
@@ -190,7 +198,7 @@ function onKeydown(event: KeyboardEvent) {
 const bodyText = computed(() => {
   const tip = shown.value
   if (!tip) return ''
-  return isCoarsePointer.value && tip.touchBody ? tip.touchBody : tip.body
+  return isMobile.value && tip.touchBody ? tip.touchBody : tip.body
 })
 
 const arrowStyle = computed(() => {

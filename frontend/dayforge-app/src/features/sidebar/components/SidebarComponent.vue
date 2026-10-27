@@ -82,6 +82,10 @@ const {
   dropTargetId: reorderTargetId,
   dropAbove: reorderAbove,
   onPointerDown: onGoalPointerDown,
+  begin: beginGoalReorder,
+  move: moveGoalReorder,
+  drop: dropGoalReorder,
+  cancel: cancelGoalReorder,
 } = useGoalReorder(() => listedGoalIds.value, reorderGoals)
 
 /** The menu only offers a step the project can actually take. */
@@ -208,12 +212,12 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
           <path d="m20 20-3.5-3.5" />
         </svg>
       </button>
+      <!-- Always there: it also brings the tips back, not only the shortcuts. -->
       <button
-        v-if="keyboardShortcuts"
         class="sidebar-shortcuts-trigger"
         type="button"
-        aria-label="Keyboard shortcuts"
-        title="Keyboard shortcuts (?)"
+        aria-label="Help and keyboard shortcuts"
+        :title="keyboardShortcuts ? 'Help and shortcuts (?)' : 'Help'"
         @click="openShortcuts"
       >
         ?
@@ -252,6 +256,10 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @select="selectGoal(goal.id)"
       @context-menu="openGoalContextMenu"
       @pointerdown="onGoalPointerDown($event, goal.id)"
+      @reorder-start="beginGoalReorder(goal.id, $event, true)"
+      @reorder-move="moveGoalReorder"
+      @reorder-end="dropGoalReorder"
+      @reorder-cancel="cancelGoalReorder"
     />
 
     <template v-if="archivedGoals.length > 0">

@@ -39,6 +39,7 @@ import {
   verifyTimerHistoryLabels,
 } from './compat/timer'
 import { verifyCalendarTitles } from './compat/calendar'
+import { verifyGoalReorder } from './compat/reorder'
 import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
@@ -74,6 +75,7 @@ function main() {
   verifyPrimaryButtonContrast()
   verifyPresetReset()
   verifyPresetMemory()
+  verifyGoalReorder()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,
