@@ -26,7 +26,7 @@ const { groups: taskGroups } = useTaskPicker(() => props.taskOptions)
 
 const {
   timer,
-  displayLabel,
+  dialLabel,
   progress,
   statusLabel,
   todayTotalMs,
@@ -46,6 +46,12 @@ const {
 } = useTimerView()
 
 const newTaskTitle = ref('')
+
+/** Any whole number of minutes the settings accept; anything else is ignored. */
+function setCustomLength(event: Event) {
+  const minutes = Math.round(Number((event.target as HTMLInputElement).value))
+  if (minutes >= 1 && minutes <= 240) countdownMinutes.value = minutes
+}
 
 function saveAsTask() {
   const title = newTaskTitle.value.trim()
@@ -103,12 +109,49 @@ function closeEditor() {
       <TimerModePicker :mode="mode" @select="selectMode" />
 
       <TimerDisplay
-        :value="displayLabel"
+        :value="dialLabel"
         :caption="statusLabel"
         :progress="progress"
         :status="timer.status"
         variant="large"
       />
+
+      <!-- Countdown length, picked right under the dial before starting. -->
+      <div
+        v-if="mode === TIMER_MODE.COUNTDOWN && isIdle"
+        class="ui-chips timer-view__lengths"
+        role="group"
+        aria-label="Countdown length"
+      >
+        <button
+          v-for="minutes in COUNTDOWN_PRESETS"
+          :key="minutes"
+          class="ui-chip"
+          :class="{ 'is-active': countdownMinutes === minutes }"
+          type="button"
+          :aria-pressed="countdownMinutes === minutes"
+          @click="countdownMinutes = minutes"
+        >
+          {{ minutes }} m
+        </button>
+        <label class="ui-chip timer-view__custom">
+          <input
+            type="number"
+            min="1"
+            max="240"
+            inputmode="numeric"
+            aria-label="Custom length in minutes"
+            :value="
+              COUNTDOWN_PRESETS.includes(countdownMinutes)
+                ? ''
+                : countdownMinutes
+            "
+            placeholder="…"
+            @change="setCustomLength"
+          />
+          m
+        </label>
+      </div>
 
       <!-- Where this sitting's time is booked: an existing task, or a new one. -->
       <div class="timer-view__assign">
@@ -186,22 +229,6 @@ function closeEditor() {
         Today · {{ formatHoursMinutes(todayTotalMs) }}
       </p>
     </section>
-
-    <template v-if="mode === TIMER_MODE.COUNTDOWN && isIdle">
-      <p class="ui-section-label">Counts down from</p>
-      <div class="ui-chips">
-        <button
-          v-for="minutes in COUNTDOWN_PRESETS"
-          :key="minutes"
-          class="ui-chip"
-          :class="{ 'is-active': countdownMinutes === minutes }"
-          type="button"
-          @click="countdownMinutes = minutes"
-        >
-          {{ minutes }} min
-        </button>
-      </div>
-    </template>
 
     <header class="timer-view__history-head">
       <p class="ui-section-label">History</p>

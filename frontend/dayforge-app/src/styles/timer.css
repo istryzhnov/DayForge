@@ -351,9 +351,75 @@
   cursor: pointer;
 }
 
-.timer-controls__primary:focus-visible {
+/* Stop and Skip: the main button's size, outlined instead of filled. */
+.timer-controls__secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 120px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: calc(12px * var(--radius-scale));
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: calc(14px * var(--text-scale));
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.timer-controls__secondary:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: var(--panel-soft);
+}
+
+.timer-controls__primary:focus-visible,
+.timer-controls__secondary:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
   outline-offset: 2px;
+}
+
+.timer-view__lengths {
+  justify-content: center;
+}
+
+/* A chip holding a short number field for any other length. */
+.timer-view__custom {
+  gap: 4px;
+  padding: 0 12px;
+  cursor: text;
+}
+
+.timer-view__custom input {
+  width: 3ch;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: right;
+  outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.timer-view__custom input::-webkit-outer-spin-button,
+.timer-view__custom input::-webkit-inner-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+.timer-view__custom:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+}
+
+@media (max-width: 720px) {
+  /* iOS zooms the page when a focused field is under 16px. */
+  .timer-view__custom input {
+    font-size: 16px;
+  }
 }
 
 .timer-view__today {
