@@ -862,7 +862,10 @@ textarea {
 
 /* Roomier hit areas. Deliberately a short, hand-picked list of the controls
    that are actually fiddly on a phone rather than a blanket rule. */
-:root[data-targets='large'] .nav-goal-btn,
+:root[data-targets='large'] .nav-goal-btn {
+  height: 44px;
+}
+
 :root[data-targets='large'] .btn {
   padding-top: 14px;
   padding-bottom: 14px;

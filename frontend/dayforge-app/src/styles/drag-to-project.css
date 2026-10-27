@@ -1,21 +1,20 @@
 /* Dragging a task onto a sidebar project. The project buttons are the drop
    targets; see useTaskDrag.ts and taskDropTarget.ts. */
 
-/* Any project that would take the dragged task. */
+/* Any project that would take the dragged task: a soft dashed frame inside the
+   row, so neighbouring rows do not shift. */
 .nav-goal-btn.is-drop-candidate {
-  border-style: dashed;
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
   background: color-mix(in srgb, var(--accent) 7%, transparent);
+  outline: 1px dashed color-mix(in srgb, var(--accent) 50%, var(--line));
+  outline-offset: -1px;
 }
 
 /* The project under the pointer: the folder is open. */
 .nav-goal-btn.is-drop-hover {
-  border-style: solid;
-  border-color: var(--accent);
   background: color-mix(in srgb, var(--accent) 22%, var(--panel));
   outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  transform: scale(1.04);
+  outline-offset: -2px;
+  transform: scale(1.02);
 }
 
 /* Brief confirmation on the project that took the task. */

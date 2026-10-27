@@ -201,7 +201,10 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :title="shortcutTitle('All Projects', 'G then A')"
       @click="selectGoal(null)"
     >
-      <span>All Projects</span>
+      <span class="nav-goal-btn__main">
+        <AppIcon class="nav-goal-btn__glyph" name="grid" :size="14" />
+        <span class="nav-goal-btn__name">All Projects</span>
+      </span>
       <span class="goal-count">{{ totalTaskCount }}</span>
     </button>
 

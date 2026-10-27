@@ -112,29 +112,60 @@
   background: color-mix(in srgb, var(--accent) 18%, var(--panel));
 }
 
+/* One quiet line per project: a colour dot, the name, and a plain count. The
+   row is a fixed height so the list stays even whatever the names are. */
 .nav-goal-btn {
   width: 100%;
+  height: 38px;
+  box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid transparent;
+  gap: 10px;
+  border: 0;
   background: transparent;
   color: var(--text);
-  border-radius: calc(12px * var(--radius-scale));
-  padding: 13px 12px;
+  border-radius: calc(10px * var(--radius-scale));
+  padding: 0 10px;
+  font-weight: 500;
   cursor: pointer;
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.1s ease;
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 /* Icon and label travel together, so the count stays pinned to the right. */
 .nav-goal-btn__main {
-  display: inline-flex;
+  flex: 1 1 auto;
+  display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
+}
+
+.nav-goal-btn__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.nav-goal-btn__glyph {
+  flex: none;
+  color: var(--muted);
+}
+
+.nav-goal-btn__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-goal-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .nav-goal-btn__icon {
@@ -145,28 +176,22 @@
 }
 
 .nav-goal-btn:hover {
-  transform: translateY(-1px);
-  background: color-mix(in srgb, var(--panel-soft) 75%, transparent);
-  border-color: var(--line-soft);
+  background: var(--panel-soft);
 }
 
 .nav-goal-btn.active {
-  background: linear-gradient(90deg, var(--accent-soft), transparent 70%);
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel-soft));
+  color: var(--text);
 }
 
-/* A project with colours of its own wears them here too, so the list reads as
-   the same set of projects the panels do. An inset shadow rather than a border,
-   so a themed row still lines up with an unthemed one. */
-.nav-goal-btn.is-themed {
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 80%, transparent);
+.nav-goal-btn.active .nav-goal-btn__name {
+  font-weight: 700;
 }
 
 .goal-count {
-  padding: 2px 8px;
-  border-radius: 999px;
+  flex: none;
   font-size: calc(12px * var(--text-scale));
-  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
@@ -306,7 +331,7 @@
 
 /* Held long enough on touch to open the menu. */
 .nav-goal-btn.is-lifted {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--panel-soft));
 }
 
 .goal-panel-header h2 {
