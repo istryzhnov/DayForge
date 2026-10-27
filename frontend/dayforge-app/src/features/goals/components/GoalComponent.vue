@@ -197,8 +197,6 @@ const projectColor = computed(() =>
 
     <GoalComposerZone
       :is-all-mode="isAllMode"
-      :goals="goals"
-      :major-task-options="majorTaskOptions"
       @add-task="
         (title, priority, schedule) => submitTask(title, priority, schedule)
       "

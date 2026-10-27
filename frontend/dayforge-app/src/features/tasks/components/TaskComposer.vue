@@ -7,8 +7,9 @@ import { useTaskComposerState } from '../composables/useTaskComposerState'
 import TaskScheduleFields from './TaskScheduleFields.vue'
 
 const props = defineProps<{
-  isAllMode: boolean
   isSubtask?: boolean
+  /** Shows the N shortcut in the row; set where N quick-add is the way in. */
+  shortcut?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -31,7 +32,6 @@ const scheduleFields =
 const { title, submit, cancel } = useTaskComposerState(
   {
     isSubtask: Boolean(props.isSubtask),
-    isAllMode: props.isAllMode,
     readSchedule: () => scheduleFields.value?.buildSchedule(),
     canSubmitSchedule: () => scheduleFields.value?.isValid ?? true,
     onScheduleSubmitted: () => scheduleFields.value?.reset(),
@@ -45,11 +45,7 @@ const { title, submit, cancel } = useTaskComposerState(
 </script>
 
 <template>
-  <p v-if="isAllMode" class="goal-hint">
-    Select a specific goal in the sidebar to add a new top-level task.
-  </p>
-
-  <div v-else class="task-composer">
+  <div class="task-composer">
     <div class="ui-card task-composer__row">
       <AppIcon name="plus" :size="16" class="task-composer__plus" />
 
@@ -83,6 +79,13 @@ const { title, submit, cancel } = useTaskComposerState(
       >
         Cancel
       </button>
+      <kbd
+        v-if="shortcut"
+        class="kbd-badge task-composer__key"
+        title="Quick add from anywhere (N)"
+        aria-hidden="true"
+        >N</kbd
+      >
       <button type="button" class="task-composer__add" @click="submit">
         Add
       </button>

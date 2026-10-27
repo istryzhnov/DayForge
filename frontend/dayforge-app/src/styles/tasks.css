@@ -3,27 +3,41 @@
   gap: calc(12px * var(--density-scale));
 }
 
-/* A project that groups tasks is drawn as one container so the relationship is
-   structural rather than implied by indentation. */
+/* A project that groups tasks is one card: its header row on top, the tasks
+   inside as rows divided by hairlines. No nested cards or inner borders. */
 .task-project {
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  min-width: 0;
   border: 1px solid var(--line);
-  border-radius: calc(20px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 35%, transparent);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--panel);
 }
 
-.task-project .task-row--project {
-  border-color: transparent;
+.task-project > .task-row {
+  border: 0;
+  border-radius: 0;
   background: transparent;
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
 .task-project__children {
   display: grid;
-  gap: 8px;
+  min-width: 0;
+}
+
+/* Tasks inside a project line up under the header's title, a little smaller. */
+.task-project__children > .task-row {
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  padding-left: 38px;
+}
+
+.task-project__children .task-dot-check {
+  width: 22px;
+  height: 22px;
 }
 
 .task-quick-add {
@@ -68,21 +82,17 @@
   opacity: 0.58;
 }
 
+/* A task is a card: panel fill, hairline border, the ui-card radius. */
 .task-row {
   position: relative;
   border: 1px solid var(--line);
-  border-radius: calc(18px * var(--radius-scale));
-  padding-top: calc(12px * var(--density-scale));
-  padding-bottom: calc(12px * var(--density-scale));
-  padding-left: 15px;
-  background: var(--panel-layer);
+  border-radius: calc(14px * var(--radius-scale));
+  padding: 10px 10px 10px 14px;
+  background: var(--panel);
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.15s ease;
+  transition: border-color 0.2s ease;
 }
 
 /* A gradient sweeps across a task the moment it is created, so the user sees
@@ -139,8 +149,6 @@
 
 .task-row:hover {
   border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
 }
 
 /* --- the panel that opens under a task ----------------------------------- */
@@ -305,7 +313,51 @@ body.is-dragging-task {
 .task-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
+/* Muted line under the title: repeat icon, recurrence and time. */
+.task-when {
+  display: flex;
+  align-items: center;
   gap: 6px;
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+}
+
+/* Subtask progress: a check and a count, no pill. */
+.task-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Project name in All Tasks: a colour dot and the name, no pill. */
+.task-project-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+}
+
+.task-project-name__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-soft);
 }
 
 .dot {
@@ -419,20 +471,10 @@ body.is-dragging-task {
   padding: 4px 8px;
 }
 
+/* The round + on a row is a ui-icon-btn; this only adds the row spacing and the turn. */
 .task-add-btn {
-  width: 35px;
-  height: 35px;
   margin-right: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel-soft) 74%, transparent);
-  color: var(--muted);
-  padding: 0;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
   transition:
-    background 0.15s ease,
     border-color 0.15s ease,
     color 0.15s ease,
     transform 0.12s ease;
@@ -605,23 +647,6 @@ body.is-dragging-task {
   background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
 }
 
-.composer-assign {
-  display: grid;
-  gap: 10px;
-}
-
-.composer-assign__field {
-  display: grid;
-  gap: 4px;
-}
-
-.composer-assign__label {
-  font-size: calc(11px * var(--text-scale));
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
 .task-schedule__fields {
   display: grid;
   gap: 10px;
@@ -702,32 +727,6 @@ body.is-dragging-task {
   margin: 0;
   font-size: calc(12px * var(--text-scale));
   color: var(--danger);
-}
-
-.composer-toggle-btn {
-  justify-self: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.composer-toggle-btn__key {
-  display: none;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .composer-toggle-btn__key {
-    display: inline-block;
-  }
-}
-
-.composer-collapsible {
-  display: grid;
-  gap: 8px;
-}
-
-.composer-collapsible__close {
-  justify-self: start;
 }
 
 .task-priority-chip {
@@ -1137,22 +1136,6 @@ body.is-dragging-task {
   white-space: nowrap;
 }
 
-.goal-inline-chip {
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
-  color: var(--muted);
-  border-radius: 999px;
-  font-size: calc(11px * var(--text-scale));
-  padding: 3px 9px;
-}
-
-.goal-inline-chip--project {
-  border-color: color-mix(in srgb, var(--project-color) 40%, transparent);
-  background: color-mix(in srgb, var(--project-color) 14%, transparent);
-  color: color-mix(in srgb, var(--project-color) 40%, var(--text));
-  font-weight: 600;
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -1253,11 +1236,6 @@ body.is-dragging-task {
     padding: 22px 16px;
   }
 
-  .task-project {
-    padding: 8px;
-    border-radius: calc(18px * var(--radius-scale));
-  }
-
   .task-quick-add {
     padding: 14px;
     border-radius: calc(16px * var(--radius-scale));
@@ -1299,11 +1277,6 @@ body.is-dragging-task {
   .composer-section__body {
     padding: 10px;
     border-radius: calc(14px * var(--radius-scale));
-  }
-
-  .composer-assign__field select {
-    /* iOS zooms the page when a focused field is under 16px. */
-    font-size: max(16px, calc(16px * var(--text-scale)));
   }
 
   /* Date and time sit side by side; the end time wraps to its own line rather
@@ -1794,17 +1767,16 @@ body.is-dragging-task {
   }
 }
 
-/* In the All view a project's colour runs down the left edge of its rows. */
-.task-row.is-project-tinted {
-  box-shadow: inset 3px 0 0 var(--project-color);
+.goal-inline-chip {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
+  color: var(--muted);
+  border-radius: 999px;
+  font-size: calc(11px * var(--text-scale));
+  padding: 3px 9px;
 }
 
-.task-row.is-project-tinted:hover {
-  box-shadow:
-    inset 3px 0 0 var(--project-color),
-    var(--shadow-sm);
-}
-
+/* In the All view a project's colour tints the row's check icon only. */
 .task-row.is-project-tinted .task-dot-check__icon {
   color: var(--project-color);
 }

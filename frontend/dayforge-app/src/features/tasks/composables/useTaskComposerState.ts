@@ -10,7 +10,6 @@ type TaskComposerActions = {
 
 type TaskComposerOptions = {
   isSubtask: boolean
-  isAllMode: boolean
   /** Supplies the optional schedule payload; absent when the composer has no schedule UI. */
   readSchedule?: () => TaskSchedule | undefined
   /** Blocks submission while the schedule block is filled in incorrectly. */
@@ -29,8 +28,6 @@ export function useTaskComposerState(
   )
 
   function submit() {
-    if (options.isAllMode) return
-
     const trimmedTitle = title.value.trim()
     if (!trimmedTitle) return
     if (options.canSubmitSchedule && !options.canSubmitSchedule()) return

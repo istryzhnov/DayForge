@@ -4,6 +4,11 @@ import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import AppIcon from '../../../components/AppIcon.vue'
+import { useFormat } from '../../../composables/useFormat'
+import {
+  describeRecurrence,
+  isRepeating,
+} from '../../../composables/goalSpace/recurrence'
 import TaskComposer from './TaskComposer.vue'
 import TaskInlineEditor from './TaskInlineEditor.vue'
 import TaskRateEditor from './TaskRateEditor.vue'
@@ -60,6 +65,30 @@ function onRowPointerDown(event: PointerEvent) {
 }
 
 const timer = useTimer()
+const { formatTime } = useFormat()
+
+/** "Every 2 days", the same wording the Upcoming list uses. */
+const repeatLabel = computed(() => {
+  const template = props.node.template
+  return template?.recurrence && isRepeating(template)
+    ? describeRecurrence(template.recurrence)
+    : undefined
+})
+
+const timeLabel = computed(() => {
+  const start = props.node.task.startTime ?? props.node.template?.startTime
+  if (!start) return ''
+  const end = props.node.task.endTime ?? props.node.template?.endTime
+  return end
+    ? `${formatTime(start)} – ${formatTime(end)}`
+    : formatTime(start)
+})
+
+/** Repeat and time on one muted line under the title. */
+const whenLine = computed(() =>
+  [repeatLabel.value, timeLabel.value].filter(Boolean).join(' · '),
+)
+
 const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
   'notesButton',
 )
@@ -182,17 +211,26 @@ const {
           {{ node.task.title }}
         </span>
 
+        <p v-if="whenLine" class="task-when ui-oneline">
+          <AppIcon v-if="repeatLabel" name="repeat" :size="11" />
+          {{ whenLine }}
+        </p>
+
         <div class="task-meta">
-          <span
-            v-if="isAllMode"
-            class="goal-inline-chip"
-            :class="{ 'goal-inline-chip--project': node.goalColor }"
-          >
+          <span v-if="isAllMode" class="task-project-name ui-oneline">
+            <span
+              class="task-project-name__dot"
+              :style="
+                node.goalColor ? { background: node.goalColor } : undefined
+              "
+              aria-hidden="true"
+            />
             {{ node.goalTitle }}
           </span>
 
-          <span v-if="isProjectHeader" class="task-priority-chip">
-            {{ doneCount }} / {{ totalCount }} done
+          <span v-if="isProjectHeader" class="task-progress">
+            <AppIcon name="check" :size="11" />
+            {{ doneCount }}/{{ totalCount }}
           </span>
 
           <span
@@ -236,7 +274,7 @@ const {
       <!-- Nested tasks can't own children, so the affordance would be a dead end. -->
       <button
         v-if="!isNested"
-        class="task-add-btn"
+        class="ui-icon-btn ui-icon-btn--outlined task-add-btn"
         type="button"
         aria-label="Add task to this"
         title="Add task to this"
@@ -306,7 +344,6 @@ const {
   <TaskComposer
     v-if="isActiveParent"
     :is-subtask="true"
-    :is-all-mode="false"
     @submit="
       (title: string, priority: Priority, schedule?: TaskSchedule) =>
         onSubmitSubtask(node.task.templateId, title, priority, schedule)

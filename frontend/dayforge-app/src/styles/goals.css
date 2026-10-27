@@ -381,53 +381,9 @@
   font-size: calc(11px * var(--text-scale));
 }
 
-.goal-hint {
-  margin: 0;
-  color: var(--muted);
-  border-left: 3px solid var(--accent);
-  padding: 10px 12px;
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-  border-radius: calc(12px * var(--radius-scale));
-}
-
-.goal-form-card {
-  border: 1px solid var(--line);
-  border-radius: calc(18px * var(--radius-scale));
-  padding: 14px;
-  background: var(--panel-layer);
-  box-shadow: var(--shadow-sm);
-  display: grid;
-  grid-template-columns: 1fr 130px;
-  gap: 10px;
-}
-
-.goal-form-sub {
-  grid-template-columns: 1fr 130px 110px;
-}
-
-.goal-form-card input,
-.goal-form-card select {
-  width: 100%;
-  border: 1px solid var(--line);
-  border-radius: calc(11px * var(--radius-scale));
-  background: var(--panel-soft);
-  color: var(--text);
-  padding: 12px 12px;
-}
-
-.goal-form-card input:focus,
-.goal-form-card select:focus {
-  outline: 1px solid var(--accent);
-}
-
 @media (max-width: 960px) {
   .goal-panel-header h2 {
     font-size: calc(28px * var(--text-scale));
-  }
-
-  .goal-form-card,
-  .goal-form-sub {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -465,25 +421,6 @@
     align-self: flex-start;
   }
 
-  .goal-form-card {
-    border-radius: calc(16px * var(--radius-scale));
-    padding: 12px;
-  }
-
-  .goal-form-card input,
-  .goal-form-card select {
-    padding: 12px;
-    border-radius: calc(12px * var(--radius-scale));
-    /* iOS zooms the page when a focused field is under 16px. */
-    font-size: max(16px, calc(16px * var(--text-scale)));
-  }
-
-  .composer-toggle-btn,
-  .composer-collapsible__close {
-    justify-self: stretch;
-    width: 100%;
-  }
-
   .goal-settings__item {
     padding: 11px 8px;
     font-size: calc(14px * var(--text-scale));
@@ -494,26 +431,6 @@
     max-width: calc(100vw - 16px);
   }
 }
-.all-mode-composer {
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.composer-mode-switch {
-  display: flex;
-  gap: 8px;
-}
-
-.composer-mode-switch .btn.active {
-  border-color: var(--accent);
-  color: var(--text);
-}
-
-.composer-fields {
-  display: grid;
-  gap: 10px;
-}
-
 /* Project header toolbar: List / Board tabs, then the round Notes button. */
 .project-toolbar {
   display: flex;
