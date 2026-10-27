@@ -40,11 +40,6 @@
   height: 22px;
 }
 
-
-
-
-
-
 .task-done {
   text-decoration: line-through;
   opacity: 0.58;
@@ -1212,7 +1207,8 @@ body.is-dragging-task {
   top: auto !important;
   bottom: 0;
   width: 100%;
-  border-radius: calc(16px * var(--radius-scale)) calc(16px * var(--radius-scale)) 0 0;
+  border-radius: calc(16px * var(--radius-scale))
+    calc(16px * var(--radius-scale)) 0 0;
   padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
 }
 
@@ -1334,10 +1330,7 @@ body.is-dragging-task {
     padding: 22px 16px;
   }
 
-
   /* The field needs the width more than the button does. */
-
-
 
   .task-context-menu {
     min-width: 200px;

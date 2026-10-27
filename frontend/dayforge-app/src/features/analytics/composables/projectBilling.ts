@@ -135,7 +135,9 @@ export function parseBillingDraft(draft: BillingDraft): BillingParseResult {
   }
 }
 
-export function draftFromBilling(billing: ProjectBilling | undefined): BillingDraft {
+export function draftFromBilling(
+  billing: ProjectBilling | undefined,
+): BillingDraft {
   return {
     fixedPrice:
       billing?.fixedPrice !== undefined ? String(billing.fixedPrice) : '',

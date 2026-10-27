@@ -1,4 +1,3 @@
-
 import { darken, lighten, mix, readableTextOn, withAlpha } from './color'
 
 export type ThemeMode = 'light' | 'dark'

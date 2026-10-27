@@ -43,12 +43,7 @@ import type { ProjectBudget } from '../../features/analytics/composables/project
 import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
 
 export type ActiveView =
-  | 'goals'
-  | 'calendar'
-  | 'planned'
-  | 'archive'
-  | 'timer'
-  | 'analytics'
+  'goals' | 'calendar' | 'planned' | 'archive' | 'timer' | 'analytics'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 

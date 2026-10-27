@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
-    "verify:sync": "tsc -p tsconfig.verify.json && node -e \"require('node:fs').writeFileSync('.verify-out/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && node .verify-out/frontend/dayforge-app/tests/sync/verify.js && node .verify-out/frontend/dayforge-app/tests/sync/compat.js"
+    "verify:sync": "tsc -p tsconfig.verify.json && node -e \"require('node:fs').writeFileSync('.verify-out/package.json','{\\\"type\\\":\\\"commonjs\\\"}')\" && node .verify-out/frontend/dayforge-app/tests/sync/verify.js && node .verify-out/frontend/dayforge-app/tests/sync/compat.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"src/**/*.{ts,vue,css}\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,css}\" \"tests/**/*.ts\""
   },
   "dependencies": {
     "@sentry/vue": "11.4.0",
@@ -15,11 +19,19 @@
     "vue": "3.5.43"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^24.12.3",
     "@vitejs/plugin-vue": "^6.0.6",
     "@vue/tsconfig": "^0.9.1",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.12.0",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10",
     "typescript": "5.9.3",
+    "typescript-eslint": "^8.72.1",
     "vite": "^8.0.12",
+    "vue-eslint-parser": "^10.4.1",
     "vue-tsc": "^3.2.8"
   },
   "optionalDependencies": {

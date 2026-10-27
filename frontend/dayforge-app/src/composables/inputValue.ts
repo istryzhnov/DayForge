@@ -1,4 +1,3 @@
-
 export function rangeValue(event: Event): number {
   return Number((event.target as HTMLInputElement).value)
 }

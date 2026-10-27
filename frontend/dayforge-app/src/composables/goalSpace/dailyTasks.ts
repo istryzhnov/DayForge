@@ -138,7 +138,10 @@ export function carryOpenTasksForward(
     // Only an actual reopening is stamped. Re-stamping a row that was already
     // open would read as an edit to sync, and a status stamp dated now is the
     // one thing that can push another device's tick aside.
-    if (parent.status !== TASK_STATUS.DONE && parent.completedAt === undefined) {
+    if (
+      parent.status !== TASK_STATUS.DONE &&
+      parent.completedAt === undefined
+    ) {
       return
     }
 

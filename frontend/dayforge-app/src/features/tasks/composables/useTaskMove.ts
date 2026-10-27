@@ -1,5 +1,8 @@
 import { computed, ref } from 'vue'
-import type { MajorTaskOption, TaskTemplate } from '../../../entities/TaskEntity'
+import type {
+  MajorTaskOption,
+  TaskTemplate,
+} from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { PRIORITY } from '../../../entities/constants'
 

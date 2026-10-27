@@ -141,8 +141,7 @@ export function useTaskDrag(actions: DragActions) {
 
   /** Touch only: a finger parked on the left edge opens the drawer for a drop. */
   function watchLeftEdge(point: GesturePoint) {
-    const eligible =
-      isCoarse.value && isNarrow.value && !!candidate?.canMove
+    const eligible = isCoarse.value && isNarrow.value && !!candidate?.canMove
     if (!eligible || point.x > EDGE_ZONE_PX) {
       clearEdgeTimer()
       return

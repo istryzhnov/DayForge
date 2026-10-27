@@ -5,7 +5,11 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import { PRIORITY, TASK_STATUS, type BoardStage } from '../../../entities/constants'
+import {
+  PRIORITY,
+  TASK_STATUS,
+  type BoardStage,
+} from '../../../entities/constants'
 import type { ID, ISODate, Priority } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import type { TaskNode } from '../../../composables/useTaskTree'
@@ -48,7 +52,9 @@ const { settings } = useSettings()
 
 const today = getTodayISODate()
 
-const cards = computed(() => buildBoardCards(props.rows, props.templates, today))
+const cards = computed(() =>
+  buildBoardCards(props.rows, props.templates, today),
+)
 
 const allCards = computed<BoardCardModel[]>(() => [
   ...cards.value.todo,
@@ -135,7 +141,10 @@ function rowForEditing(card: BoardCardModel): DailyTask {
 
 const editingNode = computed<TaskNode | null>(() => {
   if (!editing.value) return null
-  return { task: rowForEditing(editing.value), template: editing.value.template }
+  return {
+    task: rowForEditing(editing.value),
+    template: editing.value.template,
+  }
 })
 
 function saveEdits(title: string, schedule: TaskSchedule | null) {
@@ -171,7 +180,6 @@ function submitAdd() {
   // Stays open, so several tasks can be typed in a row.
   draft.value = ''
 }
-
 </script>
 
 <template>
@@ -189,7 +197,9 @@ function submitAdd() {
       >
         <header class="board-column__head">
           <h3 :id="`board-column-${column.key}`">{{ column.title }}</h3>
-          <span class="board-column__count">{{ cards[column.key].length }}</span>
+          <span class="board-column__count">{{
+            cards[column.key].length
+          }}</span>
           <button
             v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
             type="button"
@@ -209,7 +219,9 @@ function submitAdd() {
               :is-dragging="drag.draggingId.value === card.id"
               @open="openCard(card)"
               @move="(target) => moveCard(card.id, target)"
-              @save-notes="(notes) => emit('edit-notes', card.templateId, notes)"
+              @save-notes="
+                (notes) => emit('edit-notes', card.templateId, notes)
+              "
             />
           </li>
         </ul>

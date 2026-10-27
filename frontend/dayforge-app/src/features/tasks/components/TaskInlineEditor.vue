@@ -11,10 +11,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (
-    e: 'save',
-    payload: { title: string; schedule: TaskSchedule | null },
-  ): void
+  (e: 'save', payload: { title: string; schedule: TaskSchedule | null }): void
   (e: 'close'): void
 }>()
 

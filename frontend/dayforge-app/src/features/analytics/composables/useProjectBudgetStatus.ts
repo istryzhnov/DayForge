@@ -23,11 +23,7 @@ export function useProjectBudgetStatus(
     return budgetStandingOf(goal, {
       allEntries: entries.value,
       goals,
-      lookup: buildRateLookup(
-        getTemplates(),
-        goals,
-        settings.timer.hourlyRate,
-      ),
+      lookup: buildRateLookup(getTemplates(), goals, settings.timer.hourlyRate),
       now: new Date(),
     })
   })

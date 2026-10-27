@@ -25,7 +25,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /** A deleted row has no business coming back out of a backup, nor does junk. */
-function withoutDeleted<T extends { deletedAt?: string }>(rows: unknown[]): T[] {
+function withoutDeleted<T extends { deletedAt?: string }>(
+  rows: unknown[],
+): T[] {
   return rows.filter(
     (row): row is T =>
       isRecord(row) &&

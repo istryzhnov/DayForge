@@ -1,5 +1,8 @@
 import type { ISODate } from '../../../entities/types'
-import { addDaysToISODate, parseISODate } from '../../../composables/goalSpace/date'
+import {
+  addDaysToISODate,
+  parseISODate,
+} from '../../../composables/goalSpace/date'
 import {
   capitalizeFirst,
   dateNameLocale,

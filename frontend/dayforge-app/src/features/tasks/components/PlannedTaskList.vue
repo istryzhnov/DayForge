@@ -77,8 +77,8 @@ function whenLine(task: PlannedTask): string {
     </header>
 
     <p v-if="showHint" class="day-list__hint">
-      Dated tasks from every project, earliest first. A finished task stays
-      here only on its own day.
+      Dated tasks from every project, earliest first. A finished task stays here
+      only on its own day.
     </p>
 
     <div v-if="tasks.length" class="day-list">
@@ -89,7 +89,8 @@ function whenLine(task: PlannedTask): string {
             }}<template v-if="day.items[0].isToday"> · Today</template>
           </span>
           <span class="day-group__count">
-            {{ day.items.length }} {{ day.items.length === 1 ? 'task' : 'tasks' }}
+            {{ day.items.length }}
+            {{ day.items.length === 1 ? 'task' : 'tasks' }}
           </span>
         </header>
 
@@ -137,7 +138,9 @@ function whenLine(task: PlannedTask): string {
                   <span
                     class="task-project-name__dot"
                     :style="
-                      task.goalColor ? { background: task.goalColor } : undefined
+                      task.goalColor
+                        ? { background: task.goalColor }
+                        : undefined
                     "
                     aria-hidden="true"
                   />

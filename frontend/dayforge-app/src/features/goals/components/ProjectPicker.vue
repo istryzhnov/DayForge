@@ -136,7 +136,9 @@ onBeforeUnmount(() =>
         :style="selected?.color ? { background: selected.color } : undefined"
         aria-hidden="true"
       />
-      <span class="ui-oneline project-picker__value">{{ selected?.label }}</span>
+      <span class="ui-oneline project-picker__value">{{
+        selected?.label
+      }}</span>
       <AppIcon name="chevron-down" :size="12" class="project-picker__caret" />
     </button>
 
@@ -153,9 +155,9 @@ onBeforeUnmount(() =>
           {{ row.heading }}
         </p>
         <div
+          :id="`${listId}-${row.index}`"
           class="project-picker__option"
           :class="{ 'is-active': row.index === activeIndex }"
-          :id="`${listId}-${row.index}`"
           role="option"
           :data-index="row.index"
           :aria-selected="row.option.value === modelValue"
@@ -171,10 +173,14 @@ onBeforeUnmount(() =>
           <span
             v-else
             class="project-picker__dot"
-            :style="row.option.color ? { background: row.option.color } : undefined"
+            :style="
+              row.option.color ? { background: row.option.color } : undefined
+            "
             aria-hidden="true"
           />
-          <span class="ui-oneline project-picker__label">{{ row.option.label }}</span>
+          <span class="ui-oneline project-picker__label">{{
+            row.option.label
+          }}</span>
           <span v-if="row.option.hint" class="ui-oneline project-picker__hint">
             {{ row.option.hint }}
           </span>

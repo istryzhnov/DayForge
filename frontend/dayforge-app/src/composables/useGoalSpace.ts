@@ -340,10 +340,7 @@ export function useGoalSpace() {
         idsToRemove.has(item.templateId) && item.date >= currentDate.value,
     )
 
-    bury(
-      SYNC_TABLE.TASK_TEMPLATES,
-      removedTemplates as unknown as SyncedRow[],
-    )
+    bury(SYNC_TABLE.TASK_TEMPLATES, removedTemplates as unknown as SyncedRow[])
     bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
 
     taskTemplates.value = taskTemplates.value.filter(
@@ -476,10 +473,7 @@ export function useGoalSpace() {
       (item) => item.goalId === goalId,
     )
 
-    bury(
-      SYNC_TABLE.TASK_TEMPLATES,
-      removedTemplates as unknown as SyncedRow[],
-    )
+    bury(SYNC_TABLE.TASK_TEMPLATES, removedTemplates as unknown as SyncedRow[])
     bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
 
     taskTemplates.value = taskTemplates.value.filter(
@@ -650,7 +644,9 @@ export function useGoalSpace() {
     if (previous.size === 0) return
 
     offerUndo(
-      previous.size === 1 ? 'Cleared 1 done task' : `Cleared ${previous.size} done tasks`,
+      previous.size === 1
+        ? 'Cleared 1 done task'
+        : `Cleared ${previous.size} done tasks`,
       () => {
         const restoredAt = new Date().toISOString()
         previous.forEach((value, templateId) => {

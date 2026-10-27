@@ -1,4 +1,3 @@
-
 import type { Goal, GoalTheme } from '../../entities/GoalEntity'
 import { GOAL_COLOR_PRESETS } from '../../entities/constants'
 import {
@@ -57,9 +56,13 @@ export function projectColors(goals: Goal[]): Map<string, string> {
   const unpainted = goals
     .filter((goal) => !colors.has(goal.id))
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-  const free = GOAL_COLOR_PRESETS.filter((color) => !used.has(color.toLowerCase()))
+  const free = GOAL_COLOR_PRESETS.filter(
+    (color) => !used.has(color.toLowerCase()),
+  )
   const pool = free.length > 0 ? free : [...GOAL_COLOR_PRESETS]
-  unpainted.forEach((goal, index) => colors.set(goal.id, pool[index % pool.length]))
+  unpainted.forEach((goal, index) =>
+    colors.set(goal.id, pool[index % pool.length]),
+  )
   return colors
 }
 

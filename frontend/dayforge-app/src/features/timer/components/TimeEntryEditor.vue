@@ -46,7 +46,11 @@ function submit() {
         <input v-model="form.note" type="text" placeholder="Optional" />
       </label>
 
-      <p v-for="error in issues.errors" :key="error" class="timer-issue is-error">
+      <p
+        v-for="error in issues.errors"
+        :key="error"
+        class="timer-issue is-error"
+      >
         {{ error }}
       </p>
       <p

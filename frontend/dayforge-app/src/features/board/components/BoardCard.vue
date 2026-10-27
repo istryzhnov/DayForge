@@ -55,9 +55,8 @@ const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
 const priorityLabel = computed(() => (isMajor.value ? 'Major' : 'Minor'))
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
 
-const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
-  'notesButton',
-)
+const notesButton =
+  useTemplateRef<InstanceType<typeof TaskNotesButton>>('notesButton')
 /** Set from the menu: the notes button shows while its popover is open. */
 const notesRequested = ref(false)
 const hasNotes = computed(() => !!props.card.template.notes?.trim())

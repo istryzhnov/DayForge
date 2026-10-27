@@ -71,10 +71,7 @@ export function useCalendarDayView(
 
   const scheduledTasks = computed(() =>
     props.tasks.filter(
-      (task) =>
-        task.startTime &&
-        task.endTime &&
-        isGoalVisible(task.goalId),
+      (task) => task.startTime && task.endTime && isGoalVisible(task.goalId),
     ),
   )
 

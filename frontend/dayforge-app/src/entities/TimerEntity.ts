@@ -8,8 +8,7 @@ import {
 
 export type TimerMode = (typeof TIMER_MODE)[keyof typeof TIMER_MODE]
 export type TimerStatus = (typeof TIMER_STATUS)[keyof typeof TIMER_STATUS]
-export type PomodoroPhase =
-  (typeof POMODORO_PHASE)[keyof typeof POMODORO_PHASE]
+export type PomodoroPhase = (typeof POMODORO_PHASE)[keyof typeof POMODORO_PHASE]
 export type TimeEntrySource =
   (typeof TIME_ENTRY_SOURCE)[keyof typeof TIME_ENTRY_SOURCE]
 

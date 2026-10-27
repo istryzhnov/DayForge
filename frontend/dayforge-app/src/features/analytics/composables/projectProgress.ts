@@ -68,7 +68,10 @@ export function mergeProjectProgress(
   )
 }
 
-function progressRow(source: ProgressSource, plannedMs: number): ProjectProgress {
+function progressRow(
+  source: ProgressSource,
+  plannedMs: number,
+): ProjectProgress {
   const planned = plannedMs > 0
   return {
     key: source.key,

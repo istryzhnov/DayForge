@@ -303,8 +303,16 @@
 }
 
 .quick-add-chip.is-project {
-  border-color: color-mix(in srgb, var(--chip-color, var(--accent)) 70%, transparent);
-  background: color-mix(in srgb, var(--chip-color, var(--accent)) 20%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--chip-color, var(--accent)) 70%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--chip-color, var(--accent)) 20%,
+    transparent
+  );
 }
 
 .quick-add-chip.is-new {

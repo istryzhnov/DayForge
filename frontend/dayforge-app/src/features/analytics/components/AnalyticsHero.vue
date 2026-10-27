@@ -43,7 +43,9 @@ const averageLabel = computed(() =>
             / {{ formatHoursMinutes(plannedMs) }}
           </span>
         </p>
-        <span v-if="hasPlan" class="analytics-hero__percent">{{ percent }}%</span>
+        <span v-if="hasPlan" class="analytics-hero__percent"
+          >{{ percent }}%</span
+        >
         <button
           class="ui-icon-btn"
           type="button"
@@ -78,7 +80,11 @@ const averageLabel = computed(() =>
         <span :style="{ width: barWidth }"></span>
       </div>
 
-      <p v-show="showInfo" id="analytics-hero-info" class="analytics-hero__info">
+      <p
+        v-show="showInfo"
+        id="analytics-hero-info"
+        class="analytics-hero__info"
+      >
         Tracked vs planned, up to today
         <template v-if="hasAdjustments">. Includes adjustments.</template>
       </p>

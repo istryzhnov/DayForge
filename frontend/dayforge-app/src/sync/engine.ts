@@ -197,7 +197,9 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         change.rowId,
         change.op,
         change.row,
-        typeof updatedAt === 'string' ? updatedAt : new Date(deps.now()).toISOString(),
+        typeof updatedAt === 'string'
+          ? updatedAt
+          : new Date(deps.now()).toISOString(),
       )
     })
   }
@@ -209,7 +211,9 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
   function claimQueue(userId: string) {
     if (meta.queueOwner === userId) return
     if (meta.queueOwner !== undefined && outbox.pending.length > 0) {
-      outbox.pending.forEach((mutation) => outbox.drop(mutation.table, mutation.rowId))
+      outbox.pending.forEach((mutation) =>
+        outbox.drop(mutation.table, mutation.rowId),
+      )
       meta = { ...meta, localDirty: true }
     }
     meta = { ...meta, queueOwner: userId }
@@ -359,7 +363,10 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
           outbox.drop(table, mutation.rowId)
           return
         }
-        if (remote !== undefined && stableStringify(held) === stableStringify(remote)) {
+        if (
+          remote !== undefined &&
+          stableStringify(held) === stableStringify(remote)
+        ) {
           outbox.drop(table, mutation.rowId)
         }
       })

@@ -1,5 +1,10 @@
 import type { ID, ISODateTime } from '../entities/types'
-import { SYNC_TABLE, type SyncedRow, type TableName, type Tombstone } from './types'
+import {
+  SYNC_TABLE,
+  type SyncedRow,
+  type TableName,
+  type Tombstone,
+} from './types'
 
 /** Older than any real stamp, so a row with no stamp always loses. */
 const EPOCH = '1970-01-01T00:00:00.000Z'

@@ -71,15 +71,14 @@ export function isLive(timer: ActiveTimer): boolean {
 }
 
 export function elapsedMs(timer: ActiveTimer, now: number): number {
-  const live = isRunning(timer) ? Math.max(0, now - (timer.startedAt ?? now)) : 0
+  const live = isRunning(timer)
+    ? Math.max(0, now - (timer.startedAt ?? now))
+    : 0
   return timer.accumulatedMs + live
 }
 
 /** Null for a stopwatch, which has nothing to count down to. */
-export function remainingMs(
-  timer: ActiveTimer,
-  now: number,
-): number | null {
+export function remainingMs(timer: ActiveTimer, now: number): number | null {
   if (timer.durationMs === undefined) return null
   return Math.max(0, timer.durationMs - elapsedMs(timer, now))
 }
@@ -196,7 +195,9 @@ function finishAt(
   const nextPhase = wasFocus
     ? breakAfterFocus(completedFocusCount, settings)
     : POMODORO_PHASE.FOCUS
-  const autoStart = wasFocus ? settings.autoStartBreaks : settings.autoStartFocus
+  const autoStart = wasFocus
+    ? settings.autoStartBreaks
+    : settings.autoStartFocus
 
   return {
     timer: {

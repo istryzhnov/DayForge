@@ -223,9 +223,7 @@ const projectColor = computed(() =>
       @set-board-stage="
         (templateId, stage) => emit('set-board-stage', templateId, stage)
       "
-      @add-task="
-        (title, priority) => emit('add-task', title, priority)
-      "
+      @add-task="(title, priority) => emit('add-task', title, priority)"
       @edit-task="(templateId, title) => emit('edit-task', templateId, title)"
       @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
       @schedule-task="
@@ -257,7 +255,6 @@ const projectColor = computed(() =>
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
     />
-
 
     <TaskMoveDialog
       v-if="movingTemplate"

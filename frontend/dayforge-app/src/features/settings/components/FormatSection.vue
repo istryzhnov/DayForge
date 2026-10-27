@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { LOCALE_OPTIONS, useSettings, type LocaleId } from '../../../composables/useSettings'
+import {
+  LOCALE_OPTIONS,
+  useSettings,
+  type LocaleId,
+} from '../../../composables/useSettings'
 import { CLOCK_OPTIONS } from '../composables/settingsOptions'
 import { textValue } from '../../../composables/inputValue'
 

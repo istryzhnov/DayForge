@@ -80,7 +80,10 @@ function fillStyle(row: ProjectProgress) {
         </span>
       </button>
 
-      <dl v-if="isOpen(row.key)" class="ui-row__detail project-progress__detail">
+      <dl
+        v-if="isOpen(row.key)"
+        class="ui-row__detail project-progress__detail"
+      >
         <div>
           <dt>Done</dt>
           <dd>{{ donePercent(row) }}</dd>

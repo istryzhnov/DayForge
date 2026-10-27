@@ -7,7 +7,11 @@ import {
   rateForTask,
   type RateLookup,
 } from '../../../composables/timer/rates'
-import { projectFigures, sanitizeBilling, type ProjectFigures } from './projectBilling'
+import {
+  projectFigures,
+  sanitizeBilling,
+  type ProjectFigures,
+} from './projectBilling'
 
 export interface ProjectEarning {
   /** Tracked time inside the period, before any manual-hours adjustment. */

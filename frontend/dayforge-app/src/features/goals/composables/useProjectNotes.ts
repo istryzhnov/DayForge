@@ -57,4 +57,3 @@ export function useProjectNotes(
 
   return { draft, flush }
 }
-

@@ -1,4 +1,3 @@
-
 export const PRIORITY = {
   MAJOR: 'major',
   MINOR: 'minor',

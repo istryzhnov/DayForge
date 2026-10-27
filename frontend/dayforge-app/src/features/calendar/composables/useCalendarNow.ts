@@ -13,7 +13,8 @@ export function useCalendarNow(getDate: () => ISODate) {
   onScopeDispose(() => clearInterval(timer))
 
   const isToday = computed(() => {
-    now.value
+    // Read the tick so "today" is re-checked when the clock passes midnight.
+    void now.value
     return getDate() === getTodayISODate()
   })
 

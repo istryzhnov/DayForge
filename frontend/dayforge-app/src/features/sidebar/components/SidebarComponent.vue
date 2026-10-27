@@ -17,7 +17,10 @@ import { useMobileNav } from '../composables/useMobileNav'
 import { useSettings } from '../../../composables/useSettings'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 import { useProfilePanel } from '../../profile/composables/useProfilePanel'
-import { shortcutTitle, useHotkeyOverlay } from '../../../composables/useHotkeys'
+import {
+  shortcutTitle,
+  useHotkeyOverlay,
+} from '../../../composables/useHotkeys'
 
 const props = defineProps<{
   goals: Goal[]
@@ -129,7 +132,10 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         "
         @click="emit('toggle-notifications')"
       >
-        <AppIcon :name="notificationsEnabled ? 'bell' : 'bell-off'" :size="15" />
+        <AppIcon
+          :name="notificationsEnabled ? 'bell' : 'bell-off'"
+          :size="15"
+        />
       </button>
       <div class="sidebar-settings">
         <button
@@ -321,7 +327,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
     <TimerWidget @open-timer="chooseView('timer')" />
     <div class="sidebar-actions">
-      <button @click="openNewGoalForm" class="btn btn-primary">New Project</button>
+      <button class="btn btn-primary" @click="openNewGoalForm">
+        New Project
+      </button>
       <NewGoalComponent
         v-if="showNewGoalForm"
         @submit="createGoal"

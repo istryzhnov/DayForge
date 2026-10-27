@@ -36,9 +36,7 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
   const isRateEditing = ref(false)
 
   const isProject = computed(() => props.node.task.priority === PRIORITY.MAJOR)
-  const hasOwnRate = computed(
-    () => (props.node.template?.hourlyRate ?? 0) > 0,
-  )
+  const hasOwnRate = computed(() => (props.node.template?.hourlyRate ?? 0) > 0)
   const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
   const canSetAsProject = computed(() => !isProject.value && !props.isNested)
 

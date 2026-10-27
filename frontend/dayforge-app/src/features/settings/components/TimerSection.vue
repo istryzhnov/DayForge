@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import {
-  CURRENCY_OPTIONS,
-  useSettings,
-} from '../../../composables/useSettings'
+import { CURRENCY_OPTIONS, useSettings } from '../../../composables/useSettings'
 import {
   COUNTDOWN_LENGTHS,
   FOCUS_LENGTHS,
@@ -71,8 +68,9 @@ function idleLabel(minutes: number): string {
 
     <p class="sidebar-caption">Reminders while running</p>
     <p class="settings-group-hint">
-      In the app, these show while DayForge is open. Turn on "Notify me when the app is closed" in Reminders to get them as push notifications too.
-      A closed tab cannot remind you.
+      In the app, these show while DayForge is open. Turn on "Notify me when the
+      app is closed" in Reminders to get them as push notifications too. A
+      closed tab cannot remind you.
     </p>
 
     <p class="settings-group-hint">Remind me after the timer has run</p>

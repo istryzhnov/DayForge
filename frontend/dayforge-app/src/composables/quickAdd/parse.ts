@@ -43,7 +43,9 @@ export function readDate(word: string, today: ISODate): ISODate | null {
   } else if (dotted) {
     day = Number(dotted[1])
     month = Number(dotted[2])
-    year = dotted[3] ? Number(dotted[3].length === 2 ? `20${dotted[3]}` : dotted[3]) : null
+    year = dotted[3]
+      ? Number(dotted[3].length === 2 ? `20${dotted[3]}` : dotted[3])
+      : null
   } else {
     return null
   }
@@ -51,7 +53,11 @@ export function readDate(word: string, today: ISODate): ISODate | null {
   const thisYear = Number(today.slice(0, 4))
   const valid = (y: number) => {
     const probe = new Date(y, month - 1, day)
-    return probe.getFullYear() === y && probe.getMonth() === month - 1 && probe.getDate() === day
+    return (
+      probe.getFullYear() === y &&
+      probe.getMonth() === month - 1 &&
+      probe.getDate() === day
+    )
   }
   const asISO = (y: number) => `${y}-${pad(month)}-${pad(day)}` as ISODate
 
@@ -102,7 +108,10 @@ export function parseQuickAdd(
 
     if (word.startsWith('#') && word.length > 1 && !goal && !newGoalTitle) {
       const name = word.slice(1)
-      const multi = findGoalByWords(options.goals, [name, ...words.slice(index + 1)])
+      const multi = findGoalByWords(options.goals, [
+        name,
+        ...words.slice(index + 1),
+      ])
       if (multi) {
         goal = multi.goal
         index += multi.length - 1

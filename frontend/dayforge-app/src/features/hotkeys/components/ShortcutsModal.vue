@@ -54,11 +54,7 @@ onMounted(() => cardRef.value?.focus())
           class="shortcuts-group"
         >
           <p class="sidebar-caption">{{ group.title }}</p>
-          <div
-            v-for="row in group.rows"
-            :key="row.label"
-            class="shortcuts-row"
-          >
+          <div v-for="row in group.rows" :key="row.label" class="shortcuts-row">
             <span>{{ row.label }}</span>
             <span class="shortcuts-row__keys">
               <template v-for="(key, index) in row.keys" :key="key">

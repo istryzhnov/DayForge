@@ -34,9 +34,7 @@ export function sanitizeActiveTimer(input: unknown): ActiveTimer {
         : undefined,
     phase: raw.phase,
     completedFocusCount:
-      typeof raw.completedFocusCount === 'number'
-        ? raw.completedFocusCount
-        : 0,
+      typeof raw.completedFocusCount === 'number' ? raw.completedFocusCount : 0,
     task: raw.task,
   }
 }

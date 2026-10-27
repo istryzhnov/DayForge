@@ -21,7 +21,9 @@ const button = useTemplateRef<HTMLButtonElement>('button')
 const popover = useTemplateRef<InstanceType<typeof TaskNotesPopover>>('popover')
 
 const hasNotes = computed(() => !!props.notes?.trim())
-const label = computed(() => (hasNotes.value ? 'Notes (has text)' : 'Add notes'))
+const label = computed(() =>
+  hasNotes.value ? 'Notes (has text)' : 'Add notes',
+)
 
 function onClick() {
   if (isOpen.value) {

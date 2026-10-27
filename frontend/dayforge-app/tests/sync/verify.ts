@@ -185,7 +185,10 @@ function verifyTombstones() {
   )
   const restored = restampForRestore(buried[0].payload as SyncedRow)
   check('a restored row loses its deletedAt', restored.deletedAt === undefined)
-  check('a restored row loses stale field stamps', restored.fieldsAt === undefined)
+  check(
+    'a restored row loses stale field stamps',
+    restored.fieldsAt === undefined,
+  )
   check(
     'a restored row is stamped later than its burial',
     (restored.updatedAt as string) > isoAbs(now - 1000),
@@ -201,7 +204,10 @@ function verifyDirtyCheck() {
   const shadow = snapshotRows([row])
 
   const unchanged = diffRows(shadow, [{ ...row }])
-  check('re-reading an unchanged row queues nothing', unchanged.changes.length === 0)
+  check(
+    're-reading an unchanged row queues nothing',
+    unchanged.changes.length === 0,
+  )
 
   const reordered = diffRows(shadow, [
     { updatedAt: iso(1000), title: 'One', id: 'a' } as SyncedRow,
@@ -220,7 +226,9 @@ function verifyDirtyCheck() {
     undefinedAdded.changes.length === 0,
   )
 
-  const edited = diffRows(shadow, [{ ...row, title: 'Two', updatedAt: iso(2000) }])
+  const edited = diffRows(shadow, [
+    { ...row, title: 'Two', updatedAt: iso(2000) },
+  ])
   check('a real edit is one upsert', edited.changes.length === 1)
   check('the edit is an upsert', edited.changes[0]?.op === 'upsert')
 
@@ -238,7 +246,10 @@ function verifyDirtyCheck() {
   const nestedChanged = diffRows(nested, [
     { id: 'b', tagIds: ['y', 'x'], theme: { accent: '#fff', intensity: 0.5 } },
   ])
-  check('array order still counts as a change', nestedChanged.changes.length === 1)
+  check(
+    'array order still counts as a change',
+    nestedChanged.changes.length === 1,
+  )
 }
 
 // --- 3. the outbox ------------------------------------------------------
@@ -248,8 +259,9 @@ async function verifyOutbox() {
 
   const scheduler = createFakeScheduler()
   const server = createFakeServer()
-  let reject: ((mutation: Mutation) => { retryable: boolean; error: string } | null) | null =
-    null
+  let reject:
+    | ((mutation: Mutation) => { retryable: boolean; error: string } | null)
+    | null = null
   let failCall: (() => string | null) | null = null
   let online = true
 
@@ -294,8 +306,14 @@ async function verifyOutbox() {
 
   await outbox.flush()
   check('a clean flush empties the queue', outbox.queued === 0)
-  check('the server kept the surviving row', serverHas(server, SYNC_TABLE.GOALS, 'g2'))
-  check('the deleted row is gone from the server', !serverHas(server, SYNC_TABLE.GOALS, 'g1'))
+  check(
+    'the server kept the surviving row',
+    serverHas(server, SYNC_TABLE.GOALS, 'g2'),
+  )
+  check(
+    'the deleted row is gone from the server',
+    !serverHas(server, SYNC_TABLE.GOALS, 'g1'),
+  )
   check('the server recorded the deletion', server.tombstones.length === 1)
 
   // Offline: edits queue up and nothing is lost.
@@ -313,11 +331,19 @@ async function verifyOutbox() {
   await outbox.flush()
   check('a dropped connection leaves the edit queued', outbox.queued === 1)
   const firstDelay = scheduler.pendingTimers()[0]
-  check('the first retry waits one base interval', firstDelay === 1000, firstDelay)
+  check(
+    'the first retry waits one base interval',
+    firstDelay === 1000,
+    firstDelay,
+  )
 
   await scheduler.advance(1000)
   const secondDelay = scheduler.pendingTimers()[0]
-  check('the second retry waits twice as long', secondDelay === 2000, secondDelay)
+  check(
+    'the second retry waits twice as long',
+    secondDelay === 2000,
+    secondDelay,
+  )
 
   await scheduler.advance(2000)
   const thirdDelay = scheduler.pendingTimers()[0]
@@ -326,7 +352,10 @@ async function verifyOutbox() {
   failCall = null
   await scheduler.advance(4000)
   check('the edit lands once the server answers again', outbox.queued === 0)
-  check('nothing was dead-lettered by a retryable failure', outbox.dead.length === 0)
+  check(
+    'nothing was dead-lettered by a retryable failure',
+    outbox.dead.length === 0,
+  )
 
   // A refused row leaves the queue and does not hold up its neighbours.
   reject = (mutation) =>
@@ -341,7 +370,10 @@ async function verifyOutbox() {
 
   check('the refused row is dead-lettered', outbox.dead.length === 1)
   check('the dead letter names the row', outbox.dead[0].rowId === 'poison')
-  check('the dead letter keeps the reason', outbox.dead[0].lastError === 'row-level security')
+  check(
+    'the dead letter keeps the reason',
+    outbox.dead[0].lastError === 'row-level security',
+  )
   check('the queue is empty despite the refusal', outbox.queued === 0)
   check(
     'the healthy rows got through',
@@ -353,7 +385,10 @@ async function verifyOutbox() {
   outbox.retryDead()
   await outbox.flush()
   check('retrying a dead letter clears it', outbox.dead.length === 0)
-  check('the retried row reached the server', serverHas(server, SYNC_TABLE.GOALS, 'poison'))
+  check(
+    'the retried row reached the server',
+    serverHas(server, SYNC_TABLE.GOALS, 'poison'),
+  )
 
   // An edit made while a push is in the air must not be lost by the push.
   failCall = () => null
@@ -380,13 +415,28 @@ async function verifyOutbox() {
     random: () => 1,
   })
 
-  gatedOutbox.enqueue(SYNC_TABLE.GOALS, 'g7', 'upsert', { id: 'g7', n: 1 }, iso(11))
+  gatedOutbox.enqueue(
+    SYNC_TABLE.GOALS,
+    'g7',
+    'upsert',
+    { id: 'g7', n: 1 },
+    iso(11),
+  )
   const flight = gatedOutbox.flush()
-  gatedOutbox.enqueue(SYNC_TABLE.GOALS, 'g7', 'upsert', { id: 'g7', n: 2 }, iso(12))
+  gatedOutbox.enqueue(
+    SYNC_TABLE.GOALS,
+    'g7',
+    'upsert',
+    { id: 'g7', n: 2 },
+    iso(12),
+  )
   release()
   await flight
 
-  check('an in-flight failure does not duplicate the row', gatedOutbox.queued === 1)
+  check(
+    'an in-flight failure does not duplicate the row',
+    gatedOutbox.queued === 1,
+  )
   check(
     'the newer edit survives the failed push',
     (gatedOutbox.pending[0].payload as unknown as { n: number }).n === 2,
@@ -442,10 +492,20 @@ function verifyMerge() {
     fieldsAt: { time: iso(6000) },
   }
 
-  const bothKept = mergeRow(SYNC_TABLE.DAILY_TASKS, tickedOnPhone, movedOnLaptop)
-  check('a day row merges rather than overwrites', bothKept.outcome === 'merged')
+  const bothKept = mergeRow(
+    SYNC_TABLE.DAILY_TASKS,
+    tickedOnPhone,
+    movedOnLaptop,
+  )
+  check(
+    'a day row merges rather than overwrites',
+    bothKept.outcome === 'merged',
+  )
   check('the tick from the phone survives', bothKept.row.status === 'done')
-  check('the reschedule from the laptop survives', bothKept.row.startTime === '14:00')
+  check(
+    'the reschedule from the laptop survives',
+    bothKept.row.startTime === '14:00',
+  )
   check(
     'the merged row is stamped at the later of the two',
     bothKept.row.updatedAt === iso(6000),
@@ -456,8 +516,18 @@ function verifyMerge() {
 
   const sameGroupTwice = mergeRow(
     SYNC_TABLE.DAILY_TASKS,
-    { id: 'd', status: 'done', updatedAt: iso(1000), fieldsAt: { status: iso(1000) } },
-    { id: 'd', status: 'skipped', updatedAt: iso(2000), fieldsAt: { status: iso(2000) } },
+    {
+      id: 'd',
+      status: 'done',
+      updatedAt: iso(1000),
+      fieldsAt: { status: iso(1000) },
+    },
+    {
+      id: 'd',
+      status: 'skipped',
+      updatedAt: iso(2000),
+      fieldsAt: { status: iso(2000) },
+    },
   )
   check(
     'two edits to the same group are decided by time',
@@ -466,9 +536,17 @@ function verifyMerge() {
 
   // Tombstones against edits.
   const buried = new Map([[`${SYNC_TABLE.GOALS}\u0000r`, iso(3000)]])
-  const deletionWins = mergeCollection(SYNC_TABLE.GOALS, [older], [older], buried)
+  const deletionWins = mergeCollection(
+    SYNC_TABLE.GOALS,
+    [older],
+    [older],
+    buried,
+  )
   check('a later deletion removes the row', deletionWins.merged.length === 0)
-  check('the deletion is passed on to the server', deletionWins.toDelete.length === 1)
+  check(
+    'the deletion is passed on to the server',
+    deletionWins.toDelete.length === 1,
+  )
 
   const editWins = mergeCollection(
     SYNC_TABLE.GOALS,
@@ -476,11 +554,17 @@ function verifyMerge() {
     [older],
     buried,
   )
-  check('an edit after the deletion revives the row', editWins.merged.length === 1)
+  check(
+    'an edit after the deletion revives the row',
+    editWins.merged.length === 1,
+  )
   check('the revival is pushed', editWins.toPush.length === 1)
 
   const localOnly = mergeCollection(SYNC_TABLE.GOALS, [older], [])
-  check('a row the server has never seen is pushed, not dropped', localOnly.toPush.length === 1)
+  check(
+    'a row the server has never seen is pushed, not dropped',
+    localOnly.toPush.length === 1,
+  )
   check('and it is kept locally', localOnly.merged.length === 1)
 
   const remoteOnly = mergeCollection(SYNC_TABLE.GOALS, [], [newer])
@@ -495,7 +579,10 @@ function verifyMerge() {
   const incremental = mergeIncoming(SYNC_TABLE.GOALS, many, [
     { id: 'row-7', updatedAt: iso(9000), title: 'changed' },
   ])
-  check('an incremental pull pushes nothing it was not asked about', incremental.toPush.length === 0)
+  check(
+    'an incremental pull pushes nothing it was not asked about',
+    incremental.toPush.length === 0,
+  )
   check('it still keeps every local row', incremental.merged.length === 50)
   check(
     'and it applies the row that did change',
@@ -508,7 +595,10 @@ function verifyMerge() {
     [],
     [{ table: SYNC_TABLE.GOALS, id: 'row-1', deletedAt: iso(2000) }],
   )
-  check('a deletion from elsewhere removes the row', incrementalDelete.merged.length === 0)
+  check(
+    'a deletion from elsewhere removes the row',
+    incrementalDelete.merged.length === 0,
+  )
 
   const incrementalRevive = mergeIncoming(
     SYNC_TABLE.GOALS,
@@ -516,7 +606,10 @@ function verifyMerge() {
     [],
     [{ table: SYNC_TABLE.GOALS, id: 'row-1', deletedAt: iso(2000) }],
   )
-  check('a newer local edit beats that deletion', incrementalRevive.merged.length === 1)
+  check(
+    'a newer local edit beats that deletion',
+    incrementalRevive.merged.length === 1,
+  )
   check('and is pushed back', incrementalRevive.toPush.length === 1)
 }
 
@@ -539,7 +632,11 @@ interface Device {
   backend: ReturnType<typeof createMemorySnapshotBackend>
 }
 
-function createDevice(name: string, server: FakeServer, userId: string): Device {
+function createDevice(
+  name: string,
+  server: FakeServer,
+  userId: string,
+): Device {
   const goals = ref<SyncedRow[]>([])
   const templates = ref<SyncedRow[]>([])
   const rows = ref<SyncedRow[]>([])
@@ -606,7 +703,8 @@ function createDevice(name: string, server: FakeServer, userId: string): Device 
     isSignedOut: () => !signedIn.value,
     now: () => Date.now(),
     setTimer: (fn, ms) => setTimeout(fn, ms),
-    clearTimer: (handle) => clearTimeout(handle as ReturnType<typeof setTimeout>),
+    clearTimer: (handle) =>
+      clearTimeout(handle as ReturnType<typeof setTimeout>),
     isOnline: () => online.value,
     random: () => 1,
     snapshots,
@@ -678,7 +776,12 @@ async function verifyHealingFilter() {
   const userId = 'user-heal'
 
   server.rows.get(SYNC_TABLE.GOALS)?.set('ghost', {
-    row: { id: 'ghost', title: 'Should not appear', updatedAt: iso(1000), deletedAt: iso(1500) },
+    row: {
+      id: 'ghost',
+      title: 'Should not appear',
+      updatedAt: iso(1000),
+      deletedAt: iso(1500),
+    },
     serverStamp: '2030-01-01T00:00:000001Z',
   })
   server.rows.get(SYNC_TABLE.GOALS)?.set('real', {
@@ -692,7 +795,10 @@ async function verifyHealingFilter() {
   await device.engine.flush()
   await settle()
 
-  check('the marked row never reaches the array', device.goals.value.length === 1)
+  check(
+    'the marked row never reaches the array',
+    device.goals.value.length === 1,
+  )
   check('the ordinary row did', device.goals.value[0]?.id === 'real')
   check(
     'the burial was recorded rather than merely obeyed',
@@ -751,7 +857,10 @@ function verifyLateArrivalAfterDelete() {
     tombstones,
   )
 
-  check('an edit made after the deletion does revive it', genuine.merged.length === 1)
+  check(
+    'an edit made after the deletion does revive it',
+    genuine.merged.length === 1,
+  )
   check('and it is not deleted again', genuine.toDelete.length === 0)
 
   // Without a burial on record, nothing changes about an ordinary new row.
@@ -760,7 +869,10 @@ function verifyLateArrivalAfterDelete() {
     [],
     [{ id: 't2', updatedAt: iso(1000) }],
   )
-  check('a row with no burial behind it is simply taken', plain.merged.length === 1)
+  check(
+    'a row with no burial behind it is simply taken',
+    plain.merged.length === 1,
+  )
 }
 
 // --- 7. carry-forward must not overwrite another device's tick ----------
@@ -834,7 +946,10 @@ function verifyCarryForward() {
   const staleDone = dayRows('done', `${yesterday}T18:00:00.000Z`)
   carryOpenTasksForward(templates, staleDone, today)
   const reopened = staleDone.find((row) => row.templateId === 'tpl-project')
-  check('a project finished on its own day reopens', reopened?.status === 'todo')
+  check(
+    'a project finished on its own day reopens',
+    reopened?.status === 'todo',
+  )
   check('and its completion is cleared', reopened?.completedAt === undefined)
 
   // Ticked off today, while this row still sat on yesterday: that tick came
@@ -865,7 +980,12 @@ async function verifyTwoDevices() {
     { id: 'goal-work', title: 'Work', status: 'active', updatedAt: iso(1000) },
   ]
   laptop.templates.value = [
-    { id: 'task-report', title: 'Report', goalId: 'goal-work', updatedAt: iso(1000) },
+    {
+      id: 'task-report',
+      title: 'Report',
+      goalId: 'goal-work',
+      updatedAt: iso(1000),
+    },
   ]
   laptop.rows.value = [
     {
@@ -949,9 +1069,18 @@ async function verifyTwoDevices() {
   }
   await settle()
 
-  check('the offline laptop has the tick queued', laptop.engine.status.value.queued === 1)
-  check('the offline phone has the reschedule queued', phone.engine.status.value.queued === 1)
-  check('the offline laptop reports itself offline', laptop.engine.status.value.state === 'offline')
+  check(
+    'the offline laptop has the tick queued',
+    laptop.engine.status.value.queued === 1,
+  )
+  check(
+    'the offline phone has the reschedule queued',
+    phone.engine.status.value.queued === 1,
+  )
+  check(
+    'the offline laptop reports itself offline',
+    laptop.engine.status.value.state === 'offline',
+  )
 
   laptop.online.value = true
   await laptop.engine.flush()
@@ -963,8 +1092,16 @@ async function verifyTwoDevices() {
   const settled = laptop.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
-  check('the tick made on the laptop survived', settled?.status === 'done', settled)
-  check('the reschedule made on the phone survived', settled?.startTime === '14:00', settled)
+  check(
+    'the tick made on the laptop survived',
+    settled?.status === 'done',
+    settled,
+  )
+  check(
+    'the reschedule made on the phone survived',
+    settled?.startTime === '14:00',
+    settled,
+  )
 
   // The laptop merged the two halves on its pull and queued the result; that
   // has to reach the server before the phone can see it.
@@ -973,7 +1110,11 @@ async function verifyTwoDevices() {
   const onPhone = phone.rows.value.find(
     (row) => row.id === 'task-report::2026-10-06',
   )
-  check('both devices agree on the result', onPhone?.status === 'done' && onPhone?.startTime === '14:00', onPhone)
+  check(
+    'both devices agree on the result',
+    onPhone?.status === 'done' && onPhone?.startTime === '14:00',
+    onPhone,
+  )
 
   // A deletion on one device must not come back from the other.
   const deletedAt = iso(9000)
@@ -1012,6 +1153,8 @@ async function verifyTwoDevices() {
   const rowsNow = laptop.rows.value
   laptop.rows.value = [...rowsNow]
   rowsNow.forEach((row) => {
+    // A write of the same value on purpose: it must not count as a change.
+    // eslint-disable-next-line no-self-assign
     row.parentDailyTaskId = row.parentDailyTaskId
   })
   await settle()
@@ -1139,7 +1282,10 @@ async function verifyEverydayRoutine() {
     onLaptop.updatedAt = new Date(Date.now() - 60_000).toISOString()
   }
   await settle()
-  check('the laptop has it queued while offline', laptop.engine.status.value.queued === 1)
+  check(
+    'the laptop has it queued while offline',
+    laptop.engine.status.value.queued === 1,
+  )
 
   const onPhone = findRow(phone.templates.value, 'task-gym')
   if (onPhone) {
@@ -1156,10 +1302,14 @@ async function verifyEverydayRoutine() {
     findRow(laptop.templates.value, 'task-gym')?.title === 'Newest idea',
     laptop.templates.value,
   )
-  check('its stale write left the queue', laptop.engine.status.value.queued === 0)
+  check(
+    'its stale write left the queue',
+    laptop.engine.status.value.queued === 0,
+  )
   check(
     'and the server still holds the newer edit',
-    serverRow(server, SYNC_TABLE.TASK_TEMPLATES, 'task-gym')?.title === 'Newest idea',
+    serverRow(server, SYNC_TABLE.TASK_TEMPLATES, 'task-gym')?.title ===
+      'Newest idea',
   )
 
   section('Edits made while signed out')
@@ -1168,10 +1318,17 @@ async function verifyEverydayRoutine() {
   phone.engine.onSignedOut()
   phone.goals.value = [
     ...phone.goals.value,
-    { id: 'goal-offline', title: 'Written signed out', updatedAt: new Date().toISOString() },
+    {
+      id: 'goal-offline',
+      title: 'Written signed out',
+      updatedAt: new Date().toISOString(),
+    },
   ]
   await settle()
-  check('nothing is queued without an account', phone.engine.status.value.queued === 0)
+  check(
+    'nothing is queued without an account',
+    phone.engine.status.value.queued === 0,
+  )
 
   phone.signedIn.value = true
   await phone.engine.onSignedIn()
@@ -1194,7 +1351,10 @@ async function verifyEverydayRoutine() {
   await settle()
   tablet.failing.value = true
   await tablet.engine.onSignedIn()
-  check('nothing reached the server yet', !serverHas(server, SYNC_TABLE.GOALS, 'goal-tablet'))
+  check(
+    'nothing reached the server yet',
+    !serverHas(server, SYNC_TABLE.GOALS, 'goal-tablet'),
+  )
   check('the error is reported', tablet.engine.status.value.lastError !== null)
 
   tablet.failing.value = false
@@ -1221,10 +1381,17 @@ async function verifyAccountSwitch() {
 
   laptop.online.value = false
   laptop.goals.value = [
-    { id: 'goal-a', title: 'Account A, offline', updatedAt: new Date().toISOString() },
+    {
+      id: 'goal-a',
+      title: 'Account A, offline',
+      updatedAt: new Date().toISOString(),
+    },
   ]
   await settle()
-  check('the offline edit waits in the queue', laptop.engine.status.value.queued === 1)
+  check(
+    'the offline edit waits in the queue',
+    laptop.engine.status.value.queued === 1,
+  )
 
   laptop.signedIn.value = false
   laptop.engine.onSignedOut()
@@ -1234,13 +1401,19 @@ async function verifyAccountSwitch() {
   laptop.signedIn.value = true
   laptop.goals.value = [
     ...laptop.goals.value,
-    { id: 'goal-b', title: 'Account B, offline', updatedAt: new Date().toISOString() },
+    {
+      id: 'goal-b',
+      title: 'Account B, offline',
+      updatedAt: new Date().toISOString(),
+    },
   ]
   await settle()
   check(
-    "the next account starts its own queue",
+    'the next account starts its own queue',
     laptop.engine.status.value.queued === 1 &&
-      laptop.engine.outbox.pending.every((mutation) => mutation.rowId === 'goal-b'),
+      laptop.engine.outbox.pending.every(
+        (mutation) => mutation.rowId === 'goal-b',
+      ),
     laptop.engine.outbox.pending,
   )
 
@@ -1331,7 +1504,11 @@ async function verifyActiveTimer() {
   }
   check(
     'the other device carrying on with the same sitting: nothing to record',
-    !mustRecordBeforeAdopting(running, { ...running, status: TIMER_STATUS.PAUSED }, ''),
+    !mustRecordBeforeAdopting(
+      running,
+      { ...running, status: TIMER_STATUS.PAUSED },
+      '',
+    ),
   )
   check(
     'the other device stopped this sitting: it already recorded it',
@@ -1343,7 +1520,11 @@ async function verifyActiveTimer() {
   )
   check(
     'nothing running here: just adopt',
-    !mustRecordBeforeAdopting(createIdleTimer(), { ...running, sessionId: 'theirs' }, ''),
+    !mustRecordBeforeAdopting(
+      createIdleTimer(),
+      { ...running, sessionId: 'theirs' },
+      '',
+    ),
   )
 
   section('A countdown that ran out on both devices')
@@ -1368,7 +1549,8 @@ async function verifyActiveTimer() {
   await laptop.engine.sync()
   await phone.engine.sync()
   await laptop.engine.sync()
-  const copies = (list: SyncedRow[]) => list.filter((row) => row.id === stretch.id).length
+  const copies = (list: SyncedRow[]) =>
+    list.filter((row) => row.id === stretch.id).length
   check(
     'it is recorded once, not twice',
     serverCount(server, SYNC_TABLE.TIME_ENTRIES) === 1 &&
@@ -1392,8 +1574,14 @@ async function verifySnapshotRetention() {
 
   const kept = await store.list()
   check('only three snapshots are kept', kept.length === 3, kept.length)
-  check('the newest is first', (kept[0].payload as { index: number }).index === 4)
-  check('the oldest two were dropped', (kept[2].payload as { index: number }).index === 2)
+  check(
+    'the newest is first',
+    (kept[0].payload as { index: number }).index === 4,
+  )
+  check(
+    'the oldest two were dropped',
+    (kept[2].payload as { index: number }).index === 2,
+  )
 }
 
 function verifyQuickAdd() {
@@ -1407,73 +1595,179 @@ function verifyQuickAdd() {
   const today = '2026-10-12'
 
   const milk = parseQuickAdd('Купити молоко #work завтра', { goals, today })
-  check('the title keeps only the words that were not tokens', milk.title === 'Купити молоко', milk.title)
+  check(
+    'the title keeps only the words that were not tokens',
+    milk.title === 'Купити молоко',
+    milk.title,
+  )
   check('#name picks the project', milk.goalId === 'g-work', milk.goalId)
   check('the project title comes back for the chip', milk.goalTitle === 'Work')
-  check('завтра schedules tomorrow', milk.day === 'tomorrow' && milk.date === '2026-10-13', milk)
+  check(
+    'завтра schedules tomorrow',
+    milk.day === 'tomorrow' && milk.date === '2026-10-13',
+    milk,
+  )
 
   const exact = parseQuickAdd('plan #WORK', { goals, today })
-  check('project names match ignoring case and prefer an exact match', exact.goalId === 'g-work', exact.goalId)
+  check(
+    'project names match ignoring case and prefer an exact match',
+    exact.goalId === 'g-work',
+    exact.goalId,
+  )
 
   const prefix = parseQuickAdd('Call dentist #home', { goals, today })
-  check('a prefix of the project name is enough', prefix.goalId === 'g-home' && prefix.title === 'Call dentist', prefix)
+  check(
+    'a prefix of the project name is enough',
+    prefix.goalId === 'g-home' && prefix.title === 'Call dentist',
+    prefix,
+  )
 
   const unknown = parseQuickAdd('Read #nowhere', { goals, today })
-  check('an unknown #name starts a new project', unknown.goalId === null && unknown.newGoalTitle === 'nowhere' && unknown.title === 'Read', unknown)
+  check(
+    'an unknown #name starts a new project',
+    unknown.goalId === null &&
+      unknown.newGoalTitle === 'nowhere' &&
+      unknown.title === 'Read',
+    unknown,
+  )
 
   const underscored = parseQuickAdd('Fix tap #мій_дім завтра', { goals, today })
-  check('underscores in a new project name become spaces', underscored.newGoalTitle === 'мій дім' && underscored.title === 'Fix tap', underscored)
+  check(
+    'underscores in a new project name become spaces',
+    underscored.newGoalTitle === 'мій дім' && underscored.title === 'Fix tap',
+    underscored,
+  )
 
-  const spaced = parseQuickAdd('Call plumber #home stuff tomorrow', { goals, today })
-  check('a project name with spaces is matched whole', spaced.goalId === 'g-home' && spaced.title === 'Call plumber' && spaced.newGoalTitle === null, spaced)
+  const spaced = parseQuickAdd('Call plumber #home stuff tomorrow', {
+    goals,
+    today,
+  })
+  check(
+    'a project name with spaces is matched whole',
+    spaced.goalId === 'g-home' &&
+      spaced.title === 'Call plumber' &&
+      spaced.newGoalTitle === null,
+    spaced,
+  )
 
-  const cyrillic = parseQuickAdd('Помити вікна #ДІМ', { goals: [...goals, { id: 'g-dim', title: 'Дім' }], today })
-  check('Cyrillic project names match ignoring case', cyrillic.goalId === 'g-dim' && cyrillic.title === 'Помити вікна', cyrillic)
+  const cyrillic = parseQuickAdd('Помити вікна #ДІМ', {
+    goals: [...goals, { id: 'g-dim', title: 'Дім' }],
+    today,
+  })
+  check(
+    'Cyrillic project names match ignoring case',
+    cyrillic.goalId === 'g-dim' && cyrillic.title === 'Помити вікна',
+    cyrillic,
+  )
 
   const todayEn = parseQuickAdd('Pay rent today', { goals, today })
-  check('today is read and removed', todayEn.title === 'Pay rent' && todayEn.date === today, todayEn)
+  check(
+    'today is read and removed',
+    todayEn.title === 'Pay rent' && todayEn.date === today,
+    todayEn,
+  )
 
   const todayUk = parseQuickAdd('Зробити звіт сьогодні', { goals, today })
-  check('сьогодні is read', todayUk.title === 'Зробити звіт' && todayUk.date === today, todayUk)
+  check(
+    'сьогодні is read',
+    todayUk.title === 'Зробити звіт' && todayUk.date === today,
+    todayUk,
+  )
 
   const bang = parseQuickAdd('Wow! not a priority', { goals, today })
-  check('a ! glued to a word is part of the title', bang.title === 'Wow! not a priority', bang)
+  check(
+    'a ! glued to a word is part of the title',
+    bang.title === 'Wow! not a priority',
+    bang,
+  )
 
   const alone = parseQuickAdd('Call mom !', { goals, today })
-  check('a lone ! stays in the title, it is not a priority', alone.title === 'Call mom !' && alone.goalId === null && alone.date === null, alone)
+  check(
+    'a lone ! stays in the title, it is not a priority',
+    alone.title === 'Call mom !' &&
+      alone.goalId === null &&
+      alone.date === null,
+    alone,
+  )
 
   const dated = parseQuickAdd('Dentist 25.10.2026 #work', { goals, today })
-  check('a written date d.m.yyyy schedules that day', dated.date === '2026-10-25' && dated.day === 'date' && dated.title === 'Dentist', dated)
+  check(
+    'a written date d.m.yyyy schedules that day',
+    dated.date === '2026-10-25' &&
+      dated.day === 'date' &&
+      dated.title === 'Dentist',
+    dated,
+  )
 
   const isoDate = parseQuickAdd('Renew passport 2027-01-05', { goals, today })
-  check('an ISO date is read', isoDate.date === '2027-01-05' && isoDate.title === 'Renew passport', isoDate)
+  check(
+    'an ISO date is read',
+    isoDate.date === '2027-01-05' && isoDate.title === 'Renew passport',
+    isoDate,
+  )
 
   const slashed = parseQuickAdd('Pay tax 5/11/26', { goals, today })
-  check('d/m/yy with a short year is read', slashed.date === '2026-11-05', slashed.date)
+  check(
+    'd/m/yy with a short year is read',
+    slashed.date === '2026-11-05',
+    slashed.date,
+  )
 
   const noYear = parseQuickAdd('Birthday 01.03', { goals, today })
-  check('a date without a year that has passed means next year', noYear.date === '2027-03-01', noYear.date)
+  check(
+    'a date without a year that has passed means next year',
+    noYear.date === '2027-03-01',
+    noYear.date,
+  )
 
   const noYearAhead = parseQuickAdd('Party 31.12', { goals, today })
-  check('a date without a year still ahead stays this year', noYearAhead.date === '2026-12-31', noYearAhead.date)
+  check(
+    'a date without a year still ahead stays this year',
+    noYearAhead.date === '2026-12-31',
+    noYearAhead.date,
+  )
 
   const impossible = parseQuickAdd('Odd 31.02.2026', { goals, today })
-  check('an impossible date stays in the title', impossible.date === null && impossible.title === 'Odd 31.02.2026', impossible)
+  check(
+    'an impossible date stays in the title',
+    impossible.date === null && impossible.title === 'Odd 31.02.2026',
+    impossible,
+  )
 
   const version = parseQuickAdd('Release v1.2 notes', { goals, today })
-  check('version numbers are not dates', version.date === null && version.title === 'Release v1.2 notes', version)
+  check(
+    'version numbers are not dates',
+    version.date === null && version.title === 'Release v1.2 notes',
+    version,
+  )
 
   const wrap = parseQuickAdd('ship it tomorrow', { goals, today: '2026-10-31' })
-  check('tomorrow crosses the month boundary', wrap.date === '2026-11-01', wrap.date)
+  check(
+    'tomorrow crosses the month boundary',
+    wrap.date === '2026-11-01',
+    wrap.date,
+  )
 
   const onlyProject = parseQuickAdd('  #work   ', { goals, today })
-  check('a line with only a project has no title to add', onlyProject.title === '' && onlyProject.goalId === 'g-work', onlyProject)
+  check(
+    'a line with only a project has no title to add',
+    onlyProject.title === '' && onlyProject.goalId === 'g-work',
+    onlyProject,
+  )
 
   const empty = parseQuickAdd('', { goals, today })
-  check('an empty line parses to nothing', empty.title === '' && empty.goalId === null && empty.date === null, empty)
+  check(
+    'an empty line parses to nothing',
+    empty.title === '' && empty.goalId === null && empty.date === null,
+    empty,
+  )
 
   const proto = parseQuickAdd('constructor', { goals, today })
-  check('plain words that name object properties stay plain', proto.title === 'constructor' && proto.date === null, proto)
+  check(
+    'plain words that name object properties stay plain',
+    proto.title === 'constructor' && proto.date === null,
+    proto,
+  )
 }
 
 async function main() {

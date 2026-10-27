@@ -2,9 +2,12 @@
 import { computed } from 'vue'
 import { APP_ICON_PATHS, type AppIconName } from './appIconPaths'
 
-const props = withDefaults(defineProps<{ name: AppIconName; size?: number }>(), {
-  size: 16,
-})
+const props = withDefaults(
+  defineProps<{ name: AppIconName; size?: number }>(),
+  {
+    size: 16,
+  },
+)
 
 const paths = computed<readonly string[]>(() => APP_ICON_PATHS[props.name])
 </script>

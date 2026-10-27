@@ -8,7 +8,10 @@ import {
   useTextareaFit,
 } from '../../../composables/useNotesDraft'
 import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { placePopover, type PopoverPosition } from '../composables/useNotesPopover'
+import {
+  placePopover,
+  type PopoverPosition,
+} from '../composables/useNotesPopover'
 
 const props = defineProps<{
   title: string
@@ -30,11 +33,7 @@ const root = useTemplateRef<HTMLElement>('root')
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea')
 const position = ref<PopoverPosition>({ left: 0, top: 0 })
 
-const {
-  draft,
-  commit,
-  revert,
-} = useNotesDraft(
+const { draft, commit, revert } = useNotesDraft(
   () => props.notes ?? '',
   (next) => emit('save', next),
 )
@@ -107,7 +106,11 @@ defineExpose({ commitAndClose })
       :class="{ 'notes-pop--sheet': isSheet }"
       role="dialog"
       aria-label="Notes"
-      :style="isSheet ? undefined : { left: `${position.left}px`, top: `${position.top}px` }"
+      :style="
+        isSheet
+          ? undefined
+          : { left: `${position.left}px`, top: `${position.top}px` }
+      "
       @keydown="onKeydown"
     >
       <header class="notes-pop__head">

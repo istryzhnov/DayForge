@@ -53,12 +53,7 @@ function handleStatus(row: ClientSummaryRow, event: Event) {
   if (!row.clientId) return
   const status = (event.target as HTMLSelectElement).value as PaymentStatus
   const existing = paymentOf(row)?.amount
-  emit(
-    'set-status',
-    row.clientId,
-    status,
-    existing ?? roundMoney(row.earned),
-  )
+  emit('set-status', row.clientId, status, existing ?? roundMoney(row.earned))
 }
 
 function handleAmount(row: ClientSummaryRow, event: Event) {
@@ -72,7 +67,11 @@ function handleAmount(row: ClientSummaryRow, event: Event) {
   }
 
   const value = Number(text)
-  if (!Number.isFinite(value) || value < 0 || value > CLIENT_LIMITS.AMOUNT_MAX) {
+  if (
+    !Number.isFinite(value) ||
+    value < 0 ||
+    value > CLIENT_LIMITS.AMOUNT_MAX
+  ) {
     input.value = String(paymentOf(row)?.amount ?? '')
     return
   }
@@ -104,7 +103,9 @@ function dateLabel(iso: string | undefined): string {
               v-if="row.hasFixedPrice || row.archived"
               class="analytics-project__badges"
             >
-              <span v-if="row.hasFixedPrice" class="analytics-badge">Fixed</span>
+              <span v-if="row.hasFixedPrice" class="analytics-badge"
+                >Fixed</span
+              >
               <span v-if="row.archived" class="analytics-badge">Archived</span>
             </span>
           </td>

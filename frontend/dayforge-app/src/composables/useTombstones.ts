@@ -37,11 +37,9 @@ function initialize() {
   // cannot grow without bound.
   tombstones.value = sweepTombstones(list, Date.now())
 
-  watch(
-    tombstones,
-    (value) => writeJson(TOMBSTONES_STORAGE_KEY, value),
-    { deep: true },
-  )
+  watch(tombstones, (value) => writeJson(TOMBSTONES_STORAGE_KEY, value), {
+    deep: true,
+  })
 }
 
 /**

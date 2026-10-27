@@ -25,9 +25,7 @@ const { settings } = useSettings()
 useFocusTrap({ onEscape: () => emit('close') })
 
 const currency = computed(() => settings.timer.currency)
-const trackedLabel = computed(
-  () => formatHoursMinutes(props.trackedMs),
-)
+const trackedLabel = computed(() => formatHoursMinutes(props.trackedMs))
 
 const draft = ref(draftFromBilling(props.goal.billing))
 const error = ref('')
@@ -74,8 +72,8 @@ function clear() {
           @input="error = ''"
         />
         <em>
-          All time shows this as the earnings. Shorter periods split it by
-          their share of tracked time.
+          All time shows this as the earnings. Shorter periods split it by their
+          share of tracked time.
         </em>
       </label>
 
@@ -90,9 +88,7 @@ function clear() {
           placeholder="Tracked time"
           @input="error = ''"
         />
-        <em>
-          Tracked so far: {{ trackedLabel }}. Used in All time only.
-        </em>
+        <em> Tracked so far: {{ trackedLabel }}. Used in All time only. </em>
       </label>
 
       <label class="project-billing__field">

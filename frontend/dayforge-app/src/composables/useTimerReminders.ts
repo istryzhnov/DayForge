@@ -207,7 +207,8 @@ function checkPlannedStart(tasks: DailyTask[], now: number) {
 
   const { quietHours, quietFrom, quietTo } =
     useSettings().settings.notifications
-  if (quietHours && isWithinQuietHours(new Date(now), quietFrom, quietTo)) return
+  if (quietHours && isWithinQuietHours(new Date(now), quietFrom, quietTo))
+    return
 
   const today = getTodayISODate()
   const task = pickPlannedStart(
@@ -253,10 +254,12 @@ function checkEndOfDay(tasks: DailyTask[], now: number) {
   if (stored.endOfDayNudgeDate === today) return
   if (useUndoToast().pending.value) return
 
-  const blocks = tasks
-    .filter((task) => task.date === today)
-    .map(blockFromTask)
-  const count = loggableBlocks(blocks, useTimeEntries().entries.value, now).length
+  const blocks = tasks.filter((task) => task.date === today).map(blockFromTask)
+  const count = loggableBlocks(
+    blocks,
+    useTimeEntries().entries.value,
+    now,
+  ).length
   if (count === 0) return
 
   stored = { ...stored, endOfDayNudgeDate: today }

@@ -23,7 +23,10 @@ import {
   habitWindowView,
 } from '../../../composables/analytics/habits'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { collectUpcoming, UPCOMING_WINDOW_DAYS } from '../../tasks/composables/useUpcomingTasks'
+import {
+  collectUpcoming,
+  UPCOMING_WINDOW_DAYS,
+} from '../../tasks/composables/useUpcomingTasks'
 import {
   habitWindowDays,
   monthTrackedMs,

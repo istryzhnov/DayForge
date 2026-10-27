@@ -93,9 +93,10 @@ export function usePlannedTasks(options: PlannedOptions) {
             isOverdue: !isDone && !isAnnual(template) && date < today,
             isToday: date === today,
             isAnnual: isAnnual(template),
-            repeatLabel: plannedRepeat && template.recurrence
-              ? describeRecurrence(template.recurrence)
-              : undefined,
+            repeatLabel:
+              plannedRepeat && template.recurrence
+                ? describeRecurrence(template.recurrence)
+                : undefined,
           },
         ]
       })
