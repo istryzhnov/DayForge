@@ -45,7 +45,7 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     actions.onReorderGoals(orderedIds)
   }
 
-  /** Touch has no drag for projects, so the menu moves one a step instead. */
+  /** Keyboard and assistive tech cannot drag, so the menu also moves one step. */
   function moveGoalFromMenu(step: -1 | 1) {
     const goal = contextMenuGoal.value
     closeGoalContextMenu()

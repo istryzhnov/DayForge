@@ -101,6 +101,15 @@ export const APP_ICON_PATHS = {
     'M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .5 2 1.5 3 2.5 3 0-3-1-5 0-8z',
   ],
   'file-text': ['M6 3h9l4 4v14H6z', 'M14 3v5h5M9 13h7M9 17h5'],
+  // Six dots in two columns: the drag handle on a reorderable project.
+  grip: [
+    'M9 6h.01',
+    'M15 6h.01',
+    'M9 12h.01',
+    'M15 12h.01',
+    'M9 18h.01',
+    'M15 18h.01',
+  ],
 } as const
 
 export type AppIconName = keyof typeof APP_ICON_PATHS

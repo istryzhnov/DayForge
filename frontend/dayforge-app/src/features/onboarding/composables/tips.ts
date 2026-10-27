@@ -28,6 +28,8 @@ export interface Tip {
   body: string
   /** Replaces body where the gesture differs, e.g. long-press on a phone. */
   touchBody?: string
+  /** A tip that only makes sense with a mouse and a wide screen, or only on a phone. */
+  only?: 'desktop' | 'mobile'
   action?: { label: string }
   when?: (facts: TipFacts) => boolean
 }
@@ -76,9 +78,9 @@ export const TIPS: readonly Tip[] = [
     anchor: 'sidebar-project',
     placement: 'right',
     title: 'Projects filter the list',
-    body: 'Pick a project to see only its tasks. Drag one to reorder.',
-    touchBody:
-      'Pick a project to see only its tasks. Long-press one to move it up or down.',
+    body: 'Pick a project to see only its tasks. Drag its grip to reorder.',
+    // On a phone the list sits in a closed drawer, so there is nothing to point at.
+    only: 'desktop',
     when: (facts) => facts.projectCount > 0,
   },
   {

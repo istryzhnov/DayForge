@@ -6,8 +6,18 @@ import {
   SHORTCUT_GROUPS,
   useHotkeyOverlay,
 } from '../../../composables/useHotkeys'
+import { useSettings } from '../../../composables/useSettings'
+import { useTips } from '../../onboarding/composables/useTips'
 
 const { closeOverlay } = useHotkeyOverlay()
+const { settings } = useSettings()
+const { resetTips } = useTips()
+
+/** Closes the panel too, so the first bubble has something to point at. */
+function showTipsAgain() {
+  resetTips()
+  closeOverlay()
+}
 
 const cardRef = useTemplateRef<HTMLElement>('cardRef')
 
@@ -27,7 +37,7 @@ onMounted(() => cardRef.value?.focus())
       class="quick-add-modal"
       role="dialog"
       aria-modal="true"
-      aria-label="Keyboard shortcuts"
+      aria-label="Help"
     >
       <div class="modal-overlay" @click="closeOverlay"></div>
       <div
@@ -37,7 +47,7 @@ onMounted(() => cardRef.value?.focus())
         @keydown="onKeydown"
       >
         <header class="shortcuts-card__head">
-          <h3>Keyboard shortcuts</h3>
+          <h3>Help</h3>
           <button
             class="event-details__close"
             type="button"
@@ -48,8 +58,27 @@ onMounted(() => cardRef.value?.focus())
           </button>
         </header>
 
+        <section class="shortcuts-group">
+          <p class="sidebar-caption">Tips</p>
+          <div class="shortcuts-row shortcuts-row--tips">
+            <span>Short notes that point at what each control does.</span>
+            <button class="btn btn-ghost" type="button" @click="showTipsAgain">
+              Show tips again
+            </button>
+          </div>
+        </section>
+
+        <p
+          v-if="!settings.behavior.keyboardShortcuts"
+          class="shortcuts-card__note"
+        >
+          Keyboard shortcuts are off. Turn them on in Settings, Behaviour.
+        </p>
+
         <section
-          v-for="group in SHORTCUT_GROUPS"
+          v-for="group in settings.behavior.keyboardShortcuts
+            ? SHORTCUT_GROUPS
+            : []"
           :key="group.title"
           class="shortcuts-group"
         >
@@ -65,7 +94,10 @@ onMounted(() => cardRef.value?.focus())
           </div>
         </section>
 
-        <section class="shortcuts-group">
+        <section
+          v-if="settings.behavior.keyboardShortcuts"
+          class="shortcuts-group"
+        >
           <p class="sidebar-caption">Quick add</p>
           <div
             v-for="row in QUICK_ADD_SYNTAX"
@@ -79,7 +111,10 @@ onMounted(() => cardRef.value?.focus())
           </div>
         </section>
 
-        <p class="shortcuts-card__note">
+        <p
+          v-if="settings.behavior.keyboardShortcuts"
+          class="shortcuts-card__note"
+        >
           Shortcuts stay quiet while you type in a field. Turn them off in
           Settings, Behaviour.
         </p>

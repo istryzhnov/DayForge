@@ -595,3 +595,9 @@
     border-radius: 0;
   }
 }
+
+/* The tips row holds a sentence and a button; on a narrow card they stack. */
+.shortcuts-row--tips {
+  flex-wrap: wrap;
+  color: var(--muted);
+}
