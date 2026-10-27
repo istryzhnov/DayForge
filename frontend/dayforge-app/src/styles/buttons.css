@@ -1,3 +1,9 @@
+/* A button holding only an icon: centre it as a grid, not on the text line. */
+.btn-icon {
+  display: inline-grid;
+  place-items: center;
+}
+
 .btn {
   border-radius: calc(11px * var(--radius-scale));
   border: 1px solid transparent;

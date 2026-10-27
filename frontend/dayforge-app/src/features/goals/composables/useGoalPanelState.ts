@@ -6,7 +6,6 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID, ISODate, Priority } from '../../../entities/types'
-import { useSettings } from '../../../composables/useSettings'
 import { useTaskTree } from '../../../composables/useTaskTree'
 import { useTheme } from '../../../composables/useTheme'
 import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
@@ -14,7 +13,22 @@ import {
   useProgressMetrics,
   type ProgressScope,
 } from '../../../composables/useProgressMetrics'
-import { PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
+import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { panelDateLabel } from '../../../composables/panelDateLabel'
+import {
+  fullDayStreak,
+  habitStreaks,
+  habitTemplatesOf,
+  habitWindowView,
+} from '../../../composables/analytics/habits'
+import { useTimeEntries } from '../../../composables/useTimeEntries'
+import { collectUpcoming, UPCOMING_WINDOW_DAYS } from '../../tasks/composables/useUpcomingTasks'
+import {
+  habitWindowDays,
+  monthTrackedMs,
+  type PanelStats,
+} from './projectPanelStats'
 
 type GoalPanelProps = {
   goal: Goal | null
@@ -79,27 +93,89 @@ export function useGoalPanelState(
     return { type: PROGRESS_SCOPE_TYPE.ALL }
   })
 
-  const { todayProgress, monthCells } = useProgressMetrics(
+  // "Today" is the real date, not the day the app is viewing.
+  const today = computed(() => getTodayISODate())
+
+  const { todayProgress } = useProgressMetrics(
     computed(() => props.dailyTasks),
-    computed(() => props.currentDate),
+    today,
     progressScope,
   )
 
-  const habitTitle = computed(() => {
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.MAJOR)
-      return 'Project habit'
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
-      return 'Goal habit'
-    return 'All tasks habit'
+  // --- header stats: today, streak and time this month -------------------
+
+  const { entries } = useTimeEntries()
+
+  const goalScopeId = computed<ID | null>(() =>
+    props.isAllMode || !props.goal ? null : props.goal.id,
+  )
+
+  // --- habits: the same numbers as Analytics, for this project -----------
+
+  const habitTemplates = computed(() => {
+    if (props.isAllMode || !props.goal) return props.templates
+    const goalId = props.goal.id
+    return props.templates.filter((template) => template.goalId === goalId)
   })
 
-  const habitSubtitle = computed(() => {
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.MAJOR)
-      return 'Progress for selected project'
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
-      return 'Progress for selected goal'
-    return 'Progress across all tasks'
+  /** Habits in scope; the Habits card is left out when there are none. */
+  const hasHabits = computed(
+    () => habitTemplatesOf(habitTemplates.value).length > 0,
+  )
+
+  const panelStats = computed<PanelStats>(() => ({
+    todayDone: todayProgress.value.done,
+    todayTotal: todayProgress.value.total,
+    streakDays: hasHabits.value
+      ? fullDayStreak({
+          templates: habitTemplates.value,
+          dailyTasks: props.dailyTasks,
+          today: today.value,
+        })
+      : null,
+    trackedMs: monthTrackedMs(entries.value, goalScopeId.value, new Date()),
+  }))
+
+  // --- upcoming: paused and archived projects do not fire their repeats ---
+
+  const upcomingDays = computed(() => {
+    const paused = new Set(
+      props.goals
+        .filter((goal) => goal.status !== GOAL_STATUS.ACTIVE)
+        .map((goal) => goal.id),
+    )
+    const isLive = (goalId: ID | undefined) => !goalId || !paused.has(goalId)
+
+    return collectUpcoming(
+      props.templates.filter((template) => isLive(template.goalId)),
+      props.dailyTasks.filter((row) => isLive(row.goalId)),
+      props.currentDate,
+      UPCOMING_WINDOW_DAYS,
+      goalScopeId.value,
+    )
   })
+
+  // The habit grid stretches over the whole row when Upcoming is absent.
+  const habitDays = computed(() =>
+    habitWindowDays(upcomingDays.value.length > 0),
+  )
+
+  const habitWindow = computed(() =>
+    habitWindowView({
+      templates: habitTemplates.value,
+      dailyTasks: props.dailyTasks,
+      days: habitDays.value,
+      today: today.value,
+    }),
+  )
+
+  const habitStreakByTemplate = computed(() =>
+    habitStreaks({
+      templates: habitTemplates.value,
+      dailyTasks: props.dailyTasks,
+      today: today.value,
+    }),
+  )
 
   function focusProject(dailyTaskId: ID | null) {
     selectedMajorDailyTaskId.value = dailyTaskId
@@ -145,18 +221,6 @@ export function useGoalPanelState(
     actions.onAddSubtask(parentTemplateId, title, priority, schedule)
   }
 
-  function submitQuickAdd(title: string, schedule?: TaskSchedule) {
-    if (props.isAllMode) {
-      actions.onCreateAllModeMinor(title, undefined, undefined, schedule)
-      return
-    }
-    actions.onAddTask(
-      title,
-      useSettings().settings.behavior.defaultPriority,
-      schedule,
-    )
-  }
-
   function toggleDone(dailyTaskId: ID) {
     actions.onToggleDone(dailyTaskId)
   }
@@ -177,18 +241,30 @@ export function useGoalPanelState(
     actions.onSetAsProject(templateId)
   }
 
+  /** The day being looked at, when it is not today; null on today. */
+  const viewedDayLabel = computed(() =>
+    props.currentDate === today.value
+      ? null
+      : panelDateLabel(props.currentDate, {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        }),
+  )
+
   return {
     ...taskTree,
-    todayProgress,
-    monthCells,
-    habitTitle,
-    habitSubtitle,
+    panelStats,
+    viewedDayLabel,
+    upcomingDays,
+    hasHabits,
+    habitWindow,
+    habitStreakByTemplate,
     focusProject,
     goalPanelStyle,
     submitTask,
     submitMinor,
     submitSubtask,
-    submitQuickAdd,
     toggleDone,
     editTask,
     editNotes,

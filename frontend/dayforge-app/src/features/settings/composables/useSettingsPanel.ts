@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import type { AppIconName } from '../../../components/appIconPaths'
 
 export const SETTINGS_SECTION = {
   THEME: 'theme',
@@ -28,7 +29,7 @@ export type SettingsGroup = (typeof SETTINGS_GROUP)[keyof typeof SETTINGS_GROUP]
 export interface SettingsSectionMeta {
   id: SettingsSection
   group: SettingsGroup
-  icon: string
+  icon: AppIconName
   label: string
   /** Shown under the title once the section is open. */
   description: string
@@ -38,77 +39,77 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
   {
     id: SETTINGS_SECTION.THEME,
     group: SETTINGS_GROUP.APPEARANCE,
-    icon: '🎨',
+    icon: 'palette',
     label: 'Theme',
     description: 'Ready-made looks, light or dark.',
   },
   {
     id: SETTINGS_SECTION.COLORS,
     group: SETTINGS_GROUP.APPEARANCE,
-    icon: '🎯',
+    icon: 'target',
     label: 'Colours',
     description: 'Every colour in the interface, with suggested companions.',
   },
   {
     id: SETTINGS_SECTION.PROJECT,
     group: SETTINGS_GROUP.APPEARANCE,
-    icon: '🏷️',
+    icon: 'tag',
     label: 'Project',
     description: 'Name, status, colours and rate of the project you have open.',
   },
   {
     id: SETTINGS_SECTION.WORKSPACE,
     group: SETTINGS_GROUP.APPEARANCE,
-    icon: '📐',
+    icon: 'ruler',
     label: 'Workspace',
     description: 'Shape, spacing, typeface and reading comfort.',
   },
   {
     id: SETTINGS_SECTION.REMINDERS,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '🔔',
+    icon: 'bell',
     label: 'Reminders',
     description: 'When and how a task announces itself.',
   },
   {
     id: SETTINGS_SECTION.CALENDAR,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '📅',
+    icon: 'calendar',
     label: 'Calendar',
     description: 'How the grid behaves and what a full day means.',
   },
   {
     id: SETTINGS_SECTION.TIMER,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '⏱️',
+    icon: 'timer',
     label: 'Timer',
     description: 'Pomodoro lengths, countdowns and what lands in history.',
   },
   {
     id: SETTINGS_SECTION.BEHAVIOR,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '⚡',
+    icon: 'zap',
     label: 'Behaviour',
     description: 'What the app does on its own.',
   },
   {
     id: SETTINGS_SECTION.CLIENTS,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '👥',
+    icon: 'users',
     label: 'Clients',
     description: 'Who you bill, and which projects go to them.',
   },
   {
     id: SETTINGS_SECTION.FORMAT,
     group: SETTINGS_GROUP.PLANNER,
-    icon: '🌍',
+    icon: 'globe',
     label: 'Dates and times',
     description: 'How dates and times are written.',
   },
   {
     id: SETTINGS_SECTION.DATA,
     group: SETTINGS_GROUP.DATA,
-    icon: '💾',
+    icon: 'save',
     label: 'Backup and data',
     description: 'Everything you have, in and out of a file.',
   },

@@ -16,6 +16,20 @@ import { migrateGoals } from '../../src/composables/goalSpace/goalMigration'
 import { NOTES_MAX_LENGTH, normalizeNotes } from '../../src/composables/goalSpace/notes'
 import { splitReadableEntries } from '../../src/composables/timer/entries'
 import {
+  fullDayStreak,
+  habitMonthView,
+  habitStats,
+  habitStreaks,
+  habitStripCells,
+  habitWindowView,
+} from '../../src/composables/analytics/habits'
+import {
+  habitWindowDays,
+  monthTrackedMs,
+} from '../../src/features/goals/composables/projectPanelStats'
+import type { RecurrenceRule } from '../../src/entities/RecurrenceEntity'
+import type { ISODate } from '../../src/entities/types'
+import {
   isKnownTimerStatus,
   sanitizeActiveTimer,
 } from '../../src/composables/timer/sanitize'
@@ -68,9 +82,11 @@ import { parseBackupFile } from '../../src/features/settings/composables/backupF
 import type { Goal } from '../../src/entities/GoalEntity'
 import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
 import { collectUpcoming } from '../../src/features/tasks/composables/useUpcomingTasks'
+import { dayHeadingLabel, doneCountsOf, groupByDay } from '../../src/features/tasks/composables/dayGroups'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove, type BoardColumn } from '../../src/features/board/composables/boardModel'
 import {
+  earnedPerHour,
   parseBillingDraft,
   projectFigures,
   sameBilling,
@@ -94,13 +110,21 @@ import {
   plannedMsByProject,
   planVsActual,
 } from '../../src/features/analytics/composables/planVsActual'
+import { mergeProjectProgress } from '../../src/features/analytics/composables/projectProgress'
 import {
+  amountPerDayNeeded,
   elapsedWorkingDays,
   incomeGoalStatus,
   sanitizeMonthlyIncome,
   workingDaysInMonth,
+  workingDaysLeft,
 } from '../../src/features/analytics/composables/incomeGoal'
 import { buildRateLookup } from '../../src/composables/timer/rates'
+import {
+  formatDayHeading,
+  formatEntryDuration,
+  formatHoursMinutes,
+} from '../../src/composables/timer/format'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
@@ -131,6 +155,13 @@ import {
 import { buildPrintHtml } from '../../src/features/analytics/composables/printReport'
 import { PAYMENT_STATUS, type Client, type PaymentRecord } from '../../src/entities/BillingEntity'
 import type { TimeEntry } from '../../src/entities/TimerEntity'
+import {
+  capitalizeFirst,
+  formatCalendarDayTitle,
+  formatCalendarMonthTitle,
+  formatCalendarWeekday,
+  formatCalendarWeekTitle,
+} from '../../src/features/calendar/composables/calendarTitles'
 
 let failures = 0
 let checks = 0
@@ -1347,9 +1378,11 @@ function verifyBudgetPlanIncome() {
     '2026-10-07',
   ).get('goal-a') === 7 * 90 * MIN)
 
-  check('this month plans the whole month', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-25', null), { from: '2026-10-01', to: '2026-10-31' }))
+  check('this month plans from the 1st up to today, not the month end', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-25', null), { from: '2026-10-01', to: '2026-10-25' }))
+  check('this month early on stops at today too', same(planBounds(ANALYTICS_PERIOD.THIS_MONTH, '2026-10-05', null), { from: '2026-10-01', to: '2026-10-05' }))
   check('last month plans the whole previous month', same(planBounds(ANALYTICS_PERIOD.LAST_MONTH, '2026-10-25', null), { from: '2026-09-01', to: '2026-09-30' }))
   check('this week runs Monday to Sunday', same(planBounds(ANALYTICS_PERIOD.THIS_WEEK, '2026-10-25', null), { from: '2026-10-19', to: '2026-10-25' }))
+  check('this week mid-week stops at today', same(planBounds(ANALYTICS_PERIOD.THIS_WEEK, '2026-10-21', null), { from: '2026-10-19', to: '2026-10-21' }))
   check('all time runs from the first day to today', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', '2026-08-03'), { from: '2026-08-03', to: '2026-10-25' }))
   check('all time with nothing recorded is today alone', same(planBounds(ANALYTICS_PERIOD.ALL, '2026-10-25', null), { from: '2026-10-25', to: '2026-10-25' }))
 
@@ -1381,6 +1414,30 @@ function verifyBudgetPlanIncome() {
     withUnplanned.total.plannedMs === 3300 * MIN && withUnplanned.total.actualMs === 3330 * MIN && withUnplanned.total.state === 'over',
   )
 
+  const tiny = planVsActual(
+    new Map([['goal-a', 3300 * MIN]]),
+    [
+      { goalId: 'goal-a', title: 'Work', totalMs: 3300 * MIN, taskCount: 2 },
+      { title: 'Without a project', totalMs: 30 * 1000, taskCount: 1 },
+    ],
+    [goalA],
+  )
+  check('a sub-minute project with no plan is not listed', !tiny.rows.some((row) => row.key === NO_PROJECT_KEY))
+  check('a sub-minute project still counts in the overall line', tiny.total.actualMs === 3300 * MIN + 30 * 1000)
+  const plannedTiny = planVsActual(
+    new Map([['goal-a', 60 * MIN]]),
+    [{ goalId: 'goal-a', title: 'Work', totalMs: 30 * 1000, taskCount: 1 }],
+    [goalA],
+  )
+  check('a sub-minute project that has a plan stays listed', plannedTiny.rows.some((row) => row.key === 'goal-a'))
+
+  check('formatHoursMinutes: nothing, or under a minute, reads 0 m', formatHoursMinutes(0) === '0 m' && formatHoursMinutes(59 * 1000) === '0 m')
+  check('formatHoursMinutes: under an hour shows minutes only', formatHoursMinutes(45 * MIN) === '45 m')
+  check('formatHoursMinutes: a whole hour drops the minutes', formatHoursMinutes(60 * MIN) === '1 h')
+  check('formatHoursMinutes: hours and minutes', formatHoursMinutes(12.5 * HOUR) === '12 h 30 m')
+  check('formatHoursMinutes: 89.99 minutes rounds to 1 h 30 m', formatHoursMinutes(89.99 * MIN) === '1 h 30 m')
+  check('formatHoursMinutes: 59.6 minutes carries into the hour', formatHoursMinutes(59.6 * MIN) === '1 h')
+
   check('working days in October 2026 are Monday to Friday', workingDaysInMonth(now) === 22)
   check('17 working days have passed by 25 October', elapsedWorkingDays(now) === 17)
 
@@ -1402,6 +1459,21 @@ function verifyBudgetPlanIncome() {
       sanitizeMonthlyIncome(Number.NaN) === undefined &&
       sanitizeMonthlyIncome(10_000_001) === undefined,
   )
+}
+
+function verifyTimerHistoryLabels() {
+  section('Timer history: entry durations and day headings')
+
+  const MINUTE = 60 * 1000
+  check('formatEntryDuration: under a minute reads <1 m, not seconds', formatEntryDuration(45 * 1000) === '<1 m')
+  check('formatEntryDuration: one millisecond still reads <1 m', formatEntryDuration(1) === '<1 m')
+  check('formatEntryDuration: nothing recorded reads 0 m', formatEntryDuration(0) === '0 m')
+  check('formatEntryDuration: a minute and up uses the hours and minutes total', formatEntryDuration(MINUTE) === '1 m')
+  check('formatEntryDuration: 2 h 5 m', formatEntryDuration(125 * MINUTE) === '2 h 5 m')
+
+  // Local-time dates, as the history groups them.
+  check('formatDayHeading: weekday, day and month in English', formatDayHeading(new Date(2026, 9, 25), 'en-GB') === 'Sunday, 25 October')
+  check('formatDayHeading: a single-digit day has no leading zero', formatDayHeading(new Date(2026, 8, 3), 'en-GB') === 'Thursday, 3 September')
 }
 
 function timeEntry(
@@ -1871,6 +1943,474 @@ function verifyPushReminderParity() {
   check('a long run never pushes when switched off', longRunOff.length === 0)
 }
 
+function verifyHabitUnification() {
+  section('Habits: one set of numbers for Analytics and the project panel')
+
+  const TODAY = '2026-10-10' as ISODate
+  const OCT = '2026-10-01' as ISODate
+  const END = '2026-10-31' as ISODate
+
+  function isoRange(from: string, to: string): string[] {
+    const dates: string[] = []
+    const cursor = new Date(`${from}T00:00:00Z`)
+    const last = new Date(`${to}T00:00:00Z`)
+    while (cursor <= last) {
+      dates.push(cursor.toISOString().slice(0, 10))
+      cursor.setUTCDate(cursor.getUTCDate() + 1)
+    }
+    return dates
+  }
+
+  function rule(
+    type: RecurrenceRule['type'],
+    startDate: string,
+    extra: Partial<RecurrenceRule> = {},
+  ): RecurrenceRule {
+    return { type, startDate: startDate as ISODate, ...extra }
+  }
+
+  function habit(
+    id: string,
+    recurrence: RecurrenceRule | undefined,
+    overrides: Record<string, unknown> = {},
+  ): TaskTemplate {
+    return {
+      id,
+      title: id,
+      priority: 'minor',
+      order: 0,
+      tagIds: [],
+      isActive: true,
+      recurrence,
+      createdAt: T0,
+      updatedAt: T0,
+      ...overrides,
+    } as TaskTemplate
+  }
+
+  function doneRows(
+    templateId: string,
+    dates: string[],
+    overrides: Record<string, unknown> = {},
+  ): DailyTask[] {
+    return dates.map(
+      (date) =>
+        ({
+          id: `${templateId}::${date}`,
+          date,
+          templateId,
+          title: templateId,
+          priority: 'minor',
+          tagIds: [],
+          status: 'done',
+          createdAt: T0,
+          updatedAt: T0,
+          ...overrides,
+        }) as DailyTask,
+    )
+  }
+
+  const total = (values: number[]) => values.reduce((sum, value) => sum + value, 0)
+
+  const read = habit('read', rule(RECURRENCE_TYPE.DAILY, '2026-10-01'), { goalId: 'goal-a' })
+
+  // A daily habit with no rows at all: every past day is still missed.
+  const bare = habitMonthView({ templates: [read], dailyTasks: [], month: OCT, today: TODAY })
+  const bareCells = bare.rows[0].cells.map((cell) => cell.state)
+  check(
+    'a past day with no rows is missed; today pending; later days upcoming',
+    bareCells[8] === 'missed' && bareCells[9] === 'pending' && bareCells[10] === 'upcoming',
+    bareCells.slice(0, 11),
+  )
+  check(
+    'expected counts due days up to today only (10, not 31)',
+    bare.expected === 10 && bare.completed === 0 && bare.fullDays === 0 && bare.currentStreak === 0,
+    bare,
+  )
+
+  // Done through yesterday, today still open.
+  const toYesterday = doneRows('read', isoRange('2026-10-01', '2026-10-09'))
+  const open = habitMonthView({ templates: [read], dailyTasks: toYesterday, month: OCT, today: TODAY })
+  check(
+    'a pending today does not break the streak or count as missed',
+    open.currentStreak === 9 && open.rows[0].cells[9].state === 'pending',
+    open,
+  )
+  check('pending today is not yet a full day', open.fullDays === 9 && open.trackedDays === 10, open)
+
+  // One missed past day ends the run, even with nothing stored for it.
+  const broken = habitMonthView({
+    templates: [read],
+    dailyTasks: toYesterday.filter((row) => row.date !== '2026-10-05'),
+    month: OCT,
+    today: TODAY,
+  })
+  check('a missed past day ends the streak', broken.currentStreak === 4, broken.currentStreak)
+
+  // Weekly on Mon, Wed, Fri: Sat and Sun are off days and must not break anything.
+  const gym = habit('gym', rule(RECURRENCE_TYPE.WEEKLY, '2026-10-01', { daysOfWeek: [1, 3, 5] }))
+  const gymDone = doneRows('gym', ['2026-10-02', '2026-10-05', '2026-10-07', '2026-10-09'])
+  const gymView = habitMonthView({ templates: [gym], dailyTasks: gymDone, month: OCT, today: TODAY })
+  check(
+    'off days are skipped: they neither break nor extend the streak',
+    gymView.currentStreak === 4 && gymView.fullDays === 4 && gymView.expected === 4,
+    gymView,
+  )
+  check('an off day shows as off', gymView.rows[0].cells[0].state === 'off')
+
+  // A run that starts in September and carries through October.
+  const stretch = habit('stretch', rule(RECURRENCE_TYPE.DAILY, '2026-09-27'))
+  const stretchDone = doneRows('stretch', isoRange('2026-09-27', '2026-10-09'))
+  const october = habitMonthView({ templates: [stretch], dailyTasks: stretchDone, month: OCT, today: TODAY })
+  const september = habitMonthView({
+    templates: [stretch],
+    dailyTasks: stretchDone,
+    month: '2026-09-01' as ISODate,
+    today: TODAY,
+  })
+  check(
+    'the day streak crosses the month end (13 days) in both months',
+    october.currentStreak === 13 &&
+      september.currentStreak === 13 &&
+      fullDayStreak({ templates: [stretch], dailyTasks: stretchDone, today: TODAY }) === 13,
+    [october.currentStreak, september.currentStreak],
+  )
+  check(
+    'full days are still counted per month',
+    october.fullDays === 9 && september.fullDays === 4,
+    [october.fullDays, september.fullDays],
+  )
+
+  // Deleted, paused and one-off tasks never count; a deleted done row is not a done day.
+  const gone = habit('old', rule(RECURRENCE_TYPE.DAILY, '2026-10-01'), { deletedAt: T1 })
+  const paused = habit('paused', rule(RECURRENCE_TYPE.DAILY, '2026-10-01'), { isActive: false })
+  const oneOff = habit('one-off', rule(RECURRENCE_TYPE.NONE, '2026-10-01'))
+  const withoutSixth = toYesterday.filter((row) => row.date !== '2026-10-06')
+  const messy = [
+    ...withoutSixth,
+    ...doneRows('old', ['2026-10-01']),
+    ...doneRows('paused', ['2026-10-02']),
+    ...doneRows('one-off', ['2026-10-03']),
+    ...doneRows('read', ['2026-10-06'], { deletedAt: T1 }),
+  ]
+  const templates = [read, gone, paused, oneOff]
+  const messyView = habitMonthView({ templates, dailyTasks: messy, month: OCT, today: TODAY })
+  check(
+    'deleted, paused and one-off templates are ignored',
+    messyView.rows.map((row) => row.templateId).join() === 'read',
+    messyView.rows.map((row) => row.templateId),
+  )
+  check(
+    'a deleted done row does not tick its day',
+    messyView.rows[0].cells[5].state === 'missed' && messyView.currentStreak === 3,
+    messyView.rows[0].cells[5],
+  )
+  check(
+    'Analytics table ignores the same templates',
+    habitStats({ templates, dailyTasks: messy, from: OCT, to: END, today: TODAY })
+      .map((stat) => stat.templateId)
+      .join() === 'read',
+  )
+
+  // Analytics and the project panel share one function; numbers must agree.
+  const goalB = habit('gym', rule(RECURRENCE_TYPE.WEEKLY, '2026-10-01', { daysOfWeek: [1, 3, 5] }), {
+    goalId: 'goal-b',
+  })
+  const allRows = [...toYesterday, ...gymDone, ...doneRows('stretch', ['2026-10-03'])]
+  const everyone = [read, goalB, stretch]
+  const analytics = habitStats({ templates: everyone, dailyTasks: allRows, from: OCT, to: END, today: TODAY })
+  const monthView = habitMonthView({ templates: everyone, dailyTasks: allRows, month: OCT, today: TODAY })
+  check(
+    'Analytics totals equal the month view totals',
+    total(analytics.map((stat) => stat.expected)) === monthView.expected &&
+      total(analytics.map((stat) => stat.completed)) === monthView.completed,
+    { analytics, monthView: [monthView.expected, monthView.completed] },
+  )
+  check(
+    'per-habit due and done counts match row by row',
+    analytics.every((stat) => {
+      const row = monthView.rows.find((item) => item.templateId === stat.templateId)
+      return row !== undefined && row.expected === stat.expected && row.completed === stat.completed
+    }),
+  )
+
+  const projectTemplates = everyone.filter((template) => template.goalId === 'goal-a')
+  const projectView = habitMonthView({ templates: projectTemplates, dailyTasks: allRows, month: OCT, today: TODAY })
+  const projectStats = habitStats({ templates: projectTemplates, dailyTasks: allRows, from: OCT, to: END, today: TODAY })
+  check(
+    'project panel numbers equal Analytics scoped to that project',
+    projectView.expected === total(projectStats.map((stat) => stat.expected)) &&
+      projectView.completed === total(projectStats.map((stat) => stat.completed)) &&
+      projectView.expected === 10 &&
+      projectView.completed === 9,
+    projectView,
+  )
+  check(
+    'a project with no habits has no numbers',
+    habitMonthView({ templates: [], dailyTasks: allRows, month: OCT, today: TODAY }).currentStreak === 0,
+  )
+}
+
+function verifyProjectProgress() {
+  section('Time tab: one project list merges tracked time with plans')
+
+  const HOUR = 60 * 60 * 1000
+  const goals = [
+    { id: 'goal-b', title: 'Beta' },
+  ] as Goal[]
+  const planned = new Map<string, number>([
+    ['goal-a', 4 * HOUR],
+    ['goal-b', 2 * HOUR],
+    ['goal-c', 1 * HOUR],
+  ])
+  const actual: ProjectTotal[] = [
+    { goalId: 'goal-a', title: 'Alpha', totalMs: 5 * HOUR, taskCount: 2 },
+  ]
+  const plans = planVsActual(planned, actual, goals).rows
+
+  const merged = mergeProjectProgress(
+    [
+      { key: 'goal-a', goalId: 'goal-a', title: 'Alpha', color: '#123456', taskCount: 2, trackedMs: 5 * HOUR },
+      { key: 'goal-d', goalId: 'goal-d', title: 'Gamma', taskCount: 1, trackedMs: HOUR },
+    ],
+    plans,
+  )
+  const byKey = new Map(merged.map((row) => [row.key, row]))
+
+  check(
+    'a planned project keeps its plan and a diff against tracked time',
+    byKey.get('goal-a')?.plannedMs === 4 * HOUR &&
+      byKey.get('goal-a')?.planned === true &&
+      byKey.get('goal-a')?.diffMs === HOUR &&
+      byKey.get('goal-a')?.taskCount === 2,
+    merged,
+  )
+  check(
+    'a planned project with no time still shows, with an empty fill',
+    byKey.get('goal-b')?.title === 'Beta' &&
+      byKey.get('goal-b')?.trackedMs === 0 &&
+      byKey.get('goal-b')?.fill === 0 &&
+      byKey.get('goal-b')?.diffMs === -2 * HOUR,
+    merged,
+  )
+  check(
+    'a plan for a project no longer listed still shows, under its stored title',
+    byKey.get('goal-c')?.title === 'Deleted project' && byKey.get('goal-c')?.plannedMs === HOUR,
+    merged,
+  )
+  check(
+    'an unplanned project is neutral: no plan, no diff, full bar',
+    byKey.get('goal-d')?.planned === false &&
+      byKey.get('goal-d')?.diffMs === null &&
+      byKey.get('goal-d')?.fill === 1,
+    merged,
+  )
+  check(
+    'the bar fills to the share of the plan and never past full',
+    byKey.get('goal-a')?.fill === 1 &&
+      mergeProjectProgress(
+        [{ key: 'goal-a', title: 'Alpha', taskCount: 1, trackedMs: HOUR }],
+        plans,
+      )[0].fill === 0.25,
+  )
+  check(
+    'the list is ordered by the larger of tracked and planned time',
+    merged[0].key === 'goal-a' && merged[1].key === 'goal-b' && merged.length === 4,
+    merged.map((row) => row.key),
+  )
+}
+
+function verifyProjectPanelStats() {
+  section('Project panel: habit window, streaks and time this month')
+
+  const TODAY = '2026-10-10' as ISODate
+  const daily = (id: string, goalId?: string) =>
+    ({
+      id,
+      title: id,
+      priority: 'minor',
+      order: 0,
+      tagIds: [],
+      isActive: true,
+      goalId,
+      recurrence: { type: RECURRENCE_TYPE.DAILY, startDate: '2026-10-01' },
+      createdAt: T0,
+      updatedAt: T0,
+    }) as unknown as TaskTemplate
+  const doneOn = (templateId: string, dates: string[]) =>
+    dates.map(
+      (date) =>
+        ({
+          id: `${templateId}::${date}`,
+          date,
+          templateId,
+          title: templateId,
+          priority: 'minor',
+          tagIds: [],
+          status: 'done',
+          createdAt: T0,
+          updatedAt: T0,
+        }) as unknown as DailyTask,
+    )
+
+  check(
+    'the habit grid is 14 days beside Upcoming and 28 days when it stands alone',
+    habitWindowDays(true) === 14 && habitWindowDays(false) === 28,
+  )
+
+  const HOUR_MS = 60 * 60 * 1000
+  const sitting = (goalId: string, startedAt: string, minutes: number) =>
+    ({
+      id: `${goalId}-${startedAt}`,
+      sessionId: 's',
+      startedAt,
+      endedAt: new Date(Date.parse(startedAt) + minutes * 60 * 1000).toISOString(),
+      mode: 'stopwatch',
+      source: 'timer',
+      goalId,
+    }) as unknown as TimeEntry
+  const entries = [
+    sitting('goal-a', '2026-10-02T09:00:00.000Z', 90),
+    sitting('goal-b', '2026-10-03T09:00:00.000Z', 60),
+    sitting('goal-a', '2026-09-20T09:00:00.000Z', 120),
+  ]
+  const now = new Date(Date.UTC(2026, 9, 10, 12))
+  check(
+    'time this month counts only the project asked for, and only this month',
+    monthTrackedMs(entries, 'goal-a', now) === 1.5 * HOUR_MS &&
+      monthTrackedMs(entries, null, now) === 2.5 * HOUR_MS,
+    [monthTrackedMs(entries, 'goal-a', now), monthTrackedMs(entries, null, now)],
+  )
+
+  const reading = daily('read', 'goal-a')
+  const stretch = daily('stretch', 'goal-a')
+  const rows = [
+    ...doneOn('read', ['2026-10-08', '2026-10-09', TODAY]),
+    ...doneOn('stretch', ['2026-10-08', '2026-10-09']),
+  ]
+
+  const window14 = habitWindowView({
+    templates: [reading],
+    dailyTasks: rows,
+    days: 14,
+    today: TODAY,
+  })
+  check(
+    'the window is the last 14 days ending today, with today as the final cell',
+    window14.dayTotals.length === 14 &&
+      window14.dayTotals[0].date === '2026-09-27' &&
+      window14.dayTotals[13].date === TODAY &&
+      window14.rows[0].cells[13].state === 'done',
+    window14.dayTotals.map((day) => day.date),
+  )
+  check(
+    'a 28-day window reaches back four weeks from today',
+    habitWindowView({ templates: [reading], dailyTasks: rows, days: 28, today: TODAY })
+      .dayTotals[0].date === '2026-09-13',
+  )
+
+  const streaks = habitStreaks({
+    templates: [reading, stretch],
+    dailyTasks: rows,
+    today: TODAY,
+  })
+  check(
+    'a habit streak counts back from the last day, and an open today neither breaks nor extends it',
+    streaks.get('read') === 3 && streaks.get('stretch') === 2,
+    [...streaks],
+  )
+}
+
+function verifyMoneyTab() {
+  section('Money tab: the goal per remaining day and earnings per hour')
+
+  const HOUR = 60 * 60 * 1000
+
+  check(
+    'working days left count from today through month end',
+    workingDaysLeft(new Date(2026, 9, 27)) === 4 &&
+      workingDaysLeft(new Date(2026, 9, 30)) === 1 &&
+      workingDaysLeft(new Date(2026, 9, 31)) === 0,
+  )
+  check(
+    'the amount per remaining day is the gap spread over the days left',
+    amountPerDayNeeded(3000, 1240, 4) === 440,
+  )
+  check(
+    'no amount per day once the goal is met or no working day is left',
+    amountPerDayNeeded(1000, 1000, 5) === null && amountPerDayNeeded(1000, 500, 0) === null,
+  )
+  check(
+    'earned per hour is null without hours, and divides by tracked hours otherwise',
+    earnedPerHour(1200, 2 * HOUR) === 600 && earnedPerHour(100, 0) === null,
+  )
+}
+
+function verifyCalendarTitles() {
+  section('Calendar titles: one locale, normal capitalisation')
+
+  check(
+    'the day title is a plain sentence with English names',
+    formatCalendarDayTitle('2026-10-27', 'en-GB') === 'Tuesday 27 October',
+    formatCalendarDayTitle('2026-10-27', 'en-GB'),
+  )
+  check(
+    'the month title names the month and year',
+    formatCalendarMonthTitle('2026-10-01', 'en-GB') === 'October 2026',
+    formatCalendarMonthTitle('2026-10-01', 'en-GB'),
+  )
+  check(
+    'a week across two months names both months',
+    formatCalendarWeekTitle('2026-10-26', 'en-GB') === '26 Oct – 1 Nov 2026',
+    formatCalendarWeekTitle('2026-10-26', 'en-GB'),
+  )
+  check(
+    'weekday headers use the short English name',
+    formatCalendarWeekday('2026-10-27', 'en-GB') === 'Tue',
+  )
+  check(
+    'capitalizeFirst leaves empty text and other letters alone',
+    capitalizeFirst('') === '' && capitalizeFirst('october') === 'October',
+  )
+}
+
+function verifyDayLists() {
+  section('Day lists: grouping, headings and done counts')
+
+  const rows = [
+    { id: 'a', date: '2026-10-27' },
+    { id: 'b', date: '2026-10-27' },
+    { id: 'c', date: '2026-10-26' },
+    { id: 'd', date: '2026-10-27' },
+  ]
+  const groups = groupByDay(rows)
+  check('groupByDay: neighbours on one date share a group', groups.length === 3 && groups[0].items.length === 2)
+  check('groupByDay: a date that comes back starts a new group, order kept', same(groups.map((group) => group.items.map((row) => row.id)), [['a', 'b'], ['c'], ['d']]))
+  check('groupByDay: no rows, no groups', groupByDay([]).length === 0)
+
+  check('dayHeadingLabel: weekday and day-month in English', dayHeadingLabel('2026-10-27', 'en-GB') === 'Tuesday, 27 October')
+  check('dayHeadingLabel: a single-digit day has no leading zero', dayHeadingLabel('2026-09-03', 'en-GB') === 'Thursday, 3 September')
+  check('dayHeadingLabel: names follow the chosen language, capital first', dayHeadingLabel('2026-10-27', 'uk-UA') === 'Вівторок, 27 жовтня')
+
+  // 25 Oct 2026 is a Sunday; with weeks starting Monday it sits in the week before.
+  const dates = ['2026-10-01', '2026-10-25', '2026-10-26', '2026-10-31', '2026-11-01']
+  check('doneCountsOf: Monday-start week and month around today', same(doneCountsOf(dates, '2026-10-27', 1), { thisWeek: 3, thisMonth: 4 }))
+  check('doneCountsOf: a Sunday does not count in a Monday-start week', doneCountsOf(['2026-10-25'], '2026-10-27', 1).thisWeek === 0)
+  check('doneCountsOf: a Sunday counts in a Sunday-start week', doneCountsOf(['2026-10-25'], '2026-10-27', 0).thisWeek === 1)
+  check('doneCountsOf: the week ends before the next Sunday', doneCountsOf(['2026-11-01'], '2026-10-27', 0).thisWeek === 0)
+  check('doneCountsOf: nothing done, zero counts', same(doneCountsOf([], '2026-10-27', 1), { thisWeek: 0, thisMonth: 0 }))
+}
+
+function verifyHabitStrip() {
+  section('Habit strip: squares run up to today, in order')
+
+  const cells = ['2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29'].map((date) => ({ date, state: 'off' as const }))
+  check('habitStripCells: a month in progress stops at today', same(habitStripCells(cells, '2026-10-27').map((cell) => cell.date), ['2026-10-26', '2026-10-27']))
+  check('habitStripCells: today is kept as the last square', habitStripCells(cells, '2026-10-27').at(-1)?.date === '2026-10-27')
+  check('habitStripCells: a past month keeps every day', habitStripCells(cells, '2026-12-01').length === 4)
+  check('habitStripCells: no square before the month, nothing left', habitStripCells(cells, '2026-10-25').length === 0)
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -1889,6 +2429,14 @@ function main() {
   verifyBackupFixture()
   verifyNewerBackup()
   verifyTaskNotes()
+  verifyHabitUnification()
+  verifyProjectProgress()
+  verifyProjectPanelStats()
+  verifyMoneyTab()
+  verifyTimerHistoryLabels()
+  verifyCalendarTitles()
+  verifyDayLists()
+  verifyHabitStrip()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

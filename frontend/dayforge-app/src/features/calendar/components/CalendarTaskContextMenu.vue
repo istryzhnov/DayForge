@@ -9,12 +9,15 @@ const props = defineProps<{
   isTimerActive: boolean
   /** A finished, scheduled block with no time logged over it yet. */
   canLogPlanned?: boolean
+  /** Placed on the grid, so it can go back to the unscheduled list. */
+  canUnschedule?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'toggle-check'): void
   (e: 'toggle-timer'): void
   (e: 'log-planned'): void
+  (e: 'unschedule'): void
   (e: 'close'): void
 }>()
 
@@ -62,6 +65,19 @@ const { menuPositionStyle } = useContextMenu({
       "
     >
       Log as planned
+    </button>
+    <button
+      v-if="canUnschedule"
+      class="task-context-menu__item"
+      type="button"
+      @click="
+        () => {
+          emit('unschedule')
+          emit('close')
+        }
+      "
+    >
+      Unschedule
     </button>
   </div>
 </template>

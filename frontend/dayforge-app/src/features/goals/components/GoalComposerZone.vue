@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import type { Goal } from '../../../entities/GoalEntity'
 import type { ID, Priority } from '../../../entities/types'
 import type {
   MajorTaskOption,
   TaskSchedule,
 } from '../../../entities/TaskEntity'
-import type { Goal } from '../../../entities/GoalEntity'
 import TaskComposer from '../../tasks/components/TaskComposer.vue'
-import AllModeMinorComposer from '../../tasks/components/AllModeMinorComposer.vue'
 import { useSettings } from '../../../composables/useSettings'
+import { projectColors } from '../../../composables/theme/goalTheme'
+import ProjectPicker, { type PickerOption } from './ProjectPicker.vue'
 
-defineProps<{
+const props = defineProps<{
   isAllMode: boolean
   goals: Goal[]
   majorTaskOptions: MajorTaskOption[]
@@ -35,63 +36,56 @@ const emit = defineEmits<{
   ): void
 }>()
 
-const showComposer = ref(false)
+/**
+ * All Tasks target: '' keeps the task unassigned, 'goal:<id>' files it under a
+ * goal, 'major:<id>' under a project. Like the old form, the last choice stays
+ * after a submit and nothing is required.
+ */
+const target = ref('')
 
-function toggleComposer() {
-  showComposer.value = !showComposer.value
+const colorByGoal = computed(() => projectColors(props.goals))
+
+const targetOptions = computed<PickerOption[]>(() => [
+  { value: '', label: 'No project', group: 'none' },
+  ...props.goals.map((goal) => ({
+    value: `goal:${goal.id}`,
+    label: goal.title,
+    color: colorByGoal.value.get(goal.id),
+    group: 'goal' as const,
+  })),
+  ...props.majorTaskOptions.map((option) => ({
+    value: `major:${option.id}`,
+    label: option.title,
+    hint: option.goalTitle,
+    color: option.goalId ? colorByGoal.value.get(option.goalId) : undefined,
+    group: 'major' as const,
+  })),
+])
+
+function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
+  if (!props.isAllMode) {
+    emit('add-task', title, priority, schedule)
+    return
+  }
+
+  const [kind, id] = target.value.split(/:(.*)/)
+  if (kind === 'goal') {
+    emit('create-all-mode-minor', title, id, undefined, schedule)
+    return
+  }
+  if (kind === 'major') {
+    const option = props.majorTaskOptions.find((item) => item.id === id)
+    emit('create-all-mode-minor', title, option?.goalId, id, schedule)
+    return
+  }
+  emit('create-all-mode-minor', title, undefined, undefined, schedule)
 }
 </script>
 
 <template>
-  <TaskComposer
-    v-if="!isAllMode"
-    :is-all-mode="isAllMode"
-    @submit="
-      (title: string, priority: Priority, schedule?: TaskSchedule) =>
-        emit('add-task', title, priority, schedule)
-    "
-  />
-
-  <template v-else>
-    <button
-      v-if="!showComposer"
-      class="btn btn-ghost composer-toggle-btn"
-      type="button"
-      @click="toggleComposer"
-    >
-      + Add task
-      <kbd
-        v-if="keyboardShortcuts"
-        class="kbd-badge composer-toggle-btn__key"
-        title="Quick add from anywhere (N)"
-        aria-hidden="true"
-        >N</kbd
-      >
-    </button>
-
-    <div v-else class="composer-collapsible">
-      <AllModeMinorComposer
-        :goals="goals"
-        :major-task-options="majorTaskOptions"
-        @create-minor="
-          (
-            title: string,
-            goalId: ID | undefined,
-            majorId: ID | undefined,
-            schedule?: TaskSchedule,
-          ) => {
-            emit('create-all-mode-minor', title, goalId, majorId, schedule)
-            showComposer = false
-          }
-        "
-      />
-      <button
-        class="btn btn-ghost composer-collapsible__close"
-        type="button"
-        @click="toggleComposer"
-      >
-        Cancel
-      </button>
-    </div>
-  </template>
+  <TaskComposer :shortcut="isAllMode && keyboardShortcuts" @submit="onSubmit">
+    <template v-if="isAllMode" #target>
+      <ProjectPicker v-model="target" :options="targetOptions" />
+    </template>
+  </TaskComposer>
 </template>

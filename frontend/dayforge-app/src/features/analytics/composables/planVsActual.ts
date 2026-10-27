@@ -118,9 +118,10 @@ export function plannedMsByProject(
 }
 
 /**
- * The dates a plan covers for a period. A month or week is planned in full,
- * future days included. All time has no end of its own, so it runs from the
- * first recorded or planned day up to today.
+ * The dates a plan covers for a period. The current week or month runs up to
+ * today, so days still ahead are not counted yet. Last month is planned in
+ * full. All time has no end of its own, so it runs from the first recorded or
+ * planned day up to today.
  */
 export function planBounds(
   period: AnalyticsPeriod,
@@ -130,10 +131,8 @@ export function planBounds(
   const monthStart = startOfMonthISODate(today)
 
   if (period === ANALYTICS_PERIOD.THIS_MONTH) {
-    return {
-      from: monthStart,
-      to: addDaysToISODate(addMonthsToISODate(monthStart, 1), -1),
-    }
+    const monthEnd = addDaysToISODate(addMonthsToISODate(monthStart, 1), -1)
+    return { from: monthStart, to: today < monthEnd ? today : monthEnd }
   }
 
   if (period === ANALYTICS_PERIOD.LAST_MONTH) {
@@ -147,7 +146,8 @@ export function planBounds(
     // Monday-first, matching the Analytics week.
     const mondayOffset = (weekdayOfISODate(today) + 6) % 7
     const monday = addDaysToISODate(today, -mondayOffset)
-    return { from: monday, to: addDaysToISODate(monday, 6) }
+    const sunday = addDaysToISODate(monday, 6)
+    return { from: monday, to: today < sunday ? today : sunday }
   }
 
   const start = earliest !== null && earliest < today ? earliest : today
@@ -222,7 +222,8 @@ function rowFor(
 
 /**
  * Plan against actual per project. Rows with neither planned nor tracked time
- * are left out. The total's percent compares the two overall sums.
+ * are left out, and so are unplanned rows under a minute, which only add noise.
+ * The total's percent compares the two overall sums, over every row.
  */
 export function planVsActual(
   planned: Map<string, number>,
@@ -235,7 +236,7 @@ export function planVsActual(
   const goalById = new Map(goals.map((goal) => [goal.id, goal]))
 
   const keys = new Set<string>([...planned.keys(), ...actualByKey.keys()])
-  const rows = [...keys]
+  const allRows = [...keys]
     .map((key) => {
       const plannedMs = planned.get(key) ?? 0
       const found = actualByKey.get(key)
@@ -250,15 +251,19 @@ export function planVsActual(
       return rowFor(key, title, goal?.id ?? found?.goalId, plannedMs, actualMs)
     })
     .filter((row) => row.plannedMs > 0 || row.actualMs > 0)
+
+  // Totals count every row; the sub-minute cut only trims what is listed.
+  const plannedTotal = allRows.reduce((sum, row) => sum + row.plannedMs, 0)
+  const actualTotal = allRows.reduce((sum, row) => sum + row.actualMs, 0)
+  const overall = rowFor('total', 'Total', undefined, plannedTotal, actualTotal)
+
+  const rows = allRows
+    .filter((row) => row.plannedMs > 0 || row.actualMs >= MINUTE_MS)
     .sort(
       (a, b) =>
         b.plannedMs + b.actualMs - (a.plannedMs + a.actualMs) ||
         a.title.localeCompare(b.title),
     )
-
-  const plannedTotal = rows.reduce((sum, row) => sum + row.plannedMs, 0)
-  const actualTotal = rows.reduce((sum, row) => sum + row.actualMs, 0)
-  const overall = rowFor('total', 'Total', undefined, plannedTotal, actualTotal)
 
   return {
     rows,

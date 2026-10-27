@@ -1,34 +1,28 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { GOAL_STATUS } from '../../../entities/constants'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
+import AppIcon from '../../../components/AppIcon.vue'
 import { readJson, writeJson } from '../../../lib/storage'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useFormat } from '../../../composables/useFormat'
-import {
-  collectUpcoming,
-  UPCOMING_WINDOW_DAYS,
-  type UpcomingItem,
+import { panelDateLabel } from '../../../composables/panelDateLabel'
+import type {
+  UpcomingDay,
+  UpcomingItem,
 } from '../composables/useUpcomingTasks'
 
 const props = defineProps<{
-  templates: TaskTemplate[]
-  dailyTasks: DailyTask[]
+  /** Already narrowed to the project in view (or every project). */
+  days: UpcomingDay[]
   goals: Goal[]
-  /** The project in view; `null` lists every project (All Tasks). */
-  goalId: ID | null
-  /** The viewed date. The list starts the day after it. */
-  fromDate: ISODate
 }>()
 
 const emit = defineEmits<{
   (e: 'select-date', date: ISODate): void
 }>()
 
-const { formatDate, formatTime } = useFormat()
+const { formatTime } = useFormat()
 
 const COLLAPSED_KEY = 'dayforge-upcoming-collapsed-v1'
 
@@ -42,29 +36,6 @@ function onToggle(event: Event) {
   writeJson(COLLAPSED_KEY, !open)
 }
 
-// A paused or archived project does not fire its repeats, so it is left out.
-const pausedGoalIds = computed(
-  () =>
-    new Set(
-      props.goals
-        .filter((goal) => goal.status !== GOAL_STATUS.ACTIVE)
-        .map((goal) => goal.id),
-    ),
-)
-
-const days = computed(() => {
-  const paused = pausedGoalIds.value
-  const isLive = (goalId: ID | undefined) => !goalId || !paused.has(goalId)
-
-  return collectUpcoming(
-    props.templates.filter((template) => isLive(template.goalId)),
-    props.dailyTasks.filter((row) => isLive(row.goalId)),
-    props.fromDate,
-    UPCOMING_WINDOW_DAYS,
-    props.goalId,
-  )
-})
-
 const colorByGoal = computed(() => projectColors(props.goals))
 
 function dotStyle(goalId: ID | undefined) {
@@ -72,8 +43,9 @@ function dotStyle(goalId: ID | undefined) {
   return color ? { '--upcoming-dot': color } : undefined
 }
 
+/** Short day, e.g. "Thu 29". */
 function dayLabel(date: ISODate) {
-  return formatDate(date, { weekday: 'short', day: 'numeric', month: 'short' })
+  return panelDateLabel(date, { weekday: 'short', day: 'numeric' })
 }
 
 function timeRange(item: UpcomingItem) {
@@ -81,54 +53,44 @@ function timeRange(item: UpcomingItem) {
   if (!item.endTime) return formatTime(item.startTime)
   return `${formatTime(item.startTime)} – ${formatTime(item.endTime)}`
 }
-
-/** The next occurrence of a repeat, e.g. "Tue 20". */
-function nextLabel(date: ISODate) {
-  return formatDate(date, { weekday: 'short', day: 'numeric' })
-}
 </script>
 
 <template>
-  <div v-if="days.length" class="upcoming">
-    <DisclosureSection label="Upcoming" :open="isOpen" @toggle="onToggle">
-      <div class="upcoming__days">
-        <section v-for="day in days" :key="day.date" class="upcoming-day">
-          <h3 class="upcoming-day__label">{{ dayLabel(day.date) }}</h3>
+  <section class="ui-card upcoming">
+    <details :open="isOpen" @toggle="onToggle">
+      <summary class="ui-section-label upcoming__summary">Upcoming</summary>
 
-          <ul class="upcoming-day__list">
-            <li v-for="item in day.items" :key="item.key">
-              <button
-                type="button"
-                class="upcoming-row"
-                :class="{ 'is-done': item.isDone }"
-                :style="dotStyle(item.goalId)"
-                :title="`Show ${dayLabel(item.date)}`"
-                @click="emit('select-date', item.date)"
+      <ul class="upcoming__list">
+        <template v-for="day in days" :key="day.date">
+          <li
+            v-for="item in day.items"
+            :key="item.key"
+            class="upcoming-row"
+            :class="{ 'is-done': item.isDone }"
+            :style="dotStyle(item.goalId)"
+          >
+            <button
+              type="button"
+              class="upcoming-row__btn"
+              :title="`Show ${dayLabel(item.date)}`"
+              @click="emit('select-date', item.date)"
+            >
+              <span class="upcoming-row__day">{{ dayLabel(item.date) }}</span>
+              <span class="upcoming-row__time">{{ timeRange(item) }}</span>
+              <span class="upcoming-row__dot" aria-hidden="true"></span>
+              <span class="upcoming-row__title ui-oneline">{{ item.title }}</span>
+              <span
+                v-if="item.repeatLabel"
+                class="upcoming-row__repeat"
+                role="img"
+                aria-label="Repeats"
               >
-                <span class="upcoming-row__dot" aria-hidden="true"></span>
-
-                <span class="upcoming-row__copy">
-                  <span class="upcoming-row__title">{{ item.title }}</span>
-
-                  <span class="upcoming-row__meta">
-                    <span v-if="timeRange(item)" class="upcoming-row__time">
-                      {{ timeRange(item) }}
-                    </span>
-
-                    <template v-if="item.repeatLabel">
-                      <span class="task-repeat-chip">Repeats</span>
-                      <span class="upcoming-row__rule">
-                        {{ item.repeatLabel }} · next
-                        {{ nextLabel(item.date) }}
-                      </span>
-                    </template>
-                  </span>
-                </span>
-              </button>
-            </li>
-          </ul>
-        </section>
-      </div>
-    </DisclosureSection>
-  </div>
+                <AppIcon name="repeat" :size="13" />
+              </span>
+            </button>
+          </li>
+        </template>
+      </ul>
+    </details>
+  </section>
 </template>

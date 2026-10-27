@@ -4,7 +4,6 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { NO_PROJECT_FILTER_ID } from '../../../composables/useSettings'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
-import type { CalendarViewMode } from '../composables/useCalendarDayView'
 import { useCalendarFilter } from '../composables/useCalendarFilter'
 
 const props = defineProps<{
@@ -12,14 +11,6 @@ const props = defineProps<{
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
 }>()
-
-const viewMode = defineModel<CalendarViewMode>({ required: true })
-
-const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
-  { id: 'day', label: 'Day' },
-  { id: 'week', label: 'Week' },
-  { id: 'month', label: 'Month' },
-]
 
 const { isGoalVisible, toggleGoal, showAll, hideAll, isFilterActive } =
   useCalendarFilter()
@@ -78,8 +69,8 @@ onUnmounted(() => {
   <div ref="rootRef" class="calendar-filter">
     <button
       ref="triggerRef"
-      class="theme-chip calendar-filter__trigger"
-      :class="{ active: isOpen }"
+      class="ui-icon-btn ui-icon-btn--outlined calendar-filter__trigger"
+      :class="{ 'is-active': isOpen }"
       type="button"
       aria-label="Calendar filter"
       aria-haspopup="dialog"
@@ -107,24 +98,8 @@ onUnmounted(() => {
       v-if="isOpen"
       class="calendar-filter__panel"
       role="dialog"
-      aria-label="Calendar view"
+      aria-label="Calendar filter"
     >
-      <p class="calendar-filter__title">Calendar view</p>
-
-      <div class="calendar-filter__segments" role="group" aria-label="View">
-        <button
-          v-for="mode in VIEW_MODES"
-          :key="mode.id"
-          class="theme-chip"
-          :class="{ active: viewMode === mode.id }"
-          type="button"
-          :aria-pressed="viewMode === mode.id"
-          @click="viewMode = mode.id"
-        >
-          {{ mode.label }}
-        </button>
-      </div>
-
       <div class="calendar-filter__section">
         <div class="calendar-filter__section-head">
           <p class="calendar-filter__caption">Projects</p>

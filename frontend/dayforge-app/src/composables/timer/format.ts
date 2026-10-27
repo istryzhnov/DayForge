@@ -1,3 +1,5 @@
+import { capitalizeFirst, dateNameLocale } from '../panelDateLabel'
+
 const SECOND_MS = 1000
 const MINUTE_MS = 60 * SECOND_MS
 const HOUR_MS = 60 * MINUTE_MS
@@ -27,6 +29,41 @@ export function formatShortDuration(ms: number): string {
   if (hours === 0) return `${minutes}m`
   if (minutes === 0) return `${hours}h`
   return `${hours}h ${minutes}m`
+}
+
+/** "12 h 30 m" for analytics hours. Under a minute reads "0 m"; minutes round to whole. */
+export function formatHoursMinutes(ms: number): string {
+  if (ms < MINUTE_MS) return '0 m'
+
+  const totalMinutes = Math.round(ms / MINUTE_MS)
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours === 0) return `${minutes} m`
+  if (minutes === 0) return `${hours} h`
+  return `${hours} h ${minutes} m`
+}
+
+/** A history row's duration: "<1 m" under a minute, otherwise the hours-and-minutes total. */
+export function formatEntryDuration(ms: number): string {
+  // "45s" next to minute totals reads oddly in a log; "<1 m" says the same thing.
+  if (ms > 0 && ms < MINUTE_MS) return '<1 m'
+  return formatHoursMinutes(ms)
+}
+
+/** "Sunday, 25 October", with names in the language the user picked. */
+export function formatDayHeading(
+  date: Date,
+  locale: string = dateNameLocale(),
+): string {
+  const parts = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).formatToParts(date)
+  const pick = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  return capitalizeFirst(`${pick('weekday')}, ${pick('day')} ${pick('month')}`)
 }
 
 export function formatTimeLabel(

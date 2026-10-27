@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { computed } from 'vue'
 import type {
   DailyTask,
@@ -22,7 +23,12 @@ import {
   HOURS,
   pxPerMinute,
 } from '../composables/useCalendarGrid'
-import { useCalendarDayView } from '../composables/useCalendarDayView'
+import {
+  useCalendarDayView,
+  type CalendarViewMode,
+} from '../composables/useCalendarDayView'
+import { useCalendarWeek } from '../composables/useCalendarWeek'
+import { useCalendarMonth } from '../composables/useCalendarMonth'
 import { useTimer } from '../../../composables/useTimer'
 import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useCalendarNow } from '../composables/useCalendarNow'
@@ -115,6 +121,50 @@ const {
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
 
+const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
+  { id: 'day', label: 'Day' },
+  { id: 'week', label: 'Week' },
+  { id: 'month', label: 'Month' },
+]
+
+// Week and month keep their own anchors, but the toolbar above them drives
+// both, so the state lives here rather than inside the child views.
+const week = useCalendarWeek({
+  getTemplates: () => props.templates,
+  getDailyTasks: () => props.dailyTasks,
+  getCurrentDate: () => props.currentDate,
+})
+
+const month = useCalendarMonth({
+  getTemplates: () => props.templates,
+  getDailyTasks: () => props.dailyTasks,
+  getCurrentDate: () => props.currentDate,
+})
+
+const periodTitle = computed(() => {
+  if (viewMode.value === 'week') return week.weekLabel.value
+  if (viewMode.value === 'month') return month.monthLabel.value
+  return dateLabel.value
+})
+
+function goToPrevious() {
+  if (viewMode.value === 'week') week.goToPreviousWeek()
+  else if (viewMode.value === 'month') month.goToPreviousMonth()
+  else emit('prev-day')
+}
+
+function goToNext() {
+  if (viewMode.value === 'week') week.goToNextWeek()
+  else if (viewMode.value === 'month') month.goToNextMonth()
+  else emit('next-day')
+}
+
+function goToToday() {
+  if (viewMode.value === 'week') week.goToThisWeek()
+  else if (viewMode.value === 'month') month.goToTodayMonth()
+  else emit('today')
+}
+
 const timer = useTimer()
 const isContextTaskTiming = computed(
   () =>
@@ -165,42 +215,50 @@ function iconFor(goalId: ID | undefined) {
 
 <template>
   <section class="calendar-view" :class="{ 'is-touch': isCoarsePointer }">
-    <div class="calendar-view__modes">
-      <button
-        class="theme-chip"
-        :class="{ active: viewMode === 'day' }"
-        type="button"
-        @click="viewMode = 'day'"
-      >
-        Day
-      </button>
-      <button
-        class="theme-chip"
-        :class="{ active: viewMode === 'week' }"
-        type="button"
-        @click="viewMode = 'week'"
-      >
-        Week
-      </button>
-      <button
-        class="theme-chip"
-        :class="{ active: viewMode === 'month' }"
-        type="button"
-        @click="viewMode = 'month'"
-      >
-        Month
-      </button>
-      <CalendarFilterPopover
-        v-model="viewMode"
-        :goals="goals"
-        :goal-vars-by-id="goalVarsById"
-      />
-    </div>
+    <header class="calendar-view__toolbar">
+      <div class="calendar-view__nav">
+        <button
+          class="ui-icon-btn"
+          type="button"
+          :aria-label="`Previous ${viewMode}`"
+          @click="goToPrevious"
+        >
+          <AppIcon name="chevron-left" :size="16" />
+        </button>
+        <button class="ui-chip" type="button" @click="goToToday">Today</button>
+        <button
+          class="ui-icon-btn"
+          type="button"
+          :aria-label="`Next ${viewMode}`"
+          @click="goToNext"
+        >
+          <AppIcon name="chevron-right" :size="16" />
+        </button>
+        <h2 class="calendar-view__title ui-oneline">{{ periodTitle }}</h2>
+      </div>
+
+      <div class="calendar-view__views">
+        <div class="ui-tabs" role="tablist" aria-label="Calendar view">
+          <button
+            v-for="mode in VIEW_MODES"
+            :key="mode.id"
+            class="ui-tab"
+            :class="{ 'is-active': viewMode === mode.id }"
+            type="button"
+            role="tab"
+            :aria-selected="viewMode === mode.id"
+            @click="viewMode = mode.id"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
+        <CalendarFilterPopover :goals="goals" :goal-vars-by-id="goalVarsById" />
+      </div>
+    </header>
 
     <CalendarWeekView
       v-if="viewMode === 'week'"
-      :templates="templates"
-      :daily-tasks="dailyTasks"
+      :week="week"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
       :goal-icon-by-id="goalIconById"
@@ -209,8 +267,7 @@ function iconFor(goalId: ID | undefined) {
 
     <CalendarMonthView
       v-else-if="viewMode === 'month'"
-      :templates="templates"
-      :daily-tasks="dailyTasks"
+      :month="month"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
       :goal-icon-by-id="goalIconById"
@@ -218,21 +275,6 @@ function iconFor(goalId: ID | undefined) {
     />
 
     <template v-else>
-      <header class="calendar-view__header">
-        <button class="btn btn-ghost" type="button" @click="emit('prev-day')">
-          ‹
-        </button>
-        <div class="calendar-view__date">
-          <strong>{{ dateLabel }}</strong>
-          <button class="btn btn-ghost" type="button" @click="emit('today')">
-            Today
-          </button>
-        </div>
-        <button class="btn btn-ghost" type="button" @click="emit('next-day')">
-          ›
-        </button>
-      </header>
-
       <div class="calendar-view__body">
         <div class="calendar-view__grid-wrap">
           <div class="calendar-view__hours">
@@ -336,8 +378,13 @@ function iconFor(goalId: ID | undefined) {
           </div>
         </div>
 
-        <aside ref="unscheduledRef" class="calendar-view__unscheduled">
-          <p class="sidebar-caption">Unscheduled</p>
+        <aside ref="unscheduledRef" class="ui-card calendar-view__unscheduled">
+          <div class="calendar-view__unscheduled-head">
+            <p class="ui-section-label">Unscheduled</p>
+            <span class="calendar-view__unscheduled-count">
+              {{ unscheduledTasks.length }}
+            </span>
+          </div>
           <CalendarUnscheduledItem
             v-for="task in unscheduledTasks"
             :key="task.id"
@@ -357,7 +404,7 @@ function iconFor(goalId: ID | undefined) {
         </aside>
       </div>
 
-      <p v-if="isCoarsePointer" class="calendar-view__touch-hint">
+      <p v-if="isCoarsePointer" class="calendar-view__touch-hint ui-oneline">
         Tap an empty slot to add · hold a task to move it or open its menu
       </p>
 
@@ -368,9 +415,11 @@ function iconFor(goalId: ID | undefined) {
         :is-done="contextMenuTask.status === TASK_STATUS.DONE"
         :is-timer-active="isContextTaskTiming"
         :can-log-planned="canLogPlanned(contextMenuTask)"
+        :can-unschedule="contextMenuTask.startTime !== undefined"
         @toggle-check="toggleContextMenuTaskDone"
         @toggle-timer="toggleContextMenuTaskTimer"
         @log-planned="logPlannedFor(contextMenuTask)"
+        @unschedule="unscheduleAndClose(contextMenuTask.id)"
         @close="closeContextMenu"
       />
 

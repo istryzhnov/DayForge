@@ -1,279 +1,97 @@
-/* The habit block is a quiet footer for the project panel: a labelled week row,
-   a month heat strip and one line of numbers. Tints stay below ~50% of the
-   accent so the day numbers keep using `--text` in every theme. */
+/* Habits card beside Upcoming: one row per habit, a square per day. Colours
+   come from theme variables only, so every theme and project accent works. */
 
-.habit {
-  margin-top: 14px;
-  padding: 12px 14px 12px;
-  border: 1px solid var(--line);
-  border-radius: calc(16px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 62%, transparent);
+.habit-card {
+  flex: 1 1 360px;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
 }
 
-.habit__head {
+.habit-card__head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.habit__title {
-  margin: 0;
-  font-size: calc(13px * var(--text-scale));
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: var(--text);
+.habit-card__head .ui-section-label {
+  flex: 1 1 auto;
 }
 
-.habit__subtitle {
-  margin: 2px 0 0;
-  font-size: calc(11px * var(--text-scale));
+.habit-card__summary {
+  font-size: calc(12px * var(--text-scale));
   color: var(--muted);
-}
-
-.habit__today {
-  margin: 0;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
-.habit__today-label {
-  font-size: calc(10px * var(--text-scale));
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
+.habit-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
 }
 
-.habit__today-value {
-  font-size: calc(15px * var(--text-scale));
+.habit-row__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.habit-row__name {
+  flex: 1 1 auto;
+  font-size: calc(14px * var(--text-scale));
   font-weight: 600;
   color: var(--text);
+}
+
+.habit-row__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+  font-size: calc(12px * var(--text-scale));
+  color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
-.habit__today.is-complete .habit__today-value {
-  color: var(--accent);
-}
-
-.habit__today.is-idle .habit__today-value {
-  color: var(--muted);
-}
-
-/* --- the week row --------------------------------------------------------- */
-
-.habit__week {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.habit__week-day {
-  min-width: 0;
+.habit-row__grid {
   display: grid;
   gap: 3px;
 }
 
-.habit__weekday {
-  font-size: calc(10px * var(--text-scale));
+.habit-cell {
+  display: block;
+  height: 14px;
+  border-radius: calc(4px * var(--radius-scale));
+  border: 1px solid transparent;
+}
+
+/* Done: filled. Missed: outlined. Not due: faint. Today still open: outlined accent. */
+.habit-cell.is-done {
+  background: var(--accent);
+}
+
+.habit-cell.is-missed {
+  border-color: var(--muted);
+}
+
+.habit-cell.is-pending {
+  border-color: var(--accent);
+}
+
+.habit-cell.is-off,
+.habit-cell.is-upcoming {
+  background: var(--line-soft);
+}
+
+.habit-card__caption {
+  margin: 0;
+  font-size: calc(11px * var(--text-scale));
   color: var(--muted);
-  text-align: center;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.habit__mark {
-  width: 100%;
-  max-width: 56px;
-  justify-self: center;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border: 1px solid transparent;
-  border-radius: calc(8px * var(--radius-scale));
-  background: var(--tint, transparent);
-  color: var(--text);
-  font-size: calc(11px * var(--text-scale));
-  font-variant-numeric: tabular-nums;
-  transition:
-    background-color 0.25s ease,
-    border-color 0.25s ease;
-}
-
-/* --- the month strip ------------------------------------------------------ */
-
-.habit__month {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.habit__month-label {
-  flex: none;
-  font-size: calc(10px * var(--text-scale));
-  color: var(--muted);
-  text-transform: capitalize;
-}
-
-.habit__strip {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-  gap: 2px;
-}
-
-.habit__strip-day {
-  height: 10px;
-  border-radius: 3px;
-  border: 1px solid transparent;
-  background: var(--tint, transparent);
-  transition: background-color 0.25s ease;
-}
-
-/* --- shared tints --------------------------------------------------------- */
-
-.habit .is-none {
-  --tint: transparent;
-}
-
-.habit .is-low {
-  --tint: color-mix(in srgb, var(--accent) 15%, transparent);
-}
-
-.habit .is-mid {
-  --tint: color-mix(in srgb, var(--accent) 27%, transparent);
-}
-
-.habit .is-high {
-  --tint: color-mix(in srgb, var(--accent) 37%, transparent);
-}
-
-.habit .is-full {
-  --tint: color-mix(in srgb, var(--accent) 44%, transparent);
-}
-
-/* A day with tasks but nothing done keeps an outline, so it reads as a day that
-   was missed rather than one that was never planned. */
-.habit__mark.is-none {
-  border-color: var(--line);
-  color: var(--muted);
-}
-
-.habit__mark.is-full {
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  font-weight: 600;
-}
-
-.habit__strip-day.is-none {
-  --tint: color-mix(in srgb, var(--line) 70%, transparent);
-}
-
-/* Nothing planned, outside the loaded month, or still ahead: present but mute. */
-.habit__mark.is-untracked,
-.habit__mark.is-outside,
-.habit__mark.is-future {
-  --tint: color-mix(in srgb, var(--panel-soft) 70%, transparent);
-  border-color: transparent;
-  color: color-mix(in srgb, var(--muted) 72%, transparent);
-}
-
-.habit__strip-day.is-untracked,
-.habit__strip-day.is-outside,
-.habit__strip-day.is-future {
-  --tint: color-mix(in srgb, var(--line) 35%, transparent);
-}
-
-.habit__mark.is-today {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-  color: var(--text);
-}
-
-.habit__strip-day.is-today {
-  border-color: color-mix(in srgb, var(--accent) 65%, transparent);
-}
-
-/* --- the summary line ----------------------------------------------------- */
-
-.habit__summary {
-  margin: 9px 0 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 5px;
-  font-size: calc(11px * var(--text-scale));
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.habit__sep {
-  opacity: 0.6;
-}
-
-/* --- finishing a day ------------------------------------------------------
-
-   Played only when a day *crosses* into 100% (see `useHabitCalendar`), never
-   on mount — otherwise every finished day would pulse on each render. */
-
-.habit__mark.is-celebrating {
-  animation: habit-mark-settle 0.5s ease-out;
-}
-
-@keyframes habit-mark-settle {
-  0% {
-    transform: scale(0.96);
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
-  }
-  55% {
-    transform: scale(1.03);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 7px transparent;
-  }
-}
-
-/* The in-app Motion setting already covers this via `data-motion`; this is for
-   people who set it at the OS level and never open the panel. */
-@media (prefers-reduced-motion: reduce) {
-  .habit__mark,
-  .habit__strip-day {
-    transition: none;
-  }
-
-  .habit__mark.is-celebrating {
-    animation: none;
-  }
-}
-
-@media (max-width: 720px) {
-  .habit {
-    padding: 12px;
-    border-radius: calc(14px * var(--radius-scale));
-    border-color: transparent;
-    background: color-mix(in srgb, var(--panel-soft) 80%, transparent);
-  }
-
-  .habit__week {
-    gap: 3px;
-  }
-
-  .habit__mark {
-    height: 26px;
-  }
-
-  .habit__strip {
-    gap: 1px;
-  }
-
-  .habit__strip-day {
-    height: 10px;
-    border-radius: 2px;
-  }
 }

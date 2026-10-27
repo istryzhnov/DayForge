@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { useTemplateRef } from 'vue'
 import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
@@ -101,7 +102,7 @@ function onNotesKeydown(event: KeyboardEvent) {
           aria-label="Close"
           @click="emit('close')"
         >
-          ×
+          <AppIcon name="close" :size="14" />
         </button>
       </header>
 

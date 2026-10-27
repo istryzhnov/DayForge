@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { useSettings } from '../../../composables/useSettings'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import {
   draftFromBilling,
   parseBillingDraft,
@@ -25,7 +26,7 @@ useFocusTrap({ onEscape: () => emit('close') })
 
 const currency = computed(() => settings.timer.currency)
 const trackedLabel = computed(
-  () => `${(props.trackedMs / (60 * 60 * 1000)).toFixed(2)} h`,
+  () => formatHoursMinutes(props.trackedMs),
 )
 
 const draft = ref(draftFromBilling(props.goal.billing))

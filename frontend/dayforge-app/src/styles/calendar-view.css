@@ -4,28 +4,40 @@
   gap: 16px;
 }
 
-.calendar-view__modes {
-  display: inline-flex;
-  align-self: flex-end;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: var(--panel-soft);
+/* One row for every view: step controls and the period title on the left,
+   the view switch and filter on the right. Wraps on a phone, title first. */
+.calendar-view__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
 }
 
-.calendar-view__modes .theme-chip {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  padding: 6px 14px;
-  border-radius: calc(9px * var(--radius-scale));
+.calendar-view__nav {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.calendar-view__modes .theme-chip.active {
+.calendar-view__title {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0 0 0 6px;
+  font-size: calc(18px * var(--text-scale));
+  font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text);
-  background: var(--panel);
-  box-shadow: var(--shadow-sm);
+}
+
+.calendar-view__views {
+  flex: 0 0 auto;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* --- calendar filter popover --------------------------------------------- */
@@ -35,16 +47,13 @@
   display: flex;
 }
 
-.calendar-view__modes .calendar-filter__trigger {
+.calendar-filter__trigger {
   position: relative;
-  display: inline-grid;
-  place-items: center;
-  padding: 6px 10px;
 }
 
-.calendar-filter__trigger svg {
-  width: calc(16px * var(--text-scale));
-  height: calc(16px * var(--text-scale));
+.calendar-filter__trigger.is-active {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
 }
 
 .calendar-filter__badge {
@@ -55,7 +64,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--panel-soft);
+  box-shadow: 0 0 0 2px var(--panel);
 }
 
 .calendar-filter__panel {
@@ -74,24 +83,6 @@
   background: var(--panel);
   box-shadow: var(--shadow-lg);
   text-align: left;
-}
-
-.calendar-filter__title {
-  margin: 0;
-  font-size: calc(14px * var(--text-scale));
-  font-weight: 700;
-  color: var(--text);
-}
-
-.calendar-filter__segments {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 4px;
-}
-
-.calendar-filter__segments .theme-chip {
-  justify-content: center;
-  width: 100%;
 }
 
 .calendar-filter__section {
@@ -175,33 +166,12 @@
   white-space: nowrap;
 }
 
-.calendar-view__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 /* --- Month view --------------------------------------------------------- */
 
 .calendar-month {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.calendar-month__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.calendar-month__title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-transform: capitalize;
 }
 
 .calendar-month__summary {
@@ -236,7 +206,7 @@
   cursor: pointer;
   color: var(--text);
   border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
+  border-radius: calc(10px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel) 88%, transparent);
   transition:
     border-color 0.15s ease,
@@ -299,21 +269,35 @@
   min-width: 0;
 }
 
+/* One line per chip; the dot carries the project colour. */
 .calendar-month__event {
-  font-size: calc(10px * var(--text-scale));
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: calc(11px * var(--text-scale));
   line-height: 1.3;
-  padding: 2px 5px;
-  border-radius: calc(5px * var(--radius-scale));
-  overflow: hidden;
-  text-overflow: ellipsis;
+  padding: 2px 6px;
+  border-radius: calc(6px * var(--radius-scale));
   white-space: nowrap;
-  border-left: 2px solid var(--minor);
-  background: color-mix(in srgb, var(--minor) 16%, var(--panel-soft));
+  background: color-mix(in srgb, var(--minor) 10%, var(--panel-soft));
+}
+
+.calendar-month__event::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--minor);
 }
 
 .calendar-month__event.major {
-  border-left-color: var(--major);
-  background: color-mix(in srgb, var(--major) 16%, var(--panel-soft));
+  background: color-mix(in srgb, var(--major) 10%, var(--panel-soft));
+}
+
+.calendar-month__event.major::before {
+  background: var(--major);
 }
 
 .calendar-month__event.is-done {
@@ -321,41 +305,43 @@
   opacity: 0.55;
 }
 
-/* Derived from a recurrence rule — no row exists for this day yet. */
+/* Derived from a recurrence rule — no row exists for this day yet. A hollow
+   dot marks it apart from a saved task. */
 .calendar-month__event.is-projected {
-  border-left-style: dashed;
   opacity: 0.8;
 }
 
+.calendar-month__event.is-projected::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--minor);
+}
+
+.calendar-month__event.major.is-projected::before {
+  box-shadow: inset 0 0 0 1.5px var(--major);
+}
+
+.calendar-month__event-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .calendar-month__event-icon {
-  margin-right: 3px;
+  flex: none;
   width: 1em;
   height: 1em;
-  vertical-align: -0.125em;
 }
 
 .calendar-month__event-time {
+  flex: none;
   color: var(--muted);
-  margin-right: 3px;
 }
 
 .calendar-month__more {
   font-size: calc(10px * var(--text-scale));
   color: var(--muted);
   padding-left: 5px;
-}
-
-.calendar-view__date {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-transform: capitalize;
-}
-
-.calendar-view__date strong {
-  font-size: calc(16px * var(--text-scale));
-  font-weight: 650;
-  letter-spacing: -0.01em;
 }
 
 .calendar-view__body {
@@ -394,7 +380,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-top: 1px solid var(--line-soft);
   pointer-events: none;
 }
 
@@ -402,8 +388,8 @@
   position: absolute;
   left: 6px;
   right: 6px;
-  border-radius: calc(8px * var(--radius-scale));
-  padding: 4px 8px 4px 11px;
+  border-radius: calc(10px * var(--radius-scale));
+  padding: 6px 10px;
   color: var(--text);
   background: color-mix(in srgb, var(--minor) 16%, var(--panel));
   cursor: grab;
@@ -459,12 +445,13 @@
   text-decoration: line-through;
 }
 
+/* A straight bar inset from the corners, so the rounded block never clips it. */
 .cal-event::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 4px;
+  top: 6px;
+  bottom: 6px;
   width: 3px;
   background: var(--minor);
 }
@@ -481,7 +468,7 @@
 .cal-event__time {
   flex: 0 0 auto;
   font-size: calc(11px * var(--text-scale));
-  opacity: 0.85;
+  color: var(--muted);
   white-space: nowrap;
 }
 
@@ -505,7 +492,7 @@
 .cal-event__title {
   flex: 1 1 0;
   min-width: 0;
-  font-weight: 600;
+  font-weight: 700;
   font-size: calc(13px * var(--text-scale));
   overflow: hidden;
   text-overflow: ellipsis;
@@ -547,41 +534,73 @@
 .calendar-view__unscheduled {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: calc(11px * var(--radius-scale));
+  gap: 6px;
   padding: 12px;
-  background: color-mix(in srgb, var(--panel) 92%, transparent);
 }
 
+.calendar-view__unscheduled-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.calendar-view__unscheduled-count {
+  font-size: calc(12px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+/* A row like the sidebar project rows: no side border, colour on a dot. */
 .calendar-view__unscheduled-item {
-  border-radius: calc(8px * var(--radius-scale));
-  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-radius: calc(10px * var(--radius-scale));
   font-size: calc(13px * var(--text-scale));
+  color: var(--text);
   cursor: grab;
-  background: color-mix(in srgb, var(--panel-soft) 90%, transparent);
-  border-left: 3px solid var(--minor);
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   transition:
+    background 0.15s ease,
     transform 0.16s ease,
     box-shadow 0.16s ease;
 }
 
+.calendar-view__unscheduled-item:hover {
+  background: var(--panel-soft);
+}
+
+.calendar-view__unscheduled-dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--minor);
+}
+
+.calendar-view__unscheduled-item.major .calendar-view__unscheduled-dot {
+  background: var(--major);
+}
+
 .calendar-view__unscheduled-icon {
-  margin-right: 6px;
+  flex: none;
   width: 1em;
   height: 1em;
-  vertical-align: -0.125em;
 }
 
-.calendar-view__unscheduled-item:hover {
-  background: color-mix(in srgb, var(--minor) 12%, var(--panel-soft));
-}
-
-.calendar-view__unscheduled-item.major {
-  border-left-color: var(--major);
+.calendar-view__unscheduled-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calendar-view__unscheduled-item.is-lifted {
@@ -635,7 +654,8 @@
   border: none;
   color: var(--muted);
   cursor: pointer;
-  font-size: max(16px, calc(16px * var(--text-scale)));
+  display: grid;
+  place-items: center;
 }
 
 .event-details__field {
@@ -732,7 +752,7 @@
     padding-bottom: 76px;
   }
 
-  .calendar-view__header {
+  .calendar-view__toolbar {
     position: sticky;
     top: 0;
     z-index: 5;
@@ -741,12 +761,21 @@
     backdrop-filter: blur(6px);
   }
 
-  .calendar-view__date {
-    gap: 8px;
+  .calendar-view__title {
+    font-size: calc(16px * var(--text-scale));
   }
 
-  .calendar-view__date strong {
-    font-size: calc(14px * var(--text-scale));
+  /* The tabs take the row, leaving the filter button at its end. */
+  .calendar-view__views {
+    width: 100%;
+  }
+
+  .calendar-view__views .ui-tabs {
+    flex: 1 1 auto;
+  }
+
+  .calendar-view__views .ui-tab {
+    flex: 1 1 0;
   }
 
   /* A month of 7 columns can't also carry event titles on a phone, so cells
@@ -781,10 +810,6 @@
     font-size: calc(9px * var(--text-scale));
   }
 
-  .calendar-month__title strong {
-    font-size: calc(14px * var(--text-scale));
-  }
-
   /* stack the grid above the unscheduled list instead of side-by-side */
   .calendar-view__body {
     grid-template-columns: 1fr;
@@ -805,16 +830,6 @@
   .cal-event {
     left: 3px;
     right: 3px;
-    padding: 6px 9px 6px 11px;
-    border-radius: calc(12px * var(--radius-scale));
-  }
-
-  .cal-event__title {
-    font-size: calc(12px * var(--text-scale));
-  }
-
-  .cal-event__time {
-    font-size: calc(10px * var(--text-scale));
   }
 
   /* Fingers need a taller grab strip than a mouse cursor does. */
@@ -875,7 +890,7 @@
     border-color: var(--accent);
   }
 
-  .calendar-view__unscheduled .sidebar-caption {
+  .calendar-view__unscheduled-head {
     flex: 0 0 auto;
     align-self: center;
   }
@@ -903,19 +918,6 @@
 .calendar-week {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.calendar-week__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.calendar-week__title {
-  display: flex;
-  align-items: center;
   gap: 10px;
 }
 
@@ -972,7 +974,7 @@
 }
 
 .calendar-week__day.is-today {
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  background: var(--accent-soft);
 }
 
 .calendar-week__day.is-selected {
@@ -1057,7 +1059,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--line-soft);
   pointer-events: none;
 }
 
@@ -1067,18 +1069,28 @@
   left: 2px;
   right: 2px;
   border: none;
-  border-radius: calc(6px * var(--radius-scale));
-  padding: 2px 5px 2px 7px;
+  border-radius: calc(10px * var(--radius-scale));
+  padding: 4px 6px 4px 10px;
   overflow: hidden;
   cursor: pointer;
   text-align: left;
   font-family: inherit;
   color: var(--text);
   background: color-mix(in srgb, var(--minor) 16%, var(--panel));
-  box-shadow: inset 3px 0 0 var(--minor);
   display: flex;
   flex-direction: column;
   gap: 1px;
+}
+
+/* Straight bar, the same language as the day blocks. */
+.week-event::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  background: var(--minor);
 }
 
 .week-event__icon {
@@ -1091,7 +1103,11 @@
 
 .week-event.major {
   background: color-mix(in srgb, var(--major) 16%, var(--panel));
-  box-shadow: inset 4px 0 0 var(--major);
+}
+
+.week-event.major::before {
+  width: 4px;
+  background: var(--major);
 }
 
 .week-event.is-done {
@@ -1110,7 +1126,7 @@
 
 .week-event__time {
   font-size: calc(9px * var(--text-scale));
-  opacity: 0.85;
+  color: var(--muted);
   line-height: 1.1;
 }
 
@@ -1157,9 +1173,5 @@
   .calendar-week__hour-label {
     font-size: calc(9px * var(--text-scale));
     padding: 2px 4px;
-  }
-
-  .calendar-week__title strong {
-    font-size: calc(13px * var(--text-scale));
   }
 }

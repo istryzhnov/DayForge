@@ -27,8 +27,8 @@
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  font-size: 0.9rem;
-  line-height: 1;
+  display: grid;
+  place-items: center;
   padding: 2px 4px;
 }
 
@@ -170,8 +170,8 @@
 }
 
 .task-timer-btn__icon {
-  font-size: calc(13px * var(--text-scale));
-  line-height: 1;
+  display: grid;
+  place-items: center;
   color: color-mix(in srgb, var(--accent) 75%, var(--muted));
 }
 
@@ -232,7 +232,7 @@
 
 .timer-view__head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -242,60 +242,44 @@
   color: var(--text);
 }
 
-.timer-view__subtitle {
-  margin: 4px 0 0;
+.timer-view__info {
+  margin: 0;
   color: var(--muted);
-  font-size: 0.85rem;
-  max-width: 46ch;
+  font-size: calc(12px * var(--text-scale));
 }
 
-.timer-view__today {
-  color: var(--muted);
-  font-size: 0.85rem;
-  white-space: nowrap;
-}
-
+/* The mode tabs, dial and controls share one card. */
 .timer-view__stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  gap: 12px;
-  padding: 20px;
-  border: 1px solid var(--line);
-  border-radius: calc(18px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
+  gap: 14px;
+  padding: 16px;
 }
 
-.timer-view__task {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text);
-}
-
-.timer-view__unlink {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  line-height: 1;
-}
-
-.timer-view__unlink:hover {
-  color: var(--text);
+.timer-mode {
+  width: 100%;
 }
 
 .timer-view__assign {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  justify-items: center;
   gap: 8px;
 }
 
+.timer-view__pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 320px;
+}
+
 .timer-view__picker {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
   border: 1px solid var(--line);
   border-radius: calc(10px * var(--radius-scale));
   background: var(--panel-soft);
@@ -303,8 +287,6 @@
   font-family: inherit;
   font-size: calc(13px * var(--text-scale));
   padding: 8px 11px;
-  min-width: 200px;
-  max-width: 100%;
 }
 
 .timer-view__picker:focus {
@@ -344,9 +326,41 @@
 }
 
 .timer-view__hint {
+  max-width: 100%;
   margin: 0;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: calc(12px * var(--text-scale));
+}
+
+/* Start/stop: the one solid accent control on the page. */
+.timer-controls__primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 160px;
+  height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--accent);
+  color: var(--ring-check);
+  font: inherit;
+  font-size: calc(14px * var(--text-scale));
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.timer-controls__primary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.timer-view__today {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(13px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
 }
 
 .timer-view__history-head {
@@ -356,30 +370,96 @@
   gap: 12px;
 }
 
-.timer-view__history-head .sidebar-caption {
-  margin: 0;
+.timer-view__add {
+  gap: 6px;
 }
 
-/* --- totals per task ---------------------------------------------------- */
+/* --- history ------------------------------------------------------------ */
 
-.time-totals {
+.timer-history {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 10px;
+  gap: 14px;
 }
 
-.time-totals__head {
+.timer-history__empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.timer-history__day {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+}
+
+.timer-history__day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.timer-history__day-total {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* One card per day; rows inside are split by hairlines. */
+.timer-history__list {
+  display: grid;
+  overflow: hidden;
+}
+
+.timer-entry {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
+  padding: 10px 8px 10px 14px;
 }
 
-.time-totals__grand {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
+.timer-entry + .timer-entry {
+  border-top: 1px solid var(--line-soft);
 }
+
+.timer-entry__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.timer-entry__title {
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+}
+
+.timer-entry__meta {
+  color: var(--muted);
+  font-size: calc(11px * var(--text-scale));
+}
+
+.timer-entry__duration {
+  color: var(--text);
+  font-size: calc(13px * var(--text-scale));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.timer-entry__actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 2px;
+}
+
+/* --- per-task rows (Analytics uses these too) --------------------------- */
 
 .time-total {
   display: grid;
@@ -429,99 +509,6 @@
   background: var(--accent);
 }
 
-.time-total__sessions {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-/* --- history ------------------------------------------------------------ */
-
-.timer-history {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
-}
-
-.timer-history__empty {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.timer-history__day {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-}
-
-.timer-history__day-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--text);
-  font-size: 0.85rem;
-}
-
-.timer-history__day-head span {
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-
-.timer-entry {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(11px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
-}
-
-.timer-entry__main {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.timer-entry__title {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timer-entry__meta,
-.timer-entry__note {
-  color: var(--muted);
-  font-size: 0.75rem;
-}
-
-.timer-entry__duration {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.timer-entry__actions {
-  display: flex;
-  gap: 2px;
-}
-
-.timer-entry__action {
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  padding: 4px 6px;
-  line-height: 1;
-}
-
-.timer-entry__action:hover {
-  color: var(--text);
-}
-
 /* --- entry editor ------------------------------------------------------- */
 
 .timer-field {
@@ -566,53 +553,12 @@
   color: var(--text);
 }
 
-.analytics__subtitle {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
-}
-
-.analytics__cards {
+/* One tab's content; the tab bar above it keeps its own spacing. */
+.analytics__panel {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.analytics__card {
-  display: grid;
+  gap: 14px;
   align-content: start;
-  gap: 4px;
   min-width: 0;
-  margin: 0;
-  padding: 14px;
-  text-align: left;
-  border: 1px solid var(--line);
-  border-radius: calc(16px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
-}
-
-.analytics__card--money {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-.analytics__card--action {
-  cursor: pointer;
-  border-style: dashed;
-  font: inherit;
-  color: inherit;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.analytics__card--action:hover,
-.analytics__card--action:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
-}
-
-.analytics__card--action:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
-  outline-offset: 2px;
 }
 
 .analytics__card-label {
@@ -627,48 +573,50 @@
   text-overflow: ellipsis;
 }
 
-.analytics__card-value {
-  font-size: calc(20px * var(--text-scale));
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Money tab stat cards: built on ui-card and ui-stat, two to a row. */
+.money-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.analytics__card--action .analytics__card-value {
+.money-stat {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 14px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.money-stat--action {
+  cursor: pointer;
+  border-style: dashed;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.money-stat--action:hover,
+.money-stat--action:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.money-stat--action:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.money-stat--action .ui-stat__label {
+  font-size: calc(11px * var(--text-scale));
+}
+
+.money-stat__action {
   font-size: calc(15px * var(--text-scale));
-  line-height: 1.33;
+  font-weight: 700;
   color: var(--accent);
-  white-space: normal;
-}
-
-.analytics__card-note {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--muted);
-  overflow-wrap: anywhere;
-}
-
-@container analytics (max-width: 540px) {
-  .analytics__cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .analytics__card {
-    padding: 12px;
-  }
-
-  .analytics__card:last-child {
-    grid-column: 1 / -1;
-  }
-
-  .analytics__card-value {
-    font-size: calc(18px * var(--text-scale));
-  }
 }
 
 .analytics-table-wrap {
@@ -723,13 +671,6 @@
   white-space: nowrap;
 }
 
-.analytics-table__sub {
-  max-width: 140px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .analytics-table .analytics-table__num {
   text-align: right;
   white-space: nowrap;
@@ -759,11 +700,6 @@
     min-width: 96px;
   }
 
-  .analytics-table__sub,
-  .analytics-table__tasks {
-    display: none;
-  }
-
   .analytics-table__num em {
     min-width: 0;
     margin-left: 2px;
@@ -779,42 +715,27 @@
   color: var(--muted);
 }
 
-.analytics__hint {
-  margin: -6px 0 0;
-  font-size: calc(12px * var(--text-scale));
-  line-height: 1.5;
-  color: var(--muted);
-}
-
 /* --- habits (month view) ------------------------------------------------- */
 
+/* Rows on the left, the month and its calendar on the right. The right column
+   is only as tall as its content, so the calendar never stretches. */
 .habits {
   display: grid;
-  gap: 10px;
+  gap: 14px;
+  align-items: start;
+  min-width: 0;
+}
+
+.habits__main,
+.habits__side {
+  display: grid;
+  gap: 12px;
   align-content: start;
   min-width: 0;
 }
 
-.habits__nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.habits__nav-button {
-  min-width: 40px;
-  min-height: 40px;
-  padding: 0;
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.habits__month {
-  font-size: calc(15px * var(--text-scale));
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  text-align: center;
+.habits__card {
+  padding: 4px 16px;
 }
 
 .habits__rows {
@@ -822,7 +743,6 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 
@@ -830,8 +750,8 @@
   display: grid;
   gap: 8px;
   min-width: 0;
-  padding: 10px 0;
-  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  padding: 12px 0;
+  border-top: 1px solid var(--line-soft);
 }
 
 .habits__row:first-child {
@@ -852,7 +772,7 @@
   gap: 8px;
   min-width: 0;
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(14px * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
@@ -872,6 +792,9 @@
 }
 
 .habits__score {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   flex: none;
   margin: 0;
   font-size: calc(13px * var(--text-scale));
@@ -880,106 +803,76 @@
   white-space: nowrap;
 }
 
-.habits__score em {
-  margin-left: 6px;
-  font-style: normal;
+.habits__streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: var(--muted);
-  font-size: 0.75rem;
 }
 
+/* One square per day shown; the columns are set inline so rows line up. */
 .habits__strip {
-  display: flex;
+  display: grid;
   gap: 4px;
   min-width: 0;
-  padding: 2px;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
 }
 
 .habits__cell {
-  flex: 0 1 14px;
+  display: block;
   box-sizing: border-box;
-  width: 14px;
+  height: 14px;
   min-width: 0;
-  aspect-ratio: 1;
-  border-radius: 4px;
+  border-radius: calc(4px * var(--radius-scale));
   border: 1px solid transparent;
+  background: var(--line-soft);
 }
 
+/* Done: the project colour. Missed: outlined. Today still open: outlined accent. */
 .habits__cell.is-done {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: var(--habit-color, var(--accent));
+  border-color: var(--habit-color, var(--accent));
 }
 
 .habits__cell.is-missed {
-  border-color: color-mix(in srgb, var(--muted) 70%, transparent);
-  background: repeating-linear-gradient(
-    45deg,
-    color-mix(in srgb, var(--muted) 40%, transparent) 0 2px,
-    transparent 2px 5px
-  );
+  background: transparent;
+  border-color: var(--muted);
 }
 
 .habits__cell.is-pending {
+  background: transparent;
   border: 2px solid var(--accent);
 }
 
-.habits__cell.is-upcoming {
-  border: 1px dashed var(--muted);
-}
-
-.habits__cell.is-off {
-  position: relative;
-}
-
-.habits__cell.is-off::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 3px;
-  height: 3px;
-  margin: -1.5px 0 0 -1.5px;
-  border-radius: 50%;
-  background: var(--line);
-}
-
-.habits__body {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
-  min-width: 0;
-}
-
-@media (min-width: 1280px) {
-  .habits__body {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-  }
-
-  .habits__body > .habits__heat {
-    position: sticky;
-    top: 16px;
-  }
-}
-
-.habits__heat {
-  margin: 0;
-  grid-template-columns: minmax(0, 1fr) auto;
+.habits__nav {
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.habits__heat > .habits__weekdays,
-.habits__heat > .habits__grid {
-  grid-column: 1 / -1;
+.habits__month {
+  min-width: 0;
+  font-size: calc(15px * var(--text-scale));
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.habits__calendar {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  margin: 0;
+  padding: 14px 16px;
+  min-width: 0;
 }
 
 .habits__weekdays,
 .habits__grid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 36px));
-  justify-content: start;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -987,27 +880,6 @@
   font-size: 0.6875rem;
   text-align: center;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.habits__legend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6875rem;
-  color: var(--muted);
-}
-
-.habits__legend span {
-  padding: 0 2px;
-}
-
-.habits__legend .habits__day {
-  width: 12px;
-  height: 12px;
-  aspect-ratio: auto;
-  border-radius: 3px;
 }
 
 .habits__grid {
@@ -1060,9 +932,115 @@
   outline-offset: 2px;
 }
 
-/* --- charts -------------------------------------------------------------- */
+.habits__legend {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.habits__legend span {
+  padding: 0 2px;
+}
+
+.habits__legend .habits__day {
+  width: 12px;
+  height: 12px;
+  aspect-ratio: auto;
+  border-radius: 3px;
+}
+
+.habits__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.habits__note {
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@container analytics (min-width: 900px) {
+  .habits {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    column-gap: 20px;
+  }
+}
+
+/* --- charts-------------------------------------------------------------- */
 
 /* Stacks on whatever room the pane actually has, settings drawer included. */
+/* Tab panels are one column on a phone, in markup order. The wide layout
+   below places the same children into two columns (3fr / 2fr). */
+.analytics__split,
+.analytics__area--lead {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
+}
+
+/* The project list and top tasks sit on cards, like the chart beside them. */
+.analytics__area--list {
+  padding: 6px;
+}
+
+.analytics__area--tasks {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.analytics__area--tasks .ui-section-label {
+  margin: 0;
+}
+
+@container analytics (min-width: 900px) {
+  .analytics__split {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    column-gap: 20px;
+    align-items: start;
+  }
+
+  .analytics__split--time {
+    grid-template-areas:
+      'chart list'
+      'tasks list';
+  }
+
+  .analytics__split--money {
+    grid-template-areas:
+      'lead list'
+      'clients list';
+  }
+
+  .analytics__split--time .analytics__area--chart {
+    grid-area: chart;
+  }
+
+  .analytics__split--time .analytics__area--tasks {
+    grid-area: tasks;
+  }
+
+  .analytics__area--list {
+    grid-area: list;
+  }
+
+  .analytics__area--lead {
+    grid-area: lead;
+  }
+
+  .analytics__area--clients {
+    grid-area: clients;
+  }
+}
+
 .analytics__charts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
@@ -1119,68 +1097,23 @@
   fill-opacity: 1;
 }
 
+/* Today stands out; earlier days recede; days ahead are neutral stubs. */
+.analytics-chart__bars rect.is-past {
+  fill-opacity: 0.45;
+}
+
+.analytics-chart__bars rect.is-today {
+  fill-opacity: 1;
+}
+
+.analytics-chart__bars rect.is-future {
+  fill: var(--line);
+  fill-opacity: 1;
+}
+
 .analytics-chart__empty {
   margin: 0;
   font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
 
-.analytics-share {
-  display: grid;
-  gap: 10px;
-  justify-items: center;
-}
-
-.analytics-share__ring {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-.analytics-share__legend {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  display: grid;
-  gap: 5px;
-  font-size: calc(12px * var(--text-scale));
-}
-
-.analytics-share__legend li {
-  display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-}
-
-.analytics-share__swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: var(--accent);
-}
-
-.analytics-share__name {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.analytics-share__value {
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.analytics-share__value em {
-  color: var(--muted);
-  font-style: normal;
-  margin-left: 6px;
-}
-
-@media (min-width: 1100px) {
-  .analytics__charts {
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  }
-}

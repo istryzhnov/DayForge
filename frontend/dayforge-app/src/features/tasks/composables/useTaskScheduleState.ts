@@ -1,4 +1,4 @@
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch, type Ref } from 'vue'
 import type {
   RecurrenceRule,
   RecurrenceType,
@@ -38,14 +38,15 @@ function pad(value: number) {
 export const MIN_TIME: TimeOfDay = `${pad(DAY_WINDOW.START_HOUR)}:00`
 export const MAX_TIME: TimeOfDay = `${pad(DAY_WINDOW.END_HOUR)}:00`
 
-export function useTaskScheduleState() {
+/** `enabled` lets a parent own the on/off switch, e.g. a composer's calendar button. */
+export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
   const { settings } = useSettings()
 
   const defaultStart = () => settings.calendar.defaultStartTime
   const defaultEnd = () =>
     addMinutesToTime(defaultStart(), settings.calendar.defaultDurationMinutes)
 
-  const isEnabled = ref(false)
+  const isEnabled = enabled
   const date = ref<ISODate>(getTodayISODate())
   const startTime = ref<TimeOfDay>(defaultStart())
   const endTime = ref<TimeOfDay>(defaultEnd())

@@ -13,9 +13,10 @@ import { buildRateLookup } from '../../../composables/timer/rates'
 import { projectEarnings, totalEarned } from '../composables/projectEarnings'
 import {
   INCOME_GOAL_MAX,
-  INCOME_STATE,
+  amountPerDayNeeded,
   incomeGoalStatus,
   sanitizeMonthlyIncome,
+  workingDaysLeft,
 } from '../composables/incomeGoal'
 
 const props = defineProps<{
@@ -79,32 +80,23 @@ const barWidth = computed(() =>
   status.value ? `${Math.min(status.value.fraction, 1) * 100}%` : '0%',
 )
 
-const paceText = computed(() => {
+/** Where the month's pace stands: the share of working days already gone. */
+const paceLeft = computed(() => {
   const current = status.value
-  if (!current) return ''
-
-  switch (current.state) {
-    case INCOME_STATE.REACHED:
-      return 'Goal reached this month.'
-    case INCOME_STATE.PENDING:
-      return 'The pace starts on the first working day of the month.'
-    case INCOME_STATE.BEHIND:
-      return `Behind by ${money.value.format(current.behindBy)}`
-    default:
-      return 'On track'
-  }
+  if (!current || current.totalWorkingDays === 0) return '0%'
+  return `${(current.elapsedWorkingDays / current.totalWorkingDays) * 100}%`
 })
 
-const forecastText = computed(() => {
-  const current = status.value
-  if (!current || current.forecast === null) return ''
-  return `Pace projects ${money.value.format(current.forecast)} by month end`
-})
-
-const dayText = computed(() => {
+/** Amount per working day still to come, today included; null hides the line. */
+const perDayText = computed(() => {
   const current = status.value
   if (!current) return ''
-  return `Working day ${current.elapsedWorkingDays} of ${current.totalWorkingDays}`
+  const needed = amountPerDayNeeded(
+    current.goal,
+    current.earned,
+    workingDaysLeft(new Date()),
+  )
+  return needed === null ? '' : `${money.value.format(needed)} / day`
 })
 
 function startEditing() {
@@ -140,10 +132,6 @@ function clear() {
       <button class="income-goal__empty" type="button" @click="startEditing">
         <span class="analytics__card-label">Monthly income goal</span>
         <strong>Set a goal</strong>
-        <span class="analytics__card-note">
-          See how this month's earnings compare with a target, and where the
-          pace is heading.
-        </span>
       </button>
     </template>
 
@@ -185,47 +173,51 @@ function clear() {
 
     <div v-else-if="status" class="income-goal__body">
       <div class="income-goal__head">
-        <div class="income-goal__earned">
+        <div class="income-goal__figure">
           <span class="analytics__card-label">Earned this month</span>
-          <strong class="analytics__card-value">
-            {{ money.format(status.earned) }}
-          </strong>
-          <span class="analytics__card-note">
-            of {{ money.format(status.goal) }} goal · {{ dayText }}
+          <span class="income-goal__amount">
+            <strong class="income-goal__earned">{{ money.format(status.earned) }}</strong>
+            <span class="income-goal__goal">/ {{ money.format(status.goal) }}</span>
           </span>
         </div>
+        <span class="income-goal__percent">{{ percentLabel }}</span>
         <button class="btn btn-ghost income-goal__edit" type="button" @click="startEditing">
           Edit goal
         </button>
       </div>
 
-      <div
-        class="income-goal__meter"
-        role="progressbar"
-        aria-label="Share of the monthly goal earned"
-        aria-valuemin="0"
-        aria-valuemax="100"
-        :aria-valuenow="Math.min(100, Math.round(status.fraction * 100))"
-      >
-        <span :style="{ width: barWidth }"></span>
-      </div>
-
-      <div class="income-goal__foot">
-        <span class="income-goal__percent">{{ percentLabel }} of goal</span>
+      <div class="income-goal__track">
+        <div
+          class="ui-progress"
+          role="progressbar"
+          aria-label="Share of the monthly goal earned"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-valuenow="Math.min(100, Math.round(status.fraction * 100))"
+        >
+          <span :style="{ width: barWidth }"></span>
+        </div>
+        <!-- Where the month should stand by now, given the working days gone. -->
         <span
           class="income-goal__pace"
-          :class="`is-${status.state}`"
-        >
-          {{ paceText }}
-        </span>
-        <span v-if="forecastText" class="analytics__card-note">
-          {{ forecastText }}
-        </span>
+          :style="{ left: paceLeft }"
+          aria-hidden="true"
+        ></span>
       </div>
 
-      <p class="analytics__hint income-goal__hint">
-        Counts Mon–Fri working days. Earnings come from hourly rates and fixed
-        prices, as in the table below.
+      <p v-if="perDayText" class="income-goal__need">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M5 12h14M13 6l6 6-6 6"></path>
+        </svg>
+        {{ perDayText }}
       </p>
     </div>
   </section>

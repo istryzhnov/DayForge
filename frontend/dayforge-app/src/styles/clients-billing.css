@@ -1,14 +1,5 @@
 /* Clients, export and payment status. Kept apart from analytics-billing.css. */
 
-.analytics__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.analytics__clients {
-  margin-top: -4px;
-}
 
 /* --- settings: clients ------------------------------------------------- */
 
@@ -103,12 +94,6 @@
   margin: 8px 0;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 480px) {
-  .analytics__actions .btn {
-    flex: 1 1 auto;
-  }
 }
 
 /* --- print view (opened in its own window; see printReport.ts) --------- */

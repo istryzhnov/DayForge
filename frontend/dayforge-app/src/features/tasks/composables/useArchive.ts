@@ -1,25 +1,22 @@
 import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { ID, ISODate } from '../../../entities/types'
+import type { ID, ISODate, ISODateTime } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
+import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { projectColors } from '../../../composables/theme/goalTheme'
+import { useSettings } from '../../../composables/useSettings'
+import { doneCountsOf, groupByDay, type DayGroup } from './dayGroups'
 
 export type ArchivedTask = {
   id: ID
   title: string
   date: ISODate
-  completedAt?: string
+  completedAt?: ISODateTime
   goalTitle: string
+  /** The project's colour for the row's dot; absent when it has none. */
+  goalColor?: string
   startTime?: string
-}
-
-/** One block per project, plus a catch-all for tasks that belong to none. */
-export type ArchiveBlock = {
-  key: string
-  projectTitle: string
-  goalTitle: string
-  tasks: ArchivedTask[]
-  latestDate: ISODate
 }
 
 type ArchiveOptions = {
@@ -28,70 +25,56 @@ type ArchiveOptions = {
   getGoals: () => Goal[]
 }
 
-const NO_PROJECT_KEY = '__no_project__'
-
 export function useArchive(options: ArchiveOptions) {
-  const blocks = computed<ArchiveBlock[]>(() => {
-    const templates = options.getTemplates()
-    const templateById = new Map(templates.map((item) => [item.id, item]))
-    const goalTitleById = new Map(
-      options.getGoals().map((goal) => [goal.id, goal.title]),
-    )
+  const { settings } = useSettings()
+
+  /** Newest day first, and within a day the latest completion first. */
+  const days = computed<DayGroup<ArchivedTask>[]>(() => {
+    const goals = options.getGoals()
+    const goalTitleById = new Map(goals.map((goal) => [goal.id, goal.title]))
+    const goalColorById = projectColors(goals)
 
     const done = options
       .getDailyTasks()
       .filter((row) => row.status === TASK_STATUS.DONE)
+      .map(
+        (row): ArchivedTask => ({
+          id: row.id,
+          title: row.title,
+          date: row.date,
+          completedAt: row.completedAt,
+          goalTitle: row.goalId
+            ? (goalTitleById.get(row.goalId) ?? 'Unknown goal')
+            : 'No goal',
+          goalColor: row.goalId ? goalColorById.get(row.goalId) : undefined,
+          startTime: row.startTime,
+        }),
+      )
+      .sort(
+        (a, b) =>
+          b.date.localeCompare(a.date) ||
+          (b.completedAt ?? '').localeCompare(a.completedAt ?? ''),
+      )
 
-    const grouped = new Map<string, ArchiveBlock>()
-
-    done.forEach((row) => {
-      const template = templateById.get(row.templateId)
-      const project = template?.parentTemplateId
-        ? templateById.get(template.parentTemplateId)
-        : undefined
-
-      const key = project?.id ?? NO_PROJECT_KEY
-      const goalTitle = row.goalId
-        ? (goalTitleById.get(row.goalId) ?? 'Unknown goal')
-        : 'No goal'
-
-      const task: ArchivedTask = {
-        id: row.id,
-        title: row.title,
-        date: row.date,
-        completedAt: row.completedAt,
-        goalTitle,
-        startTime: row.startTime,
-      }
-
-      const existing = grouped.get(key)
-      if (existing) {
-        existing.tasks.push(task)
-        if (row.date > existing.latestDate) existing.latestDate = row.date
-        return
-      }
-
-      grouped.set(key, {
-        key,
-        projectTitle: project?.title ?? 'Without a project',
-        goalTitle,
-        tasks: [task],
-        latestDate: row.date,
-      })
-    })
-
-    return [...grouped.values()]
-      .map((block) => ({
-        ...block,
-        // Newest first, matching the task list everywhere else.
-        tasks: block.tasks.sort((a, b) => b.date.localeCompare(a.date)),
-      }))
-      .sort((a, b) => b.latestDate.localeCompare(a.latestDate))
+    return groupByDay(done)
   })
 
   const totalDone = computed(() =>
-    blocks.value.reduce((sum, block) => sum + block.tasks.length, 0),
+    days.value.reduce((sum, day) => sum + day.items.length, 0),
   )
 
-  return { blocks, totalDone }
+  const counts = computed(() =>
+    doneCountsOf(
+      days.value.flatMap((day) => day.items.map((task) => task.date)),
+      getTodayISODate(),
+      settings.calendar.weekStartsOn,
+    ),
+  )
+
+  return {
+    days,
+    totalDone,
+    doneThisWeek: computed(() => counts.value.thisWeek),
+    doneThisMonth: computed(() => counts.value.thisMonth),
+  }
 }

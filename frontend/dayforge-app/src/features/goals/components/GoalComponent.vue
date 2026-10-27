@@ -19,6 +19,7 @@ import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 import { useProjectBudgetStatus } from '../../analytics/composables/useProjectBudgetStatus'
+import { projectColors } from '../../../composables/theme/goalTheme'
 
 // Opened on demand (board toggle, notes button), so kept out of the first chunk.
 const ProjectBoard = defineAsyncComponent(
@@ -79,6 +80,7 @@ const emit = defineEmits<{
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (e: 'change-goal-notes', goalId: ID, notes: string): void
   (e: 'select-date', date: ISODate): void
+  (e: 'today'): void
 }>()
 
 // The board is opt-in per project: until it is switched on, nothing here
@@ -131,21 +133,18 @@ function closeMoveDialog() {
 
 const {
   taskGroups,
-  totalCount,
-  projectCount,
-  taskCount,
   panelTitle,
-  panelDescription,
-  todayProgress,
-  monthCells,
-  habitTitle,
-  habitSubtitle,
+  panelStats,
+  viewedDayLabel,
+  upcomingDays,
+  hasHabits,
+  habitWindow,
+  habitStreakByTemplate,
   goalPanelStyle,
   focusProject,
   submitTask,
   submitMinor,
   submitSubtask,
-  submitQuickAdd,
   toggleDone,
   editTask,
   editNotes,
@@ -164,17 +163,28 @@ const {
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
 })
+
+// Upcoming is for a project or All Projects; with no goal selected it stays hidden.
+const showUpcoming = computed(
+  () => (props.isAllMode || !!props.goal) && upcomingDays.value.length > 0,
+)
+
+/** Colour of the project's dot in the header; All Projects has none. */
+const projectColor = computed(() =>
+  props.isAllMode || !props.goal
+    ? undefined
+    : projectColors(props.goals).get(props.goal.id),
+)
 </script>
 
 <template>
   <section class="goal-panel" :style="goalPanelStyle">
     <GoalPanelHeader
       :title="panelTitle"
-      :description="panelDescription"
+      :color="projectColor"
       :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
-      :total-count="totalCount"
-      :project-count="projectCount"
-      :task-count="taskCount"
+      :stats="panelStats"
+      :viewed-day="viewedDayLabel"
       :show-settings="!isAllMode && !!goal"
       :show-toolbar="!isAllMode && !!goal"
       :board-enabled="showBoard"
@@ -185,6 +195,7 @@ const {
         (enabled) => goal && emit('change-goal-board', goal.id, enabled)
       "
       @toggle-notes="toggleNotes"
+      @today="emit('today')"
     />
 
     <GoalComposerZone
@@ -245,18 +256,8 @@ const {
       @set-as-project="(templateId) => setAsProject(templateId)"
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
-      @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
     />
 
-    <UpcomingTasks
-      v-if="isAllMode || goal"
-      :templates="templates"
-      :daily-tasks="dailyTasks"
-      :goals="goals"
-      :goal-id="isAllMode ? null : (goal?.id ?? null)"
-      :from-date="currentDate"
-      @select-date="(date) => emit('select-date', date)"
-    />
 
     <TaskMoveDialog
       v-if="movingTemplate"
@@ -273,12 +274,20 @@ const {
       @close="closeMoveDialog"
     />
 
-    <HabitCalendar
-      :title="habitTitle"
-      :subtitle="habitSubtitle"
-      :today-percent="todayProgress.percent"
-      :cells="monthCells"
-    />
+    <!-- Upcoming and Habits share a row; each one drops out when it has nothing. -->
+    <div v-if="showUpcoming || hasHabits" class="goal-side-row">
+      <UpcomingTasks
+        v-if="showUpcoming"
+        :days="upcomingDays"
+        :goals="goals"
+        @select-date="(date) => emit('select-date', date)"
+      />
+      <HabitCalendar
+        v-if="hasHabits"
+        :view="habitWindow"
+        :streaks="habitStreakByTemplate"
+      />
+    </div>
 
     <ProjectNotesPanel
       v-if="notesOpen && goal && !isAllMode"

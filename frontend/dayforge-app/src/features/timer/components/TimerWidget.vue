@@ -3,6 +3,8 @@ import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import { useTimerView } from '../composables/useTimerView'
 
+import AppIcon from '../../../components/AppIcon.vue'
+
 const emit = defineEmits<{ (e: 'open-timer'): void }>()
 
 const {
@@ -32,7 +34,7 @@ const {
         aria-label="Open the timer screen"
         @click="emit('open-timer')"
       >
-        ⤢
+        <AppIcon name="maximize" :size="14" />
       </button>
     </header>
 

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import GoalHeader from './GoalHeader.vue'
 import type { BudgetStanding } from '../../analytics/composables/projectBudget'
+import type { PanelStats } from '../composables/projectPanelStats'
 
 defineProps<{
   title: string
-  description: string
+  color?: string
   status: string
-  totalCount: number
-  projectCount: number
-  taskCount: number
+  stats: PanelStats
+  viewedDay: string | null
   showSettings: boolean
   showToolbar: boolean
   boardEnabled: boolean
@@ -20,17 +20,17 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
   (e: 'toggle-notes'): void
+  (e: 'today'): void
 }>()
 </script>
 
 <template>
   <GoalHeader
     :title="title"
-    :description="description"
+    :color="color"
     :status="status"
-    :total-count="totalCount"
-    :project-count="projectCount"
-    :task-count="taskCount"
+    :stats="stats"
+    :viewed-day="viewedDay"
     :show-settings="showSettings"
     :show-toolbar="showToolbar"
     :board-enabled="boardEnabled"
@@ -39,5 +39,6 @@ const emit = defineEmits<{
     :budget="budget"
     @set-board="(enabled) => emit('set-board', enabled)"
     @toggle-notes="emit('toggle-notes')"
+    @today="emit('today')"
   />
 </template>

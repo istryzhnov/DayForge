@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
+import { formatHoursMinutes } from '../../../composables/timer/format'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
+import type { PanelStats } from '../composables/projectPanelStats'
 import ProjectToolbar from './ProjectToolbar.vue'
 import ProjectBudgetChip from './ProjectBudgetChip.vue'
 import type { BudgetStanding } from '../../analytics/composables/projectBudget'
 
 const props = defineProps<{
   title: string
-  description: string
+  /** Project colour for the dot; absent in All Projects mode. */
+  color?: string
   status: string
-  totalCount: number
-  projectCount: number
-  taskCount: number
+  stats: PanelStats
+  /** Label of a day other than today that the list is showing. */
+  viewedDay: string | null
   showSettings: boolean
   showToolbar: boolean
   boardEnabled: boolean
@@ -22,6 +26,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
   (e: 'toggle-notes'): void
+  (e: 'today'): void
 }>()
 
 const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
@@ -30,13 +35,52 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
 
 <template>
   <header class="goal-panel-header">
-    <div>
-      <h2>{{ title }}</h2>
-      <p>{{ description }}</p>
+    <div class="goal-panel-header__main">
+      <div class="goal-panel-header__title">
+        <span
+          v-if="color"
+          class="goal-panel-header__dot"
+          :style="{ background: color }"
+          aria-hidden="true"
+        />
+        <h2>{{ title }}</h2>
+        <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
+      </div>
+
+      <!-- Picking a day in Upcoming shows that day; this is the way back. -->
+      <button
+        v-if="viewedDay"
+        class="ui-chip is-active goal-panel-header__day"
+        type="button"
+        :aria-label="`Showing ${viewedDay}. Back to today`"
+        @click="emit('today')"
+      >
+        <AppIcon name="calendar" :size="14" />
+        {{ viewedDay }}
+        <AppIcon name="close" :size="14" />
+      </button>
+
+      <ul class="goal-panel-stats">
+        <li class="goal-panel-stats__item">
+          <AppIcon name="check" :size="14" />
+          <span class="ui-oneline"
+            >{{ stats.todayDone }}/{{ stats.todayTotal }} today</span
+          >
+        </li>
+        <li v-if="stats.streakDays !== null" class="goal-panel-stats__item">
+          <AppIcon name="flame" :size="14" />
+          <span class="ui-oneline">{{ stats.streakDays }} days</span>
+        </li>
+        <li v-if="stats.trackedMs > 0" class="goal-panel-stats__item">
+          <AppIcon name="timer" :size="14" />
+          <span class="ui-oneline"
+            >{{ formatHoursMinutes(stats.trackedMs) }} this month</span
+          >
+        </li>
+      </ul>
     </div>
 
     <div class="goal-panel-header__aside">
-      <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
       <ProjectBudgetChip v-if="budget" :standing="budget" />
       <ProjectToolbar
         v-if="showToolbar"
@@ -48,30 +92,16 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
       />
       <button
         v-if="showSettings"
-        class="goal-settings-btn"
+        class="ui-icon-btn ui-icon-btn--outlined goal-panel-header__icon"
         :class="{ 'is-active': isProjectSettingsOpen }"
         type="button"
+        aria-label="Project settings"
         title="Name, status, colours, rate"
         :aria-expanded="isProjectSettingsOpen"
         @click="toggleProjectSettings"
       >
-        <span aria-hidden="true">⚙</span>
-        <span>Project settings</span>
+        <AppIcon name="settings" :size="16" />
       </button>
     </div>
   </header>
-  <div class="goal-kpi-row">
-    <article class="kpi">
-      <h3>Total</h3>
-      <p>{{ totalCount }}</p>
-    </article>
-    <article class="kpi">
-      <h3>Projects</h3>
-      <p>{{ projectCount }}</p>
-    </article>
-    <article class="kpi">
-      <h3>Tasks</h3>
-      <p>{{ taskCount }}</p>
-    </article>
-  </div>
 </template>

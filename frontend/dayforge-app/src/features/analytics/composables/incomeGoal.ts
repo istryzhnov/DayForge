@@ -56,6 +56,32 @@ export function elapsedWorkingDays(now: Date): number {
   return count
 }
 
+/** Working days from `now` through the end of its month, today included. */
+export function workingDaysLeft(now: Date): number {
+  const year = now.getFullYear()
+  const month = now.getMonth()
+  const lastDay = new Date(year, month + 1, 0).getDate()
+
+  let count = 0
+  for (let day = now.getDate(); day <= lastDay; day += 1) {
+    if (isWorkingDay(new Date(year, month, day))) count += 1
+  }
+  return count
+}
+
+/**
+ * What each remaining working day has to bring in to reach the goal. Null when
+ * the goal is already met or no working day is left to earn it in.
+ */
+export function amountPerDayNeeded(
+  goal: number,
+  earned: number,
+  daysLeft: number,
+): number | null {
+  if (earned >= goal || daysLeft <= 0) return null
+  return (goal - earned) / daysLeft
+}
+
 export interface IncomeGoalStatus {
   goal: number
   earned: number

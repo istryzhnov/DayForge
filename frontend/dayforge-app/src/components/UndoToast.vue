@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from './AppIcon.vue'
 import { useUndoToast } from '../composables/useUndoToast'
 
 const { pending, runPendingAction, dismissUndo, undoWindowMs } = useUndoToast()
@@ -14,11 +15,11 @@ function timerStyle(durationMs: number) {
   <div
     v-if="pending"
     :key="pending.id"
-    class="undo-toast"
+    class="ui-card undo-toast"
     role="status"
     aria-live="polite"
   >
-    <span class="undo-toast__label">{{ pending.label }}</span>
+    <span class="undo-toast__label ui-oneline">{{ pending.label }}</span>
     <button
       class="undo-toast__action"
       type="button"
@@ -29,19 +30,19 @@ function timerStyle(durationMs: number) {
     <button
       v-for="(action, index) in pending.secondary"
       :key="action.label"
-      class="undo-toast__action undo-toast__action--secondary"
+      class="ui-chip"
       type="button"
       @click="runPendingAction(index + 1)"
     >
       {{ action.label }}
     </button>
     <button
-      class="undo-toast__close"
+      class="ui-icon-btn undo-toast__close"
       type="button"
       aria-label="Dismiss"
       @click="dismissUndo"
     >
-      ×
+      <AppIcon name="close" :size="14" />
     </button>
     <span
       v-if="!pending.sticky"

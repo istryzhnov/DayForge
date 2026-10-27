@@ -233,6 +233,11 @@ export function projectFigures(input: ProjectFigureInput): ProjectFigures {
   return withRate(ms, (ms / HOUR_MS) * blendedRate, null, true)
 }
 
+/** Earned per hour of `ms`; null when there are no hours to divide by. */
+export function earnedPerHour(earned: number, ms: number): number | null {
+  return ms > 0 ? earned / (ms / HOUR_MS) : null
+}
+
 function withRate(
   ms: number,
   earned: number,
@@ -242,7 +247,7 @@ function withRate(
   return {
     ms,
     earned,
-    effectiveRate: ms > 0 ? earned / (ms / HOUR_MS) : null,
+    effectiveRate: earnedPerHour(earned, ms),
     fixedBasis,
     manualHours,
   }

@@ -3,6 +3,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import {
+  addDaysToISODate,
   addMonthsToISODate,
   getTodayISODate,
   parseISODate,
@@ -10,12 +11,15 @@ import {
 } from '../../../composables/goalSpace/date'
 import {
   habitMonthView,
+  habitStreaks,
+  habitStripCells,
   type HabitDayState,
   type HabitMonthCell,
   type HabitMonthDayTotal,
+  type HabitMonthRow,
 } from '../../../composables/analytics/habits'
-import { useFormat } from '../../../composables/useFormat'
 import { isRepeating } from '../../../composables/goalSpace/recurrence'
+import { panelDateLabel } from '../../../composables/panelDateLabel'
 import { projectColors } from '../../../composables/theme/goalTheme'
 
 const STATE_WORDS: Record<HabitDayState, string> = {
@@ -37,12 +41,12 @@ function weekIndexOf(date: ISODate): number {
 }
 
 export function useHabitMonth(sources: HabitMonthSources) {
-  const { formatDate, formatMonth, locale } = useFormat()
-
   const currentMonth = startOfMonthISODate(getTodayISODate())
   const month = ref<ISODate>(currentMonth)
   const canGoNext = computed(() => month.value < currentMonth)
-  const monthLabel = computed(() => formatMonth(month.value))
+  const monthLabel = computed(() =>
+    panelDateLabel(month.value, { month: 'long', year: 'numeric' }),
+  )
 
   function shiftMonth(delta: number) {
     const next = addMonthsToISODate(month.value, delta)
@@ -63,10 +67,29 @@ export function useHabitMonth(sources: HabitMonthSources) {
     sources.getTemplates().some(isRepeating),
   )
 
+  /** Current run of done days per habit, the same numbers as the project page. */
+  const streaks = computed(() =>
+    habitStreaks({
+      templates: sources.getTemplates(),
+      dailyTasks: sources.getDailyTasks(),
+      today: getTodayISODate(),
+    }),
+  )
+
+  function streakOf(templateId: ID): number {
+    return streaks.value.get(templateId) ?? 0
+  }
+
+  /** Squares for one row, cut at today; every row has the same length. */
+  function stripCellsOf(row: HabitMonthRow): HabitMonthCell[] {
+    return habitStripCells(row.cells, getTodayISODate())
+  }
+
+  // Monday first, narrow names: M T W T F S S.
   const weekdayLabels = computed(() =>
     Array.from({ length: 7 }, (_, index) =>
-      new Date(2024, 0, 1 + index).toLocaleDateString(locale.value, {
-        weekday: 'short',
+      panelDateLabel(addDaysToISODate('2024-01-01', index), {
+        weekday: 'narrow',
       }),
     ),
   )
@@ -102,7 +125,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
   }
 
   function dateText(date: ISODate): string {
-    return formatDate(date, {
+    return panelDateLabel(date, {
       weekday: 'short',
       day: 'numeric',
       month: 'short',
@@ -145,6 +168,8 @@ export function useHabitMonth(sources: HabitMonthSources) {
     shiftMonth,
     view,
     hasRepeating,
+    streakOf,
+    stripCellsOf,
     weekdayLabels,
     calendarCells,
     colorOf,

@@ -11,7 +11,6 @@ import {
 } from '../composables/useTaskDrag'
 import DragGhost from '../../../components/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
-import TaskQuickAdd from './TaskQuickAdd.vue'
 
 defineProps<{
   groups: TaskGroup[]
@@ -36,7 +35,6 @@ const emit = defineEmits<{
   (e: 'set-as-project', templateId: ID): void
   (e: 'move-task', templateId: ID): void
   (e: 'move-task-to', payload: TaskDropPayload): void
-  (e: 'quick-add', title: string, schedule?: TaskSchedule): void
 }>()
 
 const drag = useTaskDrag({ onMove: (payload) => emit('move-task-to', payload) })
@@ -196,11 +194,6 @@ function groupKey(group: TaskGroup) {
     />
   </div>
 
-  <TaskQuickAdd
-    v-else
-    @submit="
-      (title: string, schedule?: TaskSchedule) =>
-        emit('quick-add', title, schedule)
-    "
-  />
+  <!-- The composer row above is the way in, so an empty list only says so. -->
+  <p v-else class="task-empty">Nothing planned yet.</p>
 </template>

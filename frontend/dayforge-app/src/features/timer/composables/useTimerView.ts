@@ -95,6 +95,7 @@ export function useTimerView() {
         timer.timer.value.status !== TIMER_STATUS.IDLE,
     ),
     todayLabel: computed(() => formatShortDuration(todayTotalMs.value)),
+    todayTotalMs,
     taskLabel: computed(
       () => timer.task.value?.taskTitle ?? 'No task attached',
     ),
