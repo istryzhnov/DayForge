@@ -1,0 +1,202 @@
+/* Shared primitives for the Analytics redesign. Sizes follow the mockup scale
+   (radius 8/12/16, type 11/13/14/18/28, spacing 4-20px). Colours come only
+   from theme variables, so every theme and palette works without changes. */
+
+.ui-card {
+  border: 1px solid var(--line);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--panel);
+}
+
+/* Label over a single-line value. */
+.ui-stat {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ui-stat__label {
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-stat__value {
+  font-size: calc(18px * var(--text-scale));
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-stat--large .ui-stat__value {
+  font-size: calc(28px * var(--text-scale));
+}
+
+/* A row of chips that wraps rather than scrolling sideways. */
+.ui-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  height: 36px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.ui-chip:hover {
+  color: var(--text);
+}
+
+.ui-chip.is-active {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text);
+}
+
+/* Segmented control. The active segment takes the accent with the readable
+   text colour the theme derives for it. */
+.ui-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--panel);
+}
+
+.ui-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: calc(10px * var(--radius-scale));
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-tab.is-active {
+  background: var(--accent);
+  color: var(--ring-check);
+}
+
+/* Share of a target. The fill is the only element that changes width. */
+.ui-progress {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.ui-progress > span {
+  display: block;
+  height: 100%;
+  max-width: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* Round icon-only button. Touch screens get a larger target. */
+.ui-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.ui-icon-btn--outlined {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.ui-icon-btn svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.ui-icon-btn:hover {
+  color: var(--text);
+}
+
+.ui-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (pointer: coarse) {
+  .ui-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.ui-chip:focus-visible,
+.ui-tab:focus-visible,
+.ui-icon-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.ui-section-label {
+  margin: 0;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ui-oneline {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -32,10 +32,12 @@ const props = defineProps<{
   periodLabel: string
   clientLabel: string
   authorName?: string
+  copied: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'copy-report'): void
 }>()
 
 useFocusTrap({ onEscape: () => emit('close') })
@@ -218,6 +220,9 @@ function handleExport() {
       <div class="modal-actions project-billing__actions">
         <button class="btn btn-ghost" type="button" @click="emit('close')">
           Close
+        </button>
+        <button class="btn btn-ghost" type="button" @click="emit('copy-report')">
+          {{ copied ? 'Copied' : 'Copy report' }}
         </button>
         <button
           class="btn btn-primary"

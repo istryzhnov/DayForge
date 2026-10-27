@@ -1,56 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Goal } from '../../../entities/GoalEntity'
-import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { AnalyticsPeriod, ProjectTotal } from '../../../composables/timer/analytics'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import type { ISODate } from '../../../entities/types'
 import { formatHoursMinutes } from '../../../composables/timer/format'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
 import {
   PLAN_STATE,
-  earliestPlanDate,
-  planBounds,
-  planVsActual,
-  plannedMsByProject,
   type PlanState,
+  type PlanVsActualResult,
 } from '../composables/planVsActual'
 
+/** Computed once in Analytics, so the hero and this table agree. */
 const props = defineProps<{
-  period: AnalyticsPeriod
-  goals: Goal[]
-  templates: TaskTemplate[]
-  dailyTasks: DailyTask[]
-  /** Tracked time per project in the period, from the Analytics summary. */
-  actual: ProjectTotal[]
+  result: PlanVsActualResult
+  bounds: { from: ISODate; to: ISODate }
 }>()
-
-const { settings } = useSettings()
-const { entries } = useTimeEntries()
-
-const bounds = computed(() =>
-  planBounds(
-    props.period,
-    getTodayISODate(),
-    earliestPlanDate(entries.value, props.dailyTasks, props.templates),
-  ),
-)
-
-const planned = computed(() =>
-  plannedMsByProject(
-    {
-      templates: props.templates,
-      dailyTasks: props.dailyTasks,
-      defaultDurationMinutes: settings.calendar.defaultDurationMinutes,
-    },
-    bounds.value.from,
-    bounds.value.to,
-  ),
-)
-
-const result = computed(() =>
-  planVsActual(planned.value, props.actual, props.goals),
-)
 
 function hours(ms: number): string {
   return formatHoursMinutes(ms)
@@ -77,18 +39,14 @@ const STATE_LABEL: Record<PlanState, string> = {
 }
 
 const rangeNote = computed(() => {
-  const { from, to } = bounds.value
+  const { from, to } = props.bounds
   return from === to ? from : `${from} to ${to}`
 })
 </script>
 
 <template>
   <section class="plan-vs-actual" aria-label="Plan versus actual">
-    <p class="sidebar-caption">Plan vs actual</p>
-    <p class="analytics__hint">
-      Planned is the time scheduled in the calendar for this period, repeating
-      tasks included. Actual is the time tracked. {{ rangeNote }}.
-    </p>
+    <p class="sidebar-caption">Plan vs actual · {{ rangeNote }}</p>
 
     <p
       v-if="result.rows.length === 0"

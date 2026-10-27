@@ -551,6 +551,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     hasAdjustments,
     projectRows,
     projectShareLabel,
+    adjustedTotalMs,
     totalLabel: computed(() => formatHoursMinutes(adjustedTotalMs.value)),
     totalMoneyLabel: computed(() => moneyLabel(adjustedTotalEarned.value)),
     durationLabel,

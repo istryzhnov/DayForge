@@ -566,10 +566,12 @@
   color: var(--text);
 }
 
-.analytics__subtitle {
-  margin: 4px 0 0;
-  color: var(--muted);
-  font-size: 0.85rem;
+/* One tab's content; the tab bar above it keeps its own spacing. */
+.analytics__panel {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  min-width: 0;
 }
 
 .analytics__cards {
@@ -776,13 +778,6 @@
 }
 
 .analytics-table__muted {
-  color: var(--muted);
-}
-
-.analytics__hint {
-  margin: -6px 0 0;
-  font-size: calc(12px * var(--text-scale));
-  line-height: 1.5;
   color: var(--muted);
 }
 

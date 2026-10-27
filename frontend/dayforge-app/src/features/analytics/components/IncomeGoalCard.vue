@@ -222,11 +222,6 @@ function clear() {
           {{ forecastText }}
         </span>
       </div>
-
-      <p class="analytics__hint income-goal__hint">
-        Counts Mon–Fri working days. Earnings come from hourly rates and fixed
-        prices, as in the table below.
-      </p>
     </div>
   </section>
 </template>

@@ -94,11 +94,6 @@ const {
         </div>
       </div>
 
-      <p class="analytics__hint">
-        One square per day a habit was due. Hover or focus a square for its
-        date and state.
-      </p>
-
       <div class="habits__body">
         <ul class="habits__rows">
           <HabitMonthRow
