@@ -81,6 +81,7 @@ import { parseBackupFile } from '../../src/features/settings/composables/backupF
 import type { Goal } from '../../src/entities/GoalEntity'
 import { describeRecurrence } from '../../src/composables/goalSpace/recurrence'
 import { collectUpcoming } from '../../src/features/tasks/composables/useUpcomingTasks'
+import { dayHeadingLabel, doneCountsOf, groupByDay } from '../../src/features/tasks/composables/dayGroups'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { BOARD_COLUMN, buildBoardCards, columnOf, planBoardMove, type BoardColumn } from '../../src/features/board/composables/boardModel'
 import {
@@ -2372,6 +2373,32 @@ function verifyCalendarTitles() {
   )
 }
 
+function verifyDayLists() {
+  section('Day lists: grouping, headings and done counts')
+
+  const rows = [
+    { id: 'a', date: '2026-10-27' },
+    { id: 'b', date: '2026-10-27' },
+    { id: 'c', date: '2026-10-26' },
+    { id: 'd', date: '2026-10-27' },
+  ]
+  const groups = groupByDay(rows)
+  check('groupByDay: neighbours on one date share a group', groups.length === 3 && groups[0].items.length === 2)
+  check('groupByDay: a date that comes back starts a new group, order kept', same(groups.map((group) => group.items.map((row) => row.id)), [['a', 'b'], ['c'], ['d']]))
+  check('groupByDay: no rows, no groups', groupByDay([]).length === 0)
+
+  check('dayHeadingLabel: weekday and day-month in English', dayHeadingLabel('2026-10-27') === 'Tuesday, 27 October')
+  check('dayHeadingLabel: a single-digit day has no leading zero', dayHeadingLabel('2026-09-03') === 'Thursday, 3 September')
+
+  // 25 Oct 2026 is a Sunday; with weeks starting Monday it sits in the week before.
+  const dates = ['2026-10-01', '2026-10-25', '2026-10-26', '2026-10-31', '2026-11-01']
+  check('doneCountsOf: Monday-start week and month around today', same(doneCountsOf(dates, '2026-10-27', 1), { thisWeek: 3, thisMonth: 4 }))
+  check('doneCountsOf: a Sunday does not count in a Monday-start week', doneCountsOf(['2026-10-25'], '2026-10-27', 1).thisWeek === 0)
+  check('doneCountsOf: a Sunday counts in a Sunday-start week', doneCountsOf(['2026-10-25'], '2026-10-27', 0).thisWeek === 1)
+  check('doneCountsOf: the week ends before the next Sunday', doneCountsOf(['2026-11-01'], '2026-10-27', 0).thisWeek === 0)
+  check('doneCountsOf: nothing done, zero counts', same(doneCountsOf([], '2026-10-27', 1), { thisWeek: 0, thisMonth: 0 }))
+}
+
 function main() {
   verifyPushReminderParity()
   verifyTimerReminders()
@@ -2396,6 +2423,7 @@ function main() {
   verifyMoneyTab()
   verifyTimerHistoryLabels()
   verifyCalendarTitles()
+  verifyDayLists()
 
   console.log(`\n${checks - failures}/${checks} compat checks passed`)
   if (failures > 0) {

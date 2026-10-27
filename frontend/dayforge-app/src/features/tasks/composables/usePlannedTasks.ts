@@ -8,6 +8,7 @@ import {
   TASK_STATUS,
 } from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { projectColors } from '../../../composables/theme/goalTheme'
 import {
   describeRecurrence,
   isAnnual,
@@ -21,6 +22,8 @@ export type PlannedTask = {
   title: string
   date: ISODate
   goalTitle: string
+  /** The project's colour for the row's dot; absent when it has none. */
+  goalColor?: string
   startTime?: string
   isDone: boolean
   isOverdue: boolean
@@ -53,9 +56,9 @@ function notYetStartedRepeatOf(
 export function usePlannedTasks(options: PlannedOptions) {
   const plannedTasks = computed<PlannedTask[]>(() => {
     const today = getTodayISODate()
-    const goalTitleById = new Map(
-      options.getGoals().map((goal) => [goal.id, goal.title]),
-    )
+    const goals = options.getGoals()
+    const goalTitleById = new Map(goals.map((goal) => [goal.id, goal.title]))
+    const goalColorById = projectColors(goals)
     const dailyTasks = options.getDailyTasks()
 
     return options
@@ -81,6 +84,9 @@ export function usePlannedTasks(options: PlannedOptions) {
             goalTitle: template.goalId
               ? (goalTitleById.get(template.goalId) ?? 'Unknown Goal')
               : 'No goal',
+            goalColor: template.goalId
+              ? goalColorById.get(template.goalId)
+              : undefined,
             startTime: template.startTime,
             isDone,
             // An annual date is never overdue — it simply comes round again.

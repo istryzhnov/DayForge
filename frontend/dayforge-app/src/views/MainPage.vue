@@ -89,8 +89,10 @@ const {
   goalVarsById,
   plannedTasks,
   plannedCount,
-  archiveBlocks,
+  archiveDays,
   totalDone,
+  doneThisWeek,
+  doneThisMonth,
   notificationsSupported,
   notificationsEnabled,
   activeAlert,
@@ -287,8 +289,10 @@ function handleSearchSelect(result: SearchResult) {
 
         <ArchiveView
           v-else-if="activeView === 'archive'"
-          :blocks="archiveBlocks"
+          :days="archiveDays"
           :total-done="totalDone"
+          :done-this-week="doneThisWeek"
+          :done-this-month="doneThisMonth"
         />
 
         <AnalyticsView
