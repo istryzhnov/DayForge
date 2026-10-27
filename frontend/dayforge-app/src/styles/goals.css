@@ -19,8 +19,8 @@
 }
 
 .sidebar-notify-trigger {
-  width: 35px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
   border-radius: 50px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
@@ -57,7 +57,7 @@
   display: grid;
   place-items: center;
   align-self: center;
-  padding-bottom: 3px;
+  padding: 0;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
