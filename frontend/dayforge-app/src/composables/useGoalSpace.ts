@@ -28,6 +28,7 @@ import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { isRepeating } from './goalSpace/recurrence'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
+import { placeBeside } from './goalSpace/taskOrder'
 import { bindStorage, readJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
@@ -684,27 +685,26 @@ export function useGoalSpace() {
   }
 
   /**
-   * Puts one task next to another in the list. Rows are drawn newest first,
-   * which is the template list reversed — so landing *above* a task means
-   * sitting *after* it in storage.
+   * Puts one task next to another in the list (`placeBeside` says which side
+   * is which). The position is not a synced field, so the moved row is
+   * stamped; otherwise the change would never reach the outbox.
    */
   function reorderTask(
     templateId: ID,
     targetTemplateId: ID,
     placeAbove: boolean,
   ) {
-    if (templateId === targetTemplateId) return
+    const next = placeBeside(
+      taskTemplates.value,
+      templateId,
+      targetTemplateId,
+      placeAbove,
+    )
+    if (!next) return
 
-    const list = [...taskTemplates.value]
-    const from = list.findIndex((item) => item.id === templateId)
-    if (from === -1) return
-
-    const [moved] = list.splice(from, 1)
-    const target = list.findIndex((item) => item.id === targetTemplateId)
-    if (target === -1) return
-
-    list.splice(placeAbove ? target + 1 : target, 0, moved)
-    taskTemplates.value = list
+    const moved = next.find((item) => item.id === templateId)
+    if (moved) moved.updatedAt = new Date().toISOString()
+    taskTemplates.value = next
   }
 
   function convertTaskToProject(templateId: ID) {

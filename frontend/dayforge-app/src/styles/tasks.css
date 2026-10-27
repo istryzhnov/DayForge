@@ -6,6 +6,7 @@
 /* A project that groups tasks is one card: its header row on top, the tasks
    inside as rows divided by hairlines. No nested cards or inner borders. */
 .task-project {
+  position: relative;
   display: grid;
   min-width: 0;
   border: 1px solid var(--line);
@@ -196,6 +197,14 @@
   box-shadow: none;
 }
 
+/* A project being moved: the whole block is the placeholder, not just its header. */
+.task-project.is-dragging {
+  opacity: 0.5;
+  outline: 2px dashed color-mix(in srgb, var(--accent) 70%, transparent);
+  outline-offset: -2px;
+  border-radius: calc(14px * var(--radius-scale));
+}
+
 body.is-dragging-task {
   user-select: none;
   -webkit-user-select: none;
@@ -215,7 +224,9 @@ body.is-dragging-task {
 
 /* The line a dropped task would land on. */
 .task-row.is-drop-above::before,
-.task-row.is-drop-below::after {
+.task-row.is-drop-below::after,
+.task-project.is-drop-above::before,
+.task-project.is-drop-below::after {
   content: '';
   position: absolute;
   left: 8px;
@@ -226,11 +237,13 @@ body.is-dragging-task {
   box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 60%, transparent);
 }
 
-.task-row.is-drop-above::before {
+.task-row.is-drop-above::before,
+.task-project.is-drop-above::before {
   top: -5px;
 }
 
-.task-row.is-drop-below::after {
+.task-row.is-drop-below::after,
+.task-project.is-drop-below::after {
   bottom: -5px;
 }
 

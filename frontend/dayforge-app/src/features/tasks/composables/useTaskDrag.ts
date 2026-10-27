@@ -10,9 +10,7 @@ import {
   goalIdAt,
   setHoverGoal,
 } from './taskDropTarget'
-
-/** Dropping here takes a task out of whatever project it sits in. */
-export const DROP_ZONE_ROOT = 'root'
+import { DROP_ZONE_ROOT, pickDropTarget } from './dropRules'
 
 const DRAG_THRESHOLD_PX = 6
 const INTERACTIVE_SELECTOR = 'button, input, select, textarea, a'
@@ -90,26 +88,33 @@ export function useTaskDrag(actions: DragActions) {
   /**
    * What sits under the pointer: the project it belongs to, and the row it is
    * closest to. The row decides both the order and, through the project that
-   * holds it, where the task ends up.
+   * holds it, where the task ends up. Which of those count depends on whether
+   * a whole project is being moved (see `pickDropTarget`).
    */
   function resolveTarget(point: GesturePoint) {
     const element = document.elementFromPoint(point.x, point.y)
-    const zone =
-      element?.closest<HTMLElement>('[data-drop-zone]')?.dataset.dropZone ??
-      null
+    const zoneElement = element?.closest<HTMLElement>('[data-drop-zone]')
     const row = element?.closest<HTMLElement>('[data-drop-row]')
-    const rowId = row?.dataset.dropRow
+
+    const target = pickDropTarget(
+      {
+        zone: zoneElement?.dataset.dropZone ?? null,
+        rowId: row?.dataset.dropRow ?? null,
+        rowIsProject: row?.dataset.dropMajor !== undefined,
+      },
+      { id: draggingId.value, isProject: !!candidate?.isMajor },
+    )
 
     const goalId = resolveGoalTarget(point)
-
-    if (!row || !rowId || rowId === draggingId.value) {
-      return { zone, rowId: null, above: false, goalId }
+    // A project block is measured as a whole, so the line sits around all of it.
+    const box = (target.isBlock ? zoneElement : row)?.getBoundingClientRect()
+    if (!target.rowId || !box) {
+      return { zone: target.zone, rowId: null, above: false, goalId }
     }
 
-    const box = row.getBoundingClientRect()
     return {
-      zone,
-      rowId,
+      zone: target.zone,
+      rowId: target.rowId,
       above: point.y < box.top + box.height / 2,
       goalId,
     }
