@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useTemplateRef } from 'vue'
+import { ref, useId, useTemplateRef } from 'vue'
+import AppIcon from '../../../components/AppIcon.vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import { useTaskComposerState } from '../composables/useTaskComposerState'
@@ -19,6 +20,10 @@ const emit = defineEmits<{
   ): void
   (e: 'cancel'): void
 }>()
+
+const inputId = useId()
+// The calendar button is the only switch for scheduling in this row.
+const calendarOn = ref(false)
 
 const scheduleFields =
   useTemplateRef<InstanceType<typeof TaskScheduleFields>>('scheduleFields')
@@ -44,20 +49,49 @@ const { title, submit, cancel } = useTaskComposerState(
     Select a specific goal in the sidebar to add a new top-level task.
   </p>
 
-  <template v-else>
-    <div class="goal-form-card" :class="{ 'goal-form-sub': isSubtask }">
+  <div v-else class="task-composer">
+    <div class="ui-card task-composer__row">
+      <AppIcon name="plus" :size="16" class="task-composer__plus" />
+
+      <label :for="inputId" class="task-composer__label">Add a task</label>
       <input
+        :id="inputId"
         v-model="title"
+        class="task-composer__input"
         type="text"
-        placeholder="New task title"
+        placeholder="Add a task"
         @keydown.enter="submit"
       />
-      <button class="btn btn-primary" @click="submit">Add task</button>
-      <button v-if="isSubtask" class="btn btn-ghost" @click="cancel">
+
+      <button
+        type="button"
+        class="ui-icon-btn ui-icon-btn--outlined task-composer__calendar"
+        :class="{ 'is-active': calendarOn }"
+        :aria-pressed="calendarOn"
+        aria-label="Schedule on the calendar"
+        title="Schedule on the calendar"
+        @click="calendarOn = !calendarOn"
+      >
+        <AppIcon name="calendar" :size="16" />
+      </button>
+
+      <button
+        v-if="isSubtask"
+        type="button"
+        class="task-composer__cancel"
+        @click="cancel"
+      >
         Cancel
+      </button>
+      <button type="button" class="task-composer__add" @click="submit">
+        Add
       </button>
     </div>
 
-    <TaskScheduleFields ref="scheduleFields" />
-  </template>
+    <TaskScheduleFields
+      ref="scheduleFields"
+      v-model:enabled="calendarOn"
+      hide-toggle
+    />
+  </div>
 </template>

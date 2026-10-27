@@ -1,6 +1,8 @@
 <script setup lang="ts">
 defineProps<{
   label: string
+  /** The parent switches the section on, so no checkbox is drawn here. */
+  hideToggle?: boolean
 }>()
 
 const isEnabled = defineModel<boolean>({ required: true })
@@ -8,7 +10,7 @@ const isEnabled = defineModel<boolean>({ required: true })
 
 <template>
   <div class="composer-section">
-    <label class="composer-section__toggle">
+    <label v-if="!hideToggle" class="composer-section__toggle">
       <input v-model="isEnabled" type="checkbox" />
       <span>{{ label }}</span>
     </label>

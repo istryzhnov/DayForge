@@ -151,13 +151,8 @@ input[type='checkbox']:disabled {
 @media (max-width: 720px) {
   .btn,
   .theme-chip,
-  .goal-settings-btn,
   .goal-settings__item {
     min-height: 40px;
-  }
-
-  .goal-panel-header__aside {
-    --header-control-height: 40px;
   }
 
   .task-add-btn,

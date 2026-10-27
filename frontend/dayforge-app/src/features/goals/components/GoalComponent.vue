@@ -19,6 +19,7 @@ import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 import { useProjectBudgetStatus } from '../../analytics/composables/useProjectBudgetStatus'
+import { projectColors } from '../../../composables/theme/goalTheme'
 
 // Opened on demand (board toggle, notes button), so kept out of the first chunk.
 const ProjectBoard = defineAsyncComponent(
@@ -131,15 +132,12 @@ function closeMoveDialog() {
 
 const {
   taskGroups,
-  totalCount,
-  projectCount,
-  taskCount,
   panelTitle,
-  panelDescription,
-  todayProgress,
-  todayScopeLabel,
-  habitView,
-  habitSubtitle,
+  panelStats,
+  upcomingDays,
+  hasHabits,
+  habitWindow,
+  habitStreakByTemplate,
   goalPanelStyle,
   focusProject,
   submitTask,
@@ -164,17 +162,27 @@ const {
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
 })
+
+// Upcoming is for a project or All Projects; with no goal selected it stays hidden.
+const showUpcoming = computed(
+  () => (props.isAllMode || !!props.goal) && upcomingDays.value.length > 0,
+)
+
+/** Colour of the project's dot in the header; All Projects has none. */
+const projectColor = computed(() =>
+  props.isAllMode || !props.goal
+    ? undefined
+    : projectColors(props.goals).get(props.goal.id),
+)
 </script>
 
 <template>
   <section class="goal-panel" :style="goalPanelStyle">
     <GoalPanelHeader
       :title="panelTitle"
-      :description="panelDescription"
+      :color="projectColor"
       :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
-      :total-count="totalCount"
-      :project-count="projectCount"
-      :task-count="taskCount"
+      :stats="panelStats"
       :show-settings="!isAllMode && !!goal"
       :show-toolbar="!isAllMode && !!goal"
       :board-enabled="showBoard"
@@ -248,15 +256,6 @@ const {
       @quick-add="(title, schedule) => submitQuickAdd(title, schedule)"
     />
 
-    <UpcomingTasks
-      v-if="isAllMode || goal"
-      :templates="templates"
-      :daily-tasks="dailyTasks"
-      :goals="goals"
-      :goal-id="isAllMode ? null : (goal?.id ?? null)"
-      :from-date="currentDate"
-      @select-date="(date) => emit('select-date', date)"
-    />
 
     <TaskMoveDialog
       v-if="movingTemplate"
@@ -273,37 +272,20 @@ const {
       @close="closeMoveDialog"
     />
 
-    <section class="habit">
-      <header class="habit__head">
-        <div>
-          <h3 class="habit__title">Today's progress</h3>
-          <p class="habit__subtitle">{{ todayScopeLabel }}</p>
-        </div>
-        <p
-          class="habit__today"
-          :class="{
-            'is-complete':
-              todayProgress.total > 0 && todayProgress.percent >= 100,
-            'is-idle': todayProgress.total === 0,
-          }"
-        >
-          <span class="habit__today-label">Today</span>
-          <span class="habit__today-value">
-            {{
-              todayProgress.total
-                ? `${todayProgress.done}/${todayProgress.total}`
-                : '–'
-            }}
-          </span>
-        </p>
-      </header>
-    </section>
-
-    <HabitCalendar
-      title="Habits"
-      :subtitle="habitSubtitle"
-      :view="habitView"
-    />
+    <!-- Upcoming and Habits share a row; each one drops out when it has nothing. -->
+    <div v-if="showUpcoming || hasHabits" class="goal-side-row">
+      <UpcomingTasks
+        v-if="showUpcoming"
+        :days="upcomingDays"
+        :goals="goals"
+        @select-date="(date) => emit('select-date', date)"
+      />
+      <HabitCalendar
+        v-if="hasHabits"
+        :view="habitWindow"
+        :streaks="habitStreakByTemplate"
+      />
+    </div>
 
     <ProjectNotesPanel
       v-if="notesOpen && goal && !isAllMode"

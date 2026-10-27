@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import GoalHeader from './GoalHeader.vue'
 import type { BudgetStanding } from '../../analytics/composables/projectBudget'
+import type { PanelStats } from '../composables/projectPanelStats'
 
 defineProps<{
   title: string
-  description: string
+  color?: string
   status: string
-  totalCount: number
-  projectCount: number
-  taskCount: number
+  stats: PanelStats
   showSettings: boolean
   showToolbar: boolean
   boardEnabled: boolean
@@ -26,11 +25,9 @@ const emit = defineEmits<{
 <template>
   <GoalHeader
     :title="title"
-    :description="description"
+    :color="color"
     :status="status"
-    :total-count="totalCount"
-    :project-count="projectCount"
-    :task-count="taskCount"
+    :stats="stats"
     :show-settings="showSettings"
     :show-toolbar="showToolbar"
     :board-enabled="boardEnabled"
