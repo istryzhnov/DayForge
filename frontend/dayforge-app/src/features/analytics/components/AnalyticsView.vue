@@ -267,7 +267,12 @@ function saveBilling(billing: ProjectBilling | undefined) {
       :has-adjustments="hasAdjustments"
     />
 
-    <div class="ui-tabs" role="tablist" aria-label="Analytics sections">
+    <div
+      class="ui-tabs"
+      role="tablist"
+      aria-label="Analytics sections"
+      data-tip-anchor="analytics-tabs"
+    >
       <button
         v-for="choice in TAB_CHOICES"
         :id="`analytics-tab-${choice.id}`"

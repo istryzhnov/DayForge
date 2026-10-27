@@ -106,7 +106,11 @@ function closeEditor() {
     </p>
 
     <section class="ui-card timer-view__stage">
-      <TimerModePicker :mode="mode" @select="selectMode" />
+      <TimerModePicker
+        :mode="mode"
+        data-tip-anchor="timer-mode"
+        @select="selectMode"
+      />
 
       <TimerDisplay
         :value="dialLabel"
@@ -120,6 +124,7 @@ function closeEditor() {
       <div
         v-if="mode === TIMER_MODE.COUNTDOWN && isIdle"
         class="ui-chips timer-view__lengths"
+        data-tip-anchor="timer-lengths"
         role="group"
         aria-label="Countdown length"
       >

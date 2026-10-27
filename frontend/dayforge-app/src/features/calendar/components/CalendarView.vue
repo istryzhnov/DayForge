@@ -215,7 +215,12 @@ function iconFor(goalId: ID | undefined) {
 
 <template>
   <section class="calendar-view" :class="{ 'is-touch': isCoarsePointer }">
-    <header class="calendar-view__toolbar">
+    <!-- The time-blocking tip points here, not at the grid: the grid is a full
+         day tall, so a bubble above or below it would sit over the toolbar. -->
+    <header
+      class="calendar-view__toolbar"
+      :data-tip-anchor="viewMode === 'day' ? 'calendar-toolbar' : undefined"
+    >
       <div class="calendar-view__nav">
         <button
           class="ui-icon-btn"

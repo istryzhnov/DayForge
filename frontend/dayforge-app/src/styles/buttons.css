@@ -27,7 +27,7 @@
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--accent) 100%, white 0%),
-    color-mix(in srgb, var(--accent) 78%, black 22%)
+    color-mix(in srgb, var(--accent) 88%, black 12%)
   );
   border-color: color-mix(in srgb, var(--accent) 65%, transparent);
   color: var(--ring-check);

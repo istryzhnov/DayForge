@@ -54,7 +54,8 @@
   --major: #ff7a2f;
   --minor: #1ea9cb;
   --ring-core: #f7fbff;
-  --ring-check: #123013;
+  /* Tinted near-black: clears 4.5:1 on both ends of the primary gradient. */
+  --ring-check: #071907;
   /* `--minor` is a saturated blue here — dark text on it is unreadable. */
   --on-minor: #ffffff;
   --shadow-lg: 0 20px 46px rgba(22, 32, 51, 0.14);

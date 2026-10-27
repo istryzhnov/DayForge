@@ -243,6 +243,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :task-count="taskCountByGoal[goal.id] ?? 0"
       :theme-vars="goalVarsById[goal.id]"
       :data-reorder-goal-id="goal.id"
+      data-tip-anchor="sidebar-project"
       :class="{
         'is-reordering': reorderingId === goal.id,
         'is-reorder-above': reorderTargetId === goal.id && reorderAbove,

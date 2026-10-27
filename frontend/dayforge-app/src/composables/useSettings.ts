@@ -88,6 +88,8 @@ export interface BehaviorSettings {
   startGoalId: ID | null
   /** Single-key commands (N, Space, G then A…) while focus is not in a field. */
   keyboardShortcuts: boolean
+  /** The first-run welcome card was finished or skipped, so it never returns. */
+  welcomeDone: boolean
 }
 
 export interface FormatSettings {
@@ -159,6 +161,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     undoWindowSeconds: 9,
     startGoalId: null,
     keyboardShortcuts: true,
+    welcomeDone: false,
   },
   format: {
     locale: 'uk-UA',
@@ -368,6 +371,10 @@ function sanitize(input: unknown): AppSettings {
       keyboardShortcuts: asBoolean(
         behavior.keyboardShortcuts,
         defaults.behavior.keyboardShortcuts,
+      ),
+      welcomeDone: asBoolean(
+        behavior.welcomeDone,
+        defaults.behavior.welcomeDone,
       ),
     },
     format: {

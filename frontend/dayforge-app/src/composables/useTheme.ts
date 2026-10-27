@@ -7,8 +7,11 @@ import {
   FONT_OPTION,
   MANAGED_CSS_VARS,
   MOTION,
+  PALETTE_PRESETS,
   buildPaletteVars,
   buildWorkspaceVars,
+  presetBaseColors,
+  presetIdFor,
   type PalettePreset,
   type ResolvedPalette,
   type ThemeColorKey,
@@ -24,10 +27,26 @@ export type { ThemeMode, ThemeStyle } from './theme/tokens'
 
 const THEME_STORAGE_KEY = 'dayforge-theme-v1'
 
-const themeStyle = ref<ThemeStyle>('vivid')
-const themeMode = ref<ThemeMode>('dark')
+/**
+ * Bumped when the default theme changed. A stored theme from before it that
+ * still sits on the old default (Forge) moves to the new one; a theme the
+ * user actually picked stays.
+ */
+const THEME_VERSION = 2
+
+/** The theme everyone starts on. */
+export const DEFAULT_PRESET: PalettePreset =
+  PALETTE_PRESETS.find((preset) => preset.id === 'sunset') ?? PALETTE_PRESETS[0]
+
+const themeStyle = ref<ThemeStyle>(DEFAULT_PRESET.style)
+const themeMode = ref<ThemeMode>(DEFAULT_PRESET.mode)
 /** Colours the user picked by hand. Anything absent keeps the designed value. */
-const palette = ref<ThemePalette>({})
+const palette = ref<ThemePalette>({ ...DEFAULT_PRESET.colors })
+/**
+ * The preset the user last applied, or null for a custom theme. Reset goes
+ * back to its colours rather than to the stylesheet's Forge defaults.
+ */
+const presetId = ref<string | null>(DEFAULT_PRESET.id)
 const workspace = ref<WorkspaceSettings>({ ...DEFAULT_WORKSPACE })
 
 const themeRevision = ref(0)
@@ -147,11 +166,20 @@ function applyThemeToDocument() {
 
 function persist() {
   writeJson(THEME_STORAGE_KEY, {
+    v: THEME_VERSION,
     style: themeStyle.value,
     mode: themeMode.value,
     colors: palette.value,
+    preset: presetId.value,
     workspace: workspace.value,
   })
+}
+
+/** Forge with no colours of its own: the default before Sunset took over. */
+function isOldDefault(style: unknown, mode: unknown, colors: ThemePalette) {
+  return (
+    style === 'vivid' && mode === 'dark' && Object.keys(colors).length === 0
+  )
 }
 
 function initializeTheme() {
@@ -160,23 +188,41 @@ function initializeTheme() {
 
   try {
     const parsed = readJson<{
+      v?: number
       style?: ThemeStyle
       mode?: ThemeMode
       colors?: unknown
+      preset?: unknown
       workspace?: unknown
     } | null>(THEME_STORAGE_KEY, null)
     if (parsed) {
-      if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
-      if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
-      palette.value = sanitizePalette(parsed.colors)
+      const colors = sanitizePalette(parsed.colors)
       workspace.value = sanitizeWorkspace(parsed.workspace)
+
+      const onOldDefault =
+        (parsed.v ?? 1) < THEME_VERSION &&
+        isOldDefault(parsed.style, parsed.mode, colors)
+
+      // The old default migrates to Sunset, so presetId keeps its initial value.
+      if (!onOldDefault) {
+        if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
+        if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
+        palette.value = colors
+        // Themes saved before the preset was remembered are matched by value.
+        presetId.value = presetIdFor(
+          parsed.preset,
+          themeStyle.value,
+          themeMode.value,
+          colors,
+        )
+      }
     }
   } catch {
     // Ignore malformed theme data and use defaults.
   }
 
   watch(
-    [themeStyle, themeMode, palette, workspace],
+    [themeStyle, themeMode, palette, presetId, workspace],
     () => {
       applyThemeToDocument()
       persist()
@@ -225,20 +271,30 @@ export function useTheme() {
     palette.value = { ...palette.value, [key]: value }
   }
 
+  /** One colour goes back to the preset's value, or the designed one. */
   function resetColor(key: ThemeColorKey) {
+    const base = presetBaseColors(
+      presetId.value,
+      themeStyle.value,
+      themeMode.value,
+    )
     const next = { ...palette.value }
-    delete next[key]
+    if (base[key] !== undefined) next[key] = base[key]
+    else delete next[key]
     palette.value = next
   }
 
   function resetPalette() {
-    palette.value = {}
+    palette.value = {
+      ...presetBaseColors(presetId.value, themeStyle.value, themeMode.value),
+    }
   }
 
   function applyPreset(preset: PalettePreset) {
     themeStyle.value = preset.style
     themeMode.value = preset.mode
     palette.value = { ...preset.colors }
+    presetId.value = preset.id
   }
 
   function setWorkspace(patch: Partial<WorkspaceSettings>) {
@@ -250,9 +306,7 @@ export function useTheme() {
   }
 
   function resetAll() {
-    themeStyle.value = 'vivid'
-    themeMode.value = 'dark'
-    resetPalette()
+    applyPreset(DEFAULT_PRESET)
     resetWorkspace()
   }
 

@@ -1,0 +1,142 @@
+/* Coach marks: small inverted bubbles that point at the control they explain.
+   Colours come from theme tokens only, so every theme and palette works. The
+   bubble inverts the page, so it stands out on any screen. */
+
+.coach-mark {
+  position: fixed;
+  z-index: 1090;
+  box-sizing: border-box;
+  width: min(280px, calc(100vw - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--text);
+  color: var(--bg);
+  box-shadow: var(--shadow-lg);
+  animation: coach-mark-in 0.18s ease both;
+}
+
+/* A rotated square on the bubble's edge, so its outer half reads as the arrow. */
+.coach-mark__arrow {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--text);
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.coach-mark[data-placement='bottom'] .coach-mark__arrow {
+  top: 0;
+}
+
+.coach-mark[data-placement='top'] .coach-mark__arrow {
+  top: 100%;
+}
+
+.coach-mark[data-placement='right'] .coach-mark__arrow {
+  left: 0;
+}
+
+.coach-mark[data-placement='left'] .coach-mark__arrow {
+  left: 100%;
+}
+
+.coach-mark__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+/* Wraps onto more lines rather than cutting the title short. */
+.coach-mark__title {
+  flex: 1;
+  min-width: 0;
+  font-size: calc(15px * var(--text-scale));
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.coach-mark__body {
+  margin: 0;
+  font-size: calc(13px * var(--text-scale));
+  line-height: 1.45;
+  opacity: 0.82;
+}
+
+.coach-mark__close {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px -6px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.coach-mark__close:hover,
+.coach-mark__close:focus-visible {
+  opacity: 1;
+}
+
+.coach-mark__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+}
+
+.coach-mark__action {
+  padding: 6px 12px;
+  border: 0;
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.coach-mark__quiet {
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: calc(12px * var(--text-scale));
+  opacity: 0.7;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.coach-mark__quiet:hover,
+.coach-mark__quiet:focus-visible {
+  opacity: 1;
+}
+
+@keyframes coach-mark-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:root[data-motion='reduced'] .coach-mark {
+  animation: none;
+}

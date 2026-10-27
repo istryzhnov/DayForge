@@ -1,4 +1,4 @@
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watchEffect } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
 import type { Goal, GoalTheme } from '../../entities/GoalEntity'
 import type { GoalStatus, ID, ISODate, Priority } from '../../entities/types'
@@ -23,6 +23,7 @@ import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
 import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
 import { noteManualTaskAdded } from '../../composables/useShortcutTip'
+import { setTipFacts } from '../../features/onboarding/composables/useTips'
 import { useTimer } from '../../composables/useTimer'
 import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
@@ -84,8 +85,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   const sync = useSync()
 
+  /** Set once the stored data is in memory, so the welcome card reads real counts. */
+  const dataReady = ref(false)
+
   onMounted(() => {
     goalSpace.initializeStorage()
+    dataReady.value = true
 
     // Registering the arrays is the whole of it: from here the engine watches
     // them, queues what actually changed and sends it when it can.
@@ -141,12 +146,16 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.selectGoal(goalId)
   }
 
-  // A brand new install: nothing to look at, so explain the model instead.
-  const isFirstRun = computed(
-    () =>
-      goalSpace.goals.value.length === 0 &&
-      goalSpace.taskTemplates.value.length === 0,
-  )
+  // The contextual tips pick their card from these counts, so they follow the data.
+  watchEffect(() => {
+    setTipFacts({
+      taskCount: goalSpace.taskTemplates.value.filter((task) => task.isActive)
+        .length,
+      projectCount: goalSpace.goals.value.length,
+      inProject: goalSpace.activeGoalId.value !== null,
+    })
+  })
+
   const showStarter = ref(false)
 
   function openStarter() {
@@ -307,6 +316,19 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       GOAL_COLOR_PRESETS.find((color) => !used.has(color.toLowerCase())) ??
       GOAL_COLOR_PRESETS[0]
     )
+  }
+
+  /** No projects and no task templates: nothing to lose by showing the welcome card. */
+  const isFirstRun = computed(
+    () =>
+      goalSpace.goals.value.length === 0 &&
+      goalSpace.taskTemplates.value.length === 0,
+  )
+
+  /** The welcome card's project. It opens only when the user plans their day. */
+  function createFirstProject(title: string, color: string, select: boolean) {
+    const id = handleCreateGoal(title, '', color)
+    if (select) selectGoal(id)
   }
 
   function handleCreateGoal(
@@ -541,11 +563,13 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     activeView,
     selectView,
     selectGoal,
-    isFirstRun,
     showStarter,
     openStarter,
     closeStarter,
     handleApplyStarter,
+    dataReady,
+    isFirstRun,
+    createFirstProject,
     tasksForCurrentDate,
     goalVarsById,
     plannedTasks: plannedView.plannedTasks,

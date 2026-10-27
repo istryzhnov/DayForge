@@ -56,6 +56,7 @@ const { title, submit, cancel } = useTaskComposerState(
         class="task-composer__input"
         type="text"
         placeholder="Add a task"
+        :data-tip-anchor="isSubtask ? undefined : 'composer-input'"
         @keydown.enter="submit"
       />
 
@@ -69,6 +70,7 @@ const { title, submit, cancel } = useTaskComposerState(
         :aria-pressed="calendarOn"
         aria-label="Schedule on the calendar"
         title="Schedule on the calendar"
+        :data-tip-anchor="isSubtask ? undefined : 'composer-calendar'"
         @click="calendarOn = !calendarOn"
       >
         <AppIcon name="calendar" :size="16" />
