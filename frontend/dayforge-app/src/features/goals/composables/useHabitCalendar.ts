@@ -1,11 +1,15 @@
 import { computed, onScopeDispose, ref, watch } from 'vue'
-import type { HabitDayCell } from '../../../composables/useProgressMetrics'
 import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
+  getTodayISODate,
   parseISODate,
   toLocalISODate,
 } from '../../../composables/goalSpace/date'
+import type {
+  HabitMonthDayTotal,
+  HabitMonthView,
+} from '../../../composables/analytics/habits'
 import { useFormat } from '../../../composables/useFormat'
 import { useSettings } from '../../../composables/useSettings'
 
@@ -21,7 +25,7 @@ export type HabitMark = {
   total: number
   isToday: boolean
   isFuture: boolean
-  /** Had at least one task — tells "nothing planned" apart from "nothing done". */
+  /** Had at least one habit due — tells "nothing due" apart from "nothing done". */
   isTracked: boolean
   /** Inside the month we have data for; week edges can fall outside it. */
   isKnown: boolean
@@ -30,30 +34,27 @@ export type HabitMark = {
 }
 
 type HabitProps = {
-  cells: HabitDayCell[]
-  todayPercent: number
+  view: HabitMonthView
 }
 
 export function useHabitCalendar(props: HabitProps) {
   const { settings } = useSettings()
   const { weekdayLabels, formatDate, locale } = useFormat()
+  const todayISO = getTodayISODate()
 
-  const cellsByDate = computed(
-    () => new Map(props.cells.map((cell) => [cell.date, cell])),
+  const dayByDate = computed(
+    () =>
+      new Map<ISODate, HabitMonthDayTotal>(
+        props.view.dayTotals.map((day) => [day.date, day]),
+      ),
   )
 
   /** Today when the viewed month contains it, otherwise that month's last day. */
   const referenceDate = computed<ISODate | null>(() => {
-    if (!props.cells.length) return null
-    const today = props.cells.find((cell) => cell.isToday)
-    return (today ?? props.cells[props.cells.length - 1]).date
-  })
-
-  /** Every day of the month up to and including the reference day. */
-  const elapsedCells = computed(() => {
-    const reference = referenceDate.value
-    if (!reference) return []
-    return props.cells.filter((cell) => cell.date <= reference)
+    const days = props.view.dayTotals
+    if (!days.length) return null
+    const today = days.find((day) => day.date === todayISO)
+    return (today ?? days[days.length - 1]).date
   })
 
   function toneOf(percent: number, total: number): HabitTone {
@@ -65,10 +66,11 @@ export function useHabitCalendar(props: HabitProps) {
   }
 
   function buildMark(date: ISODate, label: string): HabitMark {
-    const cell = cellsByDate.value.get(date)
+    const day = dayByDate.value.get(date)
     const reference = referenceDate.value
-    const total = cell?.total ?? 0
-    const percent = cell?.percent ?? 0
+    const total = day?.total ?? 0
+    const done = day?.done ?? 0
+    const percent = total > 0 ? (done / total) * 100 : 0
     const dateText = formatDate(date, { day: 'numeric', month: 'short' })
 
     return {
@@ -76,16 +78,16 @@ export function useHabitCalendar(props: HabitProps) {
       dayNumber: parseISODate(date).getDate(),
       label,
       percent,
-      done: cell?.done ?? 0,
+      done,
       total,
-      isToday: cell?.isToday ?? false,
+      isToday: date === todayISO,
       isFuture: reference !== null && date > reference,
       isTracked: total > 0,
-      isKnown: cell !== undefined,
+      isKnown: day !== undefined,
       tone: toneOf(percent, total),
       hint: total
-        ? `${dateText}: ${cell?.done ?? 0} of ${total} done`
-        : `${dateText}: nothing planned`,
+        ? `${dateText}: ${done} of ${total} done`
+        : `${dateText}: nothing due`,
     }
   }
 
@@ -107,7 +109,7 @@ export function useHabitCalendar(props: HabitProps) {
   })
 
   const monthDays = computed<HabitMark[]>(() =>
-    props.cells.map((cell) => buildMark(cell.date, '')),
+    props.view.dayTotals.map((day) => buildMark(day.date, '')),
   )
 
   const monthLabel = computed(() => {
@@ -118,82 +120,28 @@ export function useHabitCalendar(props: HabitProps) {
     })
   })
 
-  // --- the numbers under the marks ----------------------------------------
-
-  const today = computed(() => {
-    const cell = props.cells.find((item) => item.isToday)
-    return {
-      done: cell?.done ?? 0,
-      total: cell?.total ?? 0,
-      percent: props.todayPercent,
-      isTracked: (cell?.total ?? 0) > 0,
-      isComplete: (cell?.total ?? 0) > 0 && props.todayPercent >= 100,
-    }
-  })
-
-  /**
-   * Days finished in a row, newest first. A day with nothing planned is
-   * neutral — it neither extends nor breaks the chain — and today only breaks
-   * it once it is over, so an unfinished today doesn't read as a lost streak.
-   */
-  const streak = computed(() => {
-    const cells = elapsedCells.value
-    let count = 0
-
-    for (let index = cells.length - 1; index >= 0; index -= 1) {
-      const cell = cells[index]
-      if (cell.total <= 0) continue
-      if (cell.percent >= 100) {
-        count += 1
-        continue
-      }
-      if (cell.isToday) continue
-      break
-    }
-
-    return count
-  })
-
-  const monthStats = computed(() => {
-    let done = 0
-    let total = 0
-    let trackedDays = 0
-    let fullDays = 0
-
-    elapsedCells.value.forEach((cell) => {
-      if (cell.total <= 0) return
-      trackedDays += 1
-      done += cell.done
-      total += cell.total
-      if (cell.percent >= 100) fullDays += 1
-    })
-
-    return {
-      percent: total > 0 ? Math.round((done / total) * 100) : 0,
-      trackedDays,
-      fullDays,
-      hasData: total > 0,
-    }
-  })
+  // --- the numbers under the marks, straight from the shared habit view --
 
   const summaryParts = computed(() => {
-    const stats = monthStats.value
-    if (!stats.hasData) return []
+    const view = props.view
+    if (view.trackedDays === 0) return []
 
     const parts = [
-      `${stats.percent}% done`,
-      `${stats.fullDays}/${stats.trackedDays} full days`,
+      `${Math.round((view.completionRate ?? 0) * 100)}% done`,
+      `${view.fullDays}/${view.trackedDays} full days`,
     ]
-    if (streak.value > 0) {
+    if (view.currentStreak > 0) {
       parts.push(
-        streak.value === 1 ? '1-day streak' : `${streak.value}-day streak`,
+        view.currentStreak === 1
+          ? '1-day streak'
+          : `${view.currentStreak}-day streak`,
       )
     }
 
     return parts
   })
 
-  const hasCells = computed(() => props.cells.length > 0)
+  const hasCells = computed(() => props.view.dayTotals.length > 0)
 
   // --- finishing a day ----------------------------------------------------
 
@@ -256,9 +204,6 @@ export function useHabitCalendar(props: HabitProps) {
     weekDays,
     monthDays,
     monthLabel,
-    today,
-    streak,
-    monthStats,
     summaryParts,
     hasCells,
     isCelebrating,
