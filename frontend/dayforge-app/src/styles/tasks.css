@@ -884,6 +884,7 @@ body.is-dragging-task {
 
 .task-composer__row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   min-width: 0;
@@ -909,7 +910,7 @@ body.is-dragging-task {
 }
 
 .task-composer__input {
-  flex: 1 1 auto;
+  flex: 1 1 160px;
   min-width: 0;
   height: 40px;
   padding: 0;
@@ -923,6 +924,73 @@ body.is-dragging-task {
 
 .task-composer__input::placeholder {
   color: var(--muted);
+}
+
+/* Project picker: a ui-chip pill holding a native select, so it stays keyboard
+   and screen-reader friendly. */
+.task-composer__target {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 1 160px;
+  min-width: 0;
+  max-width: 160px;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.task-composer__target:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  color: var(--text);
+}
+
+.task-composer__target-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-soft);
+}
+
+.task-composer__select {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: calc(13px * var(--text-scale));
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.task-composer__select:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.task-composer__target-caret {
+  flex: none;
+  transform: rotate(90deg);
+}
+
+@media (max-width: 720px) {
+  /* iOS zooms the page when a focused field is under 16px. */
+  .task-composer__select {
+    font-size: max(16px, calc(13px * var(--text-scale)));
+  }
 }
 
 .task-composer__calendar {

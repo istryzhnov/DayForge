@@ -59,6 +59,9 @@ const { title, submit, cancel } = useTaskComposerState(
         @keydown.enter="submit"
       />
 
+      <!-- Optional extra choice in the row, e.g. the project in All Tasks. -->
+      <slot name="target" />
+
       <button
         type="button"
         class="ui-icon-btn ui-icon-btn--outlined task-composer__calendar"
