@@ -9,7 +9,7 @@ import type {
 import TaskComposer from '../../tasks/components/TaskComposer.vue'
 import { useSettings } from '../../../composables/useSettings'
 import { projectColors } from '../../../composables/theme/goalTheme'
-import AppIcon from '../../../components/AppIcon.vue'
+import ProjectPicker, { type PickerOption } from './ProjectPicker.vue'
 
 const props = defineProps<{
   isAllMode: boolean
@@ -45,16 +45,22 @@ const target = ref('')
 
 const colorByGoal = computed(() => projectColors(props.goals))
 
-/** Colour of the chosen target's goal, for the dot beside the picker. */
-const targetColor = computed(() => {
-  const [kind, id] = target.value.split(/:(.*)/)
-  if (kind === 'goal') return colorByGoal.value.get(id)
-  if (kind === 'major') {
-    const option = props.majorTaskOptions.find((item) => item.id === id)
-    return option?.goalId ? colorByGoal.value.get(option.goalId) : undefined
-  }
-  return undefined
-})
+const targetOptions = computed<PickerOption[]>(() => [
+  { value: '', label: 'No project', group: 'none' },
+  ...props.goals.map((goal) => ({
+    value: `goal:${goal.id}`,
+    label: goal.title,
+    color: colorByGoal.value.get(goal.id),
+    group: 'goal' as const,
+  })),
+  ...props.majorTaskOptions.map((option) => ({
+    value: `major:${option.id}`,
+    label: option.title,
+    hint: option.goalTitle,
+    color: option.goalId ? colorByGoal.value.get(option.goalId) : undefined,
+    group: 'major' as const,
+  })),
+])
 
 function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
   if (!props.isAllMode) {
@@ -79,31 +85,7 @@ function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
 <template>
   <TaskComposer :shortcut="isAllMode && keyboardShortcuts" @submit="onSubmit">
     <template v-if="isAllMode" #target>
-      <div class="task-composer__target">
-        <span
-          class="task-composer__target-dot"
-          :style="targetColor ? { background: targetColor } : undefined"
-          aria-hidden="true"
-        />
-        <select v-model="target" class="task-composer__select" aria-label="Project">
-          <option value="">Only in All Tasks</option>
-          <optgroup label="Goal">
-            <option v-for="goal in goals" :key="goal.id" :value="`goal:${goal.id}`">
-              {{ goal.title }}
-            </option>
-          </optgroup>
-          <optgroup label="Project">
-            <option
-              v-for="option in majorTaskOptions"
-              :key="option.id"
-              :value="`major:${option.id}`"
-            >
-              {{ option.title }} ({{ option.goalTitle }})
-            </option>
-          </optgroup>
-        </select>
-        <AppIcon name="chevron-right" :size="12" class="task-composer__target-caret" />
-      </div>
+      <ProjectPicker v-model="target" :options="targetOptions" />
     </template>
   </TaskComposer>
 </template>
