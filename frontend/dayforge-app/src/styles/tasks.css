@@ -1037,9 +1037,10 @@ body.is-dragging-task {
   outline-offset: 2px;
 }
 
-/* The N key means nothing without a keyboard. */
+/* The N key means nothing without a keyboard. Doubled up to outrank
+   `.kbd-badge`, which controls.css sets later. */
 @media (pointer: coarse), (max-width: 720px) {
-  .task-composer__key {
+  .kbd-badge.task-composer__key {
     display: none;
   }
 }
