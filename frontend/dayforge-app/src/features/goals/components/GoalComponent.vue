@@ -137,8 +137,8 @@ const {
   panelTitle,
   panelDescription,
   todayProgress,
-  monthCells,
-  habitTitle,
+  todayScopeLabel,
+  habitView,
   habitSubtitle,
   goalPanelStyle,
   focusProject,
@@ -273,11 +273,36 @@ const {
       @close="closeMoveDialog"
     />
 
+    <section class="habit">
+      <header class="habit__head">
+        <div>
+          <h3 class="habit__title">Today's progress</h3>
+          <p class="habit__subtitle">{{ todayScopeLabel }}</p>
+        </div>
+        <p
+          class="habit__today"
+          :class="{
+            'is-complete':
+              todayProgress.total > 0 && todayProgress.percent >= 100,
+            'is-idle': todayProgress.total === 0,
+          }"
+        >
+          <span class="habit__today-label">Today</span>
+          <span class="habit__today-value">
+            {{
+              todayProgress.total
+                ? `${todayProgress.done}/${todayProgress.total}`
+                : '–'
+            }}
+          </span>
+        </p>
+      </header>
+    </section>
+
     <HabitCalendar
-      :title="habitTitle"
+      title="Habits"
       :subtitle="habitSubtitle"
-      :today-percent="todayProgress.percent"
-      :cells="monthCells"
+      :view="habitView"
     />
 
     <ProjectNotesPanel

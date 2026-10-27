@@ -1,19 +1,17 @@
 <script setup lang="ts">
-import type { HabitDayCell } from '../../../composables/useProgressMetrics'
+import type { HabitMonthView } from '../../../composables/analytics/habits'
 import { useHabitCalendar } from '../composables/useHabitCalendar'
 
 const props = defineProps<{
   title: string
   subtitle?: string
-  cells: HabitDayCell[]
-  todayPercent: number
+  view: HabitMonthView
 }>()
 
 const {
   weekDays,
   monthDays,
   monthLabel,
-  today,
   summaryParts,
   hasCells,
   isCelebrating,
@@ -28,18 +26,6 @@ const {
         <h3 class="habit__title">{{ title }}</h3>
         <p v-if="subtitle" class="habit__subtitle">{{ subtitle }}</p>
       </div>
-      <p
-        class="habit__today"
-        :class="{
-          'is-complete': today.isComplete,
-          'is-idle': !today.isTracked,
-        }"
-      >
-        <span class="habit__today-label">Today</span>
-        <span class="habit__today-value">
-          {{ today.isTracked ? `${today.done}/${today.total}` : '–' }}
-        </span>
-      </p>
     </header>
 
     <template v-if="hasCells">
@@ -79,8 +65,8 @@ const {
           <span>{{ part }}</span>
         </template>
       </template>
-      <span v-else-if="hasCells">Nothing tracked this month yet</span>
-      <span v-else>No activity tracked yet</span>
+      <span v-else-if="hasCells">Nothing due this month yet</span>
+      <span v-else>No habits yet</span>
     </p>
   </section>
 </template>

@@ -15,6 +15,11 @@ import {
   type ProgressScope,
 } from '../../../composables/useProgressMetrics'
 import { PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
+import {
+  getTodayISODate,
+  startOfMonthISODate,
+} from '../../../composables/goalSpace/date'
+import { habitMonthView } from '../../../composables/analytics/habits'
 
 type GoalPanelProps = {
   goal: Goal | null
@@ -79,27 +84,45 @@ export function useGoalPanelState(
     return { type: PROGRESS_SCOPE_TYPE.ALL }
   })
 
-  const { todayProgress, monthCells } = useProgressMetrics(
+  // "Today" is the real date, not the day the app is viewing.
+  const today = computed(() => getTodayISODate())
+
+  const { todayProgress } = useProgressMetrics(
     computed(() => props.dailyTasks),
-    computed(() => props.currentDate),
+    today,
     progressScope,
   )
 
-  const habitTitle = computed(() => {
+  const todayScopeLabel = computed(() => {
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.MAJOR)
-      return 'Project habit'
+      return 'Selected block, all tasks today'
     if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
-      return 'Goal habit'
-    return 'All tasks habit'
+      return 'This project, all tasks today'
+    return 'All tasks today'
   })
 
-  const habitSubtitle = computed(() => {
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.MAJOR)
-      return 'Progress for selected project'
-    if (progressScope.value.type === PROGRESS_SCOPE_TYPE.GOAL)
-      return 'Progress for selected goal'
-    return 'Progress across all tasks'
+  // --- habits: the same numbers as Analytics, for this project -----------
+
+  const habitTemplates = computed(() => {
+    if (props.isAllMode || !props.goal) return props.templates
+    const goalId = props.goal.id
+    return props.templates.filter((template) => template.goalId === goalId)
   })
+
+  const habitView = computed(() =>
+    habitMonthView({
+      templates: habitTemplates.value,
+      dailyTasks: props.dailyTasks,
+      month: startOfMonthISODate(props.currentDate),
+      today: today.value,
+    }),
+  )
+
+  const habitSubtitle = computed(() =>
+    props.isAllMode || !props.goal
+      ? 'Repeating tasks across all projects'
+      : 'Repeating tasks in this project',
+  )
 
   function focusProject(dailyTaskId: ID | null) {
     selectedMajorDailyTaskId.value = dailyTaskId
@@ -180,8 +203,8 @@ export function useGoalPanelState(
   return {
     ...taskTree,
     todayProgress,
-    monthCells,
-    habitTitle,
+    todayScopeLabel,
+    habitView,
     habitSubtitle,
     focusProject,
     goalPanelStyle,

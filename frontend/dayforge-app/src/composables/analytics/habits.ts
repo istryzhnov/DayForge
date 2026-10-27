@@ -31,112 +31,6 @@ export interface HabitInput {
   today: ISODate
 }
 
-function doneDatesByTemplate(dailyTasks: DailyTask[]): Map<ID, Set<ISODate>> {
-  const done = new Map<ID, Set<ISODate>>()
-
-  dailyTasks.forEach((row) => {
-    if (row.status !== TASK_STATUS.DONE) return
-    const dates = done.get(row.templateId) ?? new Set<ISODate>()
-    dates.add(row.date)
-    done.set(row.templateId, dates)
-  })
-
-  return done
-}
-
-/**
- * The days a rule asked for, straight from the recurrence rather than from the
- * stored rows: a day never opened in the app has no row, yet it was still due.
- */
-function expectedDates(
-  template: TaskTemplate,
-  from: ISODate,
-  to: ISODate,
-): ISODate[] {
-  const dates: ISODate[] = []
-  let date = from
-  let scanned = 0
-
-  while (date <= to && scanned < MAX_DAYS_SCANNED) {
-    if (occursOn(template, date)) dates.push(date)
-    date = addDaysToISODate(date, 1)
-    scanned += 1
-  }
-
-  return dates
-}
-
-function streaks(
-  dates: ISODate[],
-  done: Set<ISODate>,
-  today: ISODate,
-): { current: number; longest: number } {
-  let longest = 0
-  let run = 0
-
-  dates.forEach((date) => {
-    if (done.has(date)) {
-      run += 1
-      longest = Math.max(longest, run)
-      return
-    }
-    run = 0
-  })
-
-  let current = 0
-
-  for (let index = dates.length - 1; index >= 0; index -= 1) {
-    const date = dates[index]
-    if (done.has(date)) {
-      current += 1
-      continue
-    }
-    // Today is still open, so nothing ticked off yet isn't a broken run.
-    if (index === dates.length - 1 && date === today) continue
-    break
-  }
-
-  return { current, longest }
-}
-
-export function habitStats({
-  templates,
-  dailyTasks,
-  from,
-  to,
-  today,
-}: HabitInput): HabitStat[] {
-  const doneByTemplate = doneDatesByTemplate(dailyTasks)
-  const end = to < today ? to : today
-
-  return templates
-    .filter(isRepeating)
-    .map((template) => {
-      const ruleStart = template.recurrence?.startDate ?? from
-      const start = from > ruleStart ? from : ruleStart
-      const dates = start > end ? [] : expectedDates(template, start, end)
-      const done = doneByTemplate.get(template.id) ?? new Set<ISODate>()
-      const completed = dates.filter((date) => done.has(date)).length
-      const { current, longest } = streaks(dates, done, today)
-
-      return {
-        templateId: template.id,
-        goalId: template.goalId,
-        title: template.title,
-        expected: dates.length,
-        completed,
-        completionRate: dates.length === 0 ? 0 : completed / dates.length,
-        currentStreak: current,
-        longestStreak: longest,
-      }
-    })
-    .filter((stat) => stat.expected > 0)
-    .sort(
-      (a, b) =>
-        b.completed - a.completed || b.completionRate - a.completionRate,
-    )
-}
-
 export type HabitDayState = 'done' | 'missed' | 'pending' | 'upcoming' | 'off'
 
 export interface HabitMonthCell {
@@ -166,7 +60,10 @@ export interface HabitMonthView {
   expected: number
   completed: number
   completionRate: number | null
+  /** Days up to today that had at least one habit due. */
+  trackedDays: number
   fullDays: number
+  /** Full days in a row ending today, across month boundaries. */
   currentStreak: number
 }
 
@@ -177,16 +74,38 @@ export interface HabitMonthInput {
   today: ISODate
 }
 
-function cellStateOf(
-  scheduled: boolean,
-  isDone: boolean,
-  date: ISODate,
-  today: ISODate,
-): HabitDayState {
-  if (!scheduled) return 'off'
-  if (date > today) return 'upcoming'
-  if (isDone) return 'done'
-  return date === today ? 'pending' : 'missed'
+/** Habits are live repeating templates; paused or deleted ones never count. */
+export function habitTemplatesOf(templates: TaskTemplate[]): TaskTemplate[] {
+  return templates.filter(
+    (template) =>
+      template.isActive && !template.deletedAt && isRepeating(template),
+  )
+}
+
+function doneDatesByTemplate(dailyTasks: DailyTask[]): Map<ID, Set<ISODate>> {
+  const done = new Map<ID, Set<ISODate>>()
+
+  dailyTasks.forEach((row) => {
+    if (row.deletedAt !== undefined || row.status !== TASK_STATUS.DONE) return
+    const dates = done.get(row.templateId) ?? new Set<ISODate>()
+    dates.add(row.date)
+    done.set(row.templateId, dates)
+  })
+
+  return done
+}
+
+/** Every day from `from` to `to`, inclusive, up to the scan guard. */
+function datesBetween(from: ISODate, to: ISODate): ISODate[] {
+  const dates: ISODate[] = []
+  let date = from
+
+  while (date <= to && dates.length < MAX_DAYS_SCANNED) {
+    dates.push(date)
+    date = addDaysToISODate(date, 1)
+  }
+
+  return dates
 }
 
 function monthDates(month: ISODate): ISODate[] {
@@ -202,49 +121,135 @@ function monthDates(month: ISODate): ISODate[] {
   return dates
 }
 
-function monthStreak(dayTotals: HabitMonthDayTotal[], today: ISODate): number {
-  let count = 0
+function cellStateOf(
+  scheduled: boolean,
+  isDone: boolean,
+  date: ISODate,
+  today: ISODate,
+): HabitDayState {
+  if (!scheduled) return 'off'
+  if (date > today) return 'upcoming'
+  if (isDone) return 'done'
+  // Today is still open, so not ticked yet is pending, not missed.
+  return date === today ? 'pending' : 'missed'
+}
 
-  for (let index = dayTotals.length - 1; index >= 0; index -= 1) {
-    const day = dayTotals[index]
-    if (day.date > today || day.total === 0) continue
-    if (day.done === day.total) {
-      count += 1
-      continue
+/**
+ * One cell per date. The rule says what was due, so a day never opened in the
+ * app is still missed; the rows only say what was done.
+ */
+function cellsOf(
+  template: TaskTemplate,
+  done: Set<ISODate>,
+  dates: ISODate[],
+  today: ISODate,
+): HabitMonthCell[] {
+  return dates.map((date) => ({
+    date,
+    state: cellStateOf(occursOn(template, date), done.has(date), date, today),
+  }))
+}
+
+/** The days that count toward completion: due, and not in the future. */
+function isDueSoFar(cell: HabitMonthCell): boolean {
+  return (
+    cell.state === 'done' || cell.state === 'missed' || cell.state === 'pending'
+  )
+}
+
+/**
+ * Best run and the run ending at the last due day. Off days are skipped, and
+ * a pending today neither breaks nor extends the run.
+ */
+function streaksOf(cells: HabitMonthCell[]): {
+  current: number
+  longest: number
+} {
+  let longest = 0
+  let run = 0
+
+  cells.forEach((cell) => {
+    if (cell.state === 'done') {
+      run += 1
+      longest = Math.max(longest, run)
+      return
     }
-    if (day.date === today) continue
-    break
+    if (cell.state === 'missed') run = 0
+  })
+
+  let current = 0
+
+  for (let index = cells.length - 1; index >= 0; index -= 1) {
+    const { state } = cells[index]
+    if (state === 'missed') break
+    if (state === 'done') current += 1
   }
 
-  return count
+  return { current, longest }
 }
-export function habitMonthView({
+
+export function habitStats({
   templates,
   dailyTasks,
-  month,
+  from,
+  to,
   today,
-}: HabitMonthInput): HabitMonthView {
-  const dates = monthDates(month)
-  const done = doneDatesByTemplate(
-    dailyTasks.filter((row) => row.deletedAt === undefined),
-  )
+}: HabitInput): HabitStat[] {
+  const doneByTemplate = doneDatesByTemplate(dailyTasks)
+  const end = to < today ? to : today
 
-  const rows = templates
-    .filter(isRepeating)
+  return habitTemplatesOf(templates)
+    .map((template) => {
+      const ruleStart = template.recurrence?.startDate ?? from
+      const start = from > ruleStart ? from : ruleStart
+      const cells =
+        start > end
+          ? []
+          : cellsOf(
+              template,
+              doneByTemplate.get(template.id) ?? new Set<ISODate>(),
+              datesBetween(start, end),
+              today,
+            )
+      const due = cells.filter(isDueSoFar)
+      const completed = cells.filter((cell) => cell.state === 'done').length
+      const { current, longest } = streaksOf(cells)
+
+      return {
+        templateId: template.id,
+        goalId: template.goalId,
+        title: template.title,
+        expected: due.length,
+        completed,
+        completionRate: due.length === 0 ? 0 : completed / due.length,
+        currentStreak: current,
+        longestStreak: longest,
+      }
+    })
+    .filter((stat) => stat.expected > 0)
+    .sort(
+      (a, b) =>
+        b.completed - a.completed || b.completionRate - a.completionRate,
+    )
+}
+
+function monthRowsOf(
+  templates: TaskTemplate[],
+  dailyTasks: DailyTask[],
+  dates: ISODate[],
+  today: ISODate,
+): HabitMonthRow[] {
+  const doneByTemplate = doneDatesByTemplate(dailyTasks)
+
+  return habitTemplatesOf(templates)
     .map((template): HabitMonthRow => {
-      const doneDates = done.get(template.id) ?? new Set<ISODate>()
-      const cells = dates.map((date) => ({
-        date,
-        state: cellStateOf(
-          occursOn(template, date),
-          doneDates.has(date),
-          date,
-          today,
-        ),
-      }))
-      const expected = cells.filter((cell) =>
-        ['done', 'missed', 'pending'].includes(cell.state),
-      ).length
+      const cells = cellsOf(
+        template,
+        doneByTemplate.get(template.id) ?? new Set<ISODate>(),
+        dates,
+        today,
+      )
+      const expected = cells.filter(isDueSoFar).length
       const completed = cells.filter((cell) => cell.state === 'done').length
 
       return {
@@ -258,14 +263,69 @@ export function habitMonthView({
       }
     })
     .filter((row) => row.cells.some((cell) => cell.state !== 'off'))
+}
 
-  const dayTotals = dates.map((date, index) => {
+/** `rows` and `dates` line up by index, so each day's cell is at the same slot. */
+function dayTotalsOf(
+  rows: HabitMonthRow[],
+  dates: ISODate[],
+): HabitMonthDayTotal[] {
+  return dates.map((date, index) => {
     const scheduled = rows.filter((row) => row.cells[index].state !== 'off')
-    const doneCount = scheduled.filter(
+    const done = scheduled.filter(
       (row) => row.cells[index].state === 'done',
     ).length
-    return { date, done: doneCount, total: scheduled.length }
+    return { date, done, total: scheduled.length }
   })
+}
+
+/** A day with something due is full when every due habit was done. */
+function fullDayStreakOf(
+  dayTotals: HabitMonthDayTotal[],
+  today: ISODate,
+): number {
+  let count = 0
+
+  for (let index = dayTotals.length - 1; index >= 0; index -= 1) {
+    const day = dayTotals[index]
+    if (day.date > today || day.total === 0) continue
+    if (day.done === day.total) {
+      count += 1
+      continue
+    }
+    // Today is still open, so an unfinished today doesn't break the run.
+    if (day.date === today) continue
+    break
+  }
+
+  return count
+}
+
+/** Full days in a row ending today, counted back across month boundaries. */
+export function fullDayStreak({
+  templates,
+  dailyTasks,
+  today,
+}: {
+  templates: TaskTemplate[]
+  dailyTasks: DailyTask[]
+  today: ISODate
+}): number {
+  const from = addDaysToISODate(today, -(MAX_DAYS_SCANNED - 1))
+  const dates = datesBetween(from, today)
+  const rows = monthRowsOf(templates, dailyTasks, dates, today)
+  return fullDayStreakOf(dayTotalsOf(rows, dates), today)
+}
+
+export function habitMonthView({
+  templates,
+  dailyTasks,
+  month,
+  today,
+}: HabitMonthInput): HabitMonthView {
+  const dates = monthDates(month)
+  const rows = monthRowsOf(templates, dailyTasks, dates, today)
+  const dayTotals = dayTotalsOf(rows, dates)
 
   const expected = rows.reduce((sum, row) => sum + row.expected, 0)
   const completed = rows.reduce((sum, row) => sum + row.completed, 0)
@@ -277,7 +337,8 @@ export function habitMonthView({
     expected,
     completed,
     completionRate: expected === 0 ? null : completed / expected,
+    trackedDays: elapsed.length,
     fullDays: elapsed.filter((day) => day.done === day.total).length,
-    currentStreak: monthStreak(dayTotals, today),
+    currentStreak: fullDayStreak({ templates, dailyTasks, today }),
   }
 }
