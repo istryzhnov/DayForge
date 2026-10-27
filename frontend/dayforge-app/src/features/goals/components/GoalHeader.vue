@@ -13,6 +13,8 @@ const props = defineProps<{
   color?: string
   status: string
   stats: PanelStats
+  /** Label of a day other than today that the list is showing. */
+  viewedDay: string | null
   showSettings: boolean
   showToolbar: boolean
   boardEnabled: boolean
@@ -24,6 +26,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
   (e: 'toggle-notes'): void
+  (e: 'today'): void
 }>()
 
 const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
@@ -43,6 +46,19 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
         <h2>{{ title }}</h2>
         <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
       </div>
+
+      <!-- Picking a day in Upcoming shows that day; this is the way back. -->
+      <button
+        v-if="viewedDay"
+        class="ui-chip is-active goal-panel-header__day"
+        type="button"
+        :aria-label="`Showing ${viewedDay}. Back to today`"
+        @click="emit('today')"
+      >
+        <AppIcon name="calendar" :size="14" />
+        {{ viewedDay }}
+        <AppIcon name="close" :size="14" />
+      </button>
 
       <ul class="goal-panel-stats">
         <li class="goal-panel-stats__item">

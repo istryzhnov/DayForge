@@ -8,6 +8,7 @@ defineProps<{
   color?: string
   status: string
   stats: PanelStats
+  viewedDay: string | null
   showSettings: boolean
   showToolbar: boolean
   boardEnabled: boolean
@@ -19,6 +20,7 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
   (e: 'toggle-notes'): void
+  (e: 'today'): void
 }>()
 </script>
 
@@ -28,6 +30,7 @@ const emit = defineEmits<{
     :color="color"
     :status="status"
     :stats="stats"
+    :viewed-day="viewedDay"
     :show-settings="showSettings"
     :show-toolbar="showToolbar"
     :board-enabled="boardEnabled"
@@ -36,5 +39,6 @@ const emit = defineEmits<{
     :budget="budget"
     @set-board="(enabled) => emit('set-board', enabled)"
     @toggle-notes="emit('toggle-notes')"
+    @today="emit('today')"
   />
 </template>

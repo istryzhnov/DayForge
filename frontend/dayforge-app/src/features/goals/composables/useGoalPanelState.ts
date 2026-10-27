@@ -15,6 +15,7 @@ import {
 } from '../../../composables/useProgressMetrics'
 import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { panelDateLabel } from '../../../composables/panelDateLabel'
 import {
   fullDayStreak,
   habitStreaks,
@@ -240,9 +241,21 @@ export function useGoalPanelState(
     actions.onSetAsProject(templateId)
   }
 
+  /** The day being looked at, when it is not today; null on today. */
+  const viewedDayLabel = computed(() =>
+    props.currentDate === today.value
+      ? null
+      : panelDateLabel(props.currentDate, {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+        }),
+  )
+
   return {
     ...taskTree,
     panelStats,
+    viewedDayLabel,
     upcomingDays,
     hasHabits,
     habitWindow,

@@ -276,6 +276,7 @@ function handleSearchSelect(result: SearchResult) {
           @change-goal-board="handleChangeGoalBoard"
           @change-goal-notes="handleChangeGoalNotes"
           @select-date="goToDate"
+          @today="goToToday"
         />
 
         <PlannedTaskList

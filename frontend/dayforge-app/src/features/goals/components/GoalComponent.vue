@@ -80,6 +80,7 @@ const emit = defineEmits<{
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (e: 'change-goal-notes', goalId: ID, notes: string): void
   (e: 'select-date', date: ISODate): void
+  (e: 'today'): void
 }>()
 
 // The board is opt-in per project: until it is switched on, nothing here
@@ -134,6 +135,7 @@ const {
   taskGroups,
   panelTitle,
   panelStats,
+  viewedDayLabel,
   upcomingDays,
   hasHabits,
   habitWindow,
@@ -182,6 +184,7 @@ const projectColor = computed(() =>
       :color="projectColor"
       :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
       :stats="panelStats"
+      :viewed-day="viewedDayLabel"
       :show-settings="!isAllMode && !!goal"
       :show-toolbar="!isAllMode && !!goal"
       :board-enabled="showBoard"
@@ -192,6 +195,7 @@ const projectColor = computed(() =>
         (enabled) => goal && emit('change-goal-board', goal.id, enabled)
       "
       @toggle-notes="toggleNotes"
+      @today="emit('today')"
     />
 
     <GoalComposerZone

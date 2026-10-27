@@ -260,6 +260,14 @@
 }
 
 /* One muted line of icon + value items under the title. */
+/* The day picked in Upcoming; the chip itself is the way back to today. */
+.goal-panel-header__day {
+  justify-self: start;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+}
+
 .goal-panel-stats {
   display: flex;
   flex-wrap: wrap;
