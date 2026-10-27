@@ -11,11 +11,7 @@ export const APP_ICON_PATHS = {
     'M8 2v4',
     'M3 10h18',
   ],
-  timer: [
-    'M4 13a8 8 0 1 0 16 0 8 8 0 1 0-16 0',
-    'M12 9v4l2 2',
-    'M10 2h4',
-  ],
+  timer: ['M4 13a8 8 0 1 0 16 0 8 8 0 1 0-16 0', 'M12 9v4l2 2', 'M10 2h4'],
   chart: ['M3 3v18h18', 'M7 16v-3', 'M12 16V8', 'M17 16v-5'],
   pin: ['M9 3h6l-1 6 3 4H7l3-4z', 'M12 17v5'],
   'check-square': [
@@ -90,7 +86,9 @@ export const APP_ICON_PATHS = {
   'chevron-left': ['M15 6l-6 6 6 6'],
   'chevron-right': ['M9 6l6 6-6 6'],
   play: ['M7 4l13 8-13 8z'],
-  stop: ['M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z'],
+  stop: [
+    'M7 6h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1z',
+  ],
   maximize: ['M15 3h6v6', 'M9 21H3v-6', 'M21 3l-7 7', 'M3 21l7-7'],
   'more-horizontal': ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
   repeat: [

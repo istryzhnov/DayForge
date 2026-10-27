@@ -14,7 +14,9 @@ export type SyncedSection = (typeof SYNCED_SECTIONS)[number]
 
 const NOT_SETTINGS_KEYS = new Set(['id', 'updatedAt', 'createdAt'])
 
-export function isPlainObject(value: unknown): value is Record<string, unknown> {
+export function isPlainObject(
+  value: unknown,
+): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 

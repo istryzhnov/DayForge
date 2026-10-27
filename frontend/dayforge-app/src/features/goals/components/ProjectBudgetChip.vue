@@ -14,7 +14,9 @@ const { settings } = useSettings()
 const percent = computed(() => Math.round(props.standing.fraction * 100))
 
 /** The bar stops at full; the chip text carries the real figure past 100%. */
-const barWidth = computed(() => `${Math.min(props.standing.fraction, 1) * 100}%`)
+const barWidth = computed(
+  () => `${Math.min(props.standing.fraction, 1) * 100}%`,
+)
 
 const stateLabel = computed(() => {
   if (props.standing.level === BUDGET_LEVEL.OVER) return 'Over budget'
@@ -23,7 +25,9 @@ const stateLabel = computed(() => {
 })
 
 const periodLabel = computed(() =>
-  props.standing.budget.period === BUDGET_PERIOD.MONTH ? 'this month' : 'in total',
+  props.standing.budget.period === BUDGET_PERIOD.MONTH
+    ? 'this month'
+    : 'in total',
 )
 
 const detail = computed(() => {
@@ -40,7 +44,9 @@ const detail = computed(() => {
       currency: settings.timer.currency,
       maximumFractionDigits: 2,
     })
-    parts.push(`${money.format(usage.earned)} of ${money.format(budget.amount)} earned`)
+    parts.push(
+      `${money.format(usage.earned)} of ${money.format(budget.amount)} earned`,
+    )
   }
 
   return `${parts.join(' · ')} ${periodLabel.value}`

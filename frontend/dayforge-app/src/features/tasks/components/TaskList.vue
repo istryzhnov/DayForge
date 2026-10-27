@@ -175,7 +175,9 @@ function groupKey(group: TaskGroup) {
     <!-- Nothing else inside the list is free space, so taking a task out of a
          project needs a target of its own. -->
     <div
-      v-if="drag.draggingId.value && drag.dragParentZone.value !== DROP_ZONE_ROOT"
+      v-if="
+        drag.draggingId.value && drag.dragParentZone.value !== DROP_ZONE_ROOT
+      "
       class="task-drop-out"
       :class="{ 'is-drop-target': drag.dropZone.value === DROP_ZONE_ROOT }"
       :data-drop-zone="DROP_ZONE_ROOT"

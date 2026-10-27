@@ -31,7 +31,9 @@ window.setTimeout(() => {
 // Error reporting is production-only and opt-in by DSN. Loaded after mount so
 // the SDK never delays the first paint, and kept out of the main chunk.
 if (import.meta.env.PROD && import.meta.env.VITE_SENTRY_DSN) {
-  void import('./lib/monitoring').then(({ initMonitoring }) => initMonitoring(app))
+  void import('./lib/monitoring').then(({ initMonitoring }) =>
+    initMonitoring(app),
+  )
 }
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {

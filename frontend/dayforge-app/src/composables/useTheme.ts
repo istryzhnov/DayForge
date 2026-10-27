@@ -72,7 +72,9 @@ function readBasePalette(): ResolvedPalette {
 }
 
 function sanitizeWorkspace(input: unknown): WorkspaceSettings {
-  const raw = (typeof input === 'object' && input !== null ? input : {}) as Partial<WorkspaceSettings>
+  const raw = (
+    typeof input === 'object' && input !== null ? input : {}
+  ) as Partial<WorkspaceSettings>
   const clamp = (value: unknown, min: number, max: number, fallback: number) =>
     typeof value === 'number' && Number.isFinite(value)
       ? Math.min(max, Math.max(min, value))
@@ -105,7 +107,9 @@ function sanitizeWorkspace(input: unknown): WorkspaceSettings {
 }
 
 function sanitizePalette(input: unknown): ThemePalette {
-  const raw = (typeof input === 'object' && input !== null ? input : {}) as Record<string, unknown>
+  const raw = (
+    typeof input === 'object' && input !== null ? input : {}
+  ) as Record<string, unknown>
   const result = { ...raw } as Record<string, unknown>
   for (const token of COLOR_TOKENS) {
     const value = raw[token.key]
@@ -162,7 +166,6 @@ function initializeTheme() {
       workspace?: unknown
     } | null>(THEME_STORAGE_KEY, null)
     if (parsed) {
-
       if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
       if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
       palette.value = sanitizePalette(parsed.colors)

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { ISODate, ID } from '../../../entities/types'
-import type { PositionedEvent, useCalendarWeek } from '../composables/useCalendarWeek'
+import type {
+  PositionedEvent,
+  useCalendarWeek,
+} from '../composables/useCalendarWeek'
 import {
   columnStyle,
   gridHeightPx,

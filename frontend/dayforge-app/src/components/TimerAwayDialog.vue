@@ -14,10 +14,7 @@ const awayLabel = computed(() =>
 </script>
 
 <template>
-  <div
-    v-if="awayPrompt"
-    class="new-goal-modal task-reminder-modal"
-  >
+  <div v-if="awayPrompt" class="new-goal-modal task-reminder-modal">
     <div class="modal-overlay"></div>
     <div
       class="modal-card task-reminder-card"
@@ -28,8 +25,8 @@ const awayLabel = computed(() =>
       <p class="task-reminder-card__eyebrow">Timer</p>
       <h3 id="timer-away-title">You were away {{ awayLabel }}</h3>
       <p class="task-reminder-card__hint">
-        The timer kept running while DayForge was in the background. Should
-        that time count?
+        The timer kept running while DayForge was in the background. Should that
+        time count?
       </p>
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" @click="discardAndStopAway">

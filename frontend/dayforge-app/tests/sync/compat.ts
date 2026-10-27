@@ -22,11 +22,22 @@ import {
   verifyTaskNotes,
   verifyDayLists,
 } from './compat/tasks'
-import { verifyClientsAndBilling, verifyProjectBilling, verifyMoneyTab } from './compat/billing'
+import {
+  verifyClientsAndBilling,
+  verifyProjectBilling,
+  verifyMoneyTab,
+} from './compat/billing'
 import { verifyBudgetPlanIncome } from './compat/budget'
-import { verifyProjectProgress, verifyProjectPanelStats } from './compat/projects'
+import {
+  verifyProjectProgress,
+  verifyProjectPanelStats,
+} from './compat/projects'
 import { verifyHabitUnification, verifyHabitStrip } from './compat/habits'
-import { verifyPushReminderParity, verifyTimerReminders, verifyTimerHistoryLabels } from './compat/timer'
+import {
+  verifyPushReminderParity,
+  verifyTimerReminders,
+  verifyTimerHistoryLabels,
+} from './compat/timer'
 import { verifyCalendarTitles } from './compat/calendar'
 
 function main() {
@@ -56,7 +67,9 @@ function main() {
   verifyDayLists()
   verifyHabitStrip()
 
-  console.log(`\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`)
+  console.log(
+    `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,
+  )
   if (tally.failures > 0) {
     console.log(`${tally.failures} FAILED`)
     process.exitCode = 1

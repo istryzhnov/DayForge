@@ -14,7 +14,10 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   {
     id: 'study',
     label: 'Study',
-    paths: ['M2 9l10-5 10 5-10 5z', 'M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5'],
+    paths: [
+      'M2 9l10-5 10 5-10 5z',
+      'M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5',
+    ],
   },
   {
     id: 'book',
@@ -24,8 +27,16 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
       'M12 6v13.5',
     ],
   },
-  { id: 'write', label: 'Writing', paths: ['M4 20l4-1L19 8l-3-3L5 16z', 'M14 6l3 3'] },
-  { id: 'code', label: 'Code', paths: ['M8 7l-5 5 5 5', 'M16 7l5 5-5 5', 'M14 4l-4 16'] },
+  {
+    id: 'write',
+    label: 'Writing',
+    paths: ['M4 20l4-1L19 8l-3-3L5 16z', 'M14 6l3 3'],
+  },
+  {
+    id: 'code',
+    label: 'Code',
+    paths: ['M8 7l-5 5 5 5', 'M16 7l5 5-5 5', 'M14 4l-4 16'],
+  },
   {
     id: 'music',
     label: 'Music',
@@ -44,12 +55,22 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   {
     id: 'bike',
     label: 'Bike',
-    paths: [circle(6, 16, 3), circle(18, 16, 3), 'M6 16l4-7h6l2 7', 'M10 9l4 7'],
+    paths: [
+      circle(6, 16, 3),
+      circle(18, 16, 3),
+      'M6 16l4-7h6l2 7',
+      'M10 9l4 7',
+    ],
   },
   {
     id: 'globe',
     label: 'Travel',
-    paths: [circle(12, 12, 9), 'M3 12h18', 'M12 3c-3 3.5-3 14.5 0 18', 'M12 3c3 3.5 3 14.5 0 18'],
+    paths: [
+      circle(12, 12, 9),
+      'M3 12h18',
+      'M12 3c-3 3.5-3 14.5 0 18',
+      'M12 3c3 3.5 3 14.5 0 18',
+    ],
   },
   {
     id: 'health',
@@ -59,7 +80,9 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   {
     id: 'heart',
     label: 'Heart',
-    paths: ['M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z'],
+    paths: [
+      'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
+    ],
   },
   {
     id: 'money',
@@ -74,7 +97,11 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
     label: 'Shopping',
     paths: ['M3 4h2l2.5 11h10L20 7H6', circle(9, 19, 1.2), circle(17, 19, 1.2)],
   },
-  { id: 'home', label: 'Home', paths: ['M3 11l9-7 9 7', 'M5 10v10h14V10', 'M10 20v-6h4v6'] },
+  {
+    id: 'home',
+    label: 'Home',
+    paths: ['M3 11l9-7 9 7', 'M5 10v10h14V10', 'M10 20v-6h4v6'],
+  },
   {
     id: 'plant',
     label: 'Plant',
@@ -87,7 +114,9 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   {
     id: 'star',
     label: 'Star',
-    paths: ['M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z'],
+    paths: [
+      'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
+    ],
   },
   {
     id: 'sun',
@@ -123,13 +152,23 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   {
     id: 'people',
     label: 'People',
-    paths: [circle(9, 8, 3), 'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6', 'M16 5.2a3 3 0 0 1 0 5.6'],
+    paths: [
+      circle(9, 8, 3),
+      'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6',
+      'M16 5.2a3 3 0 0 1 0 5.6',
+    ],
   },
-  { id: 'target', label: 'Target', paths: [circle(12, 12, 9), circle(12, 12, 5), circle(12, 12, 1)] },
+  {
+    id: 'target',
+    label: 'Target',
+    paths: [circle(12, 12, 9), circle(12, 12, 5), circle(12, 12, 1)],
+  },
   { id: 'clock', label: 'Clock', paths: [circle(12, 12, 9), 'M12 7v5l3 2'] },
 ]
 
-export function findProjectIcon(id: string | undefined): ProjectIconDef | undefined {
+export function findProjectIcon(
+  id: string | undefined,
+): ProjectIconDef | undefined {
   if (!id) return undefined
   return PROJECT_ICONS.find((icon) => icon.id === id)
 }

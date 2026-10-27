@@ -89,7 +89,9 @@ const {
         <figure class="ui-card habits__calendar">
           <figcaption class="ui-section-label">Daily completion</figcaption>
           <div class="habits__weekdays" aria-hidden="true">
-            <span v-for="(label, index) in weekdayLabels" :key="index">{{ label }}</span>
+            <span v-for="(label, index) in weekdayLabels" :key="index">{{
+              label
+            }}</span>
           </div>
           <ol class="habits__grid">
             <li
@@ -98,7 +100,10 @@ const {
               class="habits__day"
               :class="
                 day
-                  ? [`is-${dayTone(day)}`, { 'is-today': day.date === todayISO }]
+                  ? [
+                      `is-${dayTone(day)}`,
+                      { 'is-today': day.date === todayISO },
+                    ]
                   : 'is-blank'
               "
               :role="day ? 'img' : undefined"
@@ -121,8 +126,12 @@ const {
         <div class="habits__stats">
           <div class="ui-stat">
             <span class="ui-stat__label">Completion</span>
-            <strong class="ui-stat__value">{{ percentLabel(view.completionRate) }}</strong>
-            <span class="habits__note">{{ view.completed }} / {{ view.expected }}</span>
+            <strong class="ui-stat__value">{{
+              percentLabel(view.completionRate)
+            }}</strong>
+            <span class="habits__note"
+              >{{ view.completed }} / {{ view.expected }}</span
+            >
           </div>
           <div class="ui-stat">
             <span class="ui-stat__label">Full days</span>

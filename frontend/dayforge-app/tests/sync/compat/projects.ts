@@ -1,7 +1,13 @@
 /** Compat checks: project progress and the project panel stats. */
 
-import { habitStreaks, habitWindowView } from '../../../src/composables/analytics/habits'
-import { habitWindowDays, monthTrackedMs } from '../../../src/features/goals/composables/projectPanelStats'
+import {
+  habitStreaks,
+  habitWindowView,
+} from '../../../src/composables/analytics/habits'
+import {
+  habitWindowDays,
+  monthTrackedMs,
+} from '../../../src/features/goals/composables/projectPanelStats'
 import type { ISODate } from '../../../src/entities/types'
 import type { Goal } from '../../../src/entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../src/entities/TaskEntity'
@@ -16,9 +22,7 @@ export function verifyProjectProgress() {
   section('Time tab: one project list merges tracked time with plans')
 
   const HOUR = 60 * 60 * 1000
-  const goals = [
-    { id: 'goal-b', title: 'Beta' },
-  ] as Goal[]
+  const goals = [{ id: 'goal-b', title: 'Beta' }] as Goal[]
   const planned = new Map<string, number>([
     ['goal-a', 4 * HOUR],
     ['goal-b', 2 * HOUR],
@@ -31,8 +35,21 @@ export function verifyProjectProgress() {
 
   const merged = mergeProjectProgress(
     [
-      { key: 'goal-a', goalId: 'goal-a', title: 'Alpha', color: '#123456', taskCount: 2, trackedMs: 5 * HOUR },
-      { key: 'goal-d', goalId: 'goal-d', title: 'Gamma', taskCount: 1, trackedMs: HOUR },
+      {
+        key: 'goal-a',
+        goalId: 'goal-a',
+        title: 'Alpha',
+        color: '#123456',
+        taskCount: 2,
+        trackedMs: 5 * HOUR,
+      },
+      {
+        key: 'goal-d',
+        goalId: 'goal-d',
+        title: 'Gamma',
+        taskCount: 1,
+        trackedMs: HOUR,
+      },
     ],
     plans,
   )
@@ -56,7 +73,8 @@ export function verifyProjectProgress() {
   )
   check(
     'a plan for a project no longer listed still shows, under its stored title',
-    byKey.get('goal-c')?.title === 'Deleted project' && byKey.get('goal-c')?.plannedMs === HOUR,
+    byKey.get('goal-c')?.title === 'Deleted project' &&
+      byKey.get('goal-c')?.plannedMs === HOUR,
     merged,
   )
   check(
@@ -76,7 +94,9 @@ export function verifyProjectProgress() {
   )
   check(
     'the list is ordered by the larger of tracked and planned time',
-    merged[0].key === 'goal-a' && merged[1].key === 'goal-b' && merged.length === 4,
+    merged[0].key === 'goal-a' &&
+      merged[1].key === 'goal-b' &&
+      merged.length === 4,
     merged.map((row) => row.key),
   )
 }
@@ -125,7 +145,9 @@ export function verifyProjectPanelStats() {
       id: `${goalId}-${startedAt}`,
       sessionId: 's',
       startedAt,
-      endedAt: new Date(Date.parse(startedAt) + minutes * 60 * 1000).toISOString(),
+      endedAt: new Date(
+        Date.parse(startedAt) + minutes * 60 * 1000,
+      ).toISOString(),
       mode: 'stopwatch',
       source: 'timer',
       goalId,
@@ -140,7 +162,10 @@ export function verifyProjectPanelStats() {
     'time this month counts only the project asked for, and only this month',
     monthTrackedMs(entries, 'goal-a', now) === 1.5 * HOUR_MS &&
       monthTrackedMs(entries, null, now) === 2.5 * HOUR_MS,
-    [monthTrackedMs(entries, 'goal-a', now), monthTrackedMs(entries, null, now)],
+    [
+      monthTrackedMs(entries, 'goal-a', now),
+      monthTrackedMs(entries, null, now),
+    ],
   )
 
   const reading = daily('read', 'goal-a')
@@ -166,8 +191,12 @@ export function verifyProjectPanelStats() {
   )
   check(
     'a 28-day window reaches back four weeks from today',
-    habitWindowView({ templates: [reading], dailyTasks: rows, days: 28, today: TODAY })
-      .dayTotals[0].date === '2026-09-13',
+    habitWindowView({
+      templates: [reading],
+      dailyTasks: rows,
+      days: 28,
+      today: TODAY,
+    }).dayTotals[0].date === '2026-09-13',
   )
 
   const streaks = habitStreaks({

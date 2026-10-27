@@ -37,19 +37,17 @@ export function useArchive(options: ArchiveOptions) {
     const done = options
       .getDailyTasks()
       .filter((row) => row.status === TASK_STATUS.DONE)
-      .map(
-        (row): ArchivedTask => ({
-          id: row.id,
-          title: row.title,
-          date: row.date,
-          completedAt: row.completedAt,
-          goalTitle: row.goalId
-            ? (goalTitleById.get(row.goalId) ?? 'Unknown goal')
-            : 'No goal',
-          goalColor: row.goalId ? goalColorById.get(row.goalId) : undefined,
-          startTime: row.startTime,
-        }),
-      )
+      .map((row): ArchivedTask => ({
+        id: row.id,
+        title: row.title,
+        date: row.date,
+        completedAt: row.completedAt,
+        goalTitle: row.goalId
+          ? (goalTitleById.get(row.goalId) ?? 'Unknown goal')
+          : 'No goal',
+        goalColor: row.goalId ? goalColorById.get(row.goalId) : undefined,
+        startTime: row.startTime,
+      }))
       .sort(
         (a, b) =>
           b.date.localeCompare(a.date) ||

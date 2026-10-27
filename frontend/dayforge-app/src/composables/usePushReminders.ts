@@ -79,10 +79,7 @@ function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = window.setTimeout(
-      () => reject(new Error('timeout')),
-      ms,
-    )
+    const timer = window.setTimeout(() => reject(new Error('timeout')), ms)
     promise.then(
       (value) => {
         window.clearTimeout(timer)
@@ -128,8 +125,7 @@ async function refreshStatus(userId: string) {
   try {
     const subscription = await currentSubscription()
     if (!subscription) {
-      status.value =
-        Notification.permission === 'denied' ? 'denied' : 'off'
+      status.value = Notification.permission === 'denied' ? 'denied' : 'off'
       return
     }
     status.value = 'on'

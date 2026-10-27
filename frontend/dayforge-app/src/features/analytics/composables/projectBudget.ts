@@ -61,7 +61,10 @@ export function sanitizeBudget(raw: unknown): ProjectBudget | undefined {
   const source = raw as Record<string, unknown>
 
   const budget: ProjectBudget = {
-    period: source.period === BUDGET_PERIOD.MONTH ? BUDGET_PERIOD.MONTH : BUDGET_PERIOD.TOTAL,
+    period:
+      source.period === BUDGET_PERIOD.MONTH
+        ? BUDGET_PERIOD.MONTH
+        : BUDGET_PERIOD.TOTAL,
   }
 
   if (
@@ -92,8 +95,7 @@ export interface BudgetDraft {
 }
 
 export type BudgetParseResult =
-  | { ok: true; budget: ProjectBudget | undefined }
-  | { ok: false; error: string }
+  { ok: true; budget: ProjectBudget | undefined } | { ok: false; error: string }
 
 /** Empty fields mean "no limit of this kind"; a set field must be a positive number. */
 function parseLimit(
@@ -117,7 +119,11 @@ export function parseBudgetDraft(draft: BudgetDraft): BudgetParseResult {
   const hours = parseLimit(draft.hours, BUDGET_LIMITS.HOURS_MAX, 'Hours budget')
   if (hours.error) return { ok: false, error: hours.error }
 
-  const amount = parseLimit(draft.amount, BUDGET_LIMITS.AMOUNT_MAX, 'Money budget')
+  const amount = parseLimit(
+    draft.amount,
+    BUDGET_LIMITS.AMOUNT_MAX,
+    'Money budget',
+  )
   if (amount.error) return { ok: false, error: amount.error }
 
   const budget: ProjectBudget = { period: draft.period }
@@ -126,11 +132,16 @@ export function parseBudgetDraft(draft: BudgetDraft): BudgetParseResult {
 
   return {
     ok: true,
-    budget: budget.hours === undefined && budget.amount === undefined ? undefined : budget,
+    budget:
+      budget.hours === undefined && budget.amount === undefined
+        ? undefined
+        : budget,
   }
 }
 
-export function draftFromBudget(budget: ProjectBudget | undefined): BudgetDraft {
+export function draftFromBudget(
+  budget: ProjectBudget | undefined,
+): BudgetDraft {
   return {
     hours: budget?.hours !== undefined ? String(budget.hours) : '',
     amount: budget?.amount !== undefined ? String(budget.amount) : '',
@@ -176,7 +187,10 @@ export function budgetLevelOf(fraction: number): BudgetLevel {
 }
 
 /** Whether moving from one level to another is worth a notice: only upward. */
-export function isLevelUp(from: BudgetLevel | undefined, to: BudgetLevel): boolean {
+export function isLevelUp(
+  from: BudgetLevel | undefined,
+  to: BudgetLevel,
+): boolean {
   return LEVEL_RANK[to] > LEVEL_RANK[from ?? BUDGET_LEVEL.OK]
 }
 

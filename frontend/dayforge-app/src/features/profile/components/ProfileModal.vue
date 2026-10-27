@@ -89,7 +89,9 @@ const {
         <p class="settings-group-hint legal-links">
           By signing in you agree to the
           <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and
-          <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.
+          <a href="/privacy.html" target="_blank" rel="noopener"
+            >Privacy Policy</a
+          >.
         </p>
 
         <p class="settings-group-hint legal-links">

@@ -63,9 +63,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
     }),
   )
 
-  const hasRepeating = computed(() =>
-    sources.getTemplates().some(isRepeating),
-  )
+  const hasRepeating = computed(() => sources.getTemplates().some(isRepeating))
 
   /** Current run of done days per habit, the same numbers as the project page. */
   const streaks = computed(() =>
@@ -108,8 +106,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
   })
 
   const projectById = computed(
-    () =>
-      new Map<ID, Goal>(sources.getGoals().map((goal) => [goal.id, goal])),
+    () => new Map<ID, Goal>(sources.getGoals().map((goal) => [goal.id, goal])),
   )
 
   const colorById = computed(() => projectColors(sources.getGoals()))

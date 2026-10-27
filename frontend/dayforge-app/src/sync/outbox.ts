@@ -95,10 +95,13 @@ export function createOutbox(deps: OutboxDeps): Outbox {
 
   function scheduleFlush(delayMs: number) {
     cancelScheduledFlush()
-    timerHandle = deps.setTimer(() => {
-      timerHandle = null
-      void flush()
-    }, Math.max(0, delayMs))
+    timerHandle = deps.setTimer(
+      () => {
+        timerHandle = null
+        void flush()
+      },
+      Math.max(0, delayMs),
+    )
   }
 
   /**

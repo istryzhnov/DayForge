@@ -76,7 +76,9 @@ const { openShortcuts } = useHotkeyOverlay()
       <input
         type="checkbox"
         :checked="settings.behavior.keyboardShortcuts"
-        @change="update('behavior', { keyboardShortcuts: checkedValue($event) })"
+        @change="
+          update('behavior', { keyboardShortcuts: checkedValue($event) })
+        "
       />
       <span>
         <strong>Keyboard shortcuts</strong>

@@ -74,8 +74,12 @@ export function plannedMsByProject(
   from: ISODate,
   to: ISODate,
 ): Map<string, number> {
-  const activeTemplates = source.templates.filter((template) => template.isActive)
-  const templateById = new Map(activeTemplates.map((template) => [template.id, template]))
+  const activeTemplates = source.templates.filter(
+    (template) => template.isActive,
+  )
+  const templateById = new Map(
+    activeTemplates.map((template) => [template.id, template]),
+  )
 
   const rowsByDate = new Map<ISODate, DailyTask[]>()
   source.dailyTasks.forEach((row) => {
@@ -100,7 +104,11 @@ export function plannedMsByProject(
     rows.forEach((row) =>
       add(
         row.goalId,
-        blockDurationMs(row.startTime, row.endTime, source.defaultDurationMinutes),
+        blockDurationMs(
+          row.startTime,
+          row.endTime,
+          source.defaultDurationMinutes,
+        ),
       ),
     )
 
@@ -109,7 +117,11 @@ export function plannedMsByProject(
       if (!occursOn(template, date)) return
       add(
         template.goalId,
-        blockDurationMs(template.startTime, template.endTime, source.defaultDurationMinutes),
+        blockDurationMs(
+          template.startTime,
+          template.endTime,
+          source.defaultDurationMinutes,
+        ),
       )
     })
   }

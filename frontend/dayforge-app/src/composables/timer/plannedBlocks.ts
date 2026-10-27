@@ -78,8 +78,7 @@ export interface ManualEntryPayload {
 }
 
 export type PlanResult =
-  | { ok: true; payload: ManualEntryPayload }
-  | { ok: false; reason: string }
+  { ok: true; payload: ManualEntryPayload } | { ok: false; reason: string }
 
 /** The entry that matches a block exactly, or the reason it cannot be written. */
 export function planBlockEntry(

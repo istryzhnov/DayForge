@@ -24,7 +24,8 @@ function isStamp(value: unknown): value is TimerStamp {
   const candidate = value as Partial<TimerStamp>
   return (
     typeof candidate.signature === 'string' &&
-    (candidate.updatedAt === undefined || typeof candidate.updatedAt === 'string')
+    (candidate.updatedAt === undefined ||
+      typeof candidate.updatedAt === 'string')
   )
 }
 

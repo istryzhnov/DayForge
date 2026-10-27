@@ -36,7 +36,9 @@ const money = computed(
     }),
 )
 
-const goalAmount = computed(() => sanitizeMonthlyIncome(settings.goals.monthlyIncome))
+const goalAmount = computed(() =>
+  sanitizeMonthlyIncome(settings.goals.monthlyIncome),
+)
 
 /**
  * Earned this month, adjusted the way the Analytics totals are: fixed prices
@@ -154,7 +156,9 @@ function clear() {
           @input="error = ''"
         />
       </label>
-      <p v-if="error" class="project-billing__error" role="alert">{{ error }}</p>
+      <p v-if="error" class="project-billing__error" role="alert">
+        {{ error }}
+      </p>
       <div class="income-goal__actions">
         <button class="btn btn-primary" type="submit">Save goal</button>
         <button class="btn btn-ghost" type="button" @click="isEditing = false">
@@ -176,12 +180,20 @@ function clear() {
         <div class="income-goal__figure">
           <span class="analytics__card-label">Earned this month</span>
           <span class="income-goal__amount">
-            <strong class="income-goal__earned">{{ money.format(status.earned) }}</strong>
-            <span class="income-goal__goal">/ {{ money.format(status.goal) }}</span>
+            <strong class="income-goal__earned">{{
+              money.format(status.earned)
+            }}</strong>
+            <span class="income-goal__goal"
+              >/ {{ money.format(status.goal) }}</span
+            >
           </span>
         </div>
         <span class="income-goal__percent">{{ percentLabel }}</span>
-        <button class="btn btn-ghost income-goal__edit" type="button" @click="startEditing">
+        <button
+          class="btn btn-ghost income-goal__edit"
+          type="button"
+          @click="startEditing"
+        >
           Edit goal
         </button>
       </div>

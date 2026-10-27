@@ -26,7 +26,10 @@ function toggle(key: string) {
   expanded.value = next
 }
 
-function rateLabel(rate: number | null, money: (value: number) => string): string {
+function rateLabel(
+  rate: number | null,
+  money: (value: number) => string,
+): string {
   return rate === null ? '—' : `${money(rate)} / h`
 }
 </script>
@@ -72,9 +75,13 @@ function rateLabel(rate: number | null, money: (value: number) => string): strin
               <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
             </svg>
           </span>
-          <strong class="earnings-row__amount">{{ money(row.figures.earned) }}</strong>
+          <strong class="earnings-row__amount">{{
+            money(row.figures.earned)
+          }}</strong>
         </span>
-        <span class="earnings-row__rate">{{ rateLabel(row.figures.effectiveRate, money) }}</span>
+        <span class="earnings-row__rate">{{
+          rateLabel(row.figures.effectiveRate, money)
+        }}</span>
       </button>
 
       <div v-if="row.goalId" class="earnings-row__actions">

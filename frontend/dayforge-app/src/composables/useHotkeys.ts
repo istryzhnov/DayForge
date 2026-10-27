@@ -46,9 +46,7 @@ export function shortcutTitle(label: string, keys: string): string {
 export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
     title: 'Add',
-    rows: [
-      { keys: ['N'], label: 'Quick add a task' },
-    ],
+    rows: [{ keys: ['N'], label: 'Quick add a task' }],
   },
   {
     title: 'Search',
@@ -93,11 +91,20 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
 ]
 
 export const QUICK_ADD_SYNTAX: ShortcutRow[] = [
-  { keys: ['#Work'], label: 'Put it in a project; pick from the list as you type' },
-  { keys: ['#New_name'], label: 'Start a new project (underscores become spaces)' },
+  {
+    keys: ['#Work'],
+    label: 'Put it in a project; pick from the list as you type',
+  },
+  {
+    keys: ['#New_name'],
+    label: 'Start a new project (underscores become spaces)',
+  },
   { keys: ['today'], label: 'Schedule for today (also “сьогодні”)' },
   { keys: ['tomorrow'], label: 'Schedule for tomorrow (also “завтра”)' },
-  { keys: ['25.10.2026'], label: 'Schedule for a date; 25.10 means the next 25 October' },
+  {
+    keys: ['25.10.2026'],
+    label: 'Schedule for a date; 25.10 means the next 25 October',
+  },
 ]
 
 const GO_TIMEOUT_MS = 1000

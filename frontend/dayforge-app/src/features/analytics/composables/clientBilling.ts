@@ -1,4 +1,8 @@
-import type { Client, PaymentRecord, PaymentStatus } from '../../../entities/BillingEntity'
+import type {
+  Client,
+  PaymentRecord,
+  PaymentStatus,
+} from '../../../entities/BillingEntity'
 import { PAYMENT_STATUS } from '../../../entities/BillingEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TimeEntry } from '../../../entities/TimerEntity'
@@ -208,7 +212,10 @@ export function clientSummaries(input: ClientSummaryInput): ClientSummaryRow[] {
 
   const periodMs = totalsMsByKey(input.periodEntries)
   const allMs = totalsMsByKey(input.allEntries)
-  const periodEarned = breakdownEarnings(input.periodEntries, input.lookup).byProject
+  const periodEarned = breakdownEarnings(
+    input.periodEntries,
+    input.lookup,
+  ).byProject
   const allEarned = breakdownEarnings(input.allEntries, input.lookup).byProject
 
   const projectKeys = new Set(periodMs.keys())

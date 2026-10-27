@@ -26,10 +26,14 @@ const PERIODS: ReadonlyArray<{ id: BudgetPeriod; label: string }> = [
   { id: BUDGET_PERIOD.MONTH, label: 'Each month' },
 ]
 
-const draft = ref<BudgetDraft>(draftFromBudget(sanitizeBudget(props.goal.budget)))
+const draft = ref<BudgetDraft>(
+  draftFromBudget(sanitizeBudget(props.goal.budget)),
+)
 const error = ref('')
 
-const hasBudget = computed(() => sanitizeBudget(props.goal.budget) !== undefined)
+const hasBudget = computed(
+  () => sanitizeBudget(props.goal.budget) !== undefined,
+)
 
 // Switching projects in the same panel must not carry the old figures over.
 watch(
@@ -93,7 +97,11 @@ function clear() {
       </label>
     </div>
 
-    <div class="settings-chips budget-period" role="group" aria-label="Budget period">
+    <div
+      class="settings-chips budget-period"
+      role="group"
+      aria-label="Budget period"
+    >
       <button
         v-for="period in PERIODS"
         :key="period.id"
@@ -110,7 +118,11 @@ function clear() {
     <p v-if="error" class="project-billing__error" role="alert">{{ error }}</p>
 
     <div class="budget-editor__actions">
-      <button class="btn btn-primary settings-action" type="button" @click="save">
+      <button
+        class="btn btn-primary settings-action"
+        type="button"
+        @click="save"
+      >
         Save budget
       </button>
       <button

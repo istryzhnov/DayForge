@@ -212,9 +212,14 @@ onMounted(() => inputRef.value?.focus())
             v-if="suggestions.length === 0 && projectToken?.query"
             class="quick-add-suggest__new"
           >
-            No project yet: Enter creates “{{ projectToken.query.replace(/_/g, ' ') }}”
+            No project yet: Enter creates “{{
+              projectToken.query.replace(/_/g, ' ')
+            }}”
           </li>
-          <li v-else-if="suggestions.length === 0" class="quick-add-suggest__new">
+          <li
+            v-else-if="suggestions.length === 0"
+            class="quick-add-suggest__new"
+          >
             Type a project name
           </li>
         </ul>
@@ -237,7 +242,9 @@ onMounted(() => inputRef.value?.focus())
         </div>
 
         <p v-if="!text" class="quick-add-card__hint quick-add-card__syntax">
-          <span class="quick-add-card__syntax-short">Try: Buy milk tomorrow</span>
+          <span class="quick-add-card__syntax-short"
+            >Try: Buy milk tomorrow</span
+          >
           <span class="quick-add-card__syntax-full">
             Try: Buy milk tomorrow or 25.10 · <kbd>Enter</kbd> to add
           </span>
@@ -246,9 +253,8 @@ onMounted(() => inputRef.value?.focus())
           </span>
         </p>
         <p v-else class="quick-add-card__hint">
-          <kbd>Enter</kbd> add
-          <kbd>Shift</kbd>+<kbd>Enter</kbd> add and keep open
-          <kbd>Esc</kbd> close
+          <kbd>Enter</kbd> add <kbd>Shift</kbd>+<kbd>Enter</kbd> add and keep
+          open <kbd>Esc</kbd> close
         </p>
 
         <div class="modal-actions">

@@ -90,7 +90,12 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
 
           <label v-if="isCustomInterval" class="task-schedule__field">
             <span class="task-schedule__label">Every (days)</span>
-            <input v-model.number="intervalDays" type="number" min="1" max="30" />
+            <input
+              v-model.number="intervalDays"
+              type="number"
+              min="1"
+              max="30"
+            />
           </label>
         </div>
 
@@ -106,7 +111,6 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             {{ day.label }}
           </button>
         </div>
-
       </DisclosureSection>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>

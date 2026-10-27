@@ -20,9 +20,7 @@ export function useTimerHistory() {
   const { days, removeEntry } = useTimeEntries()
   const { settings } = useSettings()
 
-  const uses12Hour = computed(
-    () => settings.format.clock === CLOCK_FORMAT.H12,
-  )
+  const uses12Hour = computed(() => settings.format.clock === CLOCK_FORMAT.H12)
 
   function timeRange(entry: TimeEntry): string {
     const from = formatTimeLabel(

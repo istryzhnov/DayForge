@@ -162,8 +162,9 @@ const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
  * Skipped when the user asked to save data.
  */
 function warmLazyViews() {
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } })
-    .connection
+  const connection = (
+    navigator as Navigator & { connection?: { saveData?: boolean } }
+  ).connection
   if (connection?.saveData) return
   const warm = () => {
     void import('../features/calendar/components/CalendarView.vue')

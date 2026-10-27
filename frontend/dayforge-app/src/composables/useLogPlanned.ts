@@ -31,9 +31,8 @@ export function useLogPlanned() {
     }
 
     const created = addManual(plan.payload)
-    offerUndo(
-      `Logged ${block.startTime}–${block.endTime} as planned`,
-      () => removeEntry(created.id),
+    offerUndo(`Logged ${block.startTime}–${block.endTime} as planned`, () =>
+      removeEntry(created.id),
     )
     return true
   }

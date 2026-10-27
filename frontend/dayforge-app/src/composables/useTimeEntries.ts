@@ -105,7 +105,9 @@ export function useTimeEntries() {
   function addDrafts(drafts: TimeEntryDraft[]) {
     const known = new Set(entries.value.map((entry) => entry.id))
     const fresh = drafts
-      .map((draft) => entryFromDraft(draft, `entry-${draft.sessionId}-${draft.startedAt}`))
+      .map((draft) =>
+        entryFromDraft(draft, `entry-${draft.sessionId}-${draft.startedAt}`),
+      )
       .filter((entry) => !known.has(entry.id))
     if (fresh.length === 0) return
     entries.value = [...entries.value, ...fresh]

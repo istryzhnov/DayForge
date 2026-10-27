@@ -24,16 +24,14 @@ const {
 
     <section v-for="group in days" :key="group.date" class="timer-history__day">
       <header class="timer-history__day-head">
-        <span class="timer-history__day-title ui-oneline">{{ dayLabel(group) }}</span>
+        <span class="timer-history__day-title ui-oneline">{{
+          dayLabel(group)
+        }}</span>
         <span class="timer-history__day-total">{{ dayTotalLabel(group) }}</span>
       </header>
 
       <div class="ui-card timer-history__list">
-        <div
-          v-for="entry in group.entries"
-          :key="entry.id"
-          class="timer-entry"
-        >
+        <div v-for="entry in group.entries" :key="entry.id" class="timer-entry">
           <div class="timer-entry__main">
             <span class="timer-entry__title ui-oneline">
               {{ entry.taskTitle ?? 'No task' }}

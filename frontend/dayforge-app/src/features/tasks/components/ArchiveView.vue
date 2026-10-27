@@ -99,7 +99,9 @@ function whenLabel(task: ArchivedTask): string {
                   <span
                     class="task-project-name__dot"
                     :style="
-                      task.goalColor ? { background: task.goalColor } : undefined
+                      task.goalColor
+                        ? { background: task.goalColor }
+                        : undefined
                     "
                     aria-hidden="true"
                   />

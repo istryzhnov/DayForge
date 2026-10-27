@@ -7,10 +7,7 @@ import { readJson, writeJson } from '../../../lib/storage'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useFormat } from '../../../composables/useFormat'
 import { panelDateLabel } from '../../../composables/panelDateLabel'
-import type {
-  UpcomingDay,
-  UpcomingItem,
-} from '../composables/useUpcomingTasks'
+import type { UpcomingDay, UpcomingItem } from '../composables/useUpcomingTasks'
 
 const props = defineProps<{
   /** Already narrowed to the project in view (or every project). */
@@ -78,7 +75,9 @@ function timeRange(item: UpcomingItem) {
               <span class="upcoming-row__day">{{ dayLabel(item.date) }}</span>
               <span class="upcoming-row__time">{{ timeRange(item) }}</span>
               <span class="upcoming-row__dot" aria-hidden="true"></span>
-              <span class="upcoming-row__title ui-oneline">{{ item.title }}</span>
+              <span class="upcoming-row__title ui-oneline">{{
+                item.title
+              }}</span>
               <span
                 v-if="item.repeatLabel"
                 class="upcoming-row__repeat"

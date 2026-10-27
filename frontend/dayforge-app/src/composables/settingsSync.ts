@@ -38,7 +38,8 @@ function isStamp(value: unknown): value is SettingsStamp {
   const candidate = value as Partial<SettingsStamp>
   return (
     typeof candidate.signature === 'string' &&
-    (candidate.updatedAt === undefined || typeof candidate.updatedAt === 'string')
+    (candidate.updatedAt === undefined ||
+      typeof candidate.updatedAt === 'string')
   )
 }
 
@@ -51,16 +52,22 @@ function readHeld(): Record<string, unknown> {
  * Whether `current` equals what `previous` recorded once the keys `previous`
  * never had are ignored, and every such key still holds its default value.
  */
-function matchesWithDefaults(previous: unknown, current: unknown, defaults: unknown): boolean {
+function matchesWithDefaults(
+  previous: unknown,
+  current: unknown,
+  defaults: unknown,
+): boolean {
   if (!isPlainObject(previous) || !isPlainObject(current)) {
     return stableStringify(previous) === stableStringify(current)
   }
   const fallback = isPlainObject(defaults) ? defaults : {}
-  return Object.keys(current).every((key) =>
-    key in previous
-      ? matchesWithDefaults(previous[key], current[key], fallback[key])
-      : stableStringify(current[key]) === stableStringify(fallback[key]),
-  ) && Object.keys(previous).every((key) => key in current)
+  return (
+    Object.keys(current).every((key) =>
+      key in previous
+        ? matchesWithDefaults(previous[key], current[key], fallback[key])
+        : stableStringify(current[key]) === stableStringify(fallback[key]),
+    ) && Object.keys(previous).every((key) => key in current)
+  )
 }
 
 export function onlyGrewWithDefaults(
@@ -139,7 +146,8 @@ export function createSettingsCollection(): SyncCollection {
 
     stamp = {
       signature: stableStringify(pick(settings)),
-      updatedAt: typeof row.updatedAt === 'string' ? row.updatedAt : stamp.updatedAt,
+      updatedAt:
+        typeof row.updatedAt === 'string' ? row.updatedAt : stamp.updatedAt,
     }
     writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
   }

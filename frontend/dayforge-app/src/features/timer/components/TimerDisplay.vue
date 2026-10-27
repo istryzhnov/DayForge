@@ -22,7 +22,10 @@ const percent = computed(() => `${clamped.value * 100}%`)
 </script>
 
 <template>
-  <div class="timer-display" :class="[`timer-display--${variant}`, `is-${status}`]">
+  <div
+    class="timer-display"
+    :class="[`timer-display--${variant}`, `is-${status}`]"
+  >
     <svg
       v-if="variant === 'large'"
       class="timer-display__ring"

@@ -15,7 +15,9 @@ export const ACCOUNT_DELETED_NOTICE_KEY = 'dayforge-account-deleted-notice-v1'
 
 type KeyedStorage = Pick<Storage, 'length' | 'key' | 'removeItem'>
 
-export function appStorageKeys(storage: Pick<Storage, 'length' | 'key'>): string[] {
+export function appStorageKeys(
+  storage: Pick<Storage, 'length' | 'key'>,
+): string[] {
   const keys: string[] = []
   for (let index = 0; index < storage.length; index += 1) {
     const key = storage.key(index)

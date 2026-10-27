@@ -48,7 +48,9 @@ interface StoredDeletion {
  * or an overloaded server will; a row the database refuses on principle never
  * will, and has to leave the queue so the rest can move.
  */
-function isRetryable(error: { code?: string; message?: string } | null): boolean {
+function isRetryable(
+  error: { code?: string; message?: string } | null,
+): boolean {
   if (!error) return true
   if (MISSING_TABLE_CODES.has(error.code ?? '')) return true
 
@@ -101,7 +103,9 @@ export function createSupabaseTransport(
       data: mutation.payload ?? {},
     }))
 
-    const { error } = await client.from(table).upsert(rows, { onConflict: 'user_id,id' })
+    const { error } = await client
+      .from(table)
+      .upsert(rows, { onConflict: 'user_id,id' })
     return { error }
   }
 
@@ -211,7 +215,10 @@ export function createSupabaseTransport(
     const results: PushResult[] = []
 
     for (const [key, group] of groups) {
-      const [table, op] = key.split('\u0000') as [TableName, 'upsert' | 'delete']
+      const [table, op] = key.split('\u0000') as [
+        TableName,
+        'upsert' | 'delete',
+      ]
       const { error } = await sendGroup(table, op, group, userId)
 
       if (!error) {
@@ -221,9 +228,7 @@ export function createSupabaseTransport(
         continue
       }
 
-      results.push(
-        ...(await attributeFailure(table, op, group, userId, error)),
-      )
+      results.push(...(await attributeFailure(table, op, group, userId, error)))
     }
 
     return results

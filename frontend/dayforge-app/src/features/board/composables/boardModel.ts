@@ -11,7 +11,10 @@ import {
   TASK_STATUS,
   type BoardStage,
 } from '../../../entities/constants'
-import { isRepeating, occursOn } from '../../../composables/goalSpace/recurrence'
+import {
+  isRepeating,
+  occursOn,
+} from '../../../composables/goalSpace/recurrence'
 import { addDaysToISODate } from '../../../composables/goalSpace/date'
 
 /**
@@ -121,8 +124,7 @@ function latestRow(rows: DailyTask[]): DailyTask | undefined {
     if (
       !best ||
       row.date > best.date ||
-      (row.date === best.date &&
-        (row.updatedAt ?? '') > (best.updatedAt ?? ''))
+      (row.date === best.date && (row.updatedAt ?? '') > (best.updatedAt ?? ''))
     ) {
       best = row
     }
@@ -229,12 +231,19 @@ export function buildBoardCards(
   templates.forEach((template) => {
     if (!template.isActive) return
     // A subtask is counted on its project's card, never shown on its own.
-    if (template.parentTemplateId && templateIds.has(template.parentTemplateId)) {
+    if (
+      template.parentTemplateId &&
+      templateIds.has(template.parentTemplateId)
+    ) {
       return
     }
 
     const repeating = isRepeating(template)
-    const state = stateOf(template, rowsByTemplate.get(template.id) ?? [], today)
+    const state = stateOf(
+      template,
+      rowsByTemplate.get(template.id) ?? [],
+      today,
+    )
     if (!repeating && !state.row) return
     if (state.done && isClearedFromBoard(template, state.completedAt)) return
 

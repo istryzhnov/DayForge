@@ -167,8 +167,7 @@ watch(activeIndex, () => {
                 :key="result.key"
                 class="search-result"
                 :class="{
-                  'is-active':
-                    flatIndexByKey.get(result.key) === activeIndex,
+                  'is-active': flatIndexByKey.get(result.key) === activeIndex,
                   'is-done': result.kind === 'done',
                 }"
                 role="option"
@@ -182,7 +181,9 @@ watch(activeIndex, () => {
                 <span
                   class="search-result__dot"
                   :class="{ 'is-plain': !result.color }"
-                  :style="result.color ? { background: result.color } : undefined"
+                  :style="
+                    result.color ? { background: result.color } : undefined
+                  "
                   aria-hidden="true"
                 ></span>
                 <span class="search-result__copy">
@@ -209,10 +210,7 @@ watch(activeIndex, () => {
               </div>
             </div>
 
-            <p
-              v-if="results.length === 0"
-              class="search-palette__empty"
-            >
+            <p v-if="results.length === 0" class="search-palette__empty">
               No matches
             </p>
           </template>

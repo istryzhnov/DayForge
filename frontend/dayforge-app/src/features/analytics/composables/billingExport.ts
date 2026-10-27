@@ -106,7 +106,9 @@ export function csvField(value: string | number, isText = false): string {
   return needsQuotes ? `"${text.replace(/"/g, '""')}"` : text
 }
 
-function csvRow(cells: Array<{ value: string | number; text?: boolean }>): string {
+function csvRow(
+  cells: Array<{ value: string | number; text?: boolean }>,
+): string {
   return cells
     .map((cell) => csvField(cell.value, cell.text === true))
     .join(CSV_DELIMITER)

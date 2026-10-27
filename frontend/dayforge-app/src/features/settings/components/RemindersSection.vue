@@ -76,7 +76,8 @@ function togglePush() {
 
     <p class="sidebar-caption">Planned blocks</p>
     <p class="settings-group-hint">
-      In the app, these show while DayForge is open. Turn on "Notify me when the app is closed" to get them as push notifications too.
+      In the app, these show while DayForge is open. Turn on "Notify me when the
+      app is closed" to get them as push notifications too.
     </p>
 
     <label class="settings-toggle">
@@ -91,9 +92,7 @@ function togglePush() {
       />
       <span>
         <strong>Ask to start the timer on a late block</strong>
-        <em>
-          When a scheduled block began 5 min ago with no timer running.
-        </em>
+        <em> When a scheduled block began 5 min ago with no timer running. </em>
       </span>
     </label>
 
@@ -101,7 +100,9 @@ function togglePush() {
       <input
         type="checkbox"
         :checked="settings.notifications.endOfDayNudge"
-        @change="update('notifications', { endOfDayNudge: checkedValue($event) })"
+        @change="
+          update('notifications', { endOfDayNudge: checkedValue($event) })
+        "
       />
       <span>
         <strong>Evening nudge to log planned blocks</strong>
@@ -127,7 +128,10 @@ function togglePush() {
       <p class="sidebar-caption">When the app is closed</p>
 
       <p
-        v-if="push.status.value === 'unavailable' || push.status.value === 'ios-install'"
+        v-if="
+          push.status.value === 'unavailable' ||
+          push.status.value === 'ios-install'
+        "
         class="settings-group-hint"
       >
         {{ push.reason.value }}
@@ -144,9 +148,9 @@ function togglePush() {
           <span>
             <strong>Notify me when the app is closed</strong>
             <em>
-              Timer and planned-block reminders arrive as browser
-              notifications. They are checked every few minutes, so they can
-              come a little late. Works on this device only.
+              Timer and planned-block reminders arrive as browser notifications.
+              They are checked every few minutes, so they can come a little
+              late. Works on this device only.
             </em>
           </span>
         </label>
@@ -193,7 +197,9 @@ function togglePush() {
         <input
           type="checkbox"
           :checked="settings.notifications.repeatAlert"
-          @change="update('notifications', { repeatAlert: checkedValue($event) })"
+          @change="
+            update('notifications', { repeatAlert: checkedValue($event) })
+          "
         />
         <span>
           <strong>Keep chiming until acknowledged</strong>
@@ -207,7 +213,9 @@ function togglePush() {
         <input
           type="checkbox"
           :checked="settings.notifications.quietHours"
-          @change="update('notifications', { quietHours: checkedValue($event) })"
+          @change="
+            update('notifications', { quietHours: checkedValue($event) })
+          "
         />
         <span>
           <strong>Stay silent overnight</strong>

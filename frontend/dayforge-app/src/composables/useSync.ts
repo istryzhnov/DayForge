@@ -1,6 +1,10 @@
 import { ref, watch } from 'vue'
 import { getSupabase } from '../lib/supabaseClient'
-import { createSyncEngine, type SyncCollection, type SyncMeta } from '../sync/engine'
+import {
+  createSyncEngine,
+  type SyncCollection,
+  type SyncMeta,
+} from '../sync/engine'
 import { createSupabaseTransport } from '../sync/supabaseTransport'
 import {
   createSnapshotStore,
@@ -9,7 +13,11 @@ import {
 } from '../sync/snapshots'
 import { readJson, writeJson } from '../lib/storage'
 import type { OutboxState } from '../sync/outbox'
-import { SYNC_TABLES, type AppliedRecord, type SyncTransport } from '../sync/types'
+import {
+  SYNC_TABLES,
+  type AppliedRecord,
+  type SyncTransport,
+} from '../sync/types'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useAuth } from './useAuth'
 import { useTombstones } from './useTombstones'
@@ -189,10 +197,7 @@ function watchSession() {
  * nothing for anyone to remember to press.
  */
 export function useSync() {
-  function register(
-    collections: SyncCollection[],
-    backup: () => unknown,
-  ) {
+  function register(collections: SyncCollection[], backup: () => unknown) {
     buildBackup = backup
     engine.register([
       ...collections,

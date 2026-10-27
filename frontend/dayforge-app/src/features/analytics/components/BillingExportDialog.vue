@@ -190,7 +190,11 @@ function handleExport() {
         <span>Project</span>
         <select v-model="projectKey">
           <option value="all">All projects</option>
-          <option v-for="[key, title] in projectOptions" :key="key" :value="key">
+          <option
+            v-for="[key, title] in projectOptions"
+            :key="key"
+            :value="key"
+          >
             {{ title }}
           </option>
         </select>
@@ -221,7 +225,11 @@ function handleExport() {
         <button class="btn btn-ghost" type="button" @click="emit('close')">
           Close
         </button>
-        <button class="btn btn-ghost" type="button" @click="emit('copy-report')">
+        <button
+          class="btn btn-ghost"
+          type="button"
+          @click="emit('copy-report')"
+        >
           {{ copied ? 'Copied' : 'Copy report' }}
         </button>
         <button

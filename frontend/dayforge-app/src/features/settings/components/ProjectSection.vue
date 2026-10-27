@@ -86,7 +86,11 @@ const {
       Billed to
       <select :value="goal.clientId ?? ''" @change="handleClientChange">
         <option value="">No client</option>
-        <option v-for="client in clientOptions" :key="client.id" :value="client.id">
+        <option
+          v-for="client in clientOptions"
+          :key="client.id"
+          :value="client.id"
+        >
           {{ client.name }}{{ client.archived ? ' (archived)' : '' }}
         </option>
       </select>

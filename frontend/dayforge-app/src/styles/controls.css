@@ -109,14 +109,7 @@ input[type='checkbox']::before {
   transition: transform 0.12s ease-out;
   background: var(--ring-check);
   /* A tick drawn by clipping the square, so it scales with the box. */
-  clip-path: polygon(
-    14% 46%,
-    0 60%,
-    39% 100%,
-    100% 22%,
-    85% 8%,
-    39% 70%
-  );
+  clip-path: polygon(14% 46%, 0 60%, 39% 100%, 100% 22%, 85% 8%, 39% 70%);
 }
 
 input[type='checkbox']:hover {

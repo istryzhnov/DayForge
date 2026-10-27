@@ -1,4 +1,3 @@
-
 export type TimeSpan = {
   id: string
   startMin: number

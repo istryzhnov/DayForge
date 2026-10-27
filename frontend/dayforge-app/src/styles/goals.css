@@ -581,7 +581,8 @@
     bottom: 0;
     left: 0;
     width: auto;
-    border-radius: calc(18px * var(--radius-scale)) calc(18px * var(--radius-scale)) 0 0;
+    border-radius: calc(18px * var(--radius-scale))
+      calc(18px * var(--radius-scale)) 0 0;
     padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
   }
 

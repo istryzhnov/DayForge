@@ -128,7 +128,9 @@ function initialize() {
   if (initialized) return
   initialized = true
 
-  timer.value = sanitizeActiveTimer(readJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null))
+  timer.value = sanitizeActiveTimer(
+    readJson<unknown>(ACTIVE_TIMER_STORAGE_KEY, null),
+  )
   unlockAudioOnFirstInteraction()
 
   watch(

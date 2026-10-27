@@ -79,9 +79,7 @@ const timeLabel = computed(() => {
   const start = props.node.task.startTime ?? props.node.template?.startTime
   if (!start) return ''
   const end = props.node.task.endTime ?? props.node.template?.endTime
-  return end
-    ? `${formatTime(start)} – ${formatTime(end)}`
-    : formatTime(start)
+  return end ? `${formatTime(start)} – ${formatTime(end)}` : formatTime(start)
 })
 
 /** Repeat and time on one muted line under the title. */
@@ -89,9 +87,8 @@ const whenLine = computed(() =>
   [repeatLabel.value, timeLabel.value].filter(Boolean).join(' · '),
 )
 
-const notesButton = useTemplateRef<InstanceType<typeof TaskNotesButton>>(
-  'notesButton',
-)
+const notesButton =
+  useTemplateRef<InstanceType<typeof TaskNotesButton>>('notesButton')
 
 /** Set from the menu: the notes button shows while its popover is open. */
 const notesRequested = ref(false)

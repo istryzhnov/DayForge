@@ -1,5 +1,8 @@
 import type { Client, PaymentRecord } from '../../entities/BillingEntity'
-import { PAYMENT_STATUS, type PaymentStatus } from '../../entities/BillingEntity'
+import {
+  PAYMENT_STATUS,
+  type PaymentStatus,
+} from '../../entities/BillingEntity'
 import type { ID } from '../../entities/types'
 
 export const CLIENT_LIMITS = {
@@ -76,8 +79,10 @@ export function sanitizePayments(input: unknown): PaymentRecord[] {
   input.forEach((item) => {
     if (!isRecord(item)) return
     if (typeof item.clientId !== 'string' || item.clientId === '') return
-    if (typeof item.month !== 'string' || !MONTH_PATTERN.test(item.month)) return
-    if (!isStatus(item.status) || item.status === PAYMENT_STATUS.UNBILLED) return
+    if (typeof item.month !== 'string' || !MONTH_PATTERN.test(item.month))
+      return
+    if (!isStatus(item.status) || item.status === PAYMENT_STATUS.UNBILLED)
+      return
 
     const key = `${item.clientId}:${item.month}`
     if (seen.has(key)) return

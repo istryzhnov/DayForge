@@ -119,8 +119,9 @@ export const indexedDbSnapshotBackend: SnapshotBackend = {
     await runTransaction('readwrite', (store) => store.put(record))
   },
   async list() {
-    const all = await runTransaction<SnapshotRecord[]>('readonly', (store) =>
-      store.getAll() as IDBRequest<SnapshotRecord[]>,
+    const all = await runTransaction<SnapshotRecord[]>(
+      'readonly',
+      (store) => store.getAll() as IDBRequest<SnapshotRecord[]>,
     )
     return [...all].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
   },

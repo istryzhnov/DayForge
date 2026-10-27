@@ -7,7 +7,10 @@
       focusable="false"
     >
       <path d="M8 8H32A24 24 0 0 1 50.73 17H8Z" />
-      <path class="brand-wordmark__now" d="M8 21H53.33A24 24 0 0 1 55.92 30H8Z" />
+      <path
+        class="brand-wordmark__now"
+        d="M8 21H53.33A24 24 0 0 1 55.92 30H8Z"
+      />
       <path d="M8 34H55.92A24 24 0 0 1 53.33 43H8Z" />
       <path d="M8 47H50.73A24 24 0 0 1 32 56H8Z" />
     </svg>

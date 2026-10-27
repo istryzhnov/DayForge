@@ -44,7 +44,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
-  (e: 'change-goal-billing', goalId: ID, billing: ProjectBilling | undefined): void
+  (
+    e: 'change-goal-billing',
+    goalId: ID,
+    billing: ProjectBilling | undefined,
+  ): void
 }>()
 
 const isRatesOpen = ref(false)
@@ -112,7 +116,9 @@ const progressRows = computed(() =>
 const TOP_TASK_COUNT = 5
 const showAllTasks = ref(false)
 const topTasks = computed(() =>
-  showAllTasks.value ? visibleTasks.value : visibleTasks.value.slice(0, TOP_TASK_COUNT),
+  showAllTasks.value
+    ? visibleTasks.value
+    : visibleTasks.value.slice(0, TOP_TASK_COUNT),
 )
 
 const tab = useAnalyticsTab()
@@ -155,11 +161,7 @@ const averageLabel = computed(() =>
   averagePerHour.value === null ? '—' : formatMoney(averagePerHour.value),
 )
 
-function handleSetStatus(
-  clientId: ID,
-  status: PaymentStatus,
-  amount: number,
-) {
+function handleSetStatus(clientId: ID, status: PaymentStatus, amount: number) {
   setStatus(clientId, billingMonth.value, status, amount)
 }
 
@@ -298,7 +300,10 @@ function saveBilling(billing: ProjectBilling | undefined) {
 
       <!-- Phone: one column in this order. Wide screens: chart and top tasks left, projects right. -->
       <div v-else class="analytics__split analytics__split--time">
-        <div v-if="visibleTasks.length" class="analytics__charts analytics__area--chart">
+        <div
+          v-if="visibleTasks.length"
+          class="analytics__charts analytics__area--chart"
+        >
           <DayBarChart
             :points="daySeries.points"
             :caption="seriesCaption"
@@ -319,7 +324,9 @@ function saveBilling(billing: ProjectBilling | undefined) {
             <div v-for="task in topTasks" :key="task.key" class="time-total">
               <div class="time-total__row">
                 <span class="time-total__title">{{ task.title }}</span>
-                <span class="time-total__value">{{ hoursLabel(task.totalMs) }}</span>
+                <span class="time-total__value">{{
+                  hoursLabel(task.totalMs)
+                }}</span>
               </div>
               <div class="time-total__bar">
                 <span :style="{ width: barWidth(task.totalMs) }"></span>
@@ -389,8 +396,13 @@ function saveBilling(billing: ProjectBilling | undefined) {
               data-testid="outstanding-card"
             >
               <div class="ui-stat">
-                <span class="ui-stat__label">Unpaid · {{ outstanding.count }}</span>
-                <strong class="ui-stat__value" :title="formatMoney(outstanding.total)">
+                <span class="ui-stat__label"
+                  >Unpaid · {{ outstanding.count }}</span
+                >
+                <strong
+                  class="ui-stat__value"
+                  :title="formatMoney(outstanding.total)"
+                >
                   {{ formatMoney(outstanding.total) }}
                 </strong>
               </div>

@@ -22,7 +22,9 @@ function barClass(bar: Bar): string {
 }
 
 function barTop(bar: Bar): number {
-  return bar.point.date > props.todayKey ? chart.value.baseline - FUTURE_STUB_PX : bar.y
+  return bar.point.date > props.todayKey
+    ? chart.value.baseline - FUTURE_STUB_PX
+    : bar.y
 }
 
 function barHeight(bar: Bar): number {

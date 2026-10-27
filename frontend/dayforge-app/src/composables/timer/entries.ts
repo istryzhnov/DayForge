@@ -41,10 +41,7 @@ export function entryFromDraft(
 }
 
 export function entryDurationMs(entry: TimeEntry): number {
-  return Math.max(
-    0,
-    Date.parse(entry.endedAt) - Date.parse(entry.startedAt),
-  )
+  return Math.max(0, Date.parse(entry.endedAt) - Date.parse(entry.startedAt))
 }
 
 export function sumDurations(entries: TimeEntry[]): number {

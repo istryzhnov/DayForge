@@ -7,7 +7,8 @@ import type { MutationOp, SyncedRow } from './types'
  * same row can serialise two ways.
  */
 export function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'null'
+  if (value === null || typeof value !== 'object')
+    return JSON.stringify(value) ?? 'null'
 
   if (Array.isArray(value)) {
     return `[${value.map(stableStringify).join(',')}]`

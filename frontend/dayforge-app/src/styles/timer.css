@@ -595,7 +595,9 @@
 .money-stat--action {
   cursor: pointer;
   border-style: dashed;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 }
 
 .money-stat--action:hover,
@@ -1116,4 +1118,3 @@
   font-size: calc(12px * var(--text-scale));
   color: var(--muted);
 }
-

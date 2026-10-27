@@ -36,10 +36,7 @@ import {
   startOfWeek,
 } from '../../../composables/analytics/charts'
 import { habitStats } from '../../../composables/analytics/habits'
-import {
-  totalsByDay,
-  type TaskTotal,
-} from '../../../composables/timer/entries'
+import { totalsByDay, type TaskTotal } from '../../../composables/timer/entries'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
@@ -123,9 +120,9 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   )
 
   const filteredTemplates = computed(() =>
-    sources.getTemplates().filter((template) =>
-      matchesClientFilter(template.goalId),
-    ),
+    sources
+      .getTemplates()
+      .filter((template) => matchesClientFilter(template.goalId)),
   )
 
   const clientLabel = computed(() => {
@@ -237,7 +234,10 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     const goalById = new Map(goals.map((goal) => [goal.id, goal]))
 
     const periodByKey = new Map(
-      summary.value.byProject.map((project) => [projectKeyOf(project), project]),
+      summary.value.byProject.map((project) => [
+        projectKeyOf(project),
+        project,
+      ]),
     )
     const allByKey = new Map(
       allTimeSummary.value.byProject.map((project) => [
@@ -285,8 +285,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     })
 
     return rows.sort(
-      (a, b) =>
-        b.figures.ms - a.figures.ms || a.title.localeCompare(b.title),
+      (a, b) => b.figures.ms - a.figures.ms || a.title.localeCompare(b.title),
     )
   })
 
@@ -423,7 +422,13 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     })
 
     const total = showsMoney.value
-      ? ['Total', '', hours(summary.value.totalMs), '', earnings.value.total.toFixed(2)]
+      ? [
+          'Total',
+          '',
+          hours(summary.value.totalMs),
+          '',
+          earnings.value.total.toFixed(2),
+        ]
       : ['Total', '', hours(summary.value.totalMs)]
 
     return [header.join('\t'), ...rows, total.join('\t')]

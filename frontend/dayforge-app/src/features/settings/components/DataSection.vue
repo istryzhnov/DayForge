@@ -120,11 +120,7 @@ function clearEverything() {
       </p>
 
       <div class="snapshot-list">
-        <div
-          v-for="record in snapshots"
-          :key="record.id"
-          class="snapshot-row"
-        >
+        <div v-for="record in snapshots" :key="record.id" class="snapshot-row">
           <span class="snapshot-row__text">
             <strong>{{ formatWhen(record.createdAt) }}</strong>
             <em>{{ record.reason }}</em>
@@ -188,9 +184,9 @@ function clearEverything() {
         Connect to the internet to delete your account.
       </p>
       <p v-else class="settings-group-hint">
-        Permanently deletes your account and every project, task, habit and
-        time entry stored on the server, then erases this device's copy too.
-        This cannot be undone.
+        Permanently deletes your account and every project, task, habit and time
+        entry stored on the server, then erases this device's copy too. This
+        cannot be undone.
       </p>
 
       <DeleteAccountDialog

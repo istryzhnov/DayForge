@@ -439,7 +439,12 @@ function sanitize(input: unknown): AppSettings {
         defaults.timer.defaultCountdownMinutes,
       ),
       sound: asBoolean(timer.sound, defaults.timer.sound),
-      hourlyRate: clampNumber(timer.hourlyRate, 0, 100000, defaults.timer.hourlyRate),
+      hourlyRate: clampNumber(
+        timer.hourlyRate,
+        0,
+        100000,
+        defaults.timer.hourlyRate,
+      ),
       currency: oneOf(
         timer.currency,
         CURRENCY_OPTIONS.map((option) => option.id),
@@ -458,7 +463,9 @@ function sanitize(input: unknown): AppSettings {
     },
     goals: {
       ...asSection<GoalSettings>(raw.goals),
-      monthlyIncome: sanitizeMonthlyIncome(asSection<GoalSettings>(raw.goals).monthlyIncome),
+      monthlyIncome: sanitizeMonthlyIncome(
+        asSection<GoalSettings>(raw.goals).monthlyIncome,
+      ),
     },
   }
 }

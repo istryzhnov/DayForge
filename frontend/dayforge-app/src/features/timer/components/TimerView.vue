@@ -205,7 +205,11 @@ function closeEditor() {
 
     <header class="timer-view__history-head">
       <p class="ui-section-label">History</p>
-      <button class="ui-chip timer-view__add" type="button" @click="openEditor(null)">
+      <button
+        class="ui-chip timer-view__add"
+        type="button"
+        @click="openEditor(null)"
+      >
         <AppIcon name="plus" :size="14" />
         Add entry
       </button>
