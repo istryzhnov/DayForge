@@ -1471,8 +1471,8 @@ function verifyTimerHistoryLabels() {
   check('formatEntryDuration: 2 h 5 m', formatEntryDuration(125 * MINUTE) === '2 h 5 m')
 
   // Local-time dates, as the history groups them.
-  check('formatDayHeading: weekday, day and month in English', formatDayHeading(new Date(2026, 9, 25)) === 'Sunday, 25 October')
-  check('formatDayHeading: a single-digit day has no leading zero', formatDayHeading(new Date(2026, 8, 3)) === 'Thursday, 3 September')
+  check('formatDayHeading: weekday, day and month in English', formatDayHeading(new Date(2026, 9, 25), 'en-GB') === 'Sunday, 25 October')
+  check('formatDayHeading: a single-digit day has no leading zero', formatDayHeading(new Date(2026, 8, 3), 'en-GB') === 'Thursday, 3 September')
 }
 
 function timeEntry(
@@ -2350,22 +2350,22 @@ function verifyCalendarTitles() {
 
   check(
     'the day title is a plain sentence with English names',
-    formatCalendarDayTitle('2026-10-27') === 'Tuesday 27 October',
-    formatCalendarDayTitle('2026-10-27'),
+    formatCalendarDayTitle('2026-10-27', 'en-GB') === 'Tuesday 27 October',
+    formatCalendarDayTitle('2026-10-27', 'en-GB'),
   )
   check(
     'the month title names the month and year',
-    formatCalendarMonthTitle('2026-10-01') === 'October 2026',
-    formatCalendarMonthTitle('2026-10-01'),
+    formatCalendarMonthTitle('2026-10-01', 'en-GB') === 'October 2026',
+    formatCalendarMonthTitle('2026-10-01', 'en-GB'),
   )
   check(
     'a week across two months names both months',
-    formatCalendarWeekTitle('2026-10-26') === '26 Oct – 1 Nov 2026',
-    formatCalendarWeekTitle('2026-10-26'),
+    formatCalendarWeekTitle('2026-10-26', 'en-GB') === '26 Oct – 1 Nov 2026',
+    formatCalendarWeekTitle('2026-10-26', 'en-GB'),
   )
   check(
     'weekday headers use the short English name',
-    formatCalendarWeekday('2026-10-27') === 'Tue',
+    formatCalendarWeekday('2026-10-27', 'en-GB') === 'Tue',
   )
   check(
     'capitalizeFirst leaves empty text and other letters alone',
@@ -2387,8 +2387,9 @@ function verifyDayLists() {
   check('groupByDay: a date that comes back starts a new group, order kept', same(groups.map((group) => group.items.map((row) => row.id)), [['a', 'b'], ['c'], ['d']]))
   check('groupByDay: no rows, no groups', groupByDay([]).length === 0)
 
-  check('dayHeadingLabel: weekday and day-month in English', dayHeadingLabel('2026-10-27') === 'Tuesday, 27 October')
-  check('dayHeadingLabel: a single-digit day has no leading zero', dayHeadingLabel('2026-09-03') === 'Thursday, 3 September')
+  check('dayHeadingLabel: weekday and day-month in English', dayHeadingLabel('2026-10-27', 'en-GB') === 'Tuesday, 27 October')
+  check('dayHeadingLabel: a single-digit day has no leading zero', dayHeadingLabel('2026-09-03', 'en-GB') === 'Thursday, 3 September')
+  check('dayHeadingLabel: names follow the chosen language, capital first', dayHeadingLabel('2026-10-27', 'uk-UA') === 'Вівторок, 27 жовтня')
 
   // 25 Oct 2026 is a Sunday; with weeks starting Monday it sits in the week before.
   const dates = ['2026-10-01', '2026-10-25', '2026-10-26', '2026-10-31', '2026-11-01']

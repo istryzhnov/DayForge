@@ -1,3 +1,5 @@
+import { capitalizeFirst, dateNameLocale } from '../panelDateLabel'
+
 const SECOND_MS = 1000
 const MINUTE_MS = 60 * SECOND_MS
 const HOUR_MS = 60 * MINUTE_MS
@@ -49,16 +51,19 @@ export function formatEntryDuration(ms: number): string {
   return formatHoursMinutes(ms)
 }
 
-/** "Sunday, 25 October". Fixed English order, since the rest of the UI is English. */
-export function formatDayHeading(date: Date): string {
-  const parts = new Intl.DateTimeFormat('en-GB', {
+/** "Sunday, 25 October", with names in the language the user picked. */
+export function formatDayHeading(
+  date: Date,
+  locale: string = dateNameLocale(),
+): string {
+  const parts = new Intl.DateTimeFormat(locale, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
   }).formatToParts(date)
   const pick = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((part) => part.type === type)?.value ?? ''
-  return `${pick('weekday')}, ${pick('day')} ${pick('month')}`
+  return capitalizeFirst(`${pick('weekday')}, ${pick('day')} ${pick('month')}`)
 }
 
 export function formatTimeLabel(

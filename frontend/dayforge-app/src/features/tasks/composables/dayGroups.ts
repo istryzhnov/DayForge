@@ -1,5 +1,9 @@
 import type { ISODate } from '../../../entities/types'
-import { panelDateLabel } from '../../../composables/panelDateLabel'
+import {
+  capitalizeFirst,
+  dateNameLocale,
+  panelDateLabel,
+} from '../../../composables/panelDateLabel'
 import {
   addDaysToISODate,
   addMonthsToISODate,
@@ -22,11 +26,18 @@ export function groupByDay<T extends { date: ISODate }>(
   return groups
 }
 
-/** "Tuesday, 27 October", the same shape as the timer history headings. */
-export function dayHeadingLabel(date: ISODate): string {
-  const weekday = panelDateLabel(date, { weekday: 'long' })
-  const dayAndMonth = panelDateLabel(date, { day: 'numeric', month: 'long' })
-  return `${weekday}, ${dayAndMonth}`
+/** "Tuesday, 27 October" (or "Вівторок, 27 жовтня"), as in the timer history. */
+export function dayHeadingLabel(
+  date: ISODate,
+  locale: string = dateNameLocale(),
+): string {
+  const weekday = panelDateLabel(date, { weekday: 'long' }, locale)
+  const dayAndMonth = panelDateLabel(
+    date,
+    { day: 'numeric', month: 'long' },
+    locale,
+  )
+  return capitalizeFirst(`${weekday}, ${dayAndMonth}`)
 }
 
 /** Done counts for the stats row: this week (from `weekStartsOn`) and this month. */
