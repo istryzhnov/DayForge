@@ -415,9 +415,11 @@ function iconFor(goalId: ID | undefined) {
         :is-done="contextMenuTask.status === TASK_STATUS.DONE"
         :is-timer-active="isContextTaskTiming"
         :can-log-planned="canLogPlanned(contextMenuTask)"
+        :can-unschedule="contextMenuTask.startTime !== undefined"
         @toggle-check="toggleContextMenuTaskDone"
         @toggle-timer="toggleContextMenuTaskTimer"
         @log-planned="logPlannedFor(contextMenuTask)"
+        @unschedule="unscheduleAndClose(contextMenuTask.id)"
         @close="closeContextMenu"
       />
 
