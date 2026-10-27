@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { onMounted, useTemplateRef, type StyleValue } from 'vue'
 import type { ID } from '../../../entities/types'
 import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
@@ -59,7 +60,7 @@ onMounted(() => {
             aria-label="Close notes"
             @click="emit('close')"
           >
-            ×
+            <AppIcon name="close" :size="14" />
           </button>
         </header>
 

@@ -61,9 +61,6 @@
   border: 1px solid var(--line);
   background: var(--panel-soft);
   color: var(--muted);
-  font-size: calc(18px * var(--text-scale));
-  line-height: 1;
-  padding-bottom: 3px;
   cursor: pointer;
   display: grid;
   place-items: center;
@@ -143,7 +140,6 @@
   place-items: center;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 14%, transparent);
-  font-size: calc(14px * var(--text-scale));
 }
 
 .settings-menu__text {
@@ -169,8 +165,6 @@
 
 .settings-menu__chevron {
   color: var(--muted);
-  font-size: calc(18px * var(--text-scale));
-  line-height: 1;
 }
 
 /* The only scrolling region — the header stays put while a long section

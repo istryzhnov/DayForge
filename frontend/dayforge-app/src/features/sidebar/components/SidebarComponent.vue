@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
+import AppIcon from '../../../components/AppIcon.vue'
 import BrandWordmark from '../../../components/BrandWordmark.vue'
 import type { ActiveView } from '../../../pages/composables/useMainPageState'
 import NewGoalComponent from './NewGoalComponent.vue'
@@ -128,7 +129,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         "
         @click="emit('toggle-notifications')"
       >
-        {{ notificationsEnabled ? '🔔' : '🔕' }}
+        <AppIcon :name="notificationsEnabled ? 'bell' : 'bell-off'" :size="15" />
       </button>
       <div class="sidebar-settings">
         <button
@@ -224,7 +225,10 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       >
         <span class="nav-goal-btn__main">
           <span class="nav-goal-btn__icon" aria-hidden="true">
-            {{ showArchived ? '▾' : '▸' }}
+            <AppIcon
+              :name="showArchived ? 'chevron-down' : 'chevron-right'"
+              :size="14"
+            />
           </span>
           <span>Archived</span>
         </span>
@@ -253,7 +257,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @click="chooseView('calendar')"
     >
       <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">📅</span>
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="calendar" :size="16" />
+        </span>
         <span>Calendar</span>
       </span>
     </button>
@@ -264,7 +270,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @click="chooseView('timer')"
     >
       <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">⏱️</span>
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="timer" :size="16" />
+        </span>
         <span>Timer</span>
       </span>
     </button>
@@ -275,7 +283,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @click="chooseView('analytics')"
     >
       <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">📊</span>
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="chart" :size="16" />
+        </span>
         <span>Analytics</span>
       </span>
     </button>
@@ -285,7 +295,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @click="chooseView('planned')"
     >
       <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">📌</span>
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="pin" :size="16" />
+        </span>
         <span>Planned tasks</span>
       </span>
       <span class="goal-count">{{ plannedCount }}</span>
@@ -296,7 +308,9 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       @click="chooseView('archive')"
     >
       <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">✅</span>
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="check-square" :size="16" />
+        </span>
         <span>What I did</span>
       </span>
       <span class="goal-count">{{ doneCount }}</span>

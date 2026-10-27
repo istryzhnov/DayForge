@@ -4,6 +4,7 @@ import { useTheme } from '../../../composables/useTheme'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { LOCALE_OPTIONS, useSettings } from '../../../composables/useSettings'
 import { FONT_LABELS } from '../../../composables/theme/tokens'
+import type { AppIconName } from '../../../components/appIconPaths'
 import {
   SETTINGS_GROUP_LABELS,
   SETTINGS_SECTIONS,
@@ -19,7 +20,7 @@ import {
 
 export type SettingsMenuRow = {
   id: SettingsSection
-  icon: string
+  icon: AppIconName
   label: string
   summary: string
   /** Sections that need something selected first are shown but not reachable. */

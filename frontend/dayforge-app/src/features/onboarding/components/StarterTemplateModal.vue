@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import {
   FOCUS_OPTIONS,
   LOAD_OPTIONS,
@@ -35,7 +36,7 @@ const { focus, start, load, plan } = useStarterTemplate()
           aria-label="Close"
           @click="emit('close')"
         >
-          ×
+          <AppIcon name="close" :size="14" />
         </button>
       </header>
 

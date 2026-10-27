@@ -28,7 +28,6 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  padding-bottom: 3px;
   transition:
     color 0.15s ease,
     border-color 0.15s ease,
@@ -140,9 +139,8 @@
 
 .nav-goal-btn__icon {
   width: calc(18px * var(--text-scale));
-  text-align: center;
-  font-size: calc(14px * var(--text-scale));
-  line-height: 1;
+  display: grid;
+  place-items: center;
   opacity: 0.85;
 }
 
@@ -662,8 +660,8 @@
   border-radius: 50%;
   background: transparent;
   color: var(--muted);
-  font-size: 22px;
-  line-height: 1;
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 

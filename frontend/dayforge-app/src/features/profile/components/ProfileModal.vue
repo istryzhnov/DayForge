@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { ref } from 'vue'
 import ProfileAvatar from './ProfileAvatar.vue'
 import DeleteAccountDialog from './DeleteAccountDialog.vue'
@@ -50,7 +51,7 @@ const {
           aria-label="Close"
           @click="emit('close')"
         >
-          ×
+          <AppIcon name="close" :size="14" />
         </button>
       </header>
 

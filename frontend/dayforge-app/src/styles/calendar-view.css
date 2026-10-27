@@ -635,7 +635,8 @@
   border: none;
   color: var(--muted);
   cursor: pointer;
-  font-size: max(16px, calc(16px * var(--text-scale)));
+  display: grid;
+  place-items: center;
 }
 
 .event-details__field {

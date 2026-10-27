@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted } from 'vue'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
 import type { ProjectBudget } from '../../analytics/composables/projectBudget'
+import AppIcon from '../../../components/AppIcon.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import ClientsSection from './ClientsSection.vue'
 import ThemeSection from './ThemeSection.vue'
@@ -129,7 +130,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         aria-label="Back to all settings"
         @click="back"
       >
-        ‹
+        <AppIcon name="chevron-left" :size="16" />
       </button>
       <div class="settings-panel__title">
         <strong>{{ heading.title }}</strong>
@@ -141,7 +142,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         aria-label="Close settings"
         @click="close"
       >
-        ✕
+        <AppIcon name="close" :size="14" />
       </button>
     </header>
 

@@ -393,9 +393,6 @@ body.is-dragging-task {
 }
 
 .task-dot-check__mark {
-  font-size: calc(13px * var(--text-scale));
-  font-weight: 700;
-  line-height: 1;
   color: var(--ring-check);
 }
 
@@ -975,9 +972,9 @@ body.is-dragging-task {
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font-size: calc(16px * var(--text-scale));
-  line-height: 1;
   cursor: pointer;
+  display: grid;
+  place-items: center;
 }
 
 .notes-pop__close:hover {
@@ -1028,6 +1025,9 @@ body.is-dragging-task {
 
 /* Running completion tally on a repeating task. */
 .task-repeat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: color-mix(in srgb, var(--accent) 70%, var(--text));
@@ -1293,8 +1293,6 @@ body.is-dragging-task {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  font-size: calc(11px * var(--text-scale));
-  font-weight: 700;
   color: var(--ring-check);
   background: var(--accent);
 }
@@ -1549,9 +1547,9 @@ body.is-dragging-task {
   border: none;
   background: none;
   color: var(--muted);
-  font-size: max(16px, calc(16px * var(--text-scale)));
   cursor: pointer;
-  line-height: 1;
+  display: grid;
+  place-items: center;
 }
 
 /* --- Undo toast --------------------------------------------------------- */
@@ -1612,9 +1610,9 @@ body.is-dragging-task {
   border: none;
   background: none;
   color: var(--muted);
-  font-size: max(16px, calc(16px * var(--text-scale)));
   cursor: pointer;
-  line-height: 1;
+  display: grid;
+  place-items: center;
 }
 
 /* Drains to show how long is left to change your mind. */

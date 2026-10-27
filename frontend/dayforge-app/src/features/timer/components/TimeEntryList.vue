@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TimeEntry } from '../../../entities/TimerEntity'
+import AppIcon from '../../../components/AppIcon.vue'
 import { useTimerHistory } from '../composables/useTimerHistory'
 
 const emit = defineEmits<{ (e: 'edit', entry: TimeEntry): void }>()
@@ -54,7 +55,7 @@ const {
             title="Edit entry"
             @click="emit('edit', entry)"
           >
-            ✎
+            <AppIcon name="pencil" :size="14" />
           </button>
           <button
             class="timer-entry__action"
@@ -63,7 +64,7 @@ const {
             title="Delete entry"
             @click="removeEntry(entry.id)"
           >
-            ✕
+            <AppIcon name="close" :size="14" />
           </button>
         </div>
       </div>

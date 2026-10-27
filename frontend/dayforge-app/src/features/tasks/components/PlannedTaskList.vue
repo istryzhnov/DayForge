@@ -2,6 +2,7 @@
 import type { PlannedTask } from '../composables/usePlannedTasks'
 import type { ID, ISODate } from '../../../entities/types'
 import { useFormat } from '../../../composables/useFormat'
+import AppIcon from '../../../components/AppIcon.vue'
 
 defineProps<{
   tasks: PlannedTask[]
@@ -42,7 +43,12 @@ function dayLabel(date: ISODate) {
             :aria-label="task.isDone ? 'Mark as not done' : 'Mark as done'"
             @click="emit('toggle', task.templateId, task.date)"
           >
-            <span v-if="task.isDone" class="task-dot-check__mark">✓</span>
+            <AppIcon
+              v-if="task.isDone"
+              class="task-dot-check__mark"
+              name="check"
+              :size="14"
+            />
           </button>
 
           <div class="task-copy">

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppIcon from '../../../components/AppIcon.vue'
 import { onMounted, useTemplateRef } from 'vue'
 import {
   QUICK_ADD_SYNTAX,
@@ -43,7 +44,7 @@ onMounted(() => cardRef.value?.focus())
             aria-label="Close"
             @click="closeOverlay"
           >
-            ×
+            <AppIcon name="close" :size="14" />
           </button>
         </header>
 

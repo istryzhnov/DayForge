@@ -10,6 +10,7 @@ import TimerModePicker from './TimerModePicker.vue'
 import TimeEntryList from './TimeEntryList.vue'
 import TimeTotals from './TimeTotals.vue'
 import TimeEntryEditor from './TimeEntryEditor.vue'
+import AppIcon from '../../../components/AppIcon.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
@@ -106,9 +107,10 @@ function closeEditor() {
           class="timer-view__unlink"
           type="button"
           title="Detach the task"
+          aria-label="Detach the task"
           @click="clearTask"
         >
-          ✕
+          <AppIcon name="close" :size="12" />
         </button>
       </p>
 
