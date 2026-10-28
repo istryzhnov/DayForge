@@ -5,6 +5,7 @@ import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
 import { isRepeating } from './goalSpace/recurrence'
+import { sortTasks } from './goalSpace/taskOrder'
 import { projectColors } from './theme/goalTheme'
 
 export type TaskNode = {
@@ -91,13 +92,14 @@ export function useTaskTree(props: TaskTreeProps) {
       props.templates.map((template) => [template.id, template]),
     )
 
-    const createdRank = new Map(
-      props.templates.map((template, index) => [template.id, index]),
+    // The order the user arranged tasks in, top first. A task the user just
+    // added is on top, and a dragged one lands where it was dropped.
+    const drawnRank = new Map(
+      sortTasks(props.templates).map((template, index) => [template.id, index]),
     )
-    const rankOf = (task: DailyTask) => createdRank.get(task.templateId) ?? -1
-
-    // Newest first, so a task the user just added lands at the top of its list.
-    const byNewestFirst = (a: DailyTask, b: DailyTask) => rankOf(b) - rankOf(a)
+    const rankOf = (task: DailyTask) =>
+      drawnRank.get(task.templateId) ?? props.templates.length
+    const byDrawnOrder = (a: DailyTask, b: DailyTask) => rankOf(a) - rankOf(b)
 
     const isRecentlyCreated = (task: DailyTask) =>
       props.newTemplateId !== null && task.templateId === props.newTemplateId
@@ -122,7 +124,7 @@ export function useTaskTree(props: TaskTreeProps) {
 
     const projects = props.tasks
       .filter((task) => task.priority === PRIORITY.MAJOR)
-      .sort(byNewestFirst)
+      .sort(byDrawnOrder)
 
     const groups: TaskGroup[] = []
     const nestedIds = new Set<string>()
@@ -130,7 +132,7 @@ export function useTaskTree(props: TaskTreeProps) {
     projects.forEach((project) => {
       const children = props.tasks
         .filter((task) => task.parentDailyTaskId === project.id)
-        .sort(byNewestFirst)
+        .sort(byDrawnOrder)
 
       children.forEach((child) => nestedIds.add(child.id))
 
@@ -194,7 +196,7 @@ export function useTaskTree(props: TaskTreeProps) {
     return groups.sort((a, b) => {
       const taskOf = (group: TaskGroup) =>
         group.kind === 'project' ? group.project.task : group.node.task
-      return byNewestFirst(taskOf(a), taskOf(b))
+      return byDrawnOrder(taskOf(a), taskOf(b))
     })
   })
 
