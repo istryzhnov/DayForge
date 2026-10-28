@@ -601,3 +601,20 @@
   flex-wrap: wrap;
   color: var(--muted);
 }
+
+/* Closing: Esc on a keyboard, this button on touch and phone widths. The key
+   hints mean nothing without a keyboard, so they go there too. */
+.search-palette__close {
+  display: none;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+  .search-palette__close {
+    display: grid;
+  }
+
+  .search-palette__hint {
+    display: none;
+  }
+}

@@ -28,6 +28,19 @@ const emit = defineEmits<{
 
 const { groups: taskGroups } = useTaskPicker(() => props.taskOptions)
 
+const OPTION_MAX_CHARS = 48
+
+/**
+ * A native list is as wide as its longest line, so one very long project or
+ * task name would stretch it far past the field. Names are data, so the list
+ * shows a shortened one; the full text stays in the option's tooltip.
+ */
+function shortLabel(text: string): string {
+  return text.length > OPTION_MAX_CHARS
+    ? `${text.slice(0, OPTION_MAX_CHARS - 1)}…`
+    : text
+}
+
 const {
   timer,
   dialLabel,
@@ -175,14 +188,15 @@ function closeEditor() {
             <optgroup
               v-for="group in taskGroups"
               :key="group.label"
-              :label="group.label"
+              :label="shortLabel(group.label)"
             >
               <option
                 v-for="option in group.tasks"
                 :key="option.id"
                 :value="option.id"
+                :title="option.title"
               >
-                {{ option.title }}
+                {{ shortLabel(option.title) }}
               </option>
             </optgroup>
           </select>

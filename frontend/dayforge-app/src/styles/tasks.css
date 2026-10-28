@@ -1815,3 +1815,11 @@ body.is-dragging-task {
 .task-row.is-project-tinted .task-dot-check__icon {
   color: var(--project-color);
 }
+
+/* On a phone the toast spans the screen between its 12px margins; the
+   desktop width would otherwise pin it to the left edge. */
+@media (max-width: 720px) {
+  .undo-toast {
+    width: auto;
+  }
+}
