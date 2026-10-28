@@ -33,6 +33,7 @@
   "tipsHint": "Notas breves que señalan el control que explican.",
   "showTipsAgain": "Mostrar consejos otra vez",
   "tourHint": "Una guía paso a paso que avanza mientras trabajas.",
+  "tourToggle": "Guía paso a paso",
   "shortcutsOff": "Los atajos de teclado están desactivados. Actívalos en Ajustes, Comportamiento.",
   "shortcutsQuiet": "Los atajos no se activan mientras escribes en un campo. Desactívalos en Ajustes, Comportamiento.",
   "quickAddGroup": "Añadir rápido",
