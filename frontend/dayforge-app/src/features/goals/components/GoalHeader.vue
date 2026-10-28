@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
 import type { PanelStats } from '../composables/projectPanelStats'
 import ProjectToolbar from './ProjectToolbar.vue'
@@ -82,7 +83,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
           <AppIcon name="timer" :size="14" />
           <span class="ui-oneline">{{
             t('goals.trackedThisMonth', {
-              time: formatHoursMinutes(stats.trackedMs),
+              time: formatHoursMinutes(stats.trackedMs, durationWords()),
             })
           }}</span>
         </li>

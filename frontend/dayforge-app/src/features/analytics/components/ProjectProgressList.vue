@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 import type { ProjectProgress } from '../composables/projectProgress'
 
 defineProps<{
@@ -32,7 +33,9 @@ function gapLabel(row: ProjectProgress): string {
 }
 
 function gapValue(row: ProjectProgress): string {
-  return row.diffMs === null ? '—' : formatHoursMinutes(Math.abs(row.diffMs))
+  return row.diffMs === null
+    ? '—'
+    : formatHoursMinutes(Math.abs(row.diffMs), durationWords())
 }
 
 function donePercent(row: ProjectProgress): string {
@@ -71,10 +74,14 @@ function fillStyle(row: ProjectProgress) {
           ></span>
           <span class="ui-oneline project-progress__name">{{ row.title }}</span>
           <strong class="project-progress__actual">
-            {{ formatHoursMinutes(row.trackedMs) }}
+            {{ formatHoursMinutes(row.trackedMs, durationWords()) }}
           </strong>
           <span class="project-progress__plan">
-            {{ row.planned ? `/ ${formatHoursMinutes(row.plannedMs)}` : '—' }}
+            {{
+              row.planned
+                ? `/ ${formatHoursMinutes(row.plannedMs, durationWords())}`
+                : '—'
+            }}
           </span>
         </span>
         <span

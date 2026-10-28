@@ -7,8 +7,8 @@ const { t } = useI18n()
 
 /** Message keys for the swatches, in the same order as the colour presets. */
 const COLOR_NAME_KEYS = [
-  'sidebar.colourLime',
   'sidebar.colourOrange',
+  'sidebar.colourLime',
   'sidebar.colourCyan',
   'sidebar.colourYellow',
   'sidebar.colourPink',

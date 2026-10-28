@@ -8,6 +8,7 @@ import type { ID, ISODate } from '../../../entities/types'
 import { NO_PROJECT_KEY } from '../../../composables/timer/analytics'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 import {
   buildCsv,
   buildReportLines,
@@ -104,7 +105,7 @@ const money = computed(
 const summaryLabel = computed(() =>
   t('analytics.exportSummary', {
     entries: t('analytics.entryCount', lines.value.length),
-    hours: formatHoursMinutes(totals.value.ms),
+    hours: formatHoursMinutes(totals.value.ms, durationWords()),
     amount: money.value.format(roundMoney(totals.value.amount)),
   }),
 )

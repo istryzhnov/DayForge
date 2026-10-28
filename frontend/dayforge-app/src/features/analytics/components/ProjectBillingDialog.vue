@@ -5,6 +5,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { useSettings } from '../../../composables/useSettings'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 import {
   draftFromBilling,
   parseBillingDraft,
@@ -28,7 +29,9 @@ const { t } = useI18n()
 useFocusTrap({ onEscape: () => emit('close') })
 
 const currency = computed(() => settings.timer.currency)
-const trackedLabel = computed(() => formatHoursMinutes(props.trackedMs))
+const trackedLabel = computed(() =>
+  formatHoursMinutes(props.trackedMs, durationWords()),
+)
 
 const draft = ref(draftFromBilling(props.goal.billing))
 const error = ref('')

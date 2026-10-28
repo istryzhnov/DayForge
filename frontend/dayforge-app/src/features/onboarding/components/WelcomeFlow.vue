@@ -100,8 +100,8 @@ const ACCOUNT_OPTIONS: ReadonlyArray<{
 
 /** The same colour names as the new-project form (sidebar), in the same order as the presets. */
 const COLOR_NAME_KEYS = [
-  'sidebar.colourLime',
   'sidebar.colourOrange',
+  'sidebar.colourLime',
   'sidebar.colourCyan',
   'sidebar.colourYellow',
   'sidebar.colourPink',
