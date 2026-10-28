@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import AppIcon from '../../../components/AppIcon.vue'
 import { useSettingsMenu } from '../composables/useSettingsMenu'
 import type { SettingsSection } from '../composables/useSettingsPanel'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   activeGoal: Goal | null
@@ -48,5 +51,9 @@ const { groups } = useSettingsMenu(props)
         />
       </button>
     </section>
+
+    <p class="settings-menu__about">
+      <a href="/about">{{ t('profile.aboutLink') }}</a>
+    </p>
   </div>
 </template>
