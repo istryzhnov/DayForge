@@ -10,6 +10,7 @@ import {
 } from '../../../composables/useSettings'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
 import { useTips } from '../../onboarding/composables/useTips'
+import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
 import { useTour } from '../../onboarding/composables/useTour'
 import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 import {
@@ -166,7 +167,7 @@ function startOnView(view: StartView) {
       {{ t('settings.showShortcuts') }}
     </button>
 
-    <label class="settings-toggle ui-card">
+    <label v-if="COACH_TIPS_ENABLED" class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="!tipsOff"
@@ -178,7 +179,12 @@ function startOnView(view: StartView) {
       </span>
     </label>
 
-    <button class="btn btn-ghost" type="button" @click="resetTips">
+    <button
+      v-if="COACH_TIPS_ENABLED"
+      class="btn btn-ghost"
+      type="button"
+      @click="resetTips"
+    >
       {{ t('settings.showTipsAgain') }}
     </button>
 
