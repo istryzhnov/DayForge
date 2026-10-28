@@ -12,6 +12,7 @@ import {
   getTodayISODate,
 } from '../../../composables/goalSpace/date'
 import { i18n } from '../../../i18n'
+import { isOvernight } from '../../../composables/goalSpace/overnight'
 
 /**
  * Repeat options offered in the composer (monthly/custom aren't exposed yet).
@@ -93,8 +94,9 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
         max: MAX_TIME,
       })
     }
-    if (endTime.value <= startTime.value) {
-      return i18n.global.t('tasks.errEndAfterStart')
+    // An end before the start is the next day's time, so only equal times fail.
+    if (endTime.value === startTime.value) {
+      return i18n.global.t('tasks.errEndEqualsStart')
     }
     if (endTime.value > MAX_TIME) {
       return i18n.global.t('tasks.errEndMax', { max: MAX_TIME })
@@ -109,6 +111,9 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
   })
 
   const isValid = computed(() => error.value === null)
+
+  /** The end falls on the next day, so the block runs past midnight. */
+  const isNextDay = computed(() => isOvernight(startTime.value, endTime.value))
 
   function toggleWeekday(day: number) {
     weekdays.value = weekdays.value.includes(day)
@@ -222,6 +227,7 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
     isAnnual,
     error,
     isValid,
+    isNextDay,
     toggleWeekday,
     buildSchedule,
     load,

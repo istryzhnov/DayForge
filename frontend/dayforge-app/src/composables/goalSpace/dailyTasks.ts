@@ -1,8 +1,9 @@
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID, ISODate } from '../../entities/types'
 import { TASK_KIND_BY_SCHEDULE, TASK_STATUS } from '../../entities/constants'
-import { dailyTaskId, getTodayISODate } from './date'
+import { addDaysToISODate, dailyTaskId, getTodayISODate } from './date'
 import { occursOn, scheduleKindOf } from './recurrence'
+import { isOvernight } from './overnight'
 import { useSettings } from '../useSettings'
 import { DAILY_FIELD_GROUPS, type DailyFieldGroup } from '../../sync/merge'
 
@@ -173,6 +174,35 @@ function reattachToParentsOfDay(
   })
 }
 
+/**
+ * A task that runs past midnight is also listed on the day after, and ticking
+ * it there must tick its own start row. So the day before a snapshot always
+ * has the row of any overnight task that ran on it.
+ */
+function ensureOvernightRowsOfPreviousDay(
+  taskTemplates: TaskTemplate[],
+  dailyTasks: DailyTask[],
+  date: ISODate,
+  pausedGoalIds: ReadonlySet<ID>,
+) {
+  const previousDate = addDaysToISODate(date, -1)
+
+  taskTemplates.forEach((template) => {
+    if (isOnPausedGoal(template, pausedGoalIds)) return
+    if (scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.OPEN) return
+    if (!isOvernight(template.startTime, template.endTime)) return
+    if (!occursOn(template, previousDate)) return
+    ensureDailyTaskForTemplate({
+      taskTemplates,
+      dailyTasks,
+      template,
+      date: previousDate,
+    })
+  })
+
+  reattachToParentsOfDay(taskTemplates, dailyTasks, previousDate)
+}
+
 export function ensureTodaySnapshot(
   taskTemplates: TaskTemplate[],
   dailyTasks: DailyTask[],
@@ -204,6 +234,12 @@ export function ensureTodaySnapshot(
     ensureDailyTaskForTemplate({ taskTemplates, dailyTasks, template, date })
   })
 
+  ensureOvernightRowsOfPreviousDay(
+    taskTemplates,
+    dailyTasks,
+    date,
+    pausedGoalIds,
+  )
   reattachToParentsOfDay(taskTemplates, dailyTasks, date)
 }
 

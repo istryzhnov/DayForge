@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { DAY_WINDOW } from '../../../entities/constants'
 import { useSettings } from '../../../composables/useSettings'
 import type { OverlapSlot } from './overlapLayout'
+import { durationMinutes as spanMinutes } from '../../../composables/goalSpace/overnight'
 
 export const DAY_START_HOUR = DAY_WINDOW.START_HOUR
 export const DAY_END_HOUR = DAY_WINDOW.END_HOUR
@@ -87,8 +88,11 @@ export function columnStyle(slot: OverlapSlot | undefined, insetPx: number) {
   }
 }
 
-/** Scheduled duration in minutes, falling back to the default for unscheduled tasks. */
+/**
+ * Scheduled duration in minutes, falling back to the default for unscheduled
+ * tasks. A block that runs past midnight is measured across it.
+ */
 export function durationMinutes(startTime?: string, endTime?: string): number {
   if (!startTime || !endTime) return defaultDurationMinutes()
-  return minutesFromDayStart(endTime) - minutesFromDayStart(startTime)
+  return spanMinutes(startTime, endTime)
 }

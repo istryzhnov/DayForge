@@ -10,6 +10,11 @@ import {
   minutesFromDayStart,
   pxPerMinute,
 } from './useCalendarGrid'
+import {
+  isOvernight,
+  segmentForDay,
+} from '../../../composables/goalSpace/overnight'
+import { addDaysToISODate } from '../../../composables/goalSpace/date'
 import { layoutOverlaps } from './overlapLayout'
 import { useCalendarDragDrop } from './useCalendarDragDrop'
 import { useCalendarDraft } from './useCalendarDraft'
@@ -21,8 +26,19 @@ const GRID_INSET_PX = 6
 
 export type CalendarViewMode = 'day' | 'week' | 'month'
 
+/** One piece of a task on this day's grid: its own start, or a tail from midnight. */
+export type DayBlock = {
+  key: string
+  task: DailyTask
+  isTail: boolean
+  startMin: number
+  endMin: number
+}
+
 type DayViewProps = {
   tasks: DailyTask[]
+  /** Whole-history rows, so yesterday's overnight tasks can be drawn past midnight. */
+  dailyTasks: DailyTask[]
   currentDate: ISODate
   goalVarsById: Record<ID, Record<string, string>>
 }
@@ -69,11 +85,47 @@ export function useCalendarDayView(
 
   const { isGoalVisible } = useCalendarFilter()
 
-  const scheduledTasks = computed(() =>
-    props.tasks.filter(
-      (task) => task.startTime && task.endTime && isGoalVisible(task.goalId),
-    ),
-  )
+  /**
+   * A task past midnight is drawn twice: its start here, and its tail from
+   * midnight when it began yesterday. Both pieces open the same task.
+   */
+  function blockOf(task: DailyTask, isTail: boolean): DayBlock | null {
+    const segment = segmentForDay(props.currentDate, task)
+    if (!segment?.endTime) return null
+    return {
+      key: isTail ? `${task.id}@tail` : task.id,
+      task,
+      isTail,
+      startMin: minutesFromDayStart(segment.startTime),
+      endMin: minutesFromDayStart(segment.endTime),
+    }
+  }
+
+  const spilledTasks = computed(() => {
+    const previousDate = addDaysToISODate(props.currentDate, -1)
+    return props.dailyTasks.filter(
+      (task) =>
+        task.date === previousDate &&
+        isOvernight(task.startTime, task.endTime) &&
+        isGoalVisible(task.goalId),
+    )
+  })
+
+  const scheduledBlocks = computed<DayBlock[]>(() => {
+    const heads = props.tasks
+      .filter(
+        (task) => task.startTime && task.endTime && isGoalVisible(task.goalId),
+      )
+      .map((task) => blockOf(task, false))
+    const tails = spilledTasks.value.map((task) => blockOf(task, true))
+
+    // A dragged task moves its start; its tail is left for the drop to redraw.
+    const draggedId = dragDrop.touchDrag.value?.taskId
+    return [...heads, ...tails].filter(
+      (block): block is DayBlock =>
+        block !== null && !(block.isTail && block.task.id === draggedId),
+    )
+  })
 
   const unscheduledTasks = computed(() =>
     props.tasks.filter(
@@ -105,33 +157,31 @@ export function useCalendarDayView(
   // --- geometry -----------------------------------------------------------
 
   /** The dragged task previews at the finger's position, not its stored time. */
-  function topPxFor(task: DailyTask) {
+  function topPxFor(block: DayBlock) {
     const preview = dragDrop.touchDrag.value
     const startMin =
-      preview?.taskId === task.id
+      !block.isTail && preview?.taskId === block.task.id
         ? preview.startMin
-        : minutesFromDayStart(task.startTime!)
+        : block.startMin
     return startMin * pxPerMinute()
   }
 
-  function heightPxFor(task: DailyTask) {
-    const startMin = minutesFromDayStart(task.startTime!)
-    const endMin = minutesFromDayStart(task.endTime!)
-    return (endMin - startMin) * pxPerMinute()
+  function heightPxFor(block: DayBlock) {
+    return (block.endMin - block.startMin) * pxPerMinute()
   }
 
   const overlapSlots = computed(() =>
     layoutOverlaps(
-      scheduledTasks.value.map((task) => ({
-        id: task.id,
-        startMin: minutesFromDayStart(task.startTime!),
-        endMin: minutesFromDayStart(task.endTime!),
+      scheduledBlocks.value.map((block) => ({
+        id: block.key,
+        startMin: block.startMin,
+        endMin: block.endMin,
       })),
     ),
   )
 
-  function columnStyleFor(task: DailyTask) {
-    return columnStyle(overlapSlots.value.get(task.id), GRID_INSET_PX)
+  function columnStyleFor(block: DayBlock) {
+    return columnStyle(overlapSlots.value.get(block.key), GRID_INSET_PX)
   }
 
   function previewStyle(top: number, height: number) {
@@ -234,7 +284,7 @@ export function useCalendarDayView(
     isCoarsePointer,
     openDay,
     dateLabel,
-    scheduledTasks,
+    scheduledBlocks,
     unscheduledTasks,
     incomingPreview,
     selectedProjectTemplateId,

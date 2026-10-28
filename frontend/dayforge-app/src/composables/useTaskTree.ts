@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
 import { i18n } from '../i18n'
 import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
-import type { ID } from '../entities/types'
+import type { ID, ISODate } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
 import { isRepeating } from './goalSpace/recurrence'
 import { sortTasks } from './goalSpace/taskOrder'
@@ -18,6 +18,8 @@ export type TaskNode = {
   projectTitle?: string
   /** Drives the one-off highlight animation when a task first appears. */
   isNew?: boolean
+  /** Started the day before and runs past midnight, so this is its tail. */
+  spilled?: boolean
   /** How many days this task has been completed on, across its whole history. */
   completedCount?: number
   /** The project's hourly rate, which a task without its own one bills at. */
@@ -42,6 +44,7 @@ type TaskTreeProps = {
   goal: Goal | null
   goals: Goal[]
   tasks: DailyTask[]
+  currentDate: ISODate
   /** Every day's rows, not just the open day — needed to count completions. */
   dailyTasks: DailyTask[]
   templates: TaskTemplate[]
@@ -101,6 +104,8 @@ export function useTaskTree(props: TaskTreeProps) {
       drawnRank.get(task.templateId) ?? props.templates.length
     const byDrawnOrder = (a: DailyTask, b: DailyTask) => rankOf(a) - rankOf(b)
 
+    const spilledOf = (task: DailyTask) => task.date !== props.currentDate
+
     const isRecentlyCreated = (task: DailyTask) =>
       props.newTemplateId !== null && task.templateId === props.newTemplateId
 
@@ -144,6 +149,7 @@ export function useTaskTree(props: TaskTreeProps) {
         goalIcon: goalIconOf(project),
         goalColor: goalColorOf(project),
         isNew: isRecentlyCreated(project),
+        spilled: spilledOf(project),
         completedCount: completedCountOf(project),
       }
 
@@ -164,6 +170,7 @@ export function useTaskTree(props: TaskTreeProps) {
           goalColor: goalColorOf(child),
           projectTitle: project.title,
           isNew: isRecentlyCreated(child),
+          spilled: spilledOf(child),
           completedCount: completedCountOf(child),
         })),
         doneCount: children.filter((task) => task.status === TASK_STATUS.DONE)
@@ -188,6 +195,7 @@ export function useTaskTree(props: TaskTreeProps) {
             goalIcon: goalIconOf(task),
             goalColor: goalColorOf(task),
             isNew: isRecentlyCreated(task),
+            spilled: spilledOf(task),
             completedCount: completedCountOf(task),
           },
         })

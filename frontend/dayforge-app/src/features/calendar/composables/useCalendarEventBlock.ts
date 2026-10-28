@@ -9,16 +9,21 @@ import {
   type GesturePoint,
 } from '../../../composables/usePressGesture'
 import {
-  clampMinutes,
   minutesFromDayStart,
   pxPerMinute,
   snapMinutes,
   snapStepMinutes,
   timeFromMinutes,
 } from './useCalendarGrid'
+import {
+  durationMinutes,
+  MINUTES_PER_DAY,
+} from '../../../composables/goalSpace/overnight'
 
 type BlockProps = {
   task: DailyTask
+  /** The tail of a block that started the day before: it opens the task but does not move. */
+  isTail?: boolean
   themeVars?: Record<string, string>
   /** Left/width once overlapping blocks have been split into columns. */
   columnStyle?: Record<string, string>
@@ -48,7 +53,7 @@ export function useCalendarEventBlock(
 
   const isDone = computed(() => props.task.status === TASK_STATUS.DONE)
   const isDraggable = computed(
-    () => !isCoarsePointer.value && !isResizing.value,
+    () => !isCoarsePointer.value && !isResizing.value && !props.isTail,
   )
 
   function blockStyle(top: number, height: number) {
@@ -70,7 +75,8 @@ export function useCalendarEventBlock(
   // --- touch: long-press to lift, then drag or open the context menu ------
 
   const { isLifted, onPointerDown } = usePressGesture({
-    isEnabled: () => isCoarsePointer.value && !isResizing.value,
+    isEnabled: () =>
+      isCoarsePointer.value && !isResizing.value && !props.isTail,
     onLift: (point) =>
       actions.onTouchLift({
         taskId: props.task.id,
@@ -86,7 +92,7 @@ export function useCalendarEventBlock(
   // --- desktop: native drag and right-click -------------------------------
 
   function onDragStart(event: DragEvent) {
-    if (isResizing.value || blockNativeDrag.value) {
+    if (isResizing.value || blockNativeDrag.value || props.isTail) {
       event.preventDefault()
       return
     }
@@ -109,6 +115,7 @@ export function useCalendarEventBlock(
   // --- the resize handle ---------------------------------------------------
 
   function onResizeHandleDown(event: PointerEvent) {
+    if (props.isTail) return
     event.preventDefault()
     event.stopPropagation()
     isResizing.value = true
@@ -116,21 +123,23 @@ export function useCalendarEventBlock(
 
     const startClientY = event.clientY
     const startMin = minutesFromDayStart(props.task.startTime!)
-    const initialDurationMin =
-      minutesFromDayStart(props.task.endTime!) - startMin
+    const initialDurationMin = durationMinutes(
+      props.task.startTime,
+      props.task.endTime,
+    )
 
     function onMove(moveEvent: PointerEvent) {
       if (!isResizing.value) return
       const deltaMin = Math.round(
         (moveEvent.clientY - startClientY) / pxPerMinute(),
       )
-      const newEndMin = clampMinutes(
-        startMin +
-          Math.max(
-            snapStepMinutes(),
-            snapMinutes(initialDurationMin + deltaMin),
-          ),
+      // The start stays put and the end may wrap past midnight, but the span
+      // never reaches a full day, so the block cannot swallow its own start.
+      const spanMin = Math.min(
+        Math.max(snapStepMinutes(), snapMinutes(initialDurationMin + deltaMin)),
+        MINUTES_PER_DAY - snapStepMinutes(),
       )
+      const newEndMin = (startMin + spanMin) % MINUTES_PER_DAY
       actions.onResize({
         taskId: props.task.id,
         endTime: timeFromMinutes(newEndMin),
