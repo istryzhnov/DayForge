@@ -9,6 +9,7 @@ import {
 } from '../../../composables/useSettings'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
 import { useTips } from '../../onboarding/composables/useTips'
+import { useTour } from '../../onboarding/composables/useTour'
 import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 import {
   PRIORITY_OPTIONS,
@@ -27,6 +28,7 @@ const props = defineProps<{
 const { settings, update, resetSection } = useSettings()
 const { openShortcuts } = useHotkeyOverlay()
 const { tipsOff, turnOn, turnOff, resetTips } = useTips()
+const { restart: restartTour } = useTour()
 
 const startProjects = computed(() =>
   sortGoals(props.goals.filter((goal) => goal.status !== GOAL_STATUS.ARCHIVED)),
@@ -176,6 +178,10 @@ function startOnView(view: StartView) {
 
     <button class="btn btn-ghost" type="button" @click="resetTips">
       Show all tips again
+    </button>
+
+    <button class="btn btn-ghost" type="button" @click="restartTour">
+      Take the tour again
     </button>
 
     <label class="settings-slider">

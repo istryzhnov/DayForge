@@ -37,6 +37,39 @@ export function clearLocalAppData(storage: KeyedStorage): number {
   return keys.length
 }
 
+/**
+ * Keys that stay on the device when the user signs out. They describe this
+ * browser, not an account, so the next account to sign in here does not
+ * inherit anything from them:
+ * - theme: the chosen look of the app.
+ * - analytics-tab: which Analytics tab was open last.
+ * - upcoming-collapsed: whether the Upcoming list is folded.
+ * Every other app key is account data (tasks, goals, time, settings, the sync
+ * queue, tips, timer) and is removed on sign-out.
+ */
+export const DEVICE_KEYS: readonly string[] = [
+  'dayforge-theme-v1',
+  'dayforge-analytics-tab',
+  'dayforge-upcoming-collapsed-v1',
+]
+
+/** The app keys a sign-out removes: every prefixed key not in DEVICE_KEYS. */
+export function accountKeysToClear(keys: readonly string[]): string[] {
+  return keys.filter(
+    (key) => key.startsWith(APP_STORAGE_PREFIX) && !DEVICE_KEYS.includes(key),
+  )
+}
+
+/**
+ * Removes this account's data on sign-out and leaves DEVICE_KEYS alone.
+ * Returns how many keys were removed.
+ */
+export function clearAccountData(storage: KeyedStorage): number {
+  const keys = accountKeysToClear(appStorageKeys(storage))
+  keys.forEach((key) => storage.removeItem(key))
+  return keys.length
+}
+
 export function isDeleteConfirmed(typed: string): boolean {
   return typed.trim() === DELETE_CONFIRMATION
 }

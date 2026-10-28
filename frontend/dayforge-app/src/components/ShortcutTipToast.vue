@@ -3,12 +3,18 @@ import AppIcon from './AppIcon.vue'
 import { computed } from 'vue'
 import { useShortcutTip } from '../composables/useShortcutTip'
 import { useSettings } from '../composables/useSettings'
+import { useTour } from '../features/onboarding/composables/useTour'
 
 const { tipVisible, dismissTip } = useShortcutTip()
 const { settings } = useSettings()
+const { running: tourRunning } = useTour()
 
+/** Waits while the tour runs, so two kinds of help never talk at once. */
 const isOpen = computed(
-  () => tipVisible.value && settings.behavior.keyboardShortcuts,
+  () =>
+    tipVisible.value &&
+    settings.behavior.keyboardShortcuts &&
+    !tourRunning.value,
 )
 </script>
 

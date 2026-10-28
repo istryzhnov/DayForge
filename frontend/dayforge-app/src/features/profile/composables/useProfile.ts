@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useSync } from '../../../composables/useSync'
 import { useFormat } from '../../../composables/useFormat'
+import { clearAccountData } from '../../../sync/accountDeletion'
 
 export function useProfile() {
   const auth = useAuth()
@@ -77,8 +78,62 @@ export function useProfile() {
     await auth.signInWithGoogle()
   }
 
+  // How long sign-out waits for queued changes to reach the server.
+  const SIGN_OUT_FLUSH_MS = 8000
+
+  const isSigningOut = ref(false)
+  const isSignOutConfirmOpen = ref(false)
+  const unsyncedCount = ref(0)
+
+  /**
+   * Sending queued changes first means signing out usually loses nothing. If
+   * some could not be sent (offline, or the server refused them), the user is
+   * asked before they are removed from this browser.
+   */
   async function signOut() {
+    if (isSigningOut.value) return
+    isSigningOut.value = true
+    try {
+      await sync.flushPending(SIGN_OUT_FLUSH_MS)
+      // Refused changes are unsent too, and go with the wipe just the same.
+      const left = sync.pendingCount() + sync.deadLetters().length
+      if (left > 0) {
+        unsyncedCount.value = left
+        isSignOutConfirmOpen.value = true
+        return
+      }
+      await finishSignOut()
+    } finally {
+      isSigningOut.value = false
+    }
+  }
+
+  async function confirmSignOut() {
+    if (isSigningOut.value) return
+    isSignOutConfirmOpen.value = false
+    isSigningOut.value = true
+    try {
+      await finishSignOut()
+    } finally {
+      isSigningOut.value = false
+    }
+  }
+
+  function cancelSignOut() {
+    isSignOutConfirmOpen.value = false
+  }
+
+  /**
+   * Ends the session, stops every sync path, then removes this account's data
+   * and reloads. The reload drops every in-memory copy, so nothing can write
+   * the data back.
+   */
+  async function finishSignOut() {
     await auth.signOut()
+    sync.stopSync()
+    await sync.snapshots.clear()
+    clearAccountData(window.localStorage)
+    window.location.reload()
   }
 
   return {
@@ -91,6 +146,11 @@ export function useProfile() {
     triggerTitle,
     signIn,
     signOut,
+    isSigningOut,
+    isSignOutConfirmOpen,
+    unsyncedCount,
+    confirmSignOut,
+    cancelSignOut,
     copyLog,
     logCopied,
     retryDead: sync.retryDead,

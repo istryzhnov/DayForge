@@ -198,3 +198,9 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* Unsynced changes before a sign-out: the warning, then the two choices. */
+.sign-out-confirm {
+  display: grid;
+  gap: 8px;
+}

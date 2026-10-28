@@ -11,6 +11,7 @@ import GoalContextMenu from './GoalContextMenu.vue'
 import TimerWidget from '../../timer/components/TimerWidget.vue'
 import SyncStatusDot from '../../sync/components/SyncStatusDot.vue'
 import SidebarProfileButton from '../../profile/components/SidebarProfileButton.vue'
+import TourPill from '../../onboarding/components/TourPill.vue'
 import type { SyncStatus } from '../../../sync/types'
 import { useSidebarState } from '../composables/useSidebarState'
 import { useGoalReorder } from '../composables/useGoalReorder'
@@ -326,6 +327,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       class="nav-goal-btn"
       :class="{ active: activeView === 'analytics' }"
       :title="shortcutTitle('Analytics', 'G then Y')"
+      data-tip-anchor="nav-analytics"
       @click="chooseView('analytics')"
     >
       <span class="nav-goal-btn__main">
@@ -364,7 +366,11 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
     <TimerWidget @open-timer="chooseView('timer')" />
     <div class="sidebar-actions">
-      <button class="btn btn-primary" @click="openNewGoalForm">
+      <button
+        class="btn btn-primary"
+        data-tip-anchor="new-project"
+        @click="openNewGoalForm"
+      >
         New Project
       </button>
       <NewGoalComponent
@@ -375,6 +381,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     </div>
 
     <div class="sidebar-footer">
+      <TourPill />
       <SyncStatusDot :status="syncStatus" @open-account="openProfile" />
       <SidebarProfileButton />
     </div>

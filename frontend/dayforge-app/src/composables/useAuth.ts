@@ -107,8 +107,11 @@ export function useAuth() {
   }
 
   /**
-   * Signing out leaves the local data alone: the app goes back to being the
-   * offline planner it is without an account.
+   * Ends the session and this browser's push subscription. It does not wipe
+   * local data: the profile sign-out flow does that after it has flushed any
+   * pending changes. The wipe lives there because it needs the sync engine,
+   * which imports this file. Without it, the next account on this browser
+   * would be merged with the previous account's data.
    */
   async function signOut(): Promise<void> {
     const supabase = getSupabase()

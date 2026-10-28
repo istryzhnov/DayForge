@@ -177,6 +177,7 @@ const {
     :data-drop-row="drag ? node.task.templateId : undefined"
     :data-drop-major="isProject ? 'true' : undefined"
     :data-task-id="node.task.id"
+    :data-tour-task="node.task.templateId"
     :data-tip-anchor="isNested ? undefined : 'task-row'"
     @contextmenu.prevent="openContextMenu"
     @pointerdown="onRowPointerDown"

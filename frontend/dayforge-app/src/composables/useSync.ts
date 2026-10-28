@@ -224,8 +224,30 @@ export function useSync() {
     engine.onSignedOut()
   }
 
+  /** Changes this browser has not yet got onto the server. */
+  function pendingCount(): number {
+    return engine.outbox.queued
+  }
+
+  /**
+   * Tries to send what is queued, for at most `timeoutMs`. Offline there is
+   * nothing to try, so it returns straight away. Whatever is still queued when
+   * it returns is the caller's to decide about.
+   */
+  async function flushPending(timeoutMs: number): Promise<void> {
+    const deadline = Date.now() + timeoutMs
+    while (engine.outbox.queued > 0 && online.value && Date.now() < deadline) {
+      await engine.flush()
+      if (engine.outbox.queued === 0) return
+      // A flush already in flight returns at once, so wait a beat before retrying.
+      await new Promise((resolve) => window.setTimeout(resolve, 250))
+    }
+  }
+
   return {
     register,
+    pendingCount,
+    flushPending,
     status: engine.status,
     retryDead: engine.retryDead,
     discardDead: engine.discardDead,

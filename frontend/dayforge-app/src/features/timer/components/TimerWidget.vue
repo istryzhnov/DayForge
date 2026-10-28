@@ -24,7 +24,11 @@ const {
 </script>
 
 <template>
-  <section class="timer-widget" aria-label="Timer">
+  <section
+    class="timer-widget"
+    aria-label="Timer"
+    data-tip-anchor="sidebar-timer"
+  >
     <header class="timer-widget__head">
       <span class="timer-widget__status">{{ statusLabel }}</span>
       <button

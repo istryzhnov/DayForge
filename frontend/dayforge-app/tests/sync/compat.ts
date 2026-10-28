@@ -41,6 +41,15 @@ import {
 import { verifyCalendarTitles } from './compat/calendar'
 import { verifyGoalReorder } from './compat/reorder'
 import {
+  verifyTourDeletions,
+  verifyTourGuards,
+  verifyTourLifecycle,
+  verifyTourPaths,
+  verifyTourSteps,
+  verifyTourStorage,
+} from './compat/tour'
+import { verifySignOutKeySelection } from './compat/signout'
+import {
   verifyProjectDropTargets,
   verifyPlaceBeside,
 } from './compat/dropTargets'
@@ -82,6 +91,13 @@ function main() {
   verifyGoalReorder()
   verifyProjectDropTargets()
   verifyPlaceBeside()
+  verifySignOutKeySelection()
+  verifyTourSteps()
+  verifyTourPaths()
+  verifyTourGuards()
+  verifyTourLifecycle()
+  verifyTourDeletions()
+  verifyTourStorage()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

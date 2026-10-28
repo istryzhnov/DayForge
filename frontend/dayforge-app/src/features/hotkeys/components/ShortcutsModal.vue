@@ -8,14 +8,22 @@ import {
 } from '../../../composables/useHotkeys'
 import { useSettings } from '../../../composables/useSettings'
 import { useTips } from '../../onboarding/composables/useTips'
+import { useTour } from '../../onboarding/composables/useTour'
 
 const { closeOverlay } = useHotkeyOverlay()
 const { settings } = useSettings()
 const { resetTips } = useTips()
+const { restart: restartTour } = useTour()
 
 /** Closes the panel too, so the first bubble has something to point at. */
 function showTipsAgain() {
   resetTips()
+  closeOverlay()
+}
+
+/** Starts the step-by-step tour from the first step, even after it was finished. */
+function takeTour() {
+  restartTour()
   closeOverlay()
 }
 
@@ -64,6 +72,12 @@ onMounted(() => cardRef.value?.focus())
             <span>Short notes that point at what each control does.</span>
             <button class="btn btn-ghost" type="button" @click="showTipsAgain">
               Show tips again
+            </button>
+          </div>
+          <div class="shortcuts-row shortcuts-row--tips">
+            <span>A step-by-step guide that moves on as you work.</span>
+            <button class="btn btn-ghost" type="button" @click="takeTour">
+              Take the tour
             </button>
           </div>
         </section>

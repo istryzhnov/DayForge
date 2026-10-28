@@ -6,6 +6,9 @@ import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
 import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import CoachMark from '../features/onboarding/components/CoachMark.vue'
+import TourCoach from '../features/onboarding/components/TourCoach.vue'
+import type { TourOffscreen } from '../features/onboarding/composables/tourSteps'
+import type { ID } from '../entities/types'
 import WelcomeFlow from '../features/onboarding/components/WelcomeFlow.vue'
 import {
   useWelcomeStart,
@@ -163,7 +166,11 @@ const { overlay, closeOverlay } = useHotkeyOverlay()
 const { isOpen: isSettingsOpen } = useSettingsPanel()
 const { editRequest, closeEntryEdit } = useEntryEditRequest()
 const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
-const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
+const {
+  isOpen: isMobileNavOpen,
+  open: openMobileNav,
+  close: closeMobileNav,
+} = useMobileNav()
 
 /**
  * After mount, once the browser is idle, fetch the chunks of the two views
@@ -199,6 +206,22 @@ function warmLazyViews() {
 
 onMounted(warmLazyViews)
 onMounted(showAccountDeletedNotice)
+
+/**
+ * The tour's bubble points at a control the user cannot see yet. The action
+ * button brings that control on screen: the project, and for the card steps
+ * the board too.
+ */
+function handleTourNavigate(target: TourOffscreen, projectId: ID | undefined) {
+  if (target === 'drawer') {
+    openMobileNav()
+    return
+  }
+  closeMobileNav()
+  if (!projectId) return
+  selectGoal(projectId)
+  if (target === 'board') handleChangeGoalBoard(projectId, true)
+}
 
 /** Opens the project, moves to the day of a finished task, and flashes its row. */
 function handleSearchSelect(result: SearchResult) {
@@ -422,6 +445,7 @@ function handleSearchSelect(result: SearchResult) {
     <ShortcutTipToast />
 
     <CoachMark :view="activeView" @action="openStarter" />
+    <TourCoach @navigate="handleTourNavigate" />
 
     <WelcomeFlow
       v-if="welcomeOpen"

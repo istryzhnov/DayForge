@@ -1,0 +1,53 @@
+/* Getting-started tour: the bubble reuses the coach mark look, and the pill
+   sits in the sidebar footer. Theme tokens only, so every palette works. */
+
+/* No arrow and no anchor: the bubble sits centred near the bottom edge. The
+   bubble's own animation sets a transform, so the centring uses margins. */
+.coach-mark.is-docked {
+  top: auto;
+  bottom: 16px;
+  left: 50%;
+  margin-left: calc(-1 * min(140px, (100vw - 24px) / 2));
+}
+
+.coach-mark__eyebrow {
+  margin: 0;
+  font-size: calc(11px * var(--text-scale));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.tour-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: calc(13px * var(--text-scale));
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tour-pill:hover,
+.tour-pill:focus-visible {
+  border-color: var(--accent);
+}
+
+.tour-pill__label {
+  flex: 1;
+  text-align: left;
+  font-weight: 600;
+}
+
+.tour-pill__count {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

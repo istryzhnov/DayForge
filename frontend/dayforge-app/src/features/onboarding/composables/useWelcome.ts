@@ -2,6 +2,7 @@ import { computed, ref, watch, type Ref } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useSettings, type StartView } from '../../../composables/useSettings'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
+import { startTour } from './useTour'
 
 /**
  * Sign-in leaves the app for Google and comes back to it, so the choice made
@@ -85,12 +86,17 @@ function clearPending() {
   }
 }
 
-/** Finishing for any reason, so the card never returns on this or another device. */
-function markDone() {
+/**
+ * Finishing for any reason, so the card never returns on this or another
+ * device. `withTour` starts the getting-started tour, except after a sign-in,
+ * where the user is coming back to an account that already has its data.
+ */
+function markDone(withTour: boolean) {
   const { update } = useSettings()
   update('behavior', { welcomeDone: true })
   welcomeOpen.value = false
   welcomeHoldsTips.value = false
+  if (withTour) startTour()
 }
 
 /**
@@ -136,7 +142,7 @@ export function useWelcomeStart(
     // Back from Google with an account: a sign-in is done, a sign-up goes on.
     if (pending && signedIn) {
       if (pending === 'signin') {
-        markDone()
+        markDone(false)
         return
       }
       open(2)
@@ -222,11 +228,11 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
       projectColor.value,
       useChoice.value === 'plan',
     )
-    markDone()
+    markDone(true)
   }
 
   function useTemplate() {
-    markDone()
+    markDone(true)
     callbacks.useTemplate()
   }
 
@@ -242,7 +248,7 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
     isBusy: auth.isBusy,
     continueStep,
     back,
-    skip: markDone,
+    skip: () => markDone(true),
     createProject,
     useTemplate,
     dismissError: auth.dismissError,

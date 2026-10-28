@@ -1,0 +1,203 @@
+<script setup lang="ts">
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from 'vue'
+import type { ID } from '../../../entities/types'
+import { useMediaQuery } from '../../../composables/useMediaQuery'
+import { useMobileNav } from '../../sidebar/composables/useMobileNav'
+import {
+  dialogOpen,
+  findOnScreen,
+  useCoachLayout,
+  type CoachTarget,
+} from '../composables/useCoachLayout'
+import type { TourOffscreen } from '../composables/tourSteps'
+import { useTour, tourEvent } from '../composables/useTour'
+import CoachBubble from './CoachBubble.vue'
+
+const emit = defineEmits<{
+  /** The owner brings the control on screen: the project, the board, or the drawer. */
+  (e: 'navigate', target: TourOffscreen, projectId: ID | undefined): void
+}>()
+
+const {
+  state,
+  currentStep,
+  stepNumber,
+  stepCount,
+  bubbleOpen,
+  running,
+  skip,
+  finish,
+  close,
+} = useTour()
+/** Touch or a phone-width screen: the same cut the phone layout uses. */
+const isMobile = useMediaQuery('(pointer: coarse), (max-width: 720px)')
+const { open: openNav } = useMobileNav()
+const bubble = useTemplateRef<InstanceType<typeof CoachBubble>>('bubble')
+
+/** A dialog covers the page, so the bubble waits underneath it. */
+const covered = ref(false)
+/** False until the first measure, so a bubble does not flash docked before it finds its control. */
+const resolved = ref(false)
+
+/** The step's control, when it can be seen. Null docks the bubble instead. */
+function resolve(): CoachTarget | null {
+  resolved.value = true
+  covered.value = dialogOpen()
+  const step = currentStep.value
+  const tourState = state.value
+  if (!step || !tourState || !bubbleOpen.value || covered.value) return null
+  if (!step.anchor) return null
+  const el = findOnScreen(step.anchor(tourState))
+  return el ? { el, placement: step.placement ?? 'bottom' } : null
+}
+
+const { target, position, schedule } = useCoachLayout<CoachTarget>(
+  resolve,
+  () => (bubble.value?.$el as HTMLElement | undefined) ?? null,
+)
+
+const visibleStep = computed(() =>
+  running.value && bubbleOpen.value && !covered.value
+    ? currentStep.value
+    : null,
+)
+
+/** Docked means no control is on screen right now: the bubble sits at the bottom. */
+const docked = computed(
+  () => visibleStep.value !== null && resolved.value && target.value === null,
+)
+
+/** "Show me" appears only when the control is hidden and the step has somewhere to go. */
+const showMeTarget = computed<TourOffscreen | null>(() =>
+  docked.value ? (visibleStep.value?.offscreen ?? null) : null,
+)
+
+const isFinish = computed(() => visibleStep.value?.doneOn === null)
+
+const bodyText = computed(() => {
+  const step = visibleStep.value
+  if (!step) return ''
+  return isMobile.value && step.touchBody ? step.touchBody : step.body
+})
+
+function navigate(target: TourOffscreen) {
+  emit('navigate', target, state.value?.projectId)
+}
+
+/** "Not now" moves the tour to the sidebar timer; the event does the work. */
+function decline() {
+  const event = visibleStep.value?.branch?.on
+  if (event) tourEvent(event)
+}
+
+function offer() {
+  const target = visibleStep.value?.offer?.target
+  if (target) navigate(target)
+}
+
+function skipStep() {
+  const event = visibleStep.value?.skipOn
+  if (event) tourEvent(event)
+}
+
+// On a phone the sidebar holds the step's control, so the drawer opens for it.
+watch(
+  () =>
+    running.value && bubbleOpen.value && isMobile.value
+      ? currentStep.value?.sidebar
+        ? currentStep.value.id
+        : null
+      : null,
+  (id) => {
+    if (id) openNav()
+  },
+  { immediate: true },
+)
+
+watch([state, bubbleOpen], () => schedule())
+
+/** Esc closes the bubble, not the tour; the progress pill brings it back. */
+function onKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Escape' || event.defaultPrevented) return
+  if (!visibleStep.value || dialogOpen()) return
+  const focused = event.target as HTMLElement | null
+  if (
+    focused &&
+    (focused.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(focused.tagName))
+  ) {
+    return
+  }
+  close()
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onUnmounted(() => window.removeEventListener('keydown', onKeydown))
+</script>
+
+<template>
+  <Teleport to="body">
+    <CoachBubble
+      v-if="visibleStep && (docked || position)"
+      ref="bubble"
+      :title="visibleStep.title"
+      :body="bodyText"
+      :position="docked ? null : position"
+      close-label="Hide this step"
+      @close="close"
+    >
+      <template #eyebrow>Step {{ stepNumber }} of {{ stepCount }}</template>
+      <template #actions>
+        <button
+          v-if="showMeTarget"
+          class="coach-mark__action"
+          type="button"
+          @click="navigate(showMeTarget)"
+        >
+          Show me
+        </button>
+        <button
+          v-if="visibleStep.offer"
+          class="coach-mark__action"
+          type="button"
+          @click="offer"
+        >
+          {{ visibleStep.offer.label }}
+        </button>
+        <button
+          v-if="visibleStep.branch"
+          class="coach-mark__action"
+          type="button"
+          @click="decline"
+        >
+          Not now
+        </button>
+        <button
+          v-if="visibleStep.skipOn"
+          class="coach-mark__action"
+          type="button"
+          @click="skipStep"
+        >
+          Skip
+        </button>
+        <button
+          v-if="isFinish"
+          class="coach-mark__action"
+          type="button"
+          @click="finish"
+        >
+          Finish
+        </button>
+        <button class="coach-mark__quiet" type="button" @click="skip">
+          Skip tour
+        </button>
+      </template>
+    </CoachBubble>
+  </Teleport>
+</template>

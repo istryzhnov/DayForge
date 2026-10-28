@@ -2,7 +2,13 @@ import { ref } from 'vue'
 import { readJson, writeJson } from '../../../lib/storage'
 import { TIPS, type TipFacts } from './tips'
 
-const TIPS_STORAGE_KEY = 'dayforge-tips-v1'
+const TIPS_STORAGE_KEY = 'dayforge-coach-tips-v1'
+/**
+ * Where these tips used to live. The keyboard-shortcut toast writes the same
+ * key with its own fields and wiped "off" and the dismissed list on every
+ * load, so the tips moved out; what was saved there is read once.
+ */
+const SHARED_STORAGE_KEY = 'dayforge-tips-v1'
 
 interface StoredTips {
   dismissed: string[]
@@ -11,7 +17,9 @@ interface StoredTips {
 
 /** A damaged value just brings every tip back, which is harmless. */
 function loadStored(): StoredTips {
-  const stored = readJson<Partial<StoredTips>>(TIPS_STORAGE_KEY, {})
+  const stored =
+    readJson<Partial<StoredTips> | null>(TIPS_STORAGE_KEY, null) ??
+    readJson<Partial<StoredTips>>(SHARED_STORAGE_KEY, {})
   return {
     dismissed: Array.isArray(stored.dismissed)
       ? stored.dismissed.filter((id) => typeof id === 'string')

@@ -30,6 +30,7 @@ import { splitStretchAroundAway } from './timer/reminders'
 import { mustRecordBeforeAdopting } from './timer/remote'
 import { formatDuration } from './timer/format'
 import { sanitizeActiveTimer } from './timer/sanitize'
+import { tourEvent } from '../features/onboarding/composables/useTour'
 
 export const ACTIVE_TIMER_STORAGE_KEY = 'dayforge-timer-active-v1'
 
@@ -75,6 +76,19 @@ function notifyPhaseFinished(effects: TimerEffect[]) {
   }
 }
 
+/**
+ * Tells the tour when a sitting on a task starts or ends. A sitting is one
+ * session: pausing and resuming keep it, so only a new or ended one counts.
+ */
+function notifyTourOfSitting(closing: ActiveTimer, next: ActiveTimer) {
+  if (isLive(closing) && closing.sessionId !== next.sessionId) {
+    tourEvent('timer-stopped', { taskId: closing.task?.taskId })
+  }
+  if (isLive(next) && closing.sessionId !== next.sessionId) {
+    tourEvent('timer-started', { taskId: next.task?.taskId })
+  }
+}
+
 function clearScheduled() {
   if (tickId !== undefined) window.clearInterval(tickId)
   if (expiryId !== undefined) window.clearTimeout(expiryId)
@@ -106,6 +120,7 @@ function apply(result: TransitionResult) {
   }
 
   timer.value = result.timer
+  notifyTourOfSitting(closing, result.timer)
   now.value = Date.now()
   useTimeEntries().addDrafts(result.entries)
   if (result.effects.length > 0) notifyPhaseFinished(result.effects)
