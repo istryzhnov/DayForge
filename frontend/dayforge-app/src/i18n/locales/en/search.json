@@ -1,0 +1,22 @@
+{
+  "placeholder": "Search projects and tasks",
+  "results": "Results",
+  "noMatches": "No matches",
+  "idle": "Type to search projects, tasks and finished work.",
+  "move": "move",
+  "open": "open",
+  "close": "close",
+  "paused": "Paused",
+  "archived": "Archived",
+  "project": "Project",
+  "repeatDaily": "Daily",
+  "repeatWeekly": "Weekly",
+  "repeatMonthly": "Monthly",
+  "repeatYearly": "Yearly",
+  "repeats": "Repeats",
+  "groupProjects": "Projects",
+  "groupTasks": "Tasks",
+  "groupDone": "Archived and done",
+  "noProject": "No project",
+  "unknownProject": "Unknown project"
+}

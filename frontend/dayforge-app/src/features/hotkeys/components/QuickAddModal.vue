@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { I18nT, useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   (e: 'submit', result: QuickAddResult): void
 }>()
 
+const { t } = useI18n()
 const { closeOverlay } = useHotkeyOverlay()
 
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
@@ -41,7 +43,10 @@ const dayLabel = computed(() => {
   const result = parsed.value
   if (!result.date) return ''
   if (result.day === 'date') return result.date
-  return `${result.day === 'today' ? 'Today' : 'Tomorrow'} · ${result.date}`
+  return t('hotkeys.dayDate', {
+    day: result.day === 'today' ? t('hotkeys.today') : t('hotkeys.tomorrow'),
+    date: result.date,
+  })
 })
 
 const caret = ref(0)
@@ -163,7 +168,7 @@ onMounted(() => inputRef.value?.focus())
       class="quick-add-modal"
       role="dialog"
       aria-modal="true"
-      aria-label="Quick add task"
+      :aria-label="t('hotkeys.quickAddDialog')"
     >
       <div class="modal-overlay" @click="closeOverlay"></div>
       <div class="quick-add-card">
@@ -172,9 +177,9 @@ onMounted(() => inputRef.value?.focus())
           v-model="text"
           class="quick-add-card__input"
           type="text"
-          placeholder="Buy milk tomorrow  #project"
+          :placeholder="t('hotkeys.quickAddPlaceholder')"
           autocomplete="off"
-          aria-label="Task title"
+          :aria-label="t('hotkeys.taskTitle')"
           aria-autocomplete="list"
           :aria-expanded="showSuggestions && suggestions.length > 0"
           aria-controls="quick-add-projects"
@@ -189,7 +194,7 @@ onMounted(() => inputRef.value?.focus())
           id="quick-add-projects"
           class="quick-add-suggest"
           role="listbox"
-          aria-label="Projects"
+          :aria-label="t('hotkeys.projectsList')"
         >
           <li
             v-for="(goal, index) in suggestions"
@@ -212,15 +217,17 @@ onMounted(() => inputRef.value?.focus())
             v-if="suggestions.length === 0 && projectToken?.query"
             class="quick-add-suggest__new"
           >
-            No project yet: Enter creates “{{
-              projectToken.query.replace(/_/g, ' ')
-            }}”
+            {{
+              t('hotkeys.noProjectYet', {
+                name: projectToken.query.replace(/_/g, ' '),
+              })
+            }}
           </li>
           <li
             v-else-if="suggestions.length === 0"
             class="quick-add-suggest__new"
           >
-            Type a project name
+            {{ t('hotkeys.typeProjectName') }}
           </li>
         </ul>
 
@@ -233,7 +240,7 @@ onMounted(() => inputRef.value?.focus())
             {{ parsed.goalTitle }}
           </span>
           <span v-else-if="parsed.newGoalTitle" class="quick-add-chip is-new">
-            New project: {{ parsed.newGoalTitle }}
+            {{ t('hotkeys.newProjectChip', { name: parsed.newGoalTitle }) }}
           </span>
           <span v-else class="quick-add-chip is-muted">
             {{ currentTitle }}
@@ -242,24 +249,31 @@ onMounted(() => inputRef.value?.focus())
         </div>
 
         <p v-if="!text" class="quick-add-card__hint quick-add-card__syntax">
-          <span class="quick-add-card__syntax-short"
-            >Try: Buy milk tomorrow</span
+          <span class="quick-add-card__syntax-short">{{
+            t('hotkeys.trySyntax')
+          }}</span>
+          <I18nT
+            keypath="hotkeys.trySyntaxFull"
+            tag="span"
+            class="quick-add-card__syntax-full"
           >
-          <span class="quick-add-card__syntax-full">
-            Try: Buy milk tomorrow or 25.10 · <kbd>Enter</kbd> to add
-          </span>
+            <template #enter><kbd>Enter</kbd></template>
+          </I18nT>
           <span class="quick-add-card__note quick-add-card__syntax-full">
-            #project to file it, or to start a new one
+            {{ t('hotkeys.projectHint') }}
           </span>
         </p>
         <p v-else class="quick-add-card__hint">
-          <kbd>Enter</kbd> add <kbd>Shift</kbd>+<kbd>Enter</kbd> add and keep
-          open <kbd>Esc</kbd> close
+          <I18nT keypath="hotkeys.keysHint" tag="span">
+            <template #enter><kbd>Enter</kbd></template>
+            <template #shiftEnter><kbd>Shift</kbd>+<kbd>Enter</kbd></template>
+            <template #esc><kbd>Esc</kbd></template>
+          </I18nT>
         </p>
 
         <div class="modal-actions">
           <button class="btn btn-ghost" type="button" @click="closeOverlay">
-            Cancel
+            {{ t('common.cancel') }}
           </button>
           <button
             class="btn btn-primary"
@@ -267,7 +281,7 @@ onMounted(() => inputRef.value?.focus())
             :disabled="!parsed.title"
             @click="submit(false)"
           >
-            Add task
+            {{ t('hotkeys.addTask') }}
           </button>
         </div>
       </div>

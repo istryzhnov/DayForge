@@ -1,3 +1,4 @@
+import { i18n } from '../i18n'
 import { useTimeEntries } from './useTimeEntries'
 import { useUndoToast } from './useUndoToast'
 import {
@@ -26,13 +27,20 @@ export function useLogPlanned() {
   function logBlock(block: PlannedBlock): boolean {
     const plan = planBlockEntry(block, entries.value, Date.now())
     if (!plan.ok) {
-      offerNotice(plan.reason, 'OK', () => {})
+      offerNotice(
+        i18n.global.t(plan.reasonKey),
+        i18n.global.t('common.ok'),
+        () => {},
+      )
       return false
     }
 
     const created = addManual(plan.payload)
-    offerUndo(`Logged ${block.startTime}–${block.endTime} as planned`, () =>
-      removeEntry(created.id),
+    offerUndo(
+      i18n.global.t('timer.loggedAsPlanned', {
+        range: `${block.startTime}–${block.endTime}`,
+      }),
+      () => removeEntry(created.id),
     )
     return true
   }
@@ -48,7 +56,7 @@ export function useLogPlanned() {
 
     if (created.length > 0) {
       offerUndo(
-        `Logged ${created.length} planned ${created.length === 1 ? 'block' : 'blocks'}`,
+        i18n.global.t('timer.loggedPlannedBlocks', created.length),
         () => created.forEach((id) => removeEntry(id)),
       )
     }

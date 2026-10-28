@@ -1,0 +1,13 @@
+{
+  "notSyncing": "Not syncing",
+  "syncing": "Syncing…",
+  "offline": "Offline",
+  "offlineWaiting": "Offline · {count} change waiting | Offline · {count} changes waiting",
+  "errorRefused": "Sync error · {count} refused",
+  "synced": "Synced",
+  "syncedAt": "Synced · {time}",
+  "errorLabel": "Sync error",
+  "offlineLabel": "Offline",
+  "openProfileToLook": "Open your profile to look.",
+  "willUploadLater": "They will go up on their own once there is a connection."
+}

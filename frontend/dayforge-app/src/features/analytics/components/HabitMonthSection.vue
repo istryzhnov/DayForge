@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
@@ -12,6 +13,7 @@ const props = defineProps<{
   dailyTasks: DailyTask[]
 }>()
 
+const { t } = useI18n()
 const todayISO = getTodayISODate()
 
 const {
@@ -42,10 +44,10 @@ const {
   <section class="habits">
     <div class="habits__main">
       <p v-if="!hasRepeating" class="timer-history__empty">
-        No habits yet — make a task repeat to track it here
+        {{ t('analytics.habitsEmpty') }}
       </p>
       <p v-else-if="view.rows.length === 0" class="timer-history__empty">
-        No habits due in {{ monthLabel }}
+        {{ t('analytics.habitsNone', { month: monthLabel }) }}
       </p>
       <div v-else class="ui-card habits__card">
         <ul class="habits__rows">
@@ -68,7 +70,7 @@ const {
         <button
           class="ui-icon-btn ui-icon-btn--outlined"
           type="button"
-          aria-label="Previous month"
+          :aria-label="t('analytics.prevMonth')"
           @click="shiftMonth(-1)"
         >
           <AppIcon name="chevron-left" :size="18" />
@@ -77,7 +79,7 @@ const {
         <button
           class="ui-icon-btn ui-icon-btn--outlined"
           type="button"
-          aria-label="Next month"
+          :aria-label="t('analytics.nextMonth')"
           :disabled="!canGoNext"
           @click="shiftMonth(1)"
         >
@@ -87,7 +89,9 @@ const {
 
       <template v-if="view.rows.length > 0">
         <figure class="ui-card habits__calendar">
-          <figcaption class="ui-section-label">Daily completion</figcaption>
+          <figcaption class="ui-section-label">
+            {{ t('analytics.dailyCompletion') }}
+          </figcaption>
           <div class="habits__weekdays" aria-hidden="true">
             <span v-for="(label, index) in weekdayLabels" :key="index">{{
               label
@@ -115,17 +119,17 @@ const {
             </li>
           </ol>
           <div class="habits__legend" aria-hidden="true">
-            <span>Less</span>
+            <span>{{ t('analytics.less') }}</span>
             <i class="habits__day is-missed"></i>
             <i class="habits__day is-partial"></i>
             <i class="habits__day is-full"></i>
-            <span>More</span>
+            <span>{{ t('analytics.more') }}</span>
           </div>
         </figure>
 
         <div class="habits__stats">
           <div class="ui-stat">
-            <span class="ui-stat__label">Completion</span>
+            <span class="ui-stat__label">{{ t('analytics.completion') }}</span>
             <strong class="ui-stat__value">{{
               percentLabel(view.completionRate)
             }}</strong>
@@ -134,14 +138,14 @@ const {
             >
           </div>
           <div class="ui-stat">
-            <span class="ui-stat__label">Full days</span>
+            <span class="ui-stat__label">{{ t('analytics.fullDays') }}</span>
             <strong class="ui-stat__value">{{ view.fullDays }}</strong>
           </div>
           <div class="ui-stat">
-            <span class="ui-stat__label">Streak</span>
+            <span class="ui-stat__label">{{ t('analytics.colStreak') }}</span>
             <strong class="ui-stat__value">{{ view.currentStreak }}</strong>
             <span class="habits__note">
-              {{ view.currentStreak === 1 ? 'day in a row' : 'days in a row' }}
+              {{ t('analytics.dayInRow', view.currentStreak) }}
             </span>
           </div>
         </div>

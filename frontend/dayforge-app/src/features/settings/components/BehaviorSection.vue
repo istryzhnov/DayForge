@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { GOAL_STATUS } from '../../../entities/constants'
 import {
@@ -20,6 +21,8 @@ import {
   rangeValue,
   textValue,
 } from '../../../composables/inputValue'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   goals: Goal[]
@@ -62,7 +65,7 @@ function startOnView(view: StartView) {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Open on start</p>
+    <p class="sidebar-caption">{{ t('settings.openOnStart') }}</p>
     <div class="settings-chips">
       <button
         class="theme-chip"
@@ -74,7 +77,7 @@ function startOnView(view: StartView) {
         type="button"
         @click="startOnAllTasks"
       >
-        All tasks
+        {{ t('settings.viewAllTasks') }}
       </button>
       <button
         v-if="startProjects.length > 0"
@@ -83,7 +86,7 @@ function startOnView(view: StartView) {
         type="button"
         @click="startOnProject()"
       >
-        A project
+        {{ t('settings.viewAProject') }}
       </button>
       <button
         v-for="option in otherViews"
@@ -93,12 +96,12 @@ function startOnView(view: StartView) {
         type="button"
         @click="startOnView(option.id)"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
     <label v-if="startsOnProject" class="settings-select">
-      <span>Project</span>
+      <span>{{ t('settings.projectSelect') }}</span>
       <select
         :value="settings.behavior.startGoalId ?? ''"
         @change="startOnProject(textValue($event))"
@@ -109,7 +112,7 @@ function startOnView(view: StartView) {
       </select>
     </label>
 
-    <p class="sidebar-caption">New items are</p>
+    <p class="sidebar-caption">{{ t('settings.newItemsAre') }}</p>
     <div class="settings-chips">
       <button
         v-for="option in PRIORITY_OPTIONS"
@@ -119,11 +122,11 @@ function startOnView(view: StartView) {
         type="button"
         @click="update('behavior', { defaultPriority: option.id })"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">On its own</p>
+    <p class="sidebar-caption">{{ t('settings.onItsOwn') }}</p>
 
     <label class="settings-toggle">
       <input
@@ -132,11 +135,8 @@ function startOnView(view: StartView) {
         @change="update('behavior', { carryForward: checkedValue($event) })"
       />
       <span>
-        <strong>Carry unfinished tasks forward</strong>
-        <em>
-          Off leaves an undated task on the day it was made instead of moving it
-          to today.
-        </em>
+        <strong>{{ t('settings.carryForward') }}</strong>
+        <em>{{ t('settings.carryForwardHint') }}</em>
       </span>
     </label>
 
@@ -149,16 +149,13 @@ function startOnView(view: StartView) {
         "
       />
       <span>
-        <strong>Keyboard shortcuts</strong>
-        <em>
-          N adds a task, Space runs the timer, ? lists the rest. Off turns them
-          all off.
-        </em>
+        <strong>{{ t('settings.keyboardShortcuts') }}</strong>
+        <em>{{ t('settings.keyboardShortcutsHint') }}</em>
       </span>
     </label>
 
     <button class="btn btn-ghost" type="button" @click="openShortcuts">
-      Show shortcuts
+      {{ t('settings.showShortcuts') }}
     </button>
 
     <label class="settings-toggle">
@@ -168,26 +165,25 @@ function startOnView(view: StartView) {
         @change="checkedValue($event) ? turnOn() : turnOff()"
       />
       <span>
-        <strong>Tips</strong>
-        <em>
-          Short notes that point at the control they explain. Close one with ×,
-          or turn them all off here.
-        </em>
+        <strong>{{ t('settings.tips') }}</strong>
+        <em>{{ t('settings.tipsHint') }}</em>
       </span>
     </label>
 
     <button class="btn btn-ghost" type="button" @click="resetTips">
-      Show all tips again
+      {{ t('settings.showTipsAgain') }}
     </button>
 
     <button class="btn btn-ghost" type="button" @click="restartTour">
-      Take the tour again
+      {{ t('settings.takeTourAgain') }}
     </button>
 
     <label class="settings-slider">
       <span>
-        Undo window
-        <em>{{ settings.behavior.undoWindowSeconds }}s</em>
+        {{ t('settings.undoWindow') }}
+        <em>{{
+          t('settings.undoSeconds', { n: settings.behavior.undoWindowSeconds })
+        }}</em>
       </span>
       <input
         type="range"
@@ -197,7 +193,7 @@ function startOnView(view: StartView) {
         :value="settings.behavior.undoWindowSeconds"
         @input="update('behavior', { undoWindowSeconds: rangeValue($event) })"
       />
-      <small>How long a delete stays reversible.</small>
+      <small>{{ t('settings.undoWindowHint') }}</small>
     </label>
 
     <button
@@ -205,7 +201,7 @@ function startOnView(view: StartView) {
       type="button"
       @click="resetSection('behavior')"
     >
-      Reset behaviour
+      {{ t('settings.resetBehaviour') }}
     </button>
   </div>
 </template>

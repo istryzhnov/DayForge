@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import AppIcon from '../../../components/AppIcon.vue'
 import { useTimerHistory } from '../composables/useTimerHistory'
+
+const { t } = useI18n()
 
 const emit = defineEmits<{ (e: 'edit', entry: TimeEntry): void }>()
 
@@ -19,7 +22,7 @@ const {
 <template>
   <div class="timer-history">
     <p v-if="days.length === 0" class="timer-history__empty">
-      Nothing recorded yet.
+      {{ t('timer.nothingRecorded') }}
     </p>
 
     <section v-for="group in days" :key="group.date" class="timer-history__day">
@@ -34,7 +37,7 @@ const {
         <div v-for="entry in group.entries" :key="entry.id" class="timer-entry">
           <div class="timer-entry__main">
             <span class="timer-entry__title ui-oneline">
-              {{ entry.taskTitle ?? 'No task' }}
+              {{ entry.taskTitle ?? t('timer.noTask') }}
             </span>
             <span class="timer-entry__meta ui-oneline">
               {{ timeRange(entry) }} · {{ kindLabel(entry) }}
@@ -50,8 +53,8 @@ const {
             <button
               class="ui-icon-btn"
               type="button"
-              aria-label="Edit entry"
-              title="Edit entry"
+              :aria-label="t('timer.editEntry')"
+              :title="t('timer.editEntry')"
               @click="emit('edit', entry)"
             >
               <AppIcon name="pencil" :size="14" />
@@ -59,8 +62,8 @@ const {
             <button
               class="ui-icon-btn"
               type="button"
-              aria-label="Delete entry"
-              title="Delete entry"
+              :aria-label="t('timer.deleteEntry')"
+              :title="t('timer.deleteEntry')"
               @click="removeEntry(entry.id)"
             >
               <AppIcon name="close" :size="14" />

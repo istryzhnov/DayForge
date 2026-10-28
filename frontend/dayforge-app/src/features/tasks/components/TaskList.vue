@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskGroup, TaskNode } from '../../../composables/useTaskTree'
@@ -34,6 +35,7 @@ const emit = defineEmits<{
   (e: 'move-task-to', payload: TaskDropPayload): void
 }>()
 
+const { t } = useI18n()
 const drag = useTaskDrag({ onMove: (payload) => emit('move-task-to', payload) })
 
 function dropEdge(node: TaskNode) {
@@ -182,7 +184,7 @@ function groupKey(group: TaskGroup) {
       :class="{ 'is-drop-target': drag.dropZone.value === DROP_ZONE_ROOT }"
       :data-drop-zone="DROP_ZONE_ROOT"
     >
-      Drop here to take it out of the project
+      {{ t('tasks.dropOutOfProject') }}
     </div>
 
     <DragGhost
@@ -197,5 +199,5 @@ function groupKey(group: TaskGroup) {
   </div>
 
   <!-- The composer row above is the way in, so an empty list only says so. -->
-  <p v-else class="task-empty">Nothing planned yet.</p>
+  <p v-else class="task-empty">{{ t('tasks.nothingPlanned') }}</p>
 </template>

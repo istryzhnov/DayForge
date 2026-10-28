@@ -1,6 +1,7 @@
 import { computed, ref, watch, type Ref } from 'vue'
 import type { DailyTask } from '../entities/TaskEntity'
 import { TASK_STATUS } from '../entities/constants'
+import { i18n } from '../i18n'
 import { getTodayISODate } from './goalSpace/date'
 import { isWithinQuietHours, useSettings } from './useSettings'
 import {
@@ -53,8 +54,11 @@ function stopAlertLoop() {
 function pushBrowserNotification(task: DailyTask) {
   if (!isSupported || permission.value !== 'granted') return
   try {
-    const notification = new Notification('Час братися до завдання', {
-      body: `«${task.title}» починається о ${task.startTime}`,
+    const notification = new Notification(i18n.global.t('tasks.notifyTitle'), {
+      body: i18n.global.t('tasks.notifyBody', {
+        title: task.title,
+        time: task.startTime ?? '',
+      }),
       tag: task.id,
     })
     notification.onclick = () => window.focus()

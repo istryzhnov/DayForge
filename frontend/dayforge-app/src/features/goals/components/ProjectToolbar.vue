@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 
 defineProps<{
@@ -7,23 +8,25 @@ defineProps<{
   notesOpen: boolean
 }>()
 
+const { t } = useI18n()
+
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
   (e: 'toggle-notes'): void
 }>()
 
-const VIEWS: ReadonlyArray<{ label: string; boardEnabled: boolean }> = [
-  { label: 'List', boardEnabled: false },
-  { label: 'Board', boardEnabled: true },
+const VIEWS: ReadonlyArray<{ labelKey: string; boardEnabled: boolean }> = [
+  { labelKey: 'goals.viewList', boardEnabled: false },
+  { labelKey: 'goals.viewBoard', boardEnabled: true },
 ]
 </script>
 
 <template>
   <div class="project-toolbar">
-    <div class="ui-tabs" role="group" aria-label="Project view">
+    <div class="ui-tabs" role="group" :aria-label="t('goals.projectView')">
       <button
         v-for="view in VIEWS"
-        :key="view.label"
+        :key="view.labelKey"
         type="button"
         class="ui-tab"
         :class="{ 'is-active': boardEnabled === view.boardEnabled }"
@@ -31,7 +34,7 @@ const VIEWS: ReadonlyArray<{ label: string; boardEnabled: boolean }> = [
         :data-tip-anchor="view.boardEnabled ? 'board-tab' : 'list-tab'"
         @click="emit('set-board', view.boardEnabled)"
       >
-        {{ view.label }}
+        {{ t(view.labelKey) }}
       </button>
     </div>
 
@@ -39,8 +42,8 @@ const VIEWS: ReadonlyArray<{ label: string; boardEnabled: boolean }> = [
       type="button"
       class="ui-icon-btn ui-icon-btn--outlined project-toolbar__notes"
       :class="{ 'is-active': notesOpen }"
-      aria-label="Project notes"
-      title="Project notes"
+      :aria-label="t('goals.projectNotes')"
+      :title="t('goals.projectNotes')"
       aria-haspopup="dialog"
       :aria-expanded="notesOpen"
       @click="emit('toggle-notes')"

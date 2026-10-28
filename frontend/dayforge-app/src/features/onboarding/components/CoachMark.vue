@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useMediaQuery } from '../../../composables/useMediaQuery'
 import {
   dialogOpen,
@@ -14,6 +15,8 @@ import { welcomeHoldsTips } from '../composables/useWelcome'
 import CoachBubble from './CoachBubble.vue'
 
 const props = defineProps<{ view: TipView }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'action'): void
@@ -120,7 +123,9 @@ function onKeydown(event: KeyboardEvent) {
 const bodyText = computed(() => {
   const tip = shown.value
   if (!tip) return ''
-  return isMobile.value && tip.touchBody ? tip.touchBody : tip.body
+  return isMobile.value && tip.touchBodyKey
+    ? t(tip.touchBodyKey)
+    : t(tip.bodyKey)
 })
 
 // Re-resolve when the candidates change: a view switch, a dismissal, or new data.
@@ -141,10 +146,10 @@ onUnmounted(() => {
     <CoachBubble
       v-if="shown && position"
       ref="bubble"
-      :title="shown.title"
+      :title="t(shown.titleKey)"
       :body="bodyText"
       :position="position"
-      close-label="Dismiss tip"
+      :close-label="t('onboarding.tipDismiss')"
       @close="dismissShown"
     >
       <template #actions>
@@ -154,10 +159,10 @@ onUnmounted(() => {
           type="button"
           @click="runAction"
         >
-          {{ shown.action.label }}
+          {{ t(shown.action.labelKey) }}
         </button>
         <button class="coach-mark__quiet" type="button" @click="turnOff">
-          Turn off tips
+          {{ t('onboarding.tipTurnOff') }}
         </button>
       </template>
     </CoachBubble>

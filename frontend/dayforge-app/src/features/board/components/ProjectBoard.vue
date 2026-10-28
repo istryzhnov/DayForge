@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type {
   DailyTask,
   TaskSchedule,
@@ -62,10 +63,12 @@ const allCards = computed<BoardCardModel[]>(() => [
   ...cards.value.done,
 ])
 
-const EMPTY_TEXT: Record<BoardColumn, string> = {
-  [BOARD_COLUMN.TODO]: 'Nothing to do yet.',
-  [BOARD_COLUMN.DOING]: 'Nothing in progress.',
-  [BOARD_COLUMN.DONE]: 'Finished tasks land here.',
+const { t } = useI18n()
+
+const EMPTY_TEXT_KEY: Record<BoardColumn, string> = {
+  [BOARD_COLUMN.TODO]: 'board.emptyTodo',
+  [BOARD_COLUMN.DOING]: 'board.emptyDoing',
+  [BOARD_COLUMN.DONE]: 'board.emptyDone',
 }
 
 /**
@@ -183,7 +186,7 @@ function submitAdd() {
 </script>
 
 <template>
-  <section class="project-board" aria-label="Project board">
+  <section class="project-board" :aria-label="t('board.projectBoard')">
     <div class="project-board__columns">
       <section
         v-for="column in BOARD_COLUMNS"
@@ -196,7 +199,7 @@ function submitAdd() {
         :aria-labelledby="`board-column-${column.key}`"
       >
         <header class="board-column__head">
-          <h3 :id="`board-column-${column.key}`">{{ column.title }}</h3>
+          <h3 :id="`board-column-${column.key}`">{{ t(column.titleKey) }}</h3>
           <span class="board-column__count">{{
             cards[column.key].length
           }}</span>
@@ -204,10 +207,10 @@ function submitAdd() {
             v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
             type="button"
             class="board-column__clear"
-            title="Hide finished tasks from this board. Nothing is deleted."
+            :title="t('board.clearDoneHint')"
             @click="clearDone"
           >
-            Clear done
+            {{ t('board.clearDone') }}
           </button>
         </header>
 
@@ -233,7 +236,7 @@ function submitAdd() {
           "
           class="board-column__empty"
         >
-          {{ EMPTY_TEXT[column.key] }}
+          {{ t(EMPTY_TEXT_KEY[column.key]) }}
         </p>
 
         <div v-if="column.key === BOARD_COLUMN.TODO" class="board-add">
@@ -243,7 +246,7 @@ function submitAdd() {
             class="board-add__btn"
             @click="startAdd"
           >
-            + Add
+            {{ t('board.addTask') }}
           </button>
 
           <form
@@ -256,8 +259,8 @@ function submitAdd() {
               v-model="draft"
               type="text"
               maxlength="200"
-              placeholder="Task title"
-              aria-label="New task title"
+              :placeholder="t('board.taskTitle')"
+              :aria-label="t('board.newTaskTitle')"
               autofocus
             />
             <div class="board-add__actions">
@@ -266,10 +269,10 @@ function submitAdd() {
                 class="btn btn-primary"
                 :disabled="!draft.trim()"
               >
-                Add
+                {{ t('common.add') }}
               </button>
               <button type="button" class="btn btn-ghost" @click="stopAdd">
-                Close
+                {{ t('common.close') }}
               </button>
             </div>
           </form>

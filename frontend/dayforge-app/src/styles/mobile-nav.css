@@ -56,6 +56,13 @@
     font-size: calc(15px * var(--text-scale));
   }
 
+  /* A view or the "All Projects" label is interface text, so it wraps. Only a
+     project's own name (user data) is cut with an ellipsis. */
+  .mobile-topbar__title--label {
+    white-space: normal;
+    text-overflow: clip;
+  }
+
   .mobile-topbar__end {
     display: flex;
     align-items: center;

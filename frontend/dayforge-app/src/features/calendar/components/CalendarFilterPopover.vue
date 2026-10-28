@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { NO_PROJECT_FILTER_ID } from '../../../composables/useSettings'
@@ -12,6 +13,7 @@ const props = defineProps<{
   goalVarsById: Record<ID, Record<string, string>>
 }>()
 
+const { t } = useI18n()
 const { isGoalVisible, toggleGoal, showAll, hideAll, isFilterActive } =
   useCalendarFilter()
 
@@ -72,7 +74,7 @@ onUnmounted(() => {
       class="ui-icon-btn ui-icon-btn--outlined calendar-filter__trigger"
       :class="{ 'is-active': isOpen }"
       type="button"
-      aria-label="Calendar filter"
+      :aria-label="t('calendar.filterLabel')"
       aria-haspopup="dialog"
       :aria-expanded="isOpen"
       @click="toggleOpen"
@@ -98,11 +100,11 @@ onUnmounted(() => {
       v-if="isOpen"
       class="calendar-filter__panel"
       role="dialog"
-      aria-label="Calendar filter"
+      :aria-label="t('calendar.filterLabel')"
     >
       <div class="calendar-filter__section">
         <div class="calendar-filter__section-head">
-          <p class="calendar-filter__caption">Projects</p>
+          <p class="calendar-filter__caption">{{ t('calendar.projects') }}</p>
           <div class="calendar-filter__bulk">
             <button
               v-if="isFilterActive"
@@ -110,7 +112,7 @@ onUnmounted(() => {
               type="button"
               @click="showAll"
             >
-              Show all
+              {{ t('calendar.showAll') }}
             </button>
             <button
               v-if="!isEverythingHidden"
@@ -118,7 +120,7 @@ onUnmounted(() => {
               type="button"
               @click="hideAll(liveGoals.map((goal) => goal.id))"
             >
-              Hide all
+              {{ t('calendar.hideAll') }}
             </button>
           </div>
         </div>
@@ -152,7 +154,9 @@ onUnmounted(() => {
                 @change="toggleGoal(NO_PROJECT_FILTER_ID)"
               />
               <span class="calendar-filter__dot" aria-hidden="true"></span>
-              <span class="calendar-filter__name">No project</span>
+              <span class="calendar-filter__name">{{
+                t('calendar.noProject')
+              }}</span>
             </label>
           </li>
         </ul>

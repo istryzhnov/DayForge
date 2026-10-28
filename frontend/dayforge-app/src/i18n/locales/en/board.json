@@ -1,0 +1,20 @@
+{
+  "projectBoard": "Project board",
+  "columnTodo": "To do",
+  "columnDoing": "In progress",
+  "columnDone": "Done",
+  "emptyTodo": "Nothing to do yet.",
+  "emptyDoing": "Nothing in progress.",
+  "emptyDone": "Finished tasks land here.",
+  "clearDone": "Clear done",
+  "clearDoneHint": "Hide finished tasks from this board. Nothing is deleted.",
+  "addTask": "+ Add",
+  "taskTitle": "Task title",
+  "newTaskTitle": "New task title",
+  "cardLabel": "{title}, {column}",
+  "scheduledDate": "Scheduled date",
+  "subtasksDone": "{done} of {total} subtasks done",
+  "moreActions": "More actions",
+  "moveTo": "Move to",
+  "clearedDone": "Cleared {n} done task | Cleared {n} done tasks"
+}

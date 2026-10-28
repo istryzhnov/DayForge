@@ -8,17 +8,17 @@ import {
   formatDuration,
   formatShortDuration,
 } from '../../../composables/timer/format'
-import {
-  PHASE_LABELS,
-  focusesUntilLongBreak,
-} from '../../../composables/timer/pomodoro'
+import { focusesUntilLongBreak } from '../../../composables/timer/pomodoro'
+import { durationWords, startPhaseLabel } from '../../../composables/timer/text'
+import { i18n } from '../../../i18n'
 
 export const COUNTDOWN_PRESETS = [5, 10, 15, 25, 45, 60]
 
-export const MODE_OPTIONS: { id: TimerMode; label: string }[] = [
-  { id: TIMER_MODE.STOPWATCH, label: 'Stopwatch' },
-  { id: TIMER_MODE.COUNTDOWN, label: 'Countdown' },
-  { id: TIMER_MODE.POMODORO, label: 'Pomodoro' },
+/** Mode tabs; `labelKey` is rendered with t() so a language switch updates it. */
+export const MODE_OPTIONS: { id: TimerMode; labelKey: string }[] = [
+  { id: TIMER_MODE.STOPWATCH, labelKey: 'timer.modeStopwatch' },
+  { id: TIMER_MODE.COUNTDOWN, labelKey: 'timer.modeCountdown' },
+  { id: TIMER_MODE.POMODORO, labelKey: 'timer.modePomodoro' },
 ]
 
 export function useTimerView() {
@@ -41,14 +41,18 @@ export function useTimerView() {
   const primaryLabel = computed(() => {
     const state = timer.timer.value
 
-    if (state.status === TIMER_STATUS.RUNNING) return 'Pause'
-    if (state.status === TIMER_STATUS.PAUSED) return 'Resume'
+    if (state.status === TIMER_STATUS.RUNNING) {
+      return i18n.global.t('timer.pause')
+    }
+    if (state.status === TIMER_STATUS.PAUSED) {
+      return i18n.global.t('timer.resume')
+    }
     if (state.status === TIMER_STATUS.FINISHED) {
       return state.mode === TIMER_MODE.POMODORO && state.phase
-        ? `Start ${PHASE_LABELS[state.phase].toLowerCase()}`
-        : 'Start again'
+        ? startPhaseLabel(state.phase)
+        : i18n.global.t('timer.startAgain')
     }
-    return 'Start'
+    return i18n.global.t('timer.start')
   })
 
   /** A finished countdown has nothing queued, so the button starts a new one. */
@@ -87,7 +91,10 @@ export function useTimerView() {
       settings.timer,
     )
     const done = state.completedFocusCount
-    return `${done} focus ${done === 1 ? 'phase' : 'phases'} done · long break in ${left}`
+    return i18n.global.t('timer.pomodoroHint', {
+      focus: i18n.global.t('timer.focusDone', done),
+      left,
+    })
   })
 
   return {
@@ -111,10 +118,13 @@ export function useTimerView() {
         timer.timer.value.mode === TIMER_MODE.POMODORO &&
         timer.timer.value.status !== TIMER_STATUS.IDLE,
     ),
-    todayLabel: computed(() => formatShortDuration(todayTotalMs.value)),
+    todayLabel: computed(() =>
+      formatShortDuration(todayTotalMs.value, durationWords()),
+    ),
     todayTotalMs,
     taskLabel: computed(
-      () => timer.task.value?.taskTitle ?? 'No task attached',
+      () =>
+        timer.task.value?.taskTitle ?? i18n.global.t('timer.noTaskAttached'),
     ),
   }
 }

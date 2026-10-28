@@ -30,9 +30,10 @@ export interface SettingsSectionMeta {
   id: SettingsSection
   group: SettingsGroup
   icon: AppIconName
-  label: string
-  /** Shown under the title once the section is open. */
-  description: string
+  /** Message key for the section's name. */
+  labelKey: string
+  /** Message key for the line shown under the title once the section is open. */
+  descriptionKey: string
 }
 
 export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
@@ -40,85 +41,85 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
     id: SETTINGS_SECTION.THEME,
     group: SETTINGS_GROUP.APPEARANCE,
     icon: 'palette',
-    label: 'Theme',
-    description: 'Ready-made looks, light or dark.',
+    labelKey: 'settings.sectionTheme',
+    descriptionKey: 'settings.sectionThemeHint',
   },
   {
     id: SETTINGS_SECTION.COLORS,
     group: SETTINGS_GROUP.APPEARANCE,
     icon: 'target',
-    label: 'Colours',
-    description: 'Every colour in the interface, with suggested companions.',
+    labelKey: 'settings.sectionColours',
+    descriptionKey: 'settings.sectionColoursHint',
   },
   {
     id: SETTINGS_SECTION.PROJECT,
     group: SETTINGS_GROUP.APPEARANCE,
     icon: 'tag',
-    label: 'Project',
-    description: 'Name, status, colours and rate of the project you have open.',
+    labelKey: 'settings.sectionProject',
+    descriptionKey: 'settings.sectionProjectHint',
   },
   {
     id: SETTINGS_SECTION.WORKSPACE,
     group: SETTINGS_GROUP.APPEARANCE,
     icon: 'ruler',
-    label: 'Workspace',
-    description: 'Shape, spacing, typeface and reading comfort.',
+    labelKey: 'settings.sectionWorkspace',
+    descriptionKey: 'settings.sectionWorkspaceHint',
   },
   {
     id: SETTINGS_SECTION.REMINDERS,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'bell',
-    label: 'Reminders',
-    description: 'When and how a task announces itself.',
+    labelKey: 'settings.sectionReminders',
+    descriptionKey: 'settings.sectionRemindersHint',
   },
   {
     id: SETTINGS_SECTION.CALENDAR,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'calendar',
-    label: 'Calendar',
-    description: 'How the grid behaves and what a full day means.',
+    labelKey: 'settings.sectionCalendar',
+    descriptionKey: 'settings.sectionCalendarHint',
   },
   {
     id: SETTINGS_SECTION.TIMER,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'timer',
-    label: 'Timer',
-    description: 'Pomodoro lengths, countdowns and what lands in history.',
+    labelKey: 'settings.sectionTimer',
+    descriptionKey: 'settings.sectionTimerHint',
   },
   {
     id: SETTINGS_SECTION.BEHAVIOR,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'zap',
-    label: 'Behaviour',
-    description: 'What the app does on its own.',
+    labelKey: 'settings.sectionBehaviour',
+    descriptionKey: 'settings.sectionBehaviourHint',
   },
   {
     id: SETTINGS_SECTION.CLIENTS,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'users',
-    label: 'Clients',
-    description: 'Who you bill, and which projects go to them.',
+    labelKey: 'settings.sectionClients',
+    descriptionKey: 'settings.sectionClientsHint',
   },
   {
     id: SETTINGS_SECTION.FORMAT,
     group: SETTINGS_GROUP.PLANNER,
     icon: 'globe',
-    label: 'Dates and times',
-    description: 'How dates and times are written.',
+    labelKey: 'settings.sectionFormat',
+    descriptionKey: 'settings.sectionFormatHint',
   },
   {
     id: SETTINGS_SECTION.DATA,
     group: SETTINGS_GROUP.DATA,
     icon: 'save',
-    label: 'Backup and data',
-    description: 'Everything you have, in and out of a file.',
+    labelKey: 'settings.sectionData',
+    descriptionKey: 'settings.sectionDataHint',
   },
 ]
 
-export const SETTINGS_GROUP_LABELS: Record<SettingsGroup, string> = {
-  [SETTINGS_GROUP.APPEARANCE]: 'Appearance',
-  [SETTINGS_GROUP.PLANNER]: 'Planner',
-  [SETTINGS_GROUP.DATA]: 'Your data',
+export const SETTINGS_GROUP_LABEL_KEYS: Record<SettingsGroup, string> = {
+  [SETTINGS_GROUP.APPEARANCE]: 'settings.groupAppearance',
+  [SETTINGS_GROUP.PLANNER]: 'settings.groupPlanner',
+  [SETTINGS_GROUP.DATA]: 'settings.groupData',
 }
 
 export function sectionMeta(id: SettingsSection): SettingsSectionMeta {

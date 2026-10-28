@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import AppIcon from '../../../components/AppIcon.vue'
@@ -23,6 +24,8 @@ import {
   shortcutTitle,
   useHotkeyOverlay,
 } from '../../../composables/useHotkeys'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   goals: Goal[]
@@ -148,13 +151,13 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         type="button"
         :aria-label="
           notificationsEnabled
-            ? 'Disable task reminders'
-            : 'Enable task reminders'
+            ? t('sidebar.disableReminders')
+            : t('sidebar.enableReminders')
         "
         :title="
           notificationsEnabled
-            ? `Reminders on: alerts ${leadMinutes} min before a task starts`
-            : 'Enable sound reminders for upcoming tasks'
+            ? t('sidebar.remindersOnTitle', { minutes: leadMinutes })
+            : t('sidebar.enableRemindersTitle')
         "
         @click="emit('toggle-notifications')"
       >
@@ -168,8 +171,8 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
           class="sidebar-settings__trigger"
           :class="{ 'is-active': isSettingsOpen }"
           type="button"
-          aria-label="Settings"
-          title="Theme, colours, planner and data"
+          :aria-label="t('sidebar.settings')"
+          :title="t('sidebar.settingsTitle')"
           @click="toggleSettingsFromNav"
         >
           <svg
@@ -194,8 +197,10 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       <button
         class="sidebar-search-trigger"
         type="button"
-        aria-label="Search projects and tasks"
-        :title="shortcutTitle('Search projects and tasks', 'Ctrl+K or /')"
+        :aria-label="t('sidebar.searchProjectsAndTasks')"
+        :title="
+          shortcutTitle(t('sidebar.searchProjectsAndTasks'), 'Ctrl+K or /')
+        "
         @click="openSearchFromNav"
       >
         <svg
@@ -217,25 +222,31 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       <button
         class="sidebar-shortcuts-trigger"
         type="button"
-        aria-label="Help and keyboard shortcuts"
-        :title="keyboardShortcuts ? 'Help and shortcuts (?)' : 'Help'"
+        :aria-label="t('sidebar.helpAndKeyboardShortcuts')"
+        :title="
+          keyboardShortcuts
+            ? t('sidebar.helpAndShortcutsTitle')
+            : t('sidebar.help')
+        "
         @click="openShortcuts"
       >
         ?
       </button>
     </div>
 
-    <p class="sidebar-caption">Projects</p>
+    <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>
 
     <button
       class="nav-goal-btn"
       :class="{ active: activeGoalId === null }"
-      :title="shortcutTitle('All Projects', 'G then A')"
+      :title="shortcutTitle(t('sidebar.allProjects'), 'G then A')"
       @click="selectGoal(null)"
     >
       <span class="nav-goal-btn__main">
         <AppIcon class="nav-goal-btn__glyph" name="grid" :size="14" />
-        <span class="nav-goal-btn__name">All Projects</span>
+        <span class="nav-goal-btn__name nav-goal-btn__name--label">{{
+          t('sidebar.allProjects')
+        }}</span>
       </span>
       <span class="goal-count">{{ totalTaskCount }}</span>
     </button>
@@ -277,7 +288,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
               :size="14"
             />
           </span>
-          <span>Archived</span>
+          <span>{{ t('sidebar.archived') }}</span>
         </span>
         <span class="goal-count">{{ archivedGoals.length }}</span>
       </button>
@@ -295,38 +306,38 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       />
     </template>
 
-    <p class="sidebar-caption">View</p>
+    <p class="sidebar-caption">{{ t('sidebar.view') }}</p>
 
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
-      :title="shortcutTitle('Calendar', 'G then C')"
+      :title="shortcutTitle(t('sidebar.calendar'), 'G then C')"
       @click="chooseView('calendar')"
     >
       <span class="nav-goal-btn__main">
         <span class="nav-goal-btn__icon" aria-hidden="true">
           <AppIcon name="calendar" :size="16" />
         </span>
-        <span>Calendar</span>
+        <span>{{ t('sidebar.calendar') }}</span>
       </span>
     </button>
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'timer' }"
-      :title="shortcutTitle('Timer', 'G then T')"
+      :title="shortcutTitle(t('sidebar.timer'), 'G then T')"
       @click="chooseView('timer')"
     >
       <span class="nav-goal-btn__main">
         <span class="nav-goal-btn__icon" aria-hidden="true">
           <AppIcon name="timer" :size="16" />
         </span>
-        <span>Timer</span>
+        <span>{{ t('sidebar.timer') }}</span>
       </span>
     </button>
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'analytics' }"
-      :title="shortcutTitle('Analytics', 'G then Y')"
+      :title="shortcutTitle(t('sidebar.analytics'), 'G then Y')"
       data-tip-anchor="nav-analytics"
       @click="chooseView('analytics')"
     >
@@ -334,7 +345,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         <span class="nav-goal-btn__icon" aria-hidden="true">
           <AppIcon name="chart" :size="16" />
         </span>
-        <span>Analytics</span>
+        <span>{{ t('sidebar.analytics') }}</span>
       </span>
     </button>
     <button
@@ -346,7 +357,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         <span class="nav-goal-btn__icon" aria-hidden="true">
           <AppIcon name="pin" :size="16" />
         </span>
-        <span>Planned tasks</span>
+        <span>{{ t('sidebar.plannedTasks') }}</span>
       </span>
       <span class="goal-count">{{ plannedCount }}</span>
     </button>
@@ -359,7 +370,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         <span class="nav-goal-btn__icon" aria-hidden="true">
           <AppIcon name="check-square" :size="16" />
         </span>
-        <span>What I did</span>
+        <span>{{ t('sidebar.whatIDid') }}</span>
       </span>
       <span class="goal-count">{{ doneCount }}</span>
     </button>
@@ -371,7 +382,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         data-tip-anchor="new-project"
         @click="openNewGoalForm"
       >
-        New Project
+        {{ t('sidebar.newProject') }}
       </button>
       <NewGoalComponent
         v-if="showNewGoalForm"

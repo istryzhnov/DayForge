@@ -7,11 +7,21 @@ import type {
 import { TIME_ENTRY_SOURCE } from '../../entities/constants'
 import { toLocalISODate } from '../goalSpace/date'
 
+/**
+ * One problem with an entry. `text` is the English wording; the UI shows the
+ * translation of `key` (a `timer.*` message) with `params` filled in.
+ */
+export interface IssueMessage {
+  key: string
+  text: string
+  params?: { n: number }
+}
+
 export interface EntryIssues {
   /** Block saving: the entry would be nonsense. */
-  errors: string[]
+  errors: IssueMessage[]
   /** Worth knowing, but the user decides. */
-  warnings: string[]
+  warnings: IssueMessage[]
 }
 
 export interface DayGroup {
@@ -101,28 +111,51 @@ export function validateEntry(
   entries: TimeEntry[],
   now: number,
 ): EntryIssues {
-  const errors: string[] = []
-  const warnings: string[] = []
+  const errors: IssueMessage[] = []
+  const warnings: IssueMessage[] = []
 
   const start = Date.parse(entry.startedAt)
   const end = Date.parse(entry.endedAt)
 
   if (Number.isNaN(start) || Number.isNaN(end)) {
-    errors.push('Both a start and an end are needed.')
+    errors.push({
+      key: 'timer.issueNeedBoth',
+      text: 'Both a start and an end are needed.',
+    })
     return { errors, warnings }
   }
 
-  if (end <= start) errors.push('The end has to come after the start.')
-  if (start > now) errors.push('That start is in the future.')
-  if (end > now) warnings.push('This entry ends in the future.')
+  if (end <= start) {
+    errors.push({
+      key: 'timer.issueEndAfterStart',
+      text: 'The end has to come after the start.',
+    })
+  }
+  if (start > now) {
+    errors.push({
+      key: 'timer.issueStartFuture',
+      text: 'That start is in the future.',
+    })
+  }
+  if (end > now) {
+    warnings.push({
+      key: 'timer.issueEndFuture',
+      text: 'This entry ends in the future.',
+    })
+  }
 
   const overlaps = findOverlaps(entry, entries)
-  if (overlaps.length > 0) {
-    warnings.push(
-      overlaps.length === 1
-        ? 'Overlaps another entry.'
-        : `Overlaps ${overlaps.length} other entries.`,
-    )
+  if (overlaps.length === 1) {
+    warnings.push({
+      key: 'timer.issueOverlapOne',
+      text: 'Overlaps another entry.',
+    })
+  } else if (overlaps.length > 1) {
+    warnings.push({
+      key: 'timer.issueOverlapMany',
+      text: `Overlaps ${overlaps.length} other entries.`,
+      params: { n: overlaps.length },
+    })
   }
 
   return { errors, warnings }
@@ -174,6 +207,7 @@ export function taskTotalKey(
 export function totalsByTask(
   entries: TimeEntry[],
   sinceMs?: number,
+  untitled = 'Without a task',
 ): TaskTotal[] {
   const totals = new Map<string, TaskTotal>()
   const sessions = new Map<string, Set<string>>()
@@ -192,7 +226,7 @@ export function totalsByTask(
         key,
         taskId: entry.taskId,
         goalId: entry.goalId,
-        title: entry.taskTitle ?? 'Without a task',
+        title: entry.taskTitle ?? untitled,
         totalMs: entryDurationMs(entry),
         sessionCount: 1,
         lastAt: entry.endedAt,

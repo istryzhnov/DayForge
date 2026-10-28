@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { ThemeSurfaces } from '../../../composables/theme/goalTheme'
 import type {
@@ -21,6 +22,8 @@ const emit = defineEmits<{
   (e: 'update', theme: GoalTheme | undefined): void
 }>()
 
+const { t } = useI18n()
+
 const {
   presets,
   theme,
@@ -42,13 +45,17 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="settings-section__intro">
-      Colours set here apply to
-      <strong>{{ goal.title }}</strong> only — its panel, task circles, frames
-      and habit ring. Everything else keeps the global theme.
-    </p>
+    <i18n-t
+      keypath="settings.projectThemeIntro"
+      tag="p"
+      class="settings-section__intro"
+    >
+      <template #project>
+        <strong>{{ goal.title }}</strong>
+      </template>
+    </i18n-t>
 
-    <p class="sidebar-caption">Project colour</p>
+    <p class="sidebar-caption">{{ t('settings.projectColour') }}</p>
     <div class="settings-swatches">
       <button
         v-for="color in presets"
@@ -57,14 +64,14 @@ const {
         :class="{ active: theme.accent === color }"
         type="button"
         :style="swatchStyle(color)"
-        :aria-label="`Use ${color} for this project`"
+        :aria-label="t('settings.projectSwatch', { color })"
         @click="pickAccent(color)"
       ></button>
     </div>
 
     <ColorField
-      label="Accent"
-      description="Buttons, the habit ring and active states in this project."
+      :label="t('settings.projectColourAccent')"
+      :description="t('settings.projectColourAccentDescription')"
       :value="accentValue"
       :is-custom="hasTheme"
       :suggestions="accentSuggestions"
@@ -78,13 +85,17 @@ const {
           class="settings-preview__dot settings-preview__dot--project"
         ></span>
         <span class="settings-preview__dot settings-preview__dot--task"></span>
-        <span class="settings-preview__card">Frames and cards</span>
-        <span class="settings-preview__btn">Button</span>
+        <span class="settings-preview__card">{{
+          t('settings.projectPreviewFrames')
+        }}</span>
+        <span class="settings-preview__btn">{{
+          t('settings.projectPreviewButton')
+        }}</span>
       </div>
 
       <label class="settings-slider">
         <span>
-          Tint strength
+          {{ t('settings.projectTintStrength') }}
           <em>{{ Math.round(intensity * 100) }}%</em>
         </span>
         <input
@@ -95,10 +106,10 @@ const {
           :value="Math.round(intensity * 100)"
           @input="setIntensityPercent(rangeValue($event))"
         />
-        <small>How far the colour bleeds into panels and borders.</small>
+        <small>{{ t('settings.projectTintHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">Fine tuning</p>
+      <p class="sidebar-caption">{{ t('settings.projectFineTuning') }}</p>
       <ColorField
         v-for="field in fields"
         :key="field.key"
@@ -116,7 +127,7 @@ const {
         type="button"
         @click="clearTheme"
       >
-        Clear project colours
+        {{ t('settings.projectClearColours') }}
       </button>
     </template>
   </div>

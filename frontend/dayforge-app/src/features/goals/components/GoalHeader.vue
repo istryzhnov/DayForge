@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import { formatHoursMinutes } from '../../../composables/timer/format'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
@@ -29,6 +30,7 @@ const emit = defineEmits<{
   (e: 'today'): void
 }>()
 
+const { t } = useI18n()
 const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
   useGoalPanelHeader(props)
 </script>
@@ -52,7 +54,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
         v-if="viewedDay"
         class="ui-chip is-active goal-panel-header__day"
         type="button"
-        :aria-label="`Showing ${viewedDay}. Back to today`"
+        :aria-label="t('goals.showingDay', { day: viewedDay })"
         @click="emit('today')"
       >
         <AppIcon name="calendar" :size="14" />
@@ -63,19 +65,26 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
       <ul class="goal-panel-stats">
         <li class="goal-panel-stats__item">
           <AppIcon name="check" :size="14" />
-          <span class="ui-oneline"
-            >{{ stats.todayDone }}/{{ stats.todayTotal }} today</span
-          >
+          <span class="ui-oneline">{{
+            t('goals.todayStat', {
+              done: stats.todayDone,
+              total: stats.todayTotal,
+            })
+          }}</span>
         </li>
         <li v-if="stats.streakDays !== null" class="goal-panel-stats__item">
           <AppIcon name="flame" :size="14" />
-          <span class="ui-oneline">{{ stats.streakDays }} days</span>
+          <span class="ui-oneline">{{
+            t('goals.streakDays', stats.streakDays)
+          }}</span>
         </li>
         <li v-if="stats.trackedMs > 0" class="goal-panel-stats__item">
           <AppIcon name="timer" :size="14" />
-          <span class="ui-oneline"
-            >{{ formatHoursMinutes(stats.trackedMs) }} this month</span
-          >
+          <span class="ui-oneline">{{
+            t('goals.trackedThisMonth', {
+              time: formatHoursMinutes(stats.trackedMs),
+            })
+          }}</span>
         </li>
       </ul>
     </div>
@@ -95,8 +104,8 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
         class="ui-icon-btn ui-icon-btn--outlined goal-panel-header__icon"
         :class="{ 'is-active': isProjectSettingsOpen }"
         type="button"
-        aria-label="Project settings"
-        title="Name, status, colours, rate"
+        :aria-label="t('goals.projectSettings')"
+        :title="t('goals.projectSettingsHint')"
         :aria-expanded="isProjectSettingsOpen"
         @click="toggleProjectSettings"
       >

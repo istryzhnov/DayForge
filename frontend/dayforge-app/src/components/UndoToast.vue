@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from './AppIcon.vue'
 import { useUndoToast } from '../composables/useUndoToast'
 
+const { t } = useI18n()
 const { pending, runPendingAction, dismissUndo, undoWindowMs } = useUndoToast()
 
 function timerStyle(durationMs: number) {
@@ -39,7 +41,7 @@ function timerStyle(durationMs: number) {
     <button
       class="ui-icon-btn undo-toast__close"
       type="button"
-      aria-label="Dismiss"
+      :aria-label="t('common.dismiss')"
       @click="dismissUndo"
     >
       <AppIcon name="close" :size="14" />

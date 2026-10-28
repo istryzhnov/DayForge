@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type {
   DailyTask,
   MajorTaskOption,
@@ -121,11 +122,24 @@ const {
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
 
-const VIEW_MODES: { id: CalendarViewMode; label: string }[] = [
-  { id: 'day', label: 'Day' },
-  { id: 'week', label: 'Week' },
-  { id: 'month', label: 'Month' },
+const { t } = useI18n()
+
+/** `labelKey` is rendered with t() so a language switch updates the tabs. */
+const VIEW_MODES: { id: CalendarViewMode; labelKey: string }[] = [
+  { id: 'day', labelKey: 'calendar.viewDay' },
+  { id: 'week', labelKey: 'calendar.viewWeek' },
+  { id: 'month', labelKey: 'calendar.viewMonth' },
 ]
+
+/** Names the period the arrows move by, e.g. "Previous week". */
+const PERIOD_KEYS: Record<
+  CalendarViewMode,
+  { previous: string; next: string }
+> = {
+  day: { previous: 'calendar.previousDay', next: 'calendar.nextDay' },
+  week: { previous: 'calendar.previousWeek', next: 'calendar.nextWeek' },
+  month: { previous: 'calendar.previousMonth', next: 'calendar.nextMonth' },
+}
 
 // Week and month keep their own anchors, but the toolbar above them drives
 // both, so the state lives here rather than inside the child views.
@@ -225,16 +239,18 @@ function iconFor(goalId: ID | undefined) {
         <button
           class="ui-icon-btn"
           type="button"
-          :aria-label="`Previous ${viewMode}`"
+          :aria-label="t(PERIOD_KEYS[viewMode].previous)"
           @click="goToPrevious"
         >
           <AppIcon name="chevron-left" :size="16" />
         </button>
-        <button class="ui-chip" type="button" @click="goToToday">Today</button>
+        <button class="ui-chip" type="button" @click="goToToday">
+          {{ t('calendar.today') }}
+        </button>
         <button
           class="ui-icon-btn"
           type="button"
-          :aria-label="`Next ${viewMode}`"
+          :aria-label="t(PERIOD_KEYS[viewMode].next)"
           @click="goToNext"
         >
           <AppIcon name="chevron-right" :size="16" />
@@ -243,7 +259,11 @@ function iconFor(goalId: ID | undefined) {
       </div>
 
       <div class="calendar-view__views">
-        <div class="ui-tabs" role="tablist" aria-label="Calendar view">
+        <div
+          class="ui-tabs"
+          role="tablist"
+          :aria-label="t('calendar.calendarView')"
+        >
           <button
             v-for="mode in VIEW_MODES"
             :key="mode.id"
@@ -254,7 +274,7 @@ function iconFor(goalId: ID | undefined) {
             :aria-selected="viewMode === mode.id"
             @click="viewMode = mode.id"
           >
-            {{ mode.label }}
+            {{ t(mode.labelKey) }}
           </button>
         </div>
         <CalendarFilterPopover :goals="goals" :goal-vars-by-id="goalVarsById" />
@@ -364,18 +384,20 @@ function iconFor(goalId: ID | undefined) {
                 <input
                   v-model="draftTitle"
                   type="text"
-                  placeholder="Task title"
+                  :placeholder="t('calendar.taskTitlePlaceholder')"
                   autofocus
                   @keydown.esc="cancelDraft"
                 />
                 <div class="calendar-view__draft-actions">
-                  <button type="submit" class="btn btn-primary">Add</button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ t('calendar.add') }}
+                  </button>
                   <button
                     type="button"
                     class="btn btn-ghost"
                     @click="cancelDraft"
                   >
-                    Cancel
+                    {{ t('calendar.cancel') }}
                   </button>
                 </div>
               </form>
@@ -385,7 +407,7 @@ function iconFor(goalId: ID | undefined) {
 
         <aside ref="unscheduledRef" class="ui-card calendar-view__unscheduled">
           <div class="calendar-view__unscheduled-head">
-            <p class="ui-section-label">Unscheduled</p>
+            <p class="ui-section-label">{{ t('calendar.unscheduled') }}</p>
             <span class="calendar-view__unscheduled-count">
               {{ unscheduledTasks.length }}
             </span>
@@ -404,13 +426,13 @@ function iconFor(goalId: ID | undefined) {
             @context-menu="openContextMenu"
           />
           <p v-if="!unscheduledTasks.length" class="calendar-view__empty-hint">
-            Nothing left to schedule
+            {{ t('calendar.nothingToSchedule') }}
           </p>
         </aside>
       </div>
 
-      <p v-if="isCoarsePointer" class="calendar-view__touch-hint ui-oneline">
-        Tap an empty slot to add · hold a task to move it or open its menu
+      <p v-if="isCoarsePointer" class="calendar-view__touch-hint">
+        {{ t('calendar.touchHint') }}
       </p>
 
       <CalendarTaskContextMenu

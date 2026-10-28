@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import { useSettings } from '../../../composables/useSettings'
 import { rateFromChain } from '../../../composables/timer/rates'
+import { i18n } from '../../../i18n'
 
 type RateEditorProps = {
   node: TaskNode
@@ -43,15 +44,21 @@ export function useTaskRateEditor(
   const isValid = computed(() => isEmpty.value || parsed.value !== undefined)
 
   const inheritedFrom = computed(() => {
-    if (projectRate.value !== undefined) return 'the project'
-    return 'Settings → Timer'
+    if (projectRate.value !== undefined) {
+      return i18n.global.t('tasks.inheritedFromProject')
+    }
+    return i18n.global.t('tasks.inheritedFromSettings')
   })
 
   const hint = computed(() => {
     if (inheritedRate.value > 0) {
-      return `Leave it empty to bill at ${inheritedRate.value} ${currency.value} an hour, inherited from ${inheritedFrom.value}.`
+      return i18n.global.t('tasks.rateHintInherited', {
+        rate: inheritedRate.value,
+        currency: currency.value,
+        from: inheritedFrom.value,
+      })
     }
-    return 'Leave it empty and this task bills at nothing until a project or default rate is set.'
+    return i18n.global.t('tasks.rateHintNone')
   })
 
   const placeholder = computed(() =>

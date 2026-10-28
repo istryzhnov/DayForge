@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useContextMenu } from '../../../composables/useContextMenu'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   x: number
@@ -39,7 +42,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ isDone ? 'Mark as not done' : 'Mark as done' }}
+      {{ isDone ? t('calendar.markNotDone') : t('calendar.markDone') }}
     </button>
     <button
       class="task-context-menu__item"
@@ -51,7 +54,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
+      {{ isTimerActive ? t('calendar.stopTimer') : t('calendar.startTimer') }}
     </button>
     <button
       v-if="canLogPlanned"
@@ -64,7 +67,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      Log as planned
+      {{ t('calendar.logPlanned') }}
     </button>
     <button
       v-if="canUnschedule"
@@ -77,7 +80,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      Unschedule
+      {{ t('calendar.unschedule') }}
     </button>
   </div>
 </template>

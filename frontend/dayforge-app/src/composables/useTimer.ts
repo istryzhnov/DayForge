@@ -25,10 +25,12 @@ import {
   type TimerEffect,
   type TransitionResult,
 } from './timer/machine'
-import { MINUTE_MS, PHASE_LABELS } from './timer/pomodoro'
+import { MINUTE_MS } from './timer/pomodoro'
 import { splitStretchAroundAway } from './timer/reminders'
 import { mustRecordBeforeAdopting } from './timer/remote'
 import { formatDuration } from './timer/format'
+import { modeLabel, phaseLabel } from './timer/text'
+import { i18n } from '../i18n'
 import { sanitizeActiveTimer } from './timer/sanitize'
 import { tourEvent } from '../features/onboarding/composables/useTour'
 
@@ -66,11 +68,14 @@ function notifyPhaseFinished(effects: TimerEffect[]) {
   }
 
   const body = finished.nextPhase
-    ? `${PHASE_LABELS[finished.nextPhase]} is up next.`
-    : 'The countdown reached zero.'
+    ? i18n.global.t('timer.upNext', { phase: phaseLabel(finished.nextPhase) })
+    : i18n.global.t('timer.countdownDone')
 
   try {
-    new Notification('DayForge timer', { body, tag: 'dayforge-timer' })
+    new Notification(i18n.global.t('timer.notificationTitle'), {
+      body,
+      tag: 'dayforge-timer',
+    })
   } catch {
     // Some contexts refuse the constructor; the in-app state still updates.
   }
@@ -380,10 +385,13 @@ export function useTimer() {
 
   const statusLabel = computed(() => {
     if (timer.value.mode === TIMER_MODE.POMODORO && timer.value.phase) {
-      return PHASE_LABELS[timer.value.phase]
+      return phaseLabel(timer.value.phase)
     }
-    if (timer.value.mode === TIMER_MODE.COUNTDOWN) return 'Countdown'
-    return 'Stopwatch'
+    return modeLabel(
+      timer.value.mode === TIMER_MODE.COUNTDOWN
+        ? TIMER_MODE.COUNTDOWN
+        : TIMER_MODE.STOPWATCH,
+    )
   })
 
   return {

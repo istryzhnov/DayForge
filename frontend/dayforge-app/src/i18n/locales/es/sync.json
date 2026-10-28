@@ -1,0 +1,13 @@
+{
+  "notSyncing": "Sin sincronizar",
+  "syncing": "Sincronizando…",
+  "offline": "Sin conexión",
+  "offlineWaiting": "Sin conexión · {count} cambio pendiente | Sin conexión · {count} cambios pendientes",
+  "errorRefused": "Error de sincronización · {count} rechazados",
+  "synced": "Sincronizado",
+  "syncedAt": "Sincronizado · {time}",
+  "errorLabel": "Error de sincronización",
+  "offlineLabel": "Sin conexión",
+  "openProfileToLook": "Abre tu perfil para revisarlo.",
+  "willUploadLater": "Se subirán solos en cuanto haya conexión."
+}

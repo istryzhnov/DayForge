@@ -77,8 +77,13 @@ export interface ManualEntryPayload {
   taskTitle: string
 }
 
+/**
+ * A failed plan carries the English `reason` and the `reasonKey` of its
+ * translation (a `timer.*` message).
+ */
 export type PlanResult =
-  { ok: true; payload: ManualEntryPayload } | { ok: false; reason: string }
+  | { ok: true; payload: ManualEntryPayload }
+  | { ok: false; reason: string; reasonKey: string }
 
 /** The entry that matches a block exactly, or the reason it cannot be written. */
 export function planBlockEntry(
@@ -88,10 +93,18 @@ export function planBlockEntry(
 ): PlanResult {
   const state = blockLogState(block, entries, now)
   if (state === 'no-end') {
-    return { ok: false, reason: 'This block has no end time.' }
+    return {
+      ok: false,
+      reason: 'This block has no end time.',
+      reasonKey: 'timer.planNoEnd',
+    }
   }
   if (state === 'not-finished') {
-    return { ok: false, reason: 'This block has not ended yet.' }
+    return {
+      ok: false,
+      reason: 'This block has not ended yet.',
+      reasonKey: 'timer.planNotEnded',
+    }
   }
 
   const range = blockRange(block) as BlockRange
@@ -99,9 +112,16 @@ export function planBlockEntry(
   const endedAt = new Date(range.endedAt).toISOString()
 
   const issues = validateEntry({ id: '', startedAt, endedAt }, entries, now)
-  if (issues.errors.length > 0) return { ok: false, reason: issues.errors[0] }
+  const [firstError] = issues.errors
+  if (firstError) {
+    return { ok: false, reason: firstError.text, reasonKey: firstError.key }
+  }
   if (state === 'logged') {
-    return { ok: false, reason: 'Time is already logged over this block.' }
+    return {
+      ok: false,
+      reason: 'Time is already logged over this block.',
+      reasonKey: 'timer.planLogged',
+    }
   }
 
   return {

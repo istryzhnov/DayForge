@@ -1,5 +1,6 @@
 import type { ISODate } from '../../entities/types'
 import { addDaysToISODate, daysBetweenISODates } from '../goalSpace/date'
+import { i18n } from '../../i18n'
 
 const HOUR_MS = 60 * 60 * 1000
 
@@ -80,7 +81,7 @@ export function buildSeries(
         : dayLabel(date),
     title:
       granularity === SERIES_GRANULARITY.WEEK
-        ? `Week of ${date}`
+        ? i18n.global.t('analytics.weekOf', { date })
         : (date as string),
     totalMs: buckets.get(date) ?? 0,
   }))

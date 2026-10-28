@@ -32,11 +32,11 @@ export interface TourStep {
   /** Lives in the sidebar: a phone opens the drawer to show it. */
   sidebar?: boolean
   /** Five words or fewer. */
-  title: string
-  /** Eighteen words or fewer. */
-  body: string
+  /** Message keys: rendered with t() at display time, so a language switch updates them. */
+  titleKey: string
+  bodyKey: string
   /** Replaces body where the gesture differs, e.g. press and hold on a phone. */
-  touchBody?: string
+  touchBodyKey?: string
   /** CSS selector of the control to point at; null means no arrow. */
   anchor: ((state: TourState) => string) | null
   /** What "Show me" does when the control is off screen. */
@@ -49,7 +49,7 @@ export interface TourStep {
   /** A "Skip" button: this event moves on along the same path. */
   skipOn?: TourEvent
   /** A "Show board" style offer: the button takes the user there. */
-  offer?: { label: string; target: TourOffscreen }
+  offer?: { labelKey: string; target: TourOffscreen }
   /** A "Not now" choice: its event moves the tour onto another path. */
   branch?: { on: TourEvent; path: TourPath; step: TourStepId }
   /** A deleted project or task sends the tour back to the step that makes it again. */
@@ -100,16 +100,16 @@ export const TOUR_STEPS: readonly TourStep[] = [
     id: 'create-project',
     placement: 'right',
     sidebar: true,
-    title: 'Create a project',
-    body: 'Projects group your tasks.',
+    titleKey: 'onboarding.tourCreateProjectTitle',
+    bodyKey: 'onboarding.tourCreateProjectBody',
     anchor: () => attribute('data-tip-anchor', 'new-project'),
     doneOn: 'project-created',
     record: (payload) => ({ projectId: payload.goalId }),
   },
   {
     id: 'add-task',
-    title: 'Add a task',
-    body: 'A couple of words is enough.',
+    titleKey: 'onboarding.tourAddTaskTitle',
+    bodyKey: 'onboarding.tourAddTaskBody',
     anchor: () => attribute('data-tip-anchor', 'composer-input'),
     offscreen: 'project',
     doneOn: 'task-added',
@@ -119,9 +119,10 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'add-subtask',
-    title: 'Break it into steps',
-    body: 'Add a subtask under it.',
-    anchor: (state) => `${taskSelector(state)} [aria-label="Add task to this"]`,
+    titleKey: 'onboarding.tourAddSubtaskTitle',
+    bodyKey: 'onboarding.tourAddSubtaskBody',
+    anchor: (state) =>
+      `${taskSelector(state)} [data-tour-action="add-subtask"]`,
     offscreen: 'project',
     doneOn: 'subtask-added',
     check: sameParent,
@@ -131,13 +132,13 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'try-board',
-    title: 'Try the board?',
-    body: 'The same tasks, shown as cards you can drag.',
+    titleKey: 'onboarding.tourTryBoardTitle',
+    bodyKey: 'onboarding.tourTryBoardBody',
     anchor: () => attribute('data-tip-anchor', 'board-tab'),
     offscreen: 'project',
     doneOn: 'board-shown',
     check: sameProject,
-    offer: { label: 'Show board', target: 'board' },
+    offer: { labelKey: 'onboarding.tourShowBoard', target: 'board' },
     branch: {
       on: 'board-declined',
       path: 'widget',
@@ -147,9 +148,9 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'move-to-doing',
-    title: 'Move it to In progress',
-    body: 'Drag the card to the next column.',
-    touchBody: 'Press and hold the card, then drag it to the next column.',
+    titleKey: 'onboarding.tourMoveToDoingTitle',
+    bodyKey: 'onboarding.tourMoveToDoingBody',
+    touchBodyKey: 'onboarding.tourMoveToDoingTouchBody',
     anchor: cardSelector,
     offscreen: 'board',
     doneOn: 'card-moved',
@@ -160,9 +161,9 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'start-timer',
-    title: 'Start the timer',
-    body: "Use the card's ⋯ menu: Start timer. Time goes to this task.",
-    touchBody: "Tap the card's ⋯ button: Start timer. Time goes to this task.",
+    titleKey: 'onboarding.tourStartTimerTitle',
+    bodyKey: 'onboarding.tourStartTimerBody',
+    touchBodyKey: 'onboarding.tourStartTimerTouchBody',
     // The card's timer button only appears once the task has time, so the menu is the way in.
     anchor: (state) => `${cardSelector(state)} .board-card__more`,
     offscreen: 'board',
@@ -173,9 +174,9 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'stop-timer',
-    title: "Stop it when you're done",
-    body: 'Press the timer on the card to stop it.',
-    touchBody: 'Tap the timer on the card to stop it.',
+    titleKey: 'onboarding.tourStopTimerTitle',
+    bodyKey: 'onboarding.tourStopTimerBody',
+    touchBodyKey: 'onboarding.tourStopTimerTouchBody',
     anchor: (state) => `${cardSelector(state)} .task-timer-btn`,
     offscreen: 'board',
     doneOn: 'timer-stopped',
@@ -185,9 +186,9 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'move-to-done',
-    title: 'Finish it',
-    body: 'Drag the card to Done.',
-    touchBody: 'Press and hold the card, then drag it to Done.',
+    titleKey: 'onboarding.tourMoveToDoneTitle',
+    bodyKey: 'onboarding.tourMoveToDoneBody',
+    touchBodyKey: 'onboarding.tourMoveToDoneTouchBody',
     anchor: cardSelector,
     offscreen: 'board',
     doneOn: 'task-done',
@@ -197,8 +198,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'back-to-list',
-    title: 'Back to the list',
-    body: 'Board and list show the same tasks. Switch anytime.',
+    titleKey: 'onboarding.tourBackToListTitle',
+    bodyKey: 'onboarding.tourBackToListBody',
     anchor: () => attribute('data-tip-anchor', 'list-tab'),
     offscreen: 'project',
     doneOn: 'list-shown',
@@ -208,8 +209,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'start-timer-widget',
     sidebar: true,
-    title: 'Start the timer',
-    body: 'Pick your task and start.',
+    titleKey: 'onboarding.tourStartTimerTitle',
+    bodyKey: 'onboarding.tourStartTimerWidgetBody',
     anchor: () => attribute('data-tip-anchor', 'sidebar-timer'),
     offscreen: 'drawer',
     doneOn: 'timer-started',
@@ -217,8 +218,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'stop-timer-widget',
     sidebar: true,
-    title: "Stop it when you're done",
-    body: 'Press the running timer to stop it.',
+    titleKey: 'onboarding.tourStopTimerTitle',
+    bodyKey: 'onboarding.tourStopTimerWidgetBody',
     anchor: () => attribute('data-tip-anchor', 'sidebar-timer'),
     offscreen: 'drawer',
     doneOn: 'timer-stopped',
@@ -226,8 +227,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   {
     id: 'analytics',
     sidebar: true,
-    title: 'See your time',
-    body: 'The minutes you just tracked are here.',
+    titleKey: 'onboarding.tourAnalyticsTitle',
+    bodyKey: 'onboarding.tourAnalyticsBody',
     anchor: () => attribute('data-tip-anchor', 'nav-analytics'),
     offscreen: 'drawer',
     doneOn: 'view-opened',
@@ -235,8 +236,8 @@ export const TOUR_STEPS: readonly TourStep[] = [
   },
   {
     id: 'finish',
-    title: "You're set",
-    body: 'Calendar plans your day. Tips live in ? → Help.',
+    titleKey: 'onboarding.tourFinishTitle',
+    bodyKey: 'onboarding.tourFinishBody',
     anchor: null,
     doneOn: null,
   },

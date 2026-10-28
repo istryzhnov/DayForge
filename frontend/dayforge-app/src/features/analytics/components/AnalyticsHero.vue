@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+
+const { t } = useI18n()
 
 /**
  * The period at a glance. The plan is the time planned up to today, so the
@@ -32,7 +35,7 @@ const averageLabel = computed(() =>
 </script>
 
 <template>
-  <section class="analytics-hero ui-card" aria-label="Summary">
+  <section class="analytics-hero ui-card" :aria-label="t('analytics.heroAria')">
     <div class="analytics-hero__main">
       <div class="analytics-hero__head">
         <p class="analytics-hero__figure">
@@ -49,7 +52,7 @@ const averageLabel = computed(() =>
         <button
           class="ui-icon-btn"
           type="button"
-          aria-label="What do these numbers mean"
+          :aria-label="t('analytics.heroInfoLabel')"
           aria-controls="analytics-hero-info"
           :aria-expanded="showInfo"
           @click="showInfo = !showInfo"
@@ -72,7 +75,7 @@ const averageLabel = computed(() =>
         v-if="hasPlan"
         class="ui-progress"
         role="progressbar"
-        aria-label="Tracked share of the plan"
+        :aria-label="t('analytics.heroProgressLabel')"
         aria-valuemin="0"
         aria-valuemax="100"
         :aria-valuenow="Math.min(percent, 100)"
@@ -85,8 +88,10 @@ const averageLabel = computed(() =>
         id="analytics-hero-info"
         class="analytics-hero__info"
       >
-        Tracked vs planned, up to today
-        <template v-if="hasAdjustments">. Includes adjustments.</template>
+        {{ t('analytics.heroInfo')
+        }}<template v-if="hasAdjustments">{{
+          t('analytics.heroInfoAdjusted')
+        }}</template>
       </p>
     </div>
 
@@ -105,7 +110,9 @@ const averageLabel = computed(() =>
             <circle cx="12" cy="13" r="8"></circle>
             <path d="M12 9v4l2 2M10 2h4"></path>
           </svg>
-          <span class="analytics-hero__name">Sessions</span>
+          <span class="analytics-hero__name">{{
+            t('analytics.sessions')
+          }}</span>
         </span>
         <strong class="ui-stat__value">{{ sessionCount }}</strong>
       </div>
@@ -124,7 +131,7 @@ const averageLabel = computed(() =>
             <rect x="3" y="5" width="18" height="16" rx="2"></rect>
             <path d="M3 10h18M8 3v4M16 3v4"></path>
           </svg>
-          <span class="analytics-hero__name">Days</span>
+          <span class="analytics-hero__name">{{ t('analytics.days') }}</span>
         </span>
         <strong class="ui-stat__value">{{ dayCount }}</strong>
       </div>
@@ -142,7 +149,7 @@ const averageLabel = computed(() =>
           >
             <path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path>
           </svg>
-          <span class="analytics-hero__name">Per day</span>
+          <span class="analytics-hero__name">{{ t('analytics.perDay') }}</span>
         </span>
         <strong class="ui-stat__value">{{ averageLabel }}</strong>
       </div>

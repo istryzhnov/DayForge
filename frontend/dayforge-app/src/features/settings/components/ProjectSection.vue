@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
@@ -12,6 +13,8 @@ import type { ProjectBudget } from '../../analytics/composables/projectBudget'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useProjectSection } from '../composables/useProjectSection'
+
+const { t } = useI18n()
 
 const props = defineProps<{ goal: Goal }>()
 
@@ -66,10 +69,10 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Name</p>
+    <p class="sidebar-caption">{{ t('settings.projectNameCaption') }}</p>
 
     <label class="settings-field">
-      Project name
+      {{ t('settings.projectName') }}
       <input
         v-model="title"
         type="text"
@@ -80,37 +83,41 @@ const {
       />
     </label>
 
-    <p class="sidebar-caption">Client</p>
+    <p class="sidebar-caption">{{ t('settings.projectClient') }}</p>
 
     <label class="settings-field">
-      Billed to
+      {{ t('settings.projectBilledTo') }}
       <select :value="goal.clientId ?? ''" @change="handleClientChange">
-        <option value="">No client</option>
+        <option value="">{{ t('settings.projectNoClient') }}</option>
         <option
           v-for="client in clientOptions"
           :key="client.id"
           :value="client.id"
         >
-          {{ client.name }}{{ client.archived ? ' (archived)' : '' }}
+          {{
+            client.archived
+              ? t('settings.projectClientArchived', { name: client.name })
+              : client.name
+          }}
         </option>
       </select>
     </label>
 
     <p v-if="clientOptions.length === 0" class="settings-group-hint">
-      No clients yet. Add them under Settings, then Clients.
+      {{ t('settings.projectNoClients') }}
     </p>
 
-    <DisclosureSection label="Icon">
+    <DisclosureSection :label="t('settings.projectIcon')">
       <div class="project-icon-picker">
         <button
           class="project-icon-option project-icon-option--none"
           :class="{ active: !icon }"
           type="button"
-          aria-label="No icon"
+          :aria-label="t('settings.projectIconNoneLabel')"
           :aria-pressed="!icon"
           @click="setIcon(undefined)"
         >
-          None
+          {{ t('settings.projectIconNone') }}
         </button>
         <button
           v-for="option in iconOptions"
@@ -118,7 +125,7 @@ const {
           class="project-icon-option"
           :class="{ active: icon === option.id }"
           type="button"
-          :aria-label="option.label"
+          :aria-label="t(option.labelKey)"
           :aria-pressed="icon === option.id"
           @click="setIcon(option.id)"
         >
@@ -127,21 +134,24 @@ const {
       </div>
     </DisclosureSection>
 
-    <DisclosureSection label="Description" :open="Boolean(goal.description)">
+    <DisclosureSection
+      :label="t('settings.projectDescription')"
+      :open="Boolean(goal.description)"
+    >
       <label class="settings-field">
-        Description
+        {{ t('settings.projectDescription') }}
         <textarea
           v-model="description"
           rows="2"
           maxlength="280"
-          placeholder="What this project is for"
+          :placeholder="t('settings.projectDescriptionPlaceholder')"
           @change="commitDescription"
           @blur="commitDescription"
         ></textarea>
       </label>
     </DisclosureSection>
 
-    <p class="sidebar-caption">Status</p>
+    <p class="sidebar-caption">{{ t('settings.projectStatus') }}</p>
 
     <div class="settings-chips">
       <button
@@ -152,13 +162,13 @@ const {
         type="button"
         @click="setStatus(option.id)"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
-    <p class="settings-group-hint">{{ statusHint }}</p>
+    <p class="settings-group-hint">{{ t(statusHint) }}</p>
 
-    <p class="sidebar-caption">Board</p>
+    <p class="sidebar-caption">{{ t('settings.projectBoard') }}</p>
 
     <label class="settings-toggle">
       <input
@@ -167,15 +177,12 @@ const {
         @change="emit('update-board', checkedValue($event))"
       />
       <span>
-        <strong>Board view</strong>
-        <em>
-          Adds a List / Board switch to this project. The board shows the day's
-          tasks in To do, In progress and Done.
-        </em>
+        <strong>{{ t('settings.projectBoardView') }}</strong>
+        <em>{{ t('settings.projectBoardHint') }}</em>
       </span>
     </label>
 
-    <DisclosureSection label="Colours">
+    <DisclosureSection :label="t('settings.sectionColours')">
       <ProjectThemeEditor
         :goal="goal"
         :mode="themeMode"
@@ -195,18 +202,17 @@ const {
       @update-budget="(budget) => emit('update-budget', budget)"
     />
 
-    <DisclosureSection label="Danger zone">
+    <DisclosureSection :label="t('settings.projectDanger')">
       <div class="settings-danger">
         <p class="settings-group-hint">
-          Deleting the project also deletes every task in it and every day row
-          they produced. Only a backup file can bring it back.
+          {{ t('settings.projectDeleteNote') }}
         </p>
         <button
           class="btn btn-ghost settings-action settings-action--danger"
           type="button"
           @click="confirmDelete"
         >
-          Delete this project
+          {{ t('settings.projectDeleteButton') }}
         </button>
       </div>
     </DisclosureSection>

@@ -14,7 +14,12 @@ import {
   formatHoursMinutes,
   formatTimeLabel,
 } from '../../../composables/timer/format'
-import { PHASE_LABELS } from '../../../composables/timer/pomodoro'
+import {
+  durationWords,
+  modeLabel,
+  phaseLabel,
+} from '../../../composables/timer/text'
+import { i18n } from '../../../i18n'
 
 export function useTimerHistory() {
   const { days, removeEntry } = useTimeEntries()
@@ -37,15 +42,21 @@ export function useTimerHistory() {
   }
 
   function durationLabel(entry: TimeEntry): string {
-    return formatEntryDuration(entryDurationMs(entry))
+    return formatEntryDuration(entryDurationMs(entry), durationWords())
   }
 
   function kindLabel(entry: TimeEntry): string {
-    if (entry.source === TIME_ENTRY_SOURCE.MANUAL) return 'Added by hand'
-    if (entry.mode === TIMER_MODE.POMODORO && entry.phase) {
-      return PHASE_LABELS[entry.phase]
+    if (entry.source === TIME_ENTRY_SOURCE.MANUAL) {
+      return i18n.global.t('timer.kindManual')
     }
-    return entry.mode === TIMER_MODE.COUNTDOWN ? 'Countdown' : 'Stopwatch'
+    if (entry.mode === TIMER_MODE.POMODORO && entry.phase) {
+      return phaseLabel(entry.phase)
+    }
+    return modeLabel(
+      entry.mode === TIMER_MODE.COUNTDOWN
+        ? TIMER_MODE.COUNTDOWN
+        : TIMER_MODE.STOPWATCH,
+    )
   }
 
   function dayLabel(group: DayGroup): string {
@@ -53,7 +64,7 @@ export function useTimerHistory() {
   }
 
   function dayTotalLabel(group: DayGroup): string {
-    return formatHoursMinutes(group.totalMs)
+    return formatHoursMinutes(group.totalMs, durationWords())
   }
 
   return {

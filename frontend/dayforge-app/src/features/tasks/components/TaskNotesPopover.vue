@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
 import {
   isCommitShortcut,
@@ -29,6 +30,7 @@ const emit = defineEmits<{
 /** Narrow or touch screens get a bottom sheet instead of a floating panel. */
 const isSheet = useMediaQuery('(max-width: 600px), (pointer: coarse)')
 
+const { t } = useI18n()
 const root = useTemplateRef<HTMLElement>('root')
 const textarea = useTemplateRef<HTMLTextAreaElement>('textarea')
 const position = ref<PopoverPosition>({ left: 0, top: 0 })
@@ -105,7 +107,7 @@ defineExpose({ commitAndClose })
       class="notes-pop"
       :class="{ 'notes-pop--sheet': isSheet }"
       role="dialog"
-      aria-label="Notes"
+      :aria-label="t('tasks.notes')"
       :style="
         isSheet
           ? undefined
@@ -118,7 +120,7 @@ defineExpose({ commitAndClose })
         <button
           type="button"
           class="notes-pop__close"
-          aria-label="Close notes"
+          :aria-label="t('tasks.closeNotes')"
           @click="commitAndClose(true)"
         >
           <AppIcon name="close" :size="14" />
@@ -131,11 +133,11 @@ defineExpose({ commitAndClose })
         class="notes-pop__text"
         rows="3"
         :maxlength="NOTES_MAX_LENGTH"
-        placeholder="Write a note…"
+        :placeholder="t('tasks.writeNote')"
         @blur="commit"
       ></textarea>
 
-      <p class="notes-pop__hint">Saved automatically · Esc to discard</p>
+      <p class="notes-pop__hint">{{ t('tasks.notesHint') }}</p>
     </div>
   </Teleport>
 </template>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useProjectRateField } from '../composables/useProjectRateField'
 
@@ -8,6 +9,7 @@ const emit = defineEmits<{
   (e: 'update-rate', hourlyRate: number | undefined): void
 }>()
 
+const { t } = useI18n()
 const { draft, currency, hasOwnRate, placeholder, commit, clear } =
   useProjectRateField(props, {
     onUpdate: (hourlyRate) => emit('update-rate', hourlyRate),
@@ -18,7 +20,7 @@ const { draft, currency, hasOwnRate, placeholder, commit, clear } =
   <div class="project-rate">
     <div class="settings-times">
       <label>
-        Per hour ({{ currency }})
+        {{ t('billing.perHour', { currency }) }}
         <input
           v-model="draft"
           type="number"
@@ -38,7 +40,7 @@ const { draft, currency, hasOwnRate, placeholder, commit, clear } =
       type="button"
       @click="clear"
     >
-      Use the default rate
+      {{ t('billing.useDefaultRate') }}
     </button>
   </div>
 </template>

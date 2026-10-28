@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useId, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   (e: 'cancel'): void
 }>()
 
+const { t } = useI18n()
 const inputId = useId()
 // The calendar button is the only switch for scheduling in this row.
 const calendarOn = ref(false)
@@ -57,14 +59,16 @@ onMounted(() => {
     <div class="ui-card task-composer__row">
       <AppIcon name="plus" :size="16" class="task-composer__plus" />
 
-      <label :for="inputId" class="task-composer__label">Add a task</label>
+      <label :for="inputId" class="task-composer__label">{{
+        t('tasks.addTask')
+      }}</label>
       <input
         :id="inputId"
         ref="input"
         v-model="title"
         class="task-composer__input"
         type="text"
-        placeholder="Add a task"
+        :placeholder="t('tasks.addTask')"
         :data-tip-anchor="isSubtask ? undefined : 'composer-input'"
         @keydown.enter="submit"
       />
@@ -77,8 +81,8 @@ onMounted(() => {
         class="ui-icon-btn ui-icon-btn--outlined task-composer__calendar"
         :class="{ 'is-active': calendarOn }"
         :aria-pressed="calendarOn"
-        aria-label="Schedule on the calendar"
-        title="Schedule on the calendar"
+        :aria-label="t('tasks.scheduleOnCalendar')"
+        :title="t('tasks.scheduleOnCalendar')"
         :data-tip-anchor="isSubtask ? undefined : 'composer-calendar'"
         @click="calendarOn = !calendarOn"
       >
@@ -91,17 +95,17 @@ onMounted(() => {
         class="task-composer__cancel"
         @click="cancel"
       >
-        Cancel
+        {{ t('common.cancel') }}
       </button>
       <kbd
         v-if="shortcut"
         class="kbd-badge task-composer__key"
-        title="Quick add from anywhere (N)"
+        :title="t('tasks.quickAddFromAnywhere')"
         aria-hidden="true"
         >N</kbd
       >
       <button type="button" class="task-composer__add" @click="submit">
-        Add
+        {{ t('common.add') }}
       </button>
     </div>
 

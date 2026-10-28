@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import TaskScheduleFields from './TaskScheduleFields.vue'
@@ -18,13 +19,17 @@ const emit = defineEmits<{
 const scheduleFields =
   useTemplateRef<InstanceType<typeof TaskScheduleFields>>('scheduleFields')
 
+const { t } = useI18n()
+
 const title = ref(props.node.task.title)
 const titleInput = useTemplateRef<HTMLInputElement>('titleInput')
 
 const wasScheduled = Boolean(props.node.task.startTime)
 
 const saveLabel = computed(() =>
-  scheduleFields.value?.isEnabled && !wasScheduled ? 'Add to calendar' : 'Save',
+  scheduleFields.value?.isEnabled && !wasScheduled
+    ? t('tasks.addToCalendar')
+    : t('common.save'),
 )
 
 onMounted(() => {
@@ -55,7 +60,7 @@ function save() {
 <template>
   <div class="task-editor" @keydown.esc="emit('close')">
     <label class="task-editor__field">
-      <span class="task-schedule__label">Task</span>
+      <span class="task-schedule__label">{{ t('tasks.taskLabel') }}</span>
       <input
         ref="titleInput"
         v-model="title"
@@ -68,7 +73,7 @@ function save() {
 
     <div class="task-editor__actions">
       <button class="btn btn-ghost" type="button" @click="emit('close')">
-        Cancel
+        {{ t('common.cancel') }}
       </button>
       <button
         class="btn btn-primary"

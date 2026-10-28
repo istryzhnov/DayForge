@@ -1,6 +1,7 @@
 import type { ISODate } from '../../../entities/types'
 import { hoursOf, reportTotals, type ReportLine } from './billingExport'
 import { roundMoney } from './clientBilling'
+import { englishText, type Text } from './projectBilling'
 
 /**
  * Everything the printed report shows. The page is plain HTML with inline
@@ -17,6 +18,8 @@ export interface PrintReportModel {
   locale: string
   lines: ReportLine[]
   generatedAt: string
+  /** Translates the page's labels; English when omitted. */
+  text?: Text
 }
 
 export function escapeHtml(value: string): string {
@@ -71,6 +74,7 @@ export function buildPrintHtml(model: PrintReportModel): string {
     maximumFractionDigits: 2,
   })
   const text = escapeHtml
+  const t = model.text ?? englishText
   const totals = reportTotals(model.lines)
 
   const groups = new Map<string, ReportLine[]>()
@@ -97,9 +101,9 @@ export function buildPrintHtml(model: PrintReportModel): string {
         .join('\n')
 
       return `<section>
-<h2><span>${text(project)}</span><span>${hoursOf(sub.ms)} h · ${money.format(roundMoney(sub.amount))}</span></h2>
+<h2><span>${text(project)}</span><span>${text(t('analytics.sectionTotal', { hours: hoursOf(sub.ms), amount: money.format(roundMoney(sub.amount)) }))}</span></h2>
 <table>
-<thead><tr><th>Date</th><th>Time</th><th>Task</th><th class="num">Hours</th><th class="num">Rate</th><th class="num">Amount</th></tr></thead>
+<thead><tr><th>${text(t('analytics.colDate'))}</th><th>${text(t('analytics.colTime'))}</th><th>${text(t('analytics.colTask'))}</th><th class="num">${text(t('analytics.colHours'))}</th><th class="num">${text(t('analytics.colRate'))}</th><th class="num">${text(t('analytics.colAmount'))}</th></tr></thead>
 <tbody>
 ${rows}
 </tbody>
@@ -117,28 +121,28 @@ ${rows}
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Time report ${text(model.from)} to ${text(model.to)}</title>
+<title>${text(t('analytics.printDocTitle', { from: model.from, to: model.to }))}</title>
 <style>${PRINT_CSS}</style>
 </head>
 <body>
 <header class="head">
 <div>
-<h1>Time report</h1>
+<h1>${text(t('analytics.printTitle'))}</h1>
 ${author}
 </div>
 <dl>
-<dt>Client</dt><dd>${text(model.clientLabel)}</dd>
-<dt>Period</dt><dd>${text(model.periodLabel)}</dd>
-<dt>Dates</dt><dd>${text(model.from)} to ${text(model.to)}</dd>
-<dt>Currency</dt><dd>${text(model.currency)}</dd>
+<dt>${text(t('analytics.colClient'))}</dt><dd>${text(model.clientLabel)}</dd>
+<dt>${text(t('analytics.printPeriod'))}</dt><dd>${text(model.periodLabel)}</dd>
+<dt>${text(t('analytics.printDates'))}</dt><dd>${text(t('analytics.printRange', { from: model.from, to: model.to }))}</dd>
+<dt>${text(t('analytics.printCurrency'))}</dt><dd>${text(model.currency)}</dd>
 </dl>
 </header>
-${sections || '<p class="meta">Nothing tracked in this period.</p>'}
+${sections || `<p class="meta">${text(t('analytics.printNothing'))}</p>`}
 <div class="total">
-<span>Total ${hoursOf(totals.ms)} h</span>
+<span>${text(t('analytics.printTotal', { hours: hoursOf(totals.ms) }))}</span>
 <span>${money.format(roundMoney(totals.amount))}</span>
 </div>
-<p class="generated">Generated ${text(model.generatedAt)} with DayForge</p>
+<p class="generated">${text(t('analytics.printGenerated', { date: model.generatedAt }))}</p>
 </body>
 </html>`
 }

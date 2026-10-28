@@ -1,0 +1,20 @@
+{
+  "projectBoard": "项目看板",
+  "columnTodo": "待办",
+  "columnDoing": "进行中",
+  "columnDone": "已完成",
+  "emptyTodo": "暂无待办事项。",
+  "emptyDoing": "没有进行中的任务。",
+  "emptyDone": "已完成的任务会出现在这里。",
+  "clearDone": "清除已完成",
+  "clearDoneHint": "从此看板隐藏已完成的任务，不会删除任何内容。",
+  "addTask": "+ 添加",
+  "taskTitle": "任务标题",
+  "newTaskTitle": "新任务标题",
+  "cardLabel": "{title}，{column}",
+  "scheduledDate": "计划日期",
+  "subtasksDone": "已完成 {done}/{total} 个子任务",
+  "moreActions": "更多操作",
+  "moveTo": "移动到",
+  "clearedDone": "已清除 {n} 个已完成任务"
+}

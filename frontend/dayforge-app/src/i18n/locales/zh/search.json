@@ -1,0 +1,22 @@
+{
+  "placeholder": "搜索项目和任务",
+  "results": "结果",
+  "noMatches": "没有匹配项",
+  "idle": "输入以搜索项目、任务和已完成的内容。",
+  "move": "选择",
+  "open": "打开",
+  "close": "关闭",
+  "paused": "已暂停",
+  "archived": "已归档",
+  "project": "项目",
+  "repeatDaily": "每天",
+  "repeatWeekly": "每周",
+  "repeatMonthly": "每月",
+  "repeatYearly": "每年",
+  "repeats": "重复",
+  "groupProjects": "项目",
+  "groupTasks": "任务",
+  "groupDone": "已归档和已完成",
+  "noProject": "无项目",
+  "unknownProject": "未知项目"
+}

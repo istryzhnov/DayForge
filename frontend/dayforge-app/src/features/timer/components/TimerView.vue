@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { MajorTaskOption } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import TimerModePicker from './TimerModePicker.vue'
@@ -16,6 +18,8 @@ import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
 
 const props = defineProps<{ taskOptions: MajorTaskOption[] }>()
+
+const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'save-as-task', title: string): void
@@ -89,20 +93,20 @@ function closeEditor() {
 <template>
   <section class="timer-view">
     <header class="timer-view__head">
-      <h2 class="timer-view__title">Timer</h2>
+      <h2 class="timer-view__title">{{ t('timer.title') }}</h2>
       <button
         class="ui-icon-btn"
         type="button"
-        title="About the timer"
-        aria-label="About the timer"
+        :title="t('timer.aboutTimer')"
+        :aria-label="t('timer.aboutTimer')"
         :aria-expanded="showInfo"
         @click="showInfo = !showInfo"
       >
         <AppIcon name="info" :size="16" />
       </button>
     </header>
-    <p v-if="showInfo" class="timer-view__info ui-oneline">
-      One timer at a time. Starting another stops this one and keeps its time.
+    <p v-if="showInfo" class="timer-view__info">
+      {{ t('timer.timerInfo') }}
     </p>
 
     <section class="ui-card timer-view__stage">
@@ -126,7 +130,7 @@ function closeEditor() {
         class="ui-chips timer-view__lengths"
         data-tip-anchor="timer-lengths"
         role="group"
-        aria-label="Countdown length"
+        :aria-label="t('timer.countdownLengthLabel')"
       >
         <button
           v-for="minutes in COUNTDOWN_PRESETS"
@@ -137,7 +141,7 @@ function closeEditor() {
           :aria-pressed="countdownMinutes === minutes"
           @click="countdownMinutes = minutes"
         >
-          {{ minutes }} m
+          {{ t('timer.lengthMinutes', { n: minutes }) }}
         </button>
         <label class="ui-chip timer-view__custom">
           <input
@@ -145,7 +149,7 @@ function closeEditor() {
             min="1"
             max="240"
             inputmode="numeric"
-            aria-label="Custom length in minutes"
+            :aria-label="t('timer.customLengthLabel')"
             :value="
               COUNTDOWN_PRESETS.includes(countdownMinutes)
                 ? ''
@@ -154,7 +158,7 @@ function closeEditor() {
             placeholder="…"
             @change="setCustomLength"
           />
-          m
+          {{ t('timer.unitMinuteShort') }}
         </label>
       </div>
 
@@ -164,10 +168,10 @@ function closeEditor() {
           <select
             class="timer-view__picker"
             :value="timer.task?.taskId ?? ''"
-            aria-label="Add this time to a task"
+            :aria-label="t('timer.addTimeToTask')"
             @change="pickTask"
           >
-            <option value="">No task</option>
+            <option value="">{{ t('timer.noTask') }}</option>
             <optgroup
               v-for="group in taskGroups"
               :key="group.label"
@@ -186,8 +190,8 @@ function closeEditor() {
             v-if="timer.task"
             class="ui-icon-btn"
             type="button"
-            title="Detach task"
-            aria-label="Detach task"
+            :title="t('timer.detachTask')"
+            :aria-label="t('timer.detachTask')"
             @click="clearTask"
           >
             <AppIcon name="close" :size="14" />
@@ -196,22 +200,22 @@ function closeEditor() {
 
         <DisclosureSection
           v-if="canNameSession"
-          label="Or save as a new task"
+          :label="t('timer.saveAsTaskOr')"
           class="timer-view__save"
         >
           <form class="timer-view__save-form" @submit.prevent="saveAsTask">
             <input
               v-model="newTaskTitle"
               type="text"
-              placeholder="What are you working on?"
-              aria-label="Name this session"
+              :placeholder="t('timer.taskPlaceholder')"
+              :aria-label="t('timer.nameSessionLabel')"
             />
             <button
               class="btn btn-ghost"
               type="submit"
               :disabled="!newTaskTitle.trim()"
             >
-              Save as new task
+              {{ t('timer.saveAsNewTask') }}
             </button>
           </form>
         </DisclosureSection>
@@ -231,19 +235,23 @@ function closeEditor() {
       />
 
       <p class="timer-view__today">
-        Today · {{ formatHoursMinutes(todayTotalMs) }}
+        {{
+          t('timer.todayTotal', {
+            time: formatHoursMinutes(todayTotalMs, durationWords()),
+          })
+        }}
       </p>
     </section>
 
     <header class="timer-view__history-head">
-      <p class="ui-section-label">History</p>
+      <p class="ui-section-label">{{ t('timer.history') }}</p>
       <button
         class="ui-chip timer-view__add"
         type="button"
         @click="openEditor(null)"
       >
         <AppIcon name="plus" :size="14" />
-        Add entry
+        {{ t('timer.addEntry') }}
       </button>
     </header>
 

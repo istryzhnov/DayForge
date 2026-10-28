@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { i18n } from '../../../i18n'
 import { useTheme } from '../../../composables/useTheme'
 import {
   PALETTE_PRESETS,
@@ -12,7 +13,11 @@ export function useThemeGallery() {
 
   const modeAdvice = computed(() => {
     const advice = suggestedModeFor(theme.effectivePalette.value.accent)
-    return { ...advice, matches: advice.mode === theme.themeMode.value }
+    return {
+      mode: advice.mode,
+      reason: i18n.global.t(advice.reasonKey),
+      matches: advice.mode === theme.themeMode.value,
+    }
   })
 
   /** The four dots on a preset card: accent, projects, tasks, canvas. */

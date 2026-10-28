@@ -1,14 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useTimerReminders } from '../composables/useTimerReminders'
 import { formatAwayTime } from '../composables/timer/reminders'
+import { awayTimeWords } from '../composables/timer/text'
 
+const { t } = useI18n()
 const { awayPrompt, keepAway, discardAway, discardAndStopAway } =
   useTimerReminders()
 
 const awayLabel = computed(() =>
   awayPrompt.value
-    ? formatAwayTime(awayPrompt.value.returnedAt - awayPrompt.value.hiddenAt)
+    ? formatAwayTime(
+        awayPrompt.value.returnedAt - awayPrompt.value.hiddenAt,
+        awayTimeWords(),
+      )
     : '',
 )
 </script>
@@ -22,21 +28,20 @@ const awayLabel = computed(() =>
       aria-modal="true"
       aria-labelledby="timer-away-title"
     >
-      <p class="task-reminder-card__eyebrow">Timer</p>
-      <h3 id="timer-away-title">You were away {{ awayLabel }}</h3>
-      <p class="task-reminder-card__hint">
-        The timer kept running while DayForge was in the background. Should that
-        time count?
-      </p>
+      <p class="task-reminder-card__eyebrow">{{ t('timer.title') }}</p>
+      <h3 id="timer-away-title">
+        {{ t('timer.awayHeading', { time: awayLabel }) }}
+      </h3>
+      <p class="task-reminder-card__hint">{{ t('timer.awayHint') }}</p>
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" @click="discardAndStopAway">
-          Discard and stop
+          {{ t('timer.discardAndStop') }}
         </button>
         <button class="btn btn-ghost" type="button" @click="discardAway">
-          Discard the away time
+          {{ t('timer.discardAway') }}
         </button>
         <button class="btn btn-primary" type="button" @click="keepAway">
-          Keep the time
+          {{ t('timer.keepTime') }}
         </button>
       </div>
     </div>

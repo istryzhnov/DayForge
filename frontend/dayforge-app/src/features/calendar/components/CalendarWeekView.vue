@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ISODate, ID } from '../../../entities/types'
 import type {
   PositionedEvent,
@@ -36,6 +37,8 @@ const emit = defineEmits<{
 
 const { days, weekSummary } = props.week
 
+const { t } = useI18n()
+
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
 
 function iconFor(goalId: ID | undefined) {
@@ -55,9 +58,15 @@ function eventStyle(event: PositionedEvent) {
 
 <template>
   <section class="calendar-week">
-    <p class="calendar-week__summary ui-oneline">
-      {{ weekSummary.done }}/{{ weekSummary.total }} done ·
-      {{ weekSummary.hours }}h scheduled
+    <p class="calendar-week__summary">
+      {{
+        t('calendar.weekSummary', {
+          done: weekSummary.done,
+          total: weekSummary.total,
+          hours: weekSummary.hours,
+          unit: t('timer.unitHour'),
+        })
+      }}
     </p>
 
     <div class="calendar-week__wrap">
@@ -89,7 +98,7 @@ function eventStyle(event: PositionedEvent) {
           <button
             class="calendar-week__day-head"
             type="button"
-            :title="`Open ${day.date}`"
+            :title="t('calendar.openDay', { date: day.date })"
             @click="emit('open-day', day.date)"
           >
             <span class="calendar-week__weekday">{{ day.weekdayLabel }}</span>
@@ -151,7 +160,7 @@ function eventStyle(event: PositionedEvent) {
             type="button"
             @click="emit('open-day', day.date)"
           >
-            +{{ day.unscheduledCount }} unscheduled
+            {{ t('calendar.moreUnscheduled', { n: day.unscheduledCount }) }}
           </button>
         </div>
       </div>

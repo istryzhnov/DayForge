@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
@@ -63,6 +64,8 @@ const ShortcutsModal = defineAsyncComponent(
 const SearchPalette = defineAsyncComponent(
   () => import('../features/search/components/SearchPalette.vue'),
 )
+
+const { t } = useI18n()
 
 const goalSpace = useGoalSpace()
 
@@ -415,7 +418,7 @@ function handleSearchSelect(result: SearchResult) {
     <QuickAddModal
       v-if="overlay === 'quick-add'"
       :goals="goals"
-      :current-title="activeGoal?.title ?? 'All Projects'"
+      :current-title="activeGoal?.title ?? t('sidebar.allProjects')"
       @submit="handleQuickAdd"
     />
 

@@ -4,8 +4,10 @@ import { TASK_STATUS } from '../../../entities/constants'
 import { addDaysToISODate } from '../../../composables/goalSpace/date'
 import {
   describeRecurrence,
+  ENGLISH_RECURRENCE_WORDS,
   isRepeating,
   occursOn,
+  type RecurrenceWords,
 } from '../../../composables/goalSpace/recurrence'
 
 export const UPCOMING_WINDOW_DAYS = 14
@@ -42,6 +44,7 @@ export function collectUpcoming(
   fromDate: ISODate,
   days: number = UPCOMING_WINDOW_DAYS,
   goalId: ID | null,
+  words: RecurrenceWords = ENGLISH_RECURRENCE_WORDS,
 ): UpcomingDay[] {
   const activeTemplates = templates.filter((template) => template.isActive)
   const templateById = new Map(
@@ -111,7 +114,7 @@ export function collectUpcoming(
 
         items.push({
           ...item,
-          repeatLabel: repeat ? describeRecurrence(repeat) : undefined,
+          repeatLabel: repeat ? describeRecurrence(repeat, words) : undefined,
         })
       })
 

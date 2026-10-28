@@ -3,6 +3,7 @@ import { useAuth } from '../../../composables/useAuth'
 import { useSync } from '../../../composables/useSync'
 import { useFormat } from '../../../composables/useFormat'
 import { clearAccountData } from '../../../sync/accountDeletion'
+import { i18n } from '../../../i18n'
 
 export function useProfile() {
   const auth = useAuth()
@@ -31,19 +32,22 @@ export function useProfile() {
   })
 
   const syncSummary = computed(() => {
+    const t = i18n.global.t
     const { state, queued, deadLettered } = status.value
     switch (state) {
       case 'off':
-        return 'Not syncing'
+        return t('sync.notSyncing')
       case 'syncing':
-        return 'Syncing…'
+        return t('sync.syncing')
       case 'offline':
-        if (queued === 0) return 'Offline'
-        return `Offline · ${queued} ${queued === 1 ? 'change' : 'changes'} waiting`
+        if (queued === 0) return t('sync.offline')
+        return t('sync.offlineWaiting', queued)
       case 'error':
-        return `Sync error · ${deadLettered} refused`
+        return t('sync.errorRefused', { count: deadLettered })
       default:
-        return lastSynced.value ? `Synced · ${lastSynced.value}` : 'Synced'
+        return lastSynced.value
+          ? t('sync.syncedAt', { time: lastSynced.value })
+          : t('sync.synced')
     }
   })
 
@@ -53,8 +57,11 @@ export function useProfile() {
   })
 
   const triggerTitle = computed(() => {
-    if (!auth.isSignedIn.value) return 'Profile · signed out'
-    return `${auth.displayName.value} · ${syncSummary.value}`
+    if (!auth.isSignedIn.value) return i18n.global.t('profile.triggerSignedOut')
+    return i18n.global.t('profile.triggerTitle', {
+      name: auth.displayName.value,
+      status: syncSummary.value,
+    })
   })
 
   const logCopied = ref(false)

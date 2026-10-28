@@ -49,6 +49,7 @@ import {
   verifyTourStorage,
 } from './compat/tour'
 import { verifySignOutKeySelection } from './compat/signout'
+import { verifyTranslations } from './compat/i18n'
 import {
   verifyProjectDropTargets,
   verifyPlaceBeside,
@@ -98,6 +99,7 @@ function main() {
   verifyTourLifecycle()
   verifyTourDeletions()
   verifyTourStorage()
+  verifyTranslations()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

@@ -2,12 +2,14 @@ import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
+import { i18n } from '../../../i18n'
 import {
   RECURRENCE_TYPE,
   TASK_KIND_BY_SCHEDULE,
   TASK_STATUS,
 } from '../../../entities/constants'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import {
   describeRecurrence,
@@ -82,8 +84,9 @@ export function usePlannedTasks(options: PlannedOptions) {
             title: template.title,
             date,
             goalTitle: template.goalId
-              ? (goalTitleById.get(template.goalId) ?? 'Unknown Goal')
-              : 'No goal',
+              ? (goalTitleById.get(template.goalId) ??
+                i18n.global.t('tasks.unknownGoal'))
+              : i18n.global.t('tasks.noGoal'),
             goalColor: template.goalId
               ? goalColorById.get(template.goalId)
               : undefined,
@@ -95,7 +98,7 @@ export function usePlannedTasks(options: PlannedOptions) {
             isAnnual: isAnnual(template),
             repeatLabel:
               plannedRepeat && template.recurrence
-                ? describeRecurrence(template.recurrence)
+                ? describeRecurrence(template.recurrence, recurrenceWords())
                 : undefined,
           },
         ]

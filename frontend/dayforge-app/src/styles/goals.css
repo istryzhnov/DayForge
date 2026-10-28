@@ -163,6 +163,12 @@
   white-space: nowrap;
 }
 
+/* The "All Projects" row is a label, not a project name, so it wraps. */
+.nav-goal-btn__name--label {
+  white-space: normal;
+  text-overflow: clip;
+}
+
 .nav-goal-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

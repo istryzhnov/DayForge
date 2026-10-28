@@ -1,4 +1,52 @@
 import type { Goal } from '../../../entities/GoalEntity'
+import analyticsEn from '../../../i18n/locales/en/analytics.json'
+import billingEn from '../../../i18n/locales/en/billing.json'
+
+/**
+ * Looks up a message by its full key (`analytics.colDate`) and fills `{name}`
+ * placeholders. The pure modules take one of these, so exports and messages
+ * follow the UI language. Without one they use the English catalogue, which
+ * keeps them usable from the compat checks (no i18n module is loaded there).
+ */
+export type Text = (
+  key: string,
+  params?: Record<string, string | number>,
+) => string
+
+const ENGLISH: Record<string, string> = {
+  ...Object.fromEntries(
+    Object.entries(analyticsEn).map(([key, value]) => [
+      `analytics.${key}`,
+      value,
+    ]),
+  ),
+  ...Object.fromEntries(
+    Object.entries(billingEn).map(([key, value]) => [`billing.${key}`, value]),
+  ),
+}
+
+export function englishText(
+  key: string,
+  params?: Record<string, string | number>,
+): string {
+  const message = ENGLISH[key] ?? key
+  if (!params) return message
+  return message.replace(/\{(\w+)\}/g, (match, name: string) =>
+    name in params ? String(params[name]) : match,
+  )
+}
+
+/** Locale-aware number text for messages, e.g. `10,000,000` in en, `10 000 000` in pl. */
+export interface Messages {
+  text: Text
+  /** The date/format locale from settings, used for numbers in messages. */
+  locale: string
+}
+
+export const ENGLISH_MESSAGES: Messages = {
+  text: englishText,
+  locale: 'en-US',
+}
 
 /**
  * Analytics-only figures a freelancer sets per project. They never touch time
@@ -83,36 +131,48 @@ export function sanitizeBilling(raw: unknown): ProjectBilling | undefined {
 
 /** Parses a number field: empty means "not set", anything else must be a valid number. */
 function parseNumberField(
-  text: string,
+  value: string,
   max: number,
   label: string,
+  messages: Messages,
 ): { value?: number; error?: string } {
   // A number input bound with v-model arrives as a number, not as text.
-  const trimmed = String(text).trim().replace(',', '.')
+  const trimmed = String(value).trim().replace(',', '.')
   if (trimmed === '') return {}
 
-  const value = Number(trimmed)
-  if (!isFiniteNumber(value) || !isInRange(value, max)) {
+  const parsed = Number(trimmed)
+  if (!isFiniteNumber(parsed) || !isInRange(parsed, max)) {
     return {
-      error: `${label} must be a number from 0 to ${max.toLocaleString('en-US')}.`,
+      error: messages.text('analytics.limitError', {
+        label,
+        max: max.toLocaleString(messages.locale),
+      }),
     }
   }
-  return { value }
+  return { value: parsed }
 }
 
-/** Turns the dialog's text fields into a billing record, or says what is wrong. */
-export function parseBillingDraft(draft: BillingDraft): BillingParseResult {
+/**
+ * Turns the dialog's text fields into a billing record, or says what is wrong.
+ * `messages` carries the UI text and the number locale for the messages.
+ */
+export function parseBillingDraft(
+  draft: BillingDraft,
+  messages: Messages = ENGLISH_MESSAGES,
+): BillingParseResult {
   const price = parseNumberField(
     draft.fixedPrice,
     BILLING_LIMITS.FIXED_PRICE_MAX,
-    'Fixed price',
+    messages.text('analytics.fixedPrice'),
+    messages,
   )
   if (price.error) return { ok: false, error: price.error }
 
   const hours = parseNumberField(
     draft.manualHours,
     BILLING_LIMITS.MANUAL_HOURS_MAX,
-    'Hours',
+    messages.text('analytics.colHours'),
+    messages,
   )
   if (hours.error) return { ok: false, error: hours.error }
 
@@ -120,7 +180,9 @@ export function parseBillingDraft(draft: BillingDraft): BillingParseResult {
   if (note.length > BILLING_LIMITS.NOTE_MAX_LENGTH) {
     return {
       ok: false,
-      error: `The note can be at most ${BILLING_LIMITS.NOTE_MAX_LENGTH} characters.`,
+      error: messages.text('analytics.noteTooLong', {
+        max: BILLING_LIMITS.NOTE_MAX_LENGTH,
+      }),
     }
   }
 

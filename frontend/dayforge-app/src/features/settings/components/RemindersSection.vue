@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useSettings } from '../../../composables/useSettings'
 import { MINUTE_STEPS } from '../composables/settingsOptions'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
   (e: 'toggle-notifications'): void
 }>()
 
+const { t } = useI18n()
 const { settings, update, resetSection } = useSettings()
 const { user, isSignedIn } = useAuth()
 const push = usePushReminders()
@@ -52,15 +54,15 @@ function togglePush() {
         @change="emit('toggle-notifications')"
       />
       <span>
-        <strong>Remind me before a task starts</strong>
-        <em>Needs the browser's notification permission.</em>
+        <strong>{{ t('settings.remindersLabel') }}</strong>
+        <em>{{ t('settings.remindersPermission') }}</em>
       </span>
     </label>
     <p v-else class="settings-group-hint">
-      This browser has no notification support, so reminders stay off.
+      {{ t('settings.remindersNoSupport') }}
     </p>
 
-    <p class="sidebar-caption">Warn me this far ahead</p>
+    <p class="sidebar-caption">{{ t('settings.remindersLeadCaption') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in MINUTE_STEPS"
@@ -70,14 +72,13 @@ function togglePush() {
         type="button"
         @click="update('notifications', { leadMinutes: minutes })"
       >
-        {{ minutes }} min
+        {{ t('settings.minutesShort', { n: minutes }) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Planned blocks</p>
+    <p class="sidebar-caption">{{ t('settings.remindersPlannedCaption') }}</p>
     <p class="settings-group-hint">
-      In the app, these show while DayForge is open. Turn on "Notify me when the
-      app is closed" to get them as push notifications too.
+      {{ t('settings.remindersPlannedHint') }}
     </p>
 
     <label class="settings-toggle">
@@ -91,8 +92,8 @@ function togglePush() {
         "
       />
       <span>
-        <strong>Ask to start the timer on a late block</strong>
-        <em> When a scheduled block began 5 min ago with no timer running. </em>
+        <strong>{{ t('settings.remindersLateLabel') }}</strong>
+        <em>{{ t('settings.remindersLateHint') }}</em>
       </span>
     </label>
 
@@ -105,17 +106,20 @@ function togglePush() {
         "
       />
       <span>
-        <strong>Evening nudge to log planned blocks</strong>
+        <strong>{{ t('settings.remindersEveningLabel') }}</strong>
         <em>
-          After {{ settings.notifications.endOfDayTime }}, once a day, if
-          finished blocks have no time logged.
+          {{
+            t('settings.remindersEveningHint', {
+              time: settings.notifications.endOfDayTime,
+            })
+          }}
         </em>
       </span>
     </label>
 
     <div v-if="settings.notifications.endOfDayNudge" class="settings-times">
       <label>
-        Summary at
+        {{ t('settings.remindersSummaryAt') }}
         <input
           type="time"
           :value="settings.notifications.endOfDayTime"
@@ -125,7 +129,9 @@ function togglePush() {
     </div>
 
     <template v-if="isSignedIn">
-      <p class="sidebar-caption">When the app is closed</p>
+      <p class="sidebar-caption">
+        {{ t('settings.remindersWhenClosedCaption') }}
+      </p>
 
       <p
         v-if="
@@ -146,16 +152,12 @@ function togglePush() {
             @change="togglePush"
           />
           <span>
-            <strong>Notify me when the app is closed</strong>
-            <em>
-              Timer and planned-block reminders arrive as browser notifications.
-              They are checked every few minutes, so they can come a little
-              late. Works on this device only.
-            </em>
+            <strong>{{ t('settings.remindersPushLabel') }}</strong>
+            <em>{{ t('settings.remindersPushHint') }}</em>
           </span>
         </label>
         <p v-if="push.status.value === 'denied'" class="settings-group-hint">
-          Notifications are blocked for this site in the browser settings.
+          {{ t('settings.remindersBlocked') }}
         </p>
         <p v-if="push.error.value" class="settings-group-hint" role="alert">
           {{ push.error.value }}
@@ -163,7 +165,7 @@ function togglePush() {
       </template>
     </template>
 
-    <p class="sidebar-caption">Sound</p>
+    <p class="sidebar-caption">{{ t('settings.remindersSoundCaption') }}</p>
 
     <label class="settings-toggle">
       <input
@@ -172,15 +174,15 @@ function togglePush() {
         @change="update('notifications', { sound: checkedValue($event) })"
       />
       <span>
-        <strong>Play a chime</strong>
-        <em>Alongside the popup.</em>
+        <strong>{{ t('settings.remindersChime') }}</strong>
+        <em>{{ t('settings.remindersChimeHint') }}</em>
       </span>
     </label>
 
-    <DisclosureSection label="Advanced">
+    <DisclosureSection :label="t('settings.advanced')">
       <label v-if="settings.notifications.sound" class="settings-slider">
         <span>
-          Volume
+          {{ t('settings.remindersVolume') }}
           <em>{{ Math.round(settings.notifications.volume * 100) }}%</em>
         </span>
         <input
@@ -202,12 +204,12 @@ function togglePush() {
           "
         />
         <span>
-          <strong>Keep chiming until acknowledged</strong>
-          <em>Off means one chime and the popup waits quietly.</em>
+          <strong>{{ t('settings.remindersRepeat') }}</strong>
+          <em>{{ t('settings.remindersRepeatHint') }}</em>
         </span>
       </label>
 
-      <p class="sidebar-caption">Quiet hours</p>
+      <p class="sidebar-caption">{{ t('settings.remindersQuietCaption') }}</p>
 
       <label class="settings-toggle">
         <input
@@ -218,14 +220,14 @@ function togglePush() {
           "
         />
         <span>
-          <strong>Stay silent overnight</strong>
-          <em>Nothing is queued during this window, not even held back.</em>
+          <strong>{{ t('settings.remindersQuiet') }}</strong>
+          <em>{{ t('settings.remindersQuietHint') }}</em>
         </span>
       </label>
 
       <div v-if="settings.notifications.quietHours" class="settings-times">
         <label>
-          From
+          {{ t('settings.remindersFrom') }}
           <input
             type="time"
             :value="settings.notifications.quietFrom"
@@ -233,7 +235,7 @@ function togglePush() {
           />
         </label>
         <label>
-          To
+          {{ t('settings.remindersTo') }}
           <input
             type="time"
             :value="settings.notifications.quietTo"
@@ -248,7 +250,7 @@ function togglePush() {
       type="button"
       @click="resetSection('notifications')"
     >
-      Reset reminders
+      {{ t('settings.remindersReset') }}
     </button>
   </div>
 </template>

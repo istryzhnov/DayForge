@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { PlannedTask } from '../composables/usePlannedTasks'
 import type { ID, ISODate } from '../../../entities/types'
 import { useFormat } from '../../../composables/useFormat'
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatTime } = useFormat()
+const { t } = useI18n()
 
 /** Explains the list on demand; the header stays one line. */
 const showHint = ref(false)
@@ -29,9 +31,9 @@ const overdueCount = computed(
 
 /** Overdue, repeat and time on one muted line under the title. */
 function whenLine(task: PlannedTask): string {
-  const repeat = task.isAnnual ? 'Every year' : task.repeatLabel
+  const repeat = task.isAnnual ? t('tasks.everyYear') : task.repeatLabel
   const time = task.startTime ? formatTime(task.startTime) : ''
-  return [task.isOverdue ? 'Overdue' : '', repeat ?? '', time]
+  return [task.isOverdue ? t('tasks.overdue') : '', repeat ?? '', time]
     .filter(Boolean)
     .join(' · ')
 }
@@ -42,21 +44,27 @@ function whenLine(task: PlannedTask): string {
     <header class="goal-panel-header" data-tip-anchor="planned-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
-          <h2>Planned tasks</h2>
+          <h2>{{ t('tasks.plannedTitle') }}</h2>
         </div>
 
         <ul class="goal-panel-stats">
           <li class="goal-panel-stats__item">
             <AppIcon name="calendar" :size="14" />
-            <span class="ui-oneline">{{ tasks.length }} planned</span>
+            <span class="ui-oneline">{{
+              t('tasks.plannedCount', { n: tasks.length })
+            }}</span>
           </li>
           <li v-if="todayCount" class="goal-panel-stats__item">
             <AppIcon name="check" :size="14" />
-            <span class="ui-oneline">{{ todayCount }} today</span>
+            <span class="ui-oneline">{{
+              t('tasks.todayCount', { n: todayCount })
+            }}</span>
           </li>
           <li v-if="overdueCount" class="goal-panel-stats__item">
             <AppIcon name="bell" :size="14" />
-            <span class="ui-oneline">{{ overdueCount }} overdue</span>
+            <span class="ui-oneline">{{
+              t('tasks.overdueCount', { n: overdueCount })
+            }}</span>
           </li>
         </ul>
       </div>
@@ -66,8 +74,8 @@ function whenLine(task: PlannedTask): string {
           class="ui-icon-btn ui-icon-btn--outlined"
           :class="{ 'is-active': showHint }"
           type="button"
-          aria-label="About planned tasks"
-          title="About planned tasks"
+          :aria-label="t('tasks.aboutPlanned')"
+          :title="t('tasks.aboutPlanned')"
           :aria-expanded="showHint"
           @click="showHint = !showHint"
         >
@@ -77,8 +85,7 @@ function whenLine(task: PlannedTask): string {
     </header>
 
     <p v-if="showHint" class="day-list__hint">
-      Dated tasks from every project, earliest first. A finished task stays here
-      only on its own day.
+      {{ t('tasks.plannedHint') }}
     </p>
 
     <div v-if="tasks.length" class="day-list">
@@ -86,11 +93,12 @@ function whenLine(task: PlannedTask): string {
         <header class="day-group__head">
           <span class="day-group__title ui-oneline">
             {{ dayHeadingLabel(day.date)
-            }}<template v-if="day.items[0].isToday"> · Today</template>
+            }}<template v-if="day.items[0].isToday">
+              · {{ t('common.today') }}</template
+            >
           </span>
           <span class="day-group__count">
-            {{ day.items.length }}
-            {{ day.items.length === 1 ? 'task' : 'tasks' }}
+            {{ t('tasks.tasksCount', day.items.length) }}
           </span>
         </header>
 
@@ -105,7 +113,9 @@ function whenLine(task: PlannedTask): string {
               type="button"
               class="task-dot-check"
               :class="{ 'is-done': task.isDone }"
-              :aria-label="task.isDone ? 'Mark as not done' : 'Mark as done'"
+              :aria-label="
+                task.isDone ? t('tasks.markNotDone') : t('tasks.markDone')
+              "
               @click="emit('toggle', task.templateId, task.date)"
             >
               <AppIcon
@@ -153,6 +163,6 @@ function whenLine(task: PlannedTask): string {
       </section>
     </div>
 
-    <p v-else class="task-empty">No planned tasks.</p>
+    <p v-else class="task-empty">{{ t('tasks.noPlanned') }}</p>
   </section>
 </template>

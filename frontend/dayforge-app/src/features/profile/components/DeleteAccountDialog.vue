@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { useAccountDeletion } from '../composables/useAccountDeletion'
 import {
@@ -14,6 +15,8 @@ const emit = defineEmits<{
 
 const { isBusy, error, isOnline, offlineHint, deleteAccount } =
   useAccountDeletion()
+
+const { t } = useI18n()
 
 const typed = ref('')
 const confirmed = computed(() => isDeleteConfirmed(typed.value))
@@ -46,16 +49,13 @@ async function confirm() {
         aria-labelledby="account-delete-title"
         aria-describedby="account-delete-body"
       >
-        <h3 id="account-delete-title">Delete your account?</h3>
+        <h3 id="account-delete-title">{{ t('profile.deleteDialogTitle') }}</h3>
 
         <p id="account-delete-body" class="settings-group-hint">
-          This permanently deletes your DayForge account and every project,
-          task, habit, time entry and setting stored on our server. It cannot be
-          undone.
+          {{ t('profile.deleteDialogBody') }}
         </p>
         <p class="settings-group-hint">
-          This device's copy is erased too, once the deletion succeeds. Other
-          devices keep their own copies until their site data is cleared.
+          {{ t('profile.deleteDialogDevice') }}
         </p>
 
         <button
@@ -64,11 +64,11 @@ async function confirm() {
           :disabled="isBusy"
           @click="emit('export-backup')"
         >
-          Download a backup first
+          {{ t('profile.deleteDialogExport') }}
         </button>
 
         <label class="account-delete__label" for="account-delete-confirm">
-          Type {{ DELETE_CONFIRMATION }} to confirm
+          {{ t('profile.deleteDialogType', { word: DELETE_CONFIRMATION }) }}
         </label>
         <input
           id="account-delete-confirm"
@@ -95,7 +95,7 @@ async function confirm() {
             :disabled="isBusy"
             @click="close"
           >
-            Cancel
+            {{ t('profile.cancel') }}
           </button>
           <button
             class="btn btn-ghost settings-action--danger"
@@ -103,7 +103,11 @@ async function confirm() {
             :disabled="!canConfirm"
             @click="confirm"
           >
-            {{ isBusy ? 'Deleting…' : 'Delete account' }}
+            {{
+              isBusy
+                ? t('profile.deleteDialogBusy')
+                : t('profile.deleteDialogConfirm')
+            }}
           </button>
         </div>
       </div>

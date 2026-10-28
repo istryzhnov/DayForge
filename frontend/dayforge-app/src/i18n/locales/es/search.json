@@ -1,0 +1,22 @@
+{
+  "placeholder": "Buscar proyectos y tareas",
+  "results": "Resultados",
+  "noMatches": "Sin coincidencias",
+  "idle": "Escribe para buscar proyectos, tareas y trabajo terminado.",
+  "move": "elegir",
+  "open": "abrir",
+  "close": "cerrar",
+  "paused": "Pausado",
+  "archived": "Archivado",
+  "project": "Proyecto",
+  "repeatDaily": "Diariamente",
+  "repeatWeekly": "Semanalmente",
+  "repeatMonthly": "Mensualmente",
+  "repeatYearly": "Anualmente",
+  "repeats": "Se repite",
+  "groupProjects": "Proyectos",
+  "groupTasks": "Tareas",
+  "groupDone": "Archivadas y terminadas",
+  "noProject": "Sin proyecto",
+  "unknownProject": "Proyecto desconocido"
+}

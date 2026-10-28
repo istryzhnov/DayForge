@@ -1,0 +1,20 @@
+{
+  "projectBoard": "Projekt-Board",
+  "columnTodo": "Zu erledigen",
+  "columnDoing": "In Arbeit",
+  "columnDone": "Erledigt",
+  "emptyTodo": "Noch nichts zu tun.",
+  "emptyDoing": "Nichts in Arbeit.",
+  "emptyDone": "Erledigte Aufgaben landen hier.",
+  "clearDone": "Erledigte ausblenden",
+  "clearDoneHint": "Erledigte Aufgaben auf diesem Board ausblenden. Nichts wird gelöscht.",
+  "addTask": "+ Hinzufügen",
+  "taskTitle": "Aufgabentitel",
+  "newTaskTitle": "Titel der neuen Aufgabe",
+  "cardLabel": "{title}, {column}",
+  "scheduledDate": "Geplantes Datum",
+  "subtasksDone": "{done} von {total} Unteraufgaben erledigt",
+  "moreActions": "Weitere Aktionen",
+  "moveTo": "Verschieben nach",
+  "clearedDone": "Entfernt: {n} erledigte Aufgabe | Entfernt: {n} erledigte Aufgaben"
+}

@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useThemeGallery } from '../composables/useThemeGallery'
 import { swatchStyle } from '../../../composables/inputValue'
+
+const { t } = useI18n()
 
 const {
   presets,
@@ -19,7 +22,7 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Style</p>
+    <p class="sidebar-caption">{{ t('settings.themeStyle') }}</p>
     <div class="theme-panel__group">
       <button
         class="theme-chip"
@@ -27,7 +30,7 @@ const {
         type="button"
         @click="setThemeStyle('vivid')"
       >
-        Fresh
+        {{ t('settings.themeStyleFresh') }}
       </button>
       <button
         class="theme-chip"
@@ -35,11 +38,11 @@ const {
         type="button"
         @click="setThemeStyle('minimal')"
       >
-        Minimal
+        {{ t('settings.themeStyleMinimal') }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Mode</p>
+    <p class="sidebar-caption">{{ t('settings.themeMode') }}</p>
     <div class="theme-panel__group">
       <button
         class="theme-chip"
@@ -47,7 +50,7 @@ const {
         type="button"
         @click="setThemeMode('light')"
       >
-        Day
+        {{ t('settings.themeModeDay') }}
       </button>
       <button
         class="theme-chip"
@@ -55,7 +58,7 @@ const {
         type="button"
         @click="setThemeMode('dark')"
       >
-        Night
+        {{ t('settings.themeModeNight') }}
       </button>
     </div>
 
@@ -69,12 +72,16 @@ const {
           type="button"
           @click="setThemeMode(modeAdvice.mode)"
         >
-          Switch to {{ modeAdvice.mode === 'dark' ? 'night' : 'day' }}
+          {{
+            modeAdvice.mode === 'dark'
+              ? t('settings.themeSwitchToNight')
+              : t('settings.themeSwitchToDay')
+          }}
         </button>
       </span>
     </p>
 
-    <p class="sidebar-caption">Palettes</p>
+    <p class="sidebar-caption">{{ t('settings.themePalettes') }}</p>
     <div class="settings-presets">
       <button
         v-for="preset in presets"
@@ -91,8 +98,8 @@ const {
             :style="swatchStyle(dot)"
           ></span>
         </span>
-        <strong>{{ preset.name }}</strong>
-        <em>{{ preset.hint }}</em>
+        <strong>{{ t(preset.nameKey) }}</strong>
+        <em>{{ t(preset.hintKey) }}</em>
       </button>
     </div>
 
@@ -101,7 +108,7 @@ const {
       type="button"
       @click="resetAll"
     >
-      Reset appearance
+      {{ t('settings.themeReset') }}
     </button>
   </div>
 </template>

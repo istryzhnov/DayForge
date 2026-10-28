@@ -2,6 +2,9 @@
 import type { ISODate } from '../../../entities/types'
 import type { Bar, SeriesPoint } from '../../../composables/analytics/charts'
 import { useBarChartGeometry } from '../composables/useChartGeometry'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   points: SeriesPoint[]
@@ -98,7 +101,7 @@ function barHeight(bar: Bar): number {
     </div>
 
     <p v-if="chart.isEmpty" class="analytics-chart__empty">
-      No tracked time on any day of this period.
+      {{ t('analytics.chartEmpty') }}
     </p>
   </figure>
 </template>

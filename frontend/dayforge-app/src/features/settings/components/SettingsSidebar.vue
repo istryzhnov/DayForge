@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
 import type { ProjectBudget } from '../../analytics/composables/projectBudget'
@@ -17,6 +18,8 @@ import FormatSection from './FormatSection.vue'
 import DataSection from './DataSection.vue'
 import ProjectSection from './ProjectSection.vue'
 import { sectionMeta, useSettingsPanel } from '../composables/useSettingsPanel'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   goals: Goal[]
@@ -60,12 +63,12 @@ const { activeSection, openSection, back, close, escape } = useSettingsPanel()
 const heading = computed(() => {
   if (activeSection.value === null) {
     return {
-      title: 'Settings',
-      description: 'Everything you can change, grouped by what it touches.',
+      title: t('settings.panelTitle'),
+      description: t('settings.panelDescription'),
     }
   }
   const meta = sectionMeta(activeSection.value)
-  return { title: meta.label, description: meta.description }
+  return { title: t(meta.labelKey), description: t(meta.descriptionKey) }
 })
 
 function handleGoalTheme(theme: GoalTheme | undefined) {
@@ -122,13 +125,13 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <section class="settings-panel" aria-label="Settings">
+  <section class="settings-panel" :aria-label="t('settings.panelTitle')">
     <header class="settings-panel__head">
       <button
         v-if="activeSection !== null"
         class="settings-panel__back"
         type="button"
-        aria-label="Back to all settings"
+        :aria-label="t('settings.panelBack')"
         @click="back"
       >
         <AppIcon name="chevron-left" :size="16" />
@@ -140,7 +143,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
       <button
         class="settings-panel__close"
         type="button"
-        aria-label="Close settings"
+        :aria-label="t('settings.panelClose')"
         @click="close"
       >
         <AppIcon name="close" :size="14" />
@@ -207,8 +210,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
       />
 
       <p v-else class="settings-section__intro">
-        Open a project in the left sidebar to edit its name, status, colours and
-        rate.
+        {{ t('settings.panelProjectHint') }}
       </p>
     </div>
   </section>

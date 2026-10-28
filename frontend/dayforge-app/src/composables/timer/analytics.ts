@@ -45,6 +45,19 @@ export interface AnalyticsSummary {
 
 export const NO_PROJECT_KEY = '__no_project__'
 
+/** Names for the buckets that have no real title. English by default. */
+export interface SummaryLabels {
+  untrackedTask: string
+  noProject: string
+  deletedProject: string
+}
+
+export const ENGLISH_SUMMARY_LABELS: SummaryLabels = {
+  untrackedTask: 'Without a task',
+  noProject: 'Without a project',
+  deletedProject: 'Deleted project',
+}
+
 /** The bucket an entry lands in once grouped by project. */
 export function projectTotalKey(entry: Pick<TimeEntry, 'goalId'>): string {
   return entry.goalId ?? NO_PROJECT_KEY
@@ -104,6 +117,7 @@ export function entriesInRange(
 export function totalsByProject(
   entries: TimeEntry[],
   goalTitleById: Map<ID, string>,
+  labels: SummaryLabels = ENGLISH_SUMMARY_LABELS,
 ): ProjectTotal[] {
   const totals = new Map<string, ProjectTotal>()
   const tasksSeen = new Map<string, Set<string>>()
@@ -111,8 +125,8 @@ export function totalsByProject(
   entries.forEach((entry) => {
     const key = projectTotalKey(entry)
     const title = entry.goalId
-      ? (goalTitleById.get(entry.goalId) ?? 'Deleted project')
-      : 'Without a project'
+      ? (goalTitleById.get(entry.goalId) ?? labels.deletedProject)
+      : labels.noProject
 
     const existing = totals.get(key)
     const tasks = tasksSeen.get(key) ?? new Set<string>()
@@ -143,13 +157,14 @@ export function totalsByProject(
 export function summarize(
   inRange: TimeEntry[],
   goalTitleById: Map<ID, string>,
+  labels: SummaryLabels = ENGLISH_SUMMARY_LABELS,
 ): AnalyticsSummary {
   return {
     totalMs: sumDurations(inRange),
     sessionCount: new Set(inRange.map((entry) => entry.sessionId)).size,
     dayCount: entriesByDay(inRange).size,
-    byTask: totalsByTask(inRange),
-    byProject: totalsByProject(inRange, goalTitleById),
+    byTask: totalsByTask(inRange, undefined, labels.untrackedTask),
+    byProject: totalsByProject(inRange, goalTitleById, labels),
   }
 }
 

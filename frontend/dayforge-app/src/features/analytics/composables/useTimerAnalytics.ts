@@ -17,6 +17,7 @@ import {
   type ProjectTotal,
 } from '../../../composables/timer/analytics'
 import { projectColors } from '../../../composables/theme/goalTheme'
+import { i18n } from '../../../i18n'
 import {
   breakdownEarnings,
   buildRateLookup,
@@ -37,6 +38,7 @@ import {
 } from '../../../composables/analytics/charts'
 import { habitStats } from '../../../composables/analytics/habits'
 import { totalsByDay, type TaskTotal } from '../../../composables/timer/entries'
+import { summaryLabels } from '../../../composables/timer/text'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
@@ -46,11 +48,12 @@ import {
   outstandingSummary,
 } from './clientBilling'
 
-export const PERIOD_OPTIONS: { id: AnalyticsPeriod; label: string }[] = [
-  { id: ANALYTICS_PERIOD.THIS_MONTH, label: 'This month' },
-  { id: ANALYTICS_PERIOD.LAST_MONTH, label: 'Last month' },
-  { id: ANALYTICS_PERIOD.THIS_WEEK, label: 'This week' },
-  { id: ANALYTICS_PERIOD.ALL, label: 'All time' },
+/** `labelKey` is rendered with `t()` where it shows, so a language switch updates it. */
+export const PERIOD_OPTIONS: { id: AnalyticsPeriod; labelKey: string }[] = [
+  { id: ANALYTICS_PERIOD.THIS_MONTH, labelKey: 'analytics.periodThisMonth' },
+  { id: ANALYTICS_PERIOD.LAST_MONTH, labelKey: 'analytics.periodLastMonth' },
+  { id: ANALYTICS_PERIOD.THIS_WEEK, labelKey: 'analytics.periodThisWeek' },
+  { id: ANALYTICS_PERIOD.ALL, labelKey: 'analytics.periodAll' },
 ]
 
 const HOUR_MS = 60 * 60 * 1000
@@ -126,12 +129,14 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   )
 
   const clientLabel = computed(() => {
-    if (clientFilter.value === ALL_CLIENTS_FILTER_ID) return 'All clients'
-    if (clientFilter.value === NO_CLIENT_FILTER_ID) return 'No client'
+    if (clientFilter.value === ALL_CLIENTS_FILTER_ID)
+      return i18n.global.t('analytics.allClients')
+    if (clientFilter.value === NO_CLIENT_FILTER_ID)
+      return i18n.global.t('analytics.noClient')
     return (
       settings.billing.clients.find(
         (client) => client.id === clientFilter.value,
-      )?.name ?? 'Client'
+      )?.name ?? i18n.global.t('analytics.clientFallback')
     )
   })
 
@@ -140,7 +145,9 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     entriesInRange(filteredEntries.value, range.value),
   )
 
-  const summary = computed(() => summarize(inRange.value, goalTitleById.value))
+  const summary = computed(() =>
+    summarize(inRange.value, goalTitleById.value, summaryLabels()),
+  )
 
   /** Tasks shown in the list and charts; sub-minute ones are left out, the totals are not. */
   const visibleTasks = computed(() =>
@@ -165,7 +172,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   const isAllTime = computed(() => period.value === ANALYTICS_PERIOD.ALL)
 
   const allTimeSummary = computed(() =>
-    summarize(filteredEntries.value, goalTitleById.value),
+    summarize(filteredEntries.value, goalTitleById.value, summaryLabels()),
   )
 
   const allTimeEarnings = computed(() =>
@@ -274,7 +281,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
           goal?.title ??
           inPeriod?.title ??
           overAll?.title ??
-          'Without a project',
+          i18n.global.t('analytics.noProject'),
         color: goal ? colors.get(goal.id) : undefined,
         taskCount: inPeriod?.taskCount ?? 0,
         trackedMs: overAll?.totalMs ?? 0,
@@ -375,8 +382,8 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
   const seriesCaption = computed(() =>
     daySeries.value.granularity === SERIES_GRANULARITY.WEEK
-      ? 'Tracked hours per week'
-      : 'Tracked hours per day',
+      ? i18n.global.t('analytics.chartCaptionWeek')
+      : i18n.global.t('analytics.chartCaptionDay'),
   )
 
   // --- habits --------------------------------------------------------------
@@ -397,7 +404,10 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
   function projectNameOf(goalId?: ID): string {
     if (!goalId) return '—'
-    return goalTitleById.value.get(goalId) ?? 'Deleted project'
+    return (
+      goalTitleById.value.get(goalId) ??
+      i18n.global.t('analytics.deletedProject')
+    )
   }
 
   // --- the report ----------------------------------------------------------
@@ -407,9 +417,16 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   }
 
   function taskRows(): string[] {
+    const t = (key: string) => i18n.global.t(`analytics.${key}`)
     const header = showsMoney.value
-      ? ['Task', 'Project', 'Hours', 'Rate / h', 'Earned']
-      : ['Task', 'Project', 'Hours']
+      ? [
+          t('colTask'),
+          t('colProject'),
+          t('colHours'),
+          t('colRatePerHour'),
+          t('colEarned'),
+        ]
+      : [t('colTask'), t('colProject'), t('colHours')]
 
     const rows = summary.value.byTask.map((task) => {
       const base = [task.title, projectNameOf(task.goalId), hours(task.totalMs)]
@@ -423,23 +440,31 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
     const total = showsMoney.value
       ? [
-          'Total',
+          t('colTotal'),
           '',
           hours(summary.value.totalMs),
           '',
           earnings.value.total.toFixed(2),
         ]
-      : ['Total', '', hours(summary.value.totalMs)]
+      : [t('colTotal'), '', hours(summary.value.totalMs)]
 
     return [header.join('\t'), ...rows, total.join('\t')]
   }
 
   function habitRows(): string[] {
     if (habits.value.length === 0) return []
+    const t = (key: string) => i18n.global.t(`analytics.${key}`)
 
     return [
       '',
-      ['Repeating task', 'Project', 'Done', 'Of', 'Rate', 'Streak'].join('\t'),
+      [
+        t('colRepeating'),
+        t('colProject'),
+        t('done'),
+        t('colOf'),
+        t('colRate'),
+        t('colStreak'),
+      ].join('\t'),
       ...habits.value.map((habit) =>
         [
           habit.title,
@@ -456,14 +481,15 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   function dayRows(): string[] {
     const worked = daySeries.value.points.filter((point) => point.totalMs > 0)
     if (worked.length === 0) return []
+    const t = (key: string) => i18n.global.t(`analytics.${key}`)
 
     return [
       '',
       [
         daySeries.value.granularity === SERIES_GRANULARITY.WEEK
-          ? 'Week of'
-          : 'Day',
-        'Hours',
+          ? t('colWeekOf')
+          : t('colDay'),
+        t('colHours'),
       ].join('\t'),
       ...worked.map((point) => [point.date, hours(point.totalMs)].join('\t')),
     ]
@@ -526,11 +552,10 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     daySeries,
     chartTodayKey,
     seriesCaption,
-    periodLabel: computed(
-      () =>
-        PERIOD_OPTIONS.find((option) => option.id === period.value)?.label ??
-        '',
-    ),
+    periodLabel: computed(() => {
+      const option = PERIOD_OPTIONS.find((item) => item.id === period.value)
+      return option ? i18n.global.t(option.labelKey) : ''
+    }),
     hasAdjustments,
     projectRows,
     projectShareLabel,

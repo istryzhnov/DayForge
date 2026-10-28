@@ -1,0 +1,22 @@
+{
+  "placeholder": "Пошук проєктів і завдань",
+  "results": "Результати",
+  "noMatches": "Нічого не знайдено",
+  "idle": "Почніть вводити, щоб знайти проєкти, завдання й зроблене.",
+  "move": "вибрати",
+  "open": "відкрити",
+  "close": "закрити",
+  "paused": "На паузі",
+  "archived": "В архіві",
+  "project": "Проєкт",
+  "repeatDaily": "Щодня",
+  "repeatWeekly": "Щотижня",
+  "repeatMonthly": "Щомісяця",
+  "repeatYearly": "Щороку",
+  "repeats": "Повторюється",
+  "groupProjects": "Проєкти",
+  "groupTasks": "Завдання",
+  "groupDone": "В архіві та виконані",
+  "noProject": "Без проєкту",
+  "unknownProject": "Невідомий проєкт"
+}

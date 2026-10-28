@@ -1,23 +1,47 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import {
+  DATE_LOCALE_BY_LANGUAGE,
   LOCALE_OPTIONS,
   useSettings,
   type LocaleId,
 } from '../../../composables/useSettings'
-import { CLOCK_OPTIONS } from '../composables/settingsOptions'
+import type { Language } from '../../../i18n/languages'
+import { CLOCK_OPTIONS, LANGUAGE_OPTIONS } from '../composables/settingsOptions'
 import { textValue } from '../../../composables/inputValue'
 
+const { t } = useI18n()
 const { settings, update, resetSection } = useSettings()
+
+/** The date format follows the language, but can still be changed after. */
+function chooseLanguage(language: Language) {
+  update('format', {
+    language,
+    locale: DATE_LOCALE_BY_LANGUAGE[language],
+  })
+}
 </script>
 
 <template>
   <div class="settings-section">
-    <p class="settings-section__intro">
-      Formatting only — the interface text itself is still English.
-    </p>
+    <label class="settings-select">
+      <span>{{ t('settings.languageLabel') }}</span>
+      <select
+        :value="settings.format.language"
+        @change="chooseLanguage(textValue($event) as Language)"
+      >
+        <option
+          v-for="option in LANGUAGE_OPTIONS"
+          :key="option.id"
+          :value="option.id"
+        >
+          {{ option.label }}
+        </option>
+      </select>
+    </label>
 
     <label class="settings-select">
-      <span>Date language</span>
+      <span>{{ t('settings.dateFormatLabel') }}</span>
       <select
         :value="settings.format.locale"
         @change="update('format', { locale: textValue($event) as LocaleId })"
@@ -32,7 +56,7 @@ const { settings, update, resetSection } = useSettings()
       </select>
     </label>
 
-    <p class="sidebar-caption">Clock</p>
+    <p class="sidebar-caption">{{ t('settings.clockCaption') }}</p>
     <div class="settings-chips">
       <button
         v-for="option in CLOCK_OPTIONS"
@@ -42,7 +66,7 @@ const { settings, update, resetSection } = useSettings()
         type="button"
         @click="update('format', { clock: option.id })"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
@@ -51,7 +75,7 @@ const { settings, update, resetSection } = useSettings()
       type="button"
       @click="resetSection('format')"
     >
-      Reset formats
+      {{ t('settings.resetFormats') }}
     </button>
   </div>
 </template>

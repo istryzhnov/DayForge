@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { i18n } from '../i18n'
 import { getSupabase } from '../lib/supabaseClient'
 
 /**
@@ -39,7 +40,7 @@ function unsupportedReason(): { status: PushStatus; text: string } | null {
   if (!VAPID_PUBLIC_KEY) {
     return {
       status: 'unavailable',
-      text: 'Push reminders are not set up on this build.',
+      text: i18n.global.t('settings.pushNotSetUp'),
     }
   }
   // iOS only delivers push to an app added to the Home Screen, so that is
@@ -47,7 +48,7 @@ function unsupportedReason(): { status: PushStatus; text: string } | null {
   if (isIosDevice() && !isInstalledApp()) {
     return {
       status: 'ios-install',
-      text: 'On iPhone and iPad, add DayForge to your Home Screen (Share, then Add to Home Screen) and open it from there. Needs iOS 16.4 or later.',
+      text: i18n.global.t('settings.pushIosInstall'),
     }
   }
   if (
@@ -57,7 +58,7 @@ function unsupportedReason(): { status: PushStatus; text: string } | null {
   ) {
     return {
       status: 'unavailable',
-      text: 'This browser does not support push notifications.',
+      text: i18n.global.t('settings.pushUnsupported'),
     }
   }
   return null
@@ -147,12 +148,12 @@ async function refreshStatus(userId: string) {
 
 async function saveRow(userId: string, subscription: PushSubscription) {
   const supabase = getSupabase()
-  if (!supabase) throw new Error('Sync is not configured on this build.')
+  if (!supabase) throw new Error(i18n.global.t('profile.syncNotConfigured'))
 
   const json = subscription.toJSON()
   const keys = json.keys ?? {}
   if (!json.endpoint || !keys.p256dh || !keys.auth) {
-    throw new Error('The browser returned an incomplete subscription.')
+    throw new Error(i18n.global.t('settings.pushIncomplete'))
   }
 
   await removeRow(json.endpoint)
@@ -190,8 +191,7 @@ async function enable(userId: string): Promise<boolean> {
         : await Notification.requestPermission()
     if (permission !== 'granted') {
       status.value = 'denied'
-      error.value =
-        'Notifications are blocked for this site. Allow them in the browser settings, then try again.'
+      error.value = i18n.global.t('settings.pushBlocked')
       return false
     }
 
@@ -202,9 +202,7 @@ async function enable(userId: string): Promise<boolean> {
         READY_TIMEOUT_MS,
       )
     } catch {
-      throw new Error(
-        'The app is not ready for background reminders yet. Reload the page and try again.',
-      )
+      throw new Error(i18n.global.t('settings.pushNotReady'))
     }
 
     const subscription =
@@ -226,7 +224,9 @@ async function enable(userId: string): Promise<boolean> {
     return true
   } catch (caught) {
     error.value =
-      caught instanceof Error ? caught.message : 'Could not turn reminders on.'
+      caught instanceof Error
+        ? caught.message
+        : i18n.global.t('settings.pushOnFailed')
     status.value = Notification.permission === 'denied' ? 'denied' : 'off'
     return false
   } finally {
@@ -246,7 +246,9 @@ async function disable(): Promise<void> {
     status.value = Notification.permission === 'denied' ? 'denied' : 'off'
   } catch (caught) {
     error.value =
-      caught instanceof Error ? caught.message : 'Could not turn reminders off.'
+      caught instanceof Error
+        ? caught.message
+        : i18n.global.t('settings.pushOffFailed')
   } finally {
     busy.value = false
   }

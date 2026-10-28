@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { i18n } from '../../../i18n'
 import type { useGoalSpace } from '../../../composables/useGoalSpace'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import { useUndoToast } from '../../../composables/useUndoToast'
@@ -141,7 +142,7 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
       )
     }
 
-    offerUndo('Backup imported', restore)
+    offerUndo(i18n.global.t('settings.undoBackupImported'), restore)
     return true
   }
 
@@ -154,7 +155,7 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     timeEntries.value = []
     goalSpace.selectGoal(null)
 
-    offerUndo('All data cleared', restore)
+    offerUndo(i18n.global.t('settings.undoAllCleared'), restore)
   }
 
   /**

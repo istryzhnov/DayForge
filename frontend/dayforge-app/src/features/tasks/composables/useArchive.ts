@@ -3,6 +3,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate, ISODateTime } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
+import { i18n } from '../../../i18n'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useSettings } from '../../../composables/useSettings'
@@ -43,8 +44,9 @@ export function useArchive(options: ArchiveOptions) {
         date: row.date,
         completedAt: row.completedAt,
         goalTitle: row.goalId
-          ? (goalTitleById.get(row.goalId) ?? 'Unknown goal')
-          : 'No goal',
+          ? (goalTitleById.get(row.goalId) ??
+            i18n.global.t('tasks.unknownGoal'))
+          : i18n.global.t('tasks.noGoal'),
         goalColor: row.goalId ? goalColorById.get(row.goalId) : undefined,
         startTime: row.startTime,
       }))

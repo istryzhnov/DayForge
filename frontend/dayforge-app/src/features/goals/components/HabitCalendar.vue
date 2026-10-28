@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { HabitMonthView } from '../../../composables/analytics/habits'
 import type { ID } from '../../../entities/types'
@@ -10,13 +11,14 @@ const props = defineProps<{
   streaks: Map<ID, number>
 }>()
 
+const { t } = useI18n()
 const { rangeLabel, summary, cellLabel } = useHabitCalendar(props)
 </script>
 
 <template>
   <section class="ui-card habit-card">
     <header class="habit-card__head">
-      <h3 class="ui-section-label">Habits</h3>
+      <h3 class="ui-section-label">{{ t('goals.habits') }}</h3>
       <span class="habit-card__summary">{{ summary }}</span>
     </header>
 
@@ -47,6 +49,8 @@ const { rangeLabel, summary, cellLabel } = useHabitCalendar(props)
       </div>
     </div>
 
-    <p class="habit-card__caption">{{ rangeLabel }} … today</p>
+    <p class="habit-card__caption">
+      {{ t('goals.habitsCaption', { range: rangeLabel }) }}
+    </p>
   </section>
 </template>

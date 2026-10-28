@@ -1,0 +1,20 @@
+{
+  "projectBoard": "Tablica projektu",
+  "columnTodo": "Do zrobienia",
+  "columnDoing": "W trakcie",
+  "columnDone": "Zrobione",
+  "emptyTodo": "Nic jeszcze do zrobienia.",
+  "emptyDoing": "Nic nie jest w trakcie.",
+  "emptyDone": "Tu trafiają zakończone zadania.",
+  "clearDone": "Wyczyść zrobione",
+  "clearDoneHint": "Ukryj zakończone zadania na tej tablicy. Nic nie zostanie usunięte.",
+  "addTask": "+ Dodaj",
+  "taskTitle": "Tytuł zadania",
+  "newTaskTitle": "Tytuł nowego zadania",
+  "cardLabel": "{title}, {column}",
+  "scheduledDate": "Zaplanowana data",
+  "subtasksDone": "Zrobione: {done} z {total} podzadań",
+  "moreActions": "Więcej działań",
+  "moveTo": "Przenieś do",
+  "clearedDone": "Wyczyszczono {n} ukończonych zadań | Wyczyszczono {n} ukończone zadanie | Wyczyszczono {n} ukończone zadania | Wyczyszczono {n} ukończonych zadań"
+}

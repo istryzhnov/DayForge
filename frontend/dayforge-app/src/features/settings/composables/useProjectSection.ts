@@ -4,6 +4,7 @@ import type { GoalStatus } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { GOAL_STATUS_HINTS, GOAL_STATUS_OPTIONS } from './settingsOptions'
 import { PROJECT_ICONS } from '../../goals/icons/projectIcons'
+import { i18n } from '../../../i18n'
 
 type ProjectSectionProps = {
   goal: Goal
@@ -50,6 +51,7 @@ export function useProjectSection(
 
   const statusOptions = GOAL_STATUS_OPTIONS
   const status = computed(() => props.goal.status ?? GOAL_STATUS.ACTIVE)
+  /** A message key: the component translates it where the hint shows. */
   const statusHint = computed(() => GOAL_STATUS_HINTS[status.value])
 
   function setStatus(next: GoalStatus) {
@@ -66,7 +68,9 @@ export function useProjectSection(
 
   function confirmDelete() {
     const confirmed = window.confirm(
-      `Delete "${props.goal.title}" with all of its tasks? This cannot be undone.`,
+      i18n.global.t('settings.projectDeleteConfirm', {
+        title: props.goal.title,
+      }),
     )
     if (confirmed) actions.onDelete()
   }

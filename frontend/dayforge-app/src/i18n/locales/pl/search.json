@@ -1,0 +1,22 @@
+{
+  "placeholder": "Szukaj projektów i zadań",
+  "results": "Wyniki",
+  "noMatches": "Brak wyników",
+  "idle": "Wpisz, aby szukać w projektach, zadaniach i zrobionych sprawach.",
+  "move": "wybierz",
+  "open": "otwórz",
+  "close": "zamknij",
+  "paused": "Wstrzymany",
+  "archived": "Zarchiwizowany",
+  "project": "Projekt",
+  "repeatDaily": "Codziennie",
+  "repeatWeekly": "Co tydzień",
+  "repeatMonthly": "Co miesiąc",
+  "repeatYearly": "Co roku",
+  "repeats": "Powtarzane",
+  "groupProjects": "Projekty",
+  "groupTasks": "Zadania",
+  "groupDone": "Zarchiwizowane i zrobione",
+  "noProject": "Brak projektu",
+  "unknownProject": "Nieznany projekt"
+}

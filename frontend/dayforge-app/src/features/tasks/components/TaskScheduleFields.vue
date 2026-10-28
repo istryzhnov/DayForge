@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import ComposerToggleSection from './ComposerToggleSection.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import {
@@ -8,6 +9,8 @@ import {
   WEEKDAY_OPTIONS,
   useTaskScheduleState,
 } from '../composables/useTaskScheduleState'
+
+const { t } = useI18n()
 
 // Owned by the parent when it binds `enabled`, otherwise kept here.
 const isEnabled = defineModel<boolean>('enabled', { default: false })
@@ -42,18 +45,18 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
 <template>
   <ComposerToggleSection
     v-model="isEnabled"
-    label="Schedule on the calendar"
+    :label="t('tasks.scheduleOnCalendar')"
     :hide-toggle="hideToggle"
   >
     <div class="task-schedule__fields">
       <div class="task-schedule__row">
         <label class="task-schedule__field">
-          <span class="task-schedule__label">Date</span>
+          <span class="task-schedule__label">{{ t('tasks.date') }}</span>
           <input v-model="date" type="date" :min="minDate" />
         </label>
 
         <label class="task-schedule__field">
-          <span class="task-schedule__label">Start</span>
+          <span class="task-schedule__label">{{ t('tasks.start') }}</span>
           <input
             v-model="startTime"
             type="time"
@@ -63,7 +66,7 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
         </label>
 
         <label class="task-schedule__field">
-          <span class="task-schedule__label">End</span>
+          <span class="task-schedule__label">{{ t('tasks.end') }}</span>
           <input
             v-model="endTime"
             type="time"
@@ -73,23 +76,23 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
         </label>
       </div>
 
-      <DisclosureSection label="Repeat" :open="isRepeating">
+      <DisclosureSection :label="t('tasks.repeat')" :open="isRepeating">
         <div class="task-schedule__row">
           <label class="task-schedule__field">
-            <span class="task-schedule__label">Repeat</span>
+            <span class="task-schedule__label">{{ t('tasks.repeat') }}</span>
             <select v-model="repeatType">
               <option
                 v-for="option in REPEAT_OPTIONS"
                 :key="option.value"
                 :value="option.value"
               >
-                {{ option.label }}
+                {{ t(option.labelKey) }}
               </option>
             </select>
           </label>
 
           <label v-if="isCustomInterval" class="task-schedule__field">
-            <span class="task-schedule__label">Every (days)</span>
+            <span class="task-schedule__label">{{ t('tasks.everyDays') }}</span>
             <input
               v-model.number="intervalDays"
               type="number"
@@ -108,20 +111,20 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             type="button"
             @click="toggleWeekday(day.value)"
           >
-            {{ day.label }}
+            {{ t(day.labelKey) }}
           </button>
         </div>
       </DisclosureSection>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
       <p v-else-if="isAnnual" class="task-schedule__hint">
-        Comes round every year on this date — listed under Planned tasks.
+        {{ t('tasks.hintAnnual') }}
       </p>
       <p v-else-if="isRepeating" class="task-schedule__hint">
-        Repeats from {{ date }} with no end date.
+        {{ t('tasks.hintRepeats', { date }) }}
       </p>
       <p v-else class="task-schedule__hint">
-        On the calendar for {{ date }} — also listed under Planned tasks.
+        {{ t('tasks.hintOnce', { date }) }}
       </p>
     </div>
   </ComposerToggleSection>

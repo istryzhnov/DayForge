@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useContextMenu } from '../../../composables/useContextMenu'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   x: number
@@ -33,7 +36,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        {{ hasNotes ? 'Edit note' : 'Add note' }}
+        {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
       </button>
       <button
         class="task-context-menu__item"
@@ -45,7 +48,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
+        {{ isTimerActive ? t('tasks.stopTimer') : t('tasks.startTimer') }}
       </button>
     </div>
   </Teleport>

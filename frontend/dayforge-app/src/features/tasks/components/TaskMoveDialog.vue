@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   MajorTaskOption,
@@ -19,6 +20,8 @@ const emit = defineEmits<{
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'close'): void
 }>()
+
+const { t } = useI18n()
 
 useFocusTrap({ onEscape: () => emit('close') })
 
@@ -50,12 +53,12 @@ function submit() {
       role="dialog"
       aria-modal="true"
     >
-      <h3>Move "{{ template.title }}"</h3>
+      <h3>{{ t('tasks.moveTitle', { title: template.title }) }}</h3>
 
       <label class="timer-field">
-        Goal
+        {{ t('tasks.goal') }}
         <select v-model="goalId" @change="syncProjectToGoal">
-          <option value="">No goal</option>
+          <option value="">{{ t('tasks.noGoal') }}</option>
           <option v-for="goal in goals" :key="goal.id" :value="goal.id">
             {{ goal.title }}
           </option>
@@ -63,9 +66,9 @@ function submit() {
       </label>
 
       <label v-if="canAttachToProject" class="timer-field">
-        Project
+        {{ t('goals.project') }}
         <select v-model="projectId">
-          <option value="">On its own</option>
+          <option value="">{{ t('tasks.onItsOwn') }}</option>
           <option
             v-for="option in projectsForGoal"
             :key="option.id"
@@ -77,22 +80,22 @@ function submit() {
       </label>
 
       <p v-else class="settings-group-hint">
-        A project groups other tasks, so it cannot sit inside one.
+        {{ t('tasks.projectCannotNest') }}
       </p>
 
       <p
         v-if="canAttachToProject && projectsForGoal.length === 0"
         class="settings-group-hint"
       >
-        That goal has no project to attach this to yet.
+        {{ t('tasks.goalHasNoProject') }}
       </p>
 
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" @click="emit('close')">
-          Cancel
+          {{ t('common.cancel') }}
         </button>
         <button class="btn btn-primary" type="button" @click="submit">
-          Move
+          {{ t('tasks.move') }}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from './AppIcon.vue'
 import { computed } from 'vue'
+import { I18nT, useI18n } from 'vue-i18n'
 import { useShortcutTip } from '../composables/useShortcutTip'
 import { useSettings } from '../composables/useSettings'
 import { useTour } from '../features/onboarding/composables/useTour'
@@ -8,6 +9,7 @@ import { useTour } from '../features/onboarding/composables/useTour'
 const { tipVisible, dismissTip } = useShortcutTip()
 const { settings } = useSettings()
 const { running: tourRunning } = useTour()
+const { t } = useI18n()
 
 /** Waits while the tour runs, so two kinds of help never talk at once. */
 const isOpen = computed(
@@ -20,14 +22,14 @@ const isOpen = computed(
 
 <template>
   <div v-if="isOpen" class="shortcut-tip" role="status" aria-live="polite">
-    <p class="shortcut-tip__text">
-      Tip: press <kbd class="kbd-badge">N</kbd> to add a task from anywhere.
-      Press <kbd class="kbd-badge">?</kbd> for all shortcuts.
-    </p>
+    <I18nT keypath="hotkeys.tip" tag="p" class="shortcut-tip__text">
+      <template #add><kbd class="kbd-badge">N</kbd></template>
+      <template #help><kbd class="kbd-badge">?</kbd></template>
+    </I18nT>
     <button
       class="shortcut-tip__close"
       type="button"
-      aria-label="Dismiss tip"
+      :aria-label="t('hotkeys.dismissTip')"
       @click="dismissTip"
     >
       <AppIcon name="close" :size="14" />

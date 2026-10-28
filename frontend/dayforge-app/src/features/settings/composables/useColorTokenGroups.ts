@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { i18n } from '../../../i18n'
 import { useTheme } from '../../../composables/useTheme'
 import {
   COLOR_TOKENS,
@@ -9,21 +10,26 @@ import {
   suggestionsFor,
 } from '../../../composables/theme/suggestions'
 
-const GROUPS: { id: ColorTokenMeta['group']; label: string; hint: string }[] = [
+/** Group titles and hints are message keys, translated where the groups render. */
+const GROUPS: {
+  id: ColorTokenMeta['group']
+  labelKey: string
+  hintKey: string
+}[] = [
   {
     id: 'primary',
-    label: 'Main colours',
-    hint: 'What tasks, projects and actions are painted with.',
+    labelKey: 'settings.groupMainColours',
+    hintKey: 'settings.groupMainColoursHint',
   },
   {
     id: 'surface',
-    label: 'Surfaces',
-    hint: 'The canvas, the cards on it and the frames around them.',
+    labelKey: 'settings.groupSurfaces',
+    hintKey: 'settings.groupSurfacesHint',
   },
   {
     id: 'secondary',
-    label: 'Text and alerts',
-    hint: 'Everything that has to stay readable on those surfaces.',
+    labelKey: 'settings.groupTextAlerts',
+    hintKey: 'settings.groupTextAlertsHint',
   },
 ]
 
@@ -57,7 +63,9 @@ export function useColorTokenGroups() {
               effectivePalette.value,
               themeMode.value,
             ),
-            contrastMessage: report?.message,
+            contrastMessage: report
+              ? i18n.global.t(report.messageKey, { ratio: report.ratio })
+              : undefined,
             contrastLevel: report?.level,
           }
         },

@@ -37,6 +37,7 @@ import {
   touchRow,
 } from './goalSpace/dailyTasks'
 import { useTombstones } from './useTombstones'
+import { i18n } from '../i18n'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 import { DAILY_FIELD_GROUPS } from '../sync/merge'
 
@@ -332,7 +333,7 @@ export function useGoalSpace() {
 
     const removedTitle =
       taskTemplates.value.find((item) => item.id === templateId)?.title ??
-      'Task'
+      i18n.global.t('tasks.taskLabel')
 
     const removedTemplates = taskTemplates.value.filter((item) =>
       idsToRemove.has(item.id),
@@ -356,21 +357,24 @@ export function useGoalSpace() {
     const templateIds = removedTemplates.map((item) => item.id)
     const rowIds = removedDailyTasks.map((item) => item.id)
 
-    offerUndo(`Deleted "${removedTitle}"`, () => {
-      // The buried copies come back, which also lifts the burial — so a sync
-      // afterwards carries a restoration rather than a deletion.
-      const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
-      const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
+    offerUndo(
+      i18n.global.t('tasks.deletedTitle', { title: removedTitle }),
+      () => {
+        // The buried copies come back, which also lifts the burial — so a sync
+        // afterwards carries a restoration rather than a deletion.
+        const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
+        const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
 
-      taskTemplates.value = [
-        ...taskTemplates.value,
-        ...(templates as unknown as TaskTemplate[]),
-      ]
-      dailyTasks.value = [
-        ...dailyTasks.value,
-        ...(rows as unknown as DailyTask[]),
-      ]
-    })
+        taskTemplates.value = [
+          ...taskTemplates.value,
+          ...(templates as unknown as TaskTemplate[]),
+        ]
+        dailyTasks.value = [
+          ...dailyTasks.value,
+          ...(rows as unknown as DailyTask[]),
+        ]
+      },
+    )
   }
 
   function applyGoalToTask(template: TaskTemplate, goalId: ID | undefined) {
@@ -487,21 +491,26 @@ export function useGoalSpace() {
     const templateIds = removedTemplates.map((item) => item.id)
     const rowIds = removedDailyTasks.map((item) => item.id)
 
-    offerUndo(`Deleted "${goalTitle ?? 'project'}"`, () => {
-      const restored = restoreGoal(goalId)
-      const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
-      const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
+    offerUndo(
+      i18n.global.t('tasks.deletedTitle', {
+        title: goalTitle ?? i18n.global.t('tasks.fallbackProject'),
+      }),
+      () => {
+        const restored = restoreGoal(goalId)
+        const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
+        const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
 
-      taskTemplates.value = [
-        ...taskTemplates.value,
-        ...(templates as unknown as TaskTemplate[]),
-      ]
-      dailyTasks.value = [
-        ...dailyTasks.value,
-        ...(rows as unknown as DailyTask[]),
-      ]
-      if (restored) selectGoal(restored.id)
-    })
+        taskTemplates.value = [
+          ...taskTemplates.value,
+          ...(templates as unknown as TaskTemplate[]),
+        ]
+        dailyTasks.value = [
+          ...dailyTasks.value,
+          ...(rows as unknown as DailyTask[]),
+        ]
+        if (restored) selectGoal(restored.id)
+      },
+    )
   }
 
   /**
@@ -645,26 +654,21 @@ export function useGoalSpace() {
 
     if (previous.size === 0) return
 
-    offerUndo(
-      previous.size === 1
-        ? 'Cleared 1 done task'
-        : `Cleared ${previous.size} done tasks`,
-      () => {
-        const restoredAt = new Date().toISOString()
-        previous.forEach((value, templateId) => {
-          const template = taskTemplates.value.find(
-            (item) => item.id === templateId,
-          )
-          if (!template) return
-          if (value === undefined) {
-            delete template.boardClearedAt
-          } else {
-            template.boardClearedAt = value
-          }
-          template.updatedAt = restoredAt
-        })
-      },
-    )
+    offerUndo(i18n.global.t('board.clearedDone', previous.size), () => {
+      const restoredAt = new Date().toISOString()
+      previous.forEach((value, templateId) => {
+        const template = taskTemplates.value.find(
+          (item) => item.id === templateId,
+        )
+        if (!template) return
+        if (value === undefined) {
+          delete template.boardClearedAt
+        } else {
+          template.boardClearedAt = value
+        }
+        template.updatedAt = restoredAt
+      })
+    })
   }
 
   function togglePlannedTask(templateId: ID, date: ISODate) {

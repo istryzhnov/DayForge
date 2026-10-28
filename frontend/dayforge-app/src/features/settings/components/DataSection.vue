@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useBackupFile } from '../composables/useBackupFile'
 import DeleteAccountDialog from '../../profile/components/DeleteAccountDialog.vue'
 import { useAuth } from '../../../composables/useAuth'
@@ -27,9 +28,14 @@ const auth = useAuth()
 const sync = useSync()
 const { locale, uses12Hour } = useFormat()
 
-const summary = computed(
-  () =>
-    `${props.stats.goals} projects · ${props.stats.templates} tasks · ${props.stats.rows} day rows`,
+const { t } = useI18n()
+
+const summary = computed(() =>
+  t('settings.dataSummary', {
+    projects: props.stats.goals,
+    tasks: props.stats.templates,
+    rows: props.stats.rows,
+  }),
 )
 
 const snapshots = ref<SnapshotRecord[]>([])
@@ -65,19 +71,15 @@ function clearEverything() {
 <template>
   <div class="settings-section">
     <p v-if="auth.isSignedIn.value" class="settings-section__intro">
-      This browser holds a full copy of everything, and so does your account —
-      the two keep themselves in step on their own. A backup file is still the
-      only copy that survives both.
+      {{ t('settings.dataIntroSignedIn') }}
     </p>
     <p v-else class="settings-section__intro">
-      Everything lives in this browser's local storage — nothing is sent
-      anywhere. A backup file is the only copy that survives clearing site data
-      or moving to another machine.
+      {{ t('settings.dataIntroLocal') }}
     </p>
 
     <div class="settings-stats">
       <strong>{{ summary }}</strong>
-      <em>about {{ stats.kilobytes }} KB stored</em>
+      <em>{{ t('settings.dataKilobytes', { kb: stats.kilobytes }) }}</em>
     </div>
 
     <button
@@ -85,7 +87,7 @@ function clearEverything() {
       type="button"
       @click="emit('export')"
     >
-      Export backup
+      {{ t('settings.dataExport') }}
     </button>
 
     <button
@@ -93,7 +95,7 @@ function clearEverything() {
       type="button"
       @click="pickFile"
     >
-      Import backup…
+      {{ t('settings.dataImport') }}
     </button>
     <input
       ref="fileInput"
@@ -103,8 +105,7 @@ function clearEverything() {
       @change="onFileChosen"
     />
     <p class="settings-group-hint">
-      Importing replaces the current projects and tasks. The undo toast can put
-      them back if it was the wrong file.
+      {{ t('settings.dataImportNote') }}
     </p>
 
     <p v-if="message" class="settings-message" :class="`is-${message.tone}`">
@@ -112,11 +113,9 @@ function clearEverything() {
     </p>
 
     <template v-if="snapshots.length > 0">
-      <p class="sidebar-caption">Automatic snapshots</p>
+      <p class="sidebar-caption">{{ t('settings.dataSnapshotsCaption') }}</p>
       <p class="settings-group-hint">
-        Taken by itself just before your data was first merged with an account,
-        so there is always a way back if the result was not what you expected.
-        The three most recent are kept.
+        {{ t('settings.dataSnapshotsNote') }}
       </p>
 
       <div class="snapshot-list">
@@ -126,27 +125,26 @@ function clearEverything() {
             <em>{{ record.reason }}</em>
           </span>
           <button class="btn btn-ghost" type="button" @click="restore(record)">
-            Restore
+            {{ t('settings.dataRestore') }}
           </button>
         </div>
       </div>
       <p class="settings-group-hint">
-        Restoring works like importing a file: the undo toast can take it back.
+        {{ t('settings.dataRestoreNote') }}
       </p>
     </template>
 
-    <p class="sidebar-caption">Start over</p>
+    <p class="sidebar-caption">{{ t('settings.dataStartOverCaption') }}</p>
 
     <button
       class="btn btn-ghost settings-action"
       type="button"
       @click="emit('open-starter')"
     >
-      Build a starter day again
+      {{ t('settings.dataStarterAgain') }}
     </button>
     <p class="settings-group-hint">
-      Reopens the three onboarding questions, which otherwise only appear on a
-      brand-new install.
+      {{ t('settings.dataStarterNote') }}
     </p>
 
     <button
@@ -154,23 +152,20 @@ function clearEverything() {
       type="button"
       @click="clearEverything"
     >
-      Delete all projects and tasks
+      {{ t('settings.dataClearAll') }}
     </button>
     <p class="settings-group-hint">
-      Reversible from the undo toast until it disappears — export first if you
-      want a copy that lasts.
+      {{ t('settings.dataClearNote') }}
       <template v-if="auth.isSignedIn.value">
-        Your account itself stays. The deletion reaches every device signed in
-        to it.
+        {{ t('settings.dataClearSignedIn') }}
       </template>
       <template v-else>
-        No account exists for this data, so this only clears projects and tasks
-        stored in this browser.
+        {{ t('settings.dataClearLocal') }}
       </template>
     </p>
 
     <template v-if="auth.isSignedIn.value">
-      <p class="sidebar-caption">Account</p>
+      <p class="sidebar-caption">{{ t('settings.dataAccountCaption') }}</p>
 
       <button
         class="btn btn-ghost settings-action settings-action--danger"
@@ -178,15 +173,13 @@ function clearEverything() {
         :disabled="!sync.isOnline.value"
         @click="isDeleteAccountOpen = true"
       >
-        Delete account
+        {{ t('settings.dataDeleteAccount') }}
       </button>
       <p v-if="!sync.isOnline.value" class="settings-group-hint">
-        Connect to the internet to delete your account.
+        {{ t('profile.offlineDelete') }}
       </p>
       <p v-else class="settings-group-hint">
-        Permanently deletes your account and every project, task, habit and time
-        entry stored on the server, then erases this device's copy too. This
-        cannot be undone.
+        {{ t('settings.dataDeleteAccountNote') }}
       </p>
 
       <DeleteAccountDialog
@@ -197,9 +190,13 @@ function clearEverything() {
     </template>
 
     <p class="settings-group-hint legal-links">
-      <a href="/terms.html" target="_blank" rel="noopener">Terms of Service</a>
+      <a href="/terms.html" target="_blank" rel="noopener">{{
+        t('settings.dataTerms')
+      }}</a>
       ·
-      <a href="/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>
+      <a href="/privacy.html" target="_blank" rel="noopener">{{
+        t('settings.dataPrivacy')
+      }}</a>
     </p>
   </div>
 </template>

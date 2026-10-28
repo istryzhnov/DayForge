@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import type { Goal } from '../entities/GoalEntity'
+import { i18n } from '../i18n'
 import type { DailyTask, TaskTemplate } from '../entities/TaskEntity'
 import type { ID } from '../entities/types'
 import { PRIORITY, TASK_STATUS } from '../entities/constants'
@@ -10,7 +11,7 @@ export type TaskNode = {
   task: DailyTask
   /** The task's rule book: repeat, default times, parent. */
   template?: TaskTemplate
-  /** Goal the task is tagged with, or "All Tasks" when it has none. */
+  /** Goal the task is tagged with, or "All tasks" when it has none. */
   goalTitle?: string
   /** Title of the owning project, for the chip on a nested task. */
   projectTitle?: string
@@ -55,8 +56,10 @@ export function useTaskTree(props: TaskTreeProps) {
     )
 
     function goalTitleOf(task: DailyTask) {
-      if (!task.goalId) return 'All Tasks'
-      return goalTitleById.get(task.goalId) ?? 'Unknown Goal'
+      if (!task.goalId) return i18n.global.t('tasks.allTasks')
+      return (
+        goalTitleById.get(task.goalId) ?? i18n.global.t('tasks.unknownGoal')
+      )
     }
 
     const goalRateById = new Map(
@@ -196,7 +199,9 @@ export function useTaskTree(props: TaskTreeProps) {
   })
 
   const panelTitle = computed(() =>
-    props.isAllMode ? 'All Tasks' : (props.goal?.title ?? 'Goal'),
+    props.isAllMode
+      ? i18n.global.t('tasks.allTasks')
+      : (props.goal?.title ?? i18n.global.t('tasks.goal')),
   )
 
   return {

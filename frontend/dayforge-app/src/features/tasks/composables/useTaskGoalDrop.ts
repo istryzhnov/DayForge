@@ -1,4 +1,5 @@
 import { onUnmounted } from 'vue'
+import { i18n } from '../../../i18n'
 import type { useGoalSpace } from '../../../composables/useGoalSpace'
 import { useUndoToast } from '../../../composables/useUndoToast'
 import { useMobileNav } from '../../sidebar/composables/useMobileNav'
@@ -32,14 +33,17 @@ export function useTaskGoalDrop(goalSpace: GoalSpace) {
 
     const goalTitle =
       goalSpace.goals.value.find((goal) => goal.id === goalId)?.title ??
-      'project'
+      i18n.global.t('tasks.fallbackProject')
 
-    offerUndo(`Moved "${title}" to ${goalTitle}`, () => {
-      goalSpace.assignTaskToGoal(templateId, previousGoalId)
-      if (previousParentId) {
-        goalSpace.attachTaskToProject(templateId, previousParentId)
-      }
-    })
+    offerUndo(
+      i18n.global.t('tasks.movedTo', { title, goal: goalTitle }),
+      () => {
+        goalSpace.assignTaskToGoal(templateId, previousGoalId)
+        if (previousParentId) {
+          goalSpace.attachTaskToProject(templateId, previousParentId)
+        }
+      },
+    )
 
     closeMobileNav()
   })
