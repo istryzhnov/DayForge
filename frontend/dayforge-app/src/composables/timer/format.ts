@@ -19,36 +19,63 @@ export function formatDuration(ms: number): string {
   return `${pad(minutes)}:${pad(seconds)}`
 }
 
-/** "1h 20m" for totals, where seconds are noise. */
-export function formatShortDuration(ms: number): string {
-  if (ms < MINUTE_MS) return `${Math.max(0, Math.round(ms / SECOND_MS))}s`
+/**
+ * Unit abbreviations for the duration helpers. English by default; the timer
+ * UI passes the words for the interface language (see timer/text.ts).
+ */
+export interface DurationWords {
+  hours: string
+  minutes: string
+  seconds: string
+}
+
+export const ENGLISH_DURATION_WORDS: DurationWords = {
+  hours: 'h',
+  minutes: 'm',
+  seconds: 's',
+}
+
+/** "1 h 20 m" for totals, where seconds are noise. */
+export function formatShortDuration(
+  ms: number,
+  words: DurationWords = ENGLISH_DURATION_WORDS,
+): string {
+  if (ms < MINUTE_MS) {
+    return `${Math.max(0, Math.round(ms / SECOND_MS))} ${words.seconds}`
+  }
 
   const hours = Math.floor(ms / HOUR_MS)
   const minutes = Math.round((ms % HOUR_MS) / MINUTE_MS)
 
-  if (hours === 0) return `${minutes}m`
-  if (minutes === 0) return `${hours}h`
-  return `${hours}h ${minutes}m`
+  if (hours === 0) return `${minutes} ${words.minutes}`
+  if (minutes === 0) return `${hours} ${words.hours}`
+  return `${hours} ${words.hours} ${minutes} ${words.minutes}`
 }
 
 /** "12 h 30 m" for analytics hours. Under a minute reads "0 m"; minutes round to whole. */
-export function formatHoursMinutes(ms: number): string {
-  if (ms < MINUTE_MS) return '0 m'
+export function formatHoursMinutes(
+  ms: number,
+  words: DurationWords = ENGLISH_DURATION_WORDS,
+): string {
+  if (ms < MINUTE_MS) return `0 ${words.minutes}`
 
   const totalMinutes = Math.round(ms / MINUTE_MS)
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
 
-  if (hours === 0) return `${minutes} m`
-  if (minutes === 0) return `${hours} h`
-  return `${hours} h ${minutes} m`
+  if (hours === 0) return `${minutes} ${words.minutes}`
+  if (minutes === 0) return `${hours} ${words.hours}`
+  return `${hours} ${words.hours} ${minutes} ${words.minutes}`
 }
 
 /** A history row's duration: "<1 m" under a minute, otherwise the hours-and-minutes total. */
-export function formatEntryDuration(ms: number): string {
+export function formatEntryDuration(
+  ms: number,
+  words: DurationWords = ENGLISH_DURATION_WORDS,
+): string {
   // "45s" next to minute totals reads oddly in a log; "<1 m" says the same thing.
-  if (ms > 0 && ms < MINUTE_MS) return '<1 m'
-  return formatHoursMinutes(ms)
+  if (ms > 0 && ms < MINUTE_MS) return `<1 ${words.minutes}`
+  return formatHoursMinutes(ms, words)
 }
 
 /** "Sunday, 25 October", with names in the language the user picked. */

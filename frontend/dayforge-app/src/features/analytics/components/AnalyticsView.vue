@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
 import { computed, defineAsyncComponent, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { PaymentStatus } from '../../../entities/BillingEntity'
 import type { ID } from '../../../entities/types'
@@ -50,6 +51,8 @@ const emit = defineEmits<{
     billing: ProjectBilling | undefined,
   ): void
 }>()
+
+const { t } = useI18n()
 
 const isRatesOpen = ref(false)
 const editingGoalId = ref<ID | null>(null)
@@ -124,9 +127,9 @@ const topTasks = computed(() =>
 const tab = useAnalyticsTab()
 
 const TAB_CHOICES = [
-  { id: ANALYTICS_TAB.TIME, label: 'Time' },
-  { id: ANALYTICS_TAB.MONEY, label: 'Money' },
-  { id: ANALYTICS_TAB.HABITS, label: 'Habits' },
+  { id: ANALYTICS_TAB.TIME, labelKey: 'analytics.tabTime' },
+  { id: ANALYTICS_TAB.MONEY, labelKey: 'analytics.tabMoney' },
+  { id: ANALYTICS_TAB.HABITS, labelKey: 'analytics.tabHabits' },
 ] as const
 
 const { settings } = useSettings()
@@ -141,7 +144,9 @@ const hasClients = computed(() => settings.billing.clients.length > 0)
 const clientChoices = computed(() =>
   settings.billing.clients.map((client) => ({
     id: client.id,
-    label: client.archived ? `${client.name} (archived)` : client.name,
+    label: client.archived
+      ? t('analytics.clientArchived', { name: client.name })
+      : client.name,
   })),
 )
 
@@ -190,11 +195,11 @@ function saveBilling(billing: ProjectBilling | undefined) {
 <template>
   <section class="analytics">
     <header class="analytics__head">
-      <h2 class="analytics__title">Analytics</h2>
+      <h2 class="analytics__title">{{ t('analytics.title') }}</h2>
       <button
         class="ui-icon-btn ui-icon-btn--outlined"
         type="button"
-        aria-label="Export report"
+        :aria-label="t('analytics.exportReport')"
         :disabled="periodEntries.length === 0"
         @click="isExportOpen = true"
       >
@@ -212,7 +217,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
       </button>
     </header>
 
-    <div class="ui-chips" role="group" aria-label="Period">
+    <div class="ui-chips" role="group" :aria-label="t('analytics.periodGroup')">
       <button
         v-for="option in PERIOD_OPTIONS"
         :key="option.id"
@@ -222,12 +227,17 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :aria-pressed="period === option.id"
         @click="period = option.id"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
     <!-- The client filter narrows every tab, so it sits above them. -->
-    <div v-if="hasClients" class="ui-chips" role="group" aria-label="Client">
+    <div
+      v-if="hasClients"
+      class="ui-chips"
+      role="group"
+      :aria-label="t('analytics.clientGroup')"
+    >
       <button
         class="ui-chip"
         :class="{ 'is-active': clientFilter === ALL_CLIENTS_FILTER_ID }"
@@ -235,7 +245,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :aria-pressed="clientFilter === ALL_CLIENTS_FILTER_ID"
         @click="clientFilter = ALL_CLIENTS_FILTER_ID"
       >
-        All clients
+        {{ t('analytics.allClients') }}
       </button>
       <button
         v-for="choice in clientChoices"
@@ -255,7 +265,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :aria-pressed="clientFilter === NO_CLIENT_FILTER_ID"
         @click="clientFilter = NO_CLIENT_FILTER_ID"
       >
-        No client
+        {{ t('analytics.noClient') }}
       </button>
     </div>
 
@@ -270,7 +280,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
     <div
       class="ui-tabs"
       role="tablist"
-      aria-label="Analytics sections"
+      :aria-label="t('analytics.tabsLabel')"
       data-tip-anchor="analytics-tabs"
     >
       <button
@@ -285,7 +295,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         :aria-controls="`analytics-panel-${choice.id}`"
         @click="tab = choice.id"
       >
-        {{ choice.label }}
+        {{ t(choice.labelKey) }}
       </button>
     </div>
 
@@ -300,7 +310,11 @@ function saveBilling(billing: ProjectBilling | undefined) {
         v-if="visibleTasks.length === 0 && projectRows.length === 0"
         class="timer-history__empty"
       >
-        Nothing tracked in {{ periodLabel.toLowerCase() }} yet.
+        {{
+          t('analytics.nothingTracked', {
+            period: periodLabel.toLowerCase(),
+          })
+        }}
       </p>
 
       <!-- Phone: one column in this order. Wide screens: chart and top tasks left, projects right. -->
@@ -324,7 +338,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         />
 
         <div v-if="visibleTasks.length" class="ui-card analytics__area--tasks">
-          <p class="ui-section-label">Top tasks</p>
+          <p class="ui-section-label">{{ t('analytics.topTasks') }}</p>
           <div class="analytics__tasks">
             <div v-for="task in topTasks" :key="task.key" class="time-total">
               <div class="time-total__row">
@@ -347,7 +361,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
             :aria-expanded="showAllTasks"
             @click="showAllTasks = !showAllTasks"
           >
-            All {{ visibleTasks.length }} tasks
+            {{ t('analytics.allTasksCount', visibleTasks.length) }}
           </button>
         </div>
       </div>
@@ -370,7 +384,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
             class="ui-card money-stat money-stat--total"
           >
             <div class="ui-stat ui-stat--large">
-              <span class="ui-stat__label">Earned</span>
+              <span class="ui-stat__label">{{ t('analytics.earned') }}</span>
               <strong class="ui-stat__value" :title="totalMoneyLabel">
                 {{ totalMoneyLabel }}
               </strong>
@@ -380,7 +394,9 @@ function saveBilling(billing: ProjectBilling | undefined) {
           <div class="money-stats">
             <div v-if="showsMoney" class="ui-card money-stat">
               <div class="ui-stat">
-                <span class="ui-stat__label">Avg / h</span>
+                <span class="ui-stat__label">{{
+                  t('analytics.avgPerHour')
+                }}</span>
                 <strong class="ui-stat__value">
                   {{ averageLabel }}
                 </strong>
@@ -392,8 +408,10 @@ function saveBilling(billing: ProjectBilling | undefined) {
               type="button"
               @click="isRatesOpen = true"
             >
-              <span class="ui-stat__label">Earned</span>
-              <span class="money-stat__action">Set an hourly rate</span>
+              <span class="ui-stat__label">{{ t('analytics.earned') }}</span>
+              <span class="money-stat__action">{{
+                t('analytics.setRate')
+              }}</span>
             </button>
             <div
               v-if="hasClients"
@@ -401,9 +419,9 @@ function saveBilling(billing: ProjectBilling | undefined) {
               data-testid="outstanding-card"
             >
               <div class="ui-stat">
-                <span class="ui-stat__label"
-                  >Unpaid · {{ outstanding.count }}</span
-                >
+                <span class="ui-stat__label">{{
+                  t('analytics.unpaidCount', { n: outstanding.count })
+                }}</span>
                 <strong
                   class="ui-stat__value"
                   :title="formatMoney(outstanding.total)"
@@ -427,7 +445,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
           v-if="hasClients && clientRows.length"
           class="analytics__area--clients"
         >
-          <p class="sidebar-caption">By client</p>
+          <p class="sidebar-caption">{{ t('analytics.byClient') }}</p>
           <ClientSummaryTable
             :rows="clientRows"
             :payments="settings.billing.payments"

@@ -1,0 +1,20 @@
+{
+  "projectBoard": "Tablero del proyecto",
+  "columnTodo": "Por hacer",
+  "columnDoing": "En curso",
+  "columnDone": "Hecho",
+  "emptyTodo": "Nada por hacer todavía.",
+  "emptyDoing": "Nada en curso.",
+  "emptyDone": "Las tareas terminadas aparecen aquí.",
+  "clearDone": "Limpiar hechas",
+  "clearDoneHint": "Oculta las tareas terminadas de este tablero. No se borra nada.",
+  "addTask": "+ Añadir",
+  "taskTitle": "Título de la tarea",
+  "newTaskTitle": "Título de la nueva tarea",
+  "cardLabel": "{title}, {column}",
+  "scheduledDate": "Fecha programada",
+  "subtasksDone": "{done} de {total} subtareas hechas",
+  "moreActions": "Más acciones",
+  "moveTo": "Mover a",
+  "clearedDone": "Se quitó {n} tarea completada | Se quitaron {n} tareas completadas"
+}

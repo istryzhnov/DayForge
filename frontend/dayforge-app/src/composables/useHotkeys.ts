@@ -29,13 +29,16 @@ export function useHotkeyOverlay() {
   }
 }
 
+/** `labelKey` and `titleKey` are message keys, rendered with t() where shown. */
 export interface ShortcutRow {
   keys: string[]
-  label: string
+  labelKey: string
+  /** A word translated per language; shown instead of keys[0] when set. */
+  wordKey?: string
 }
 
 export interface ShortcutGroup {
-  title: string
+  titleKey: string
   rows: ShortcutRow[]
 }
 
@@ -46,65 +49,74 @@ export function shortcutTitle(label: string, keys: string): string {
 
 export const SHORTCUT_GROUPS: ShortcutGroup[] = [
   {
-    title: 'Add',
-    rows: [{ keys: ['N'], label: 'Quick add a task' }],
+    titleKey: 'hotkeys.groupAdd',
+    rows: [{ keys: ['N'], labelKey: 'hotkeys.rowQuickAdd' }],
   },
   {
-    title: 'Search',
+    titleKey: 'hotkeys.groupSearch',
     rows: [
-      { keys: ['Ctrl+K'], label: 'Search projects and tasks' },
-      { keys: ['/'], label: 'Search projects and tasks' },
+      { keys: ['Ctrl+K'], labelKey: 'hotkeys.rowSearch' },
+      { keys: ['/'], labelKey: 'hotkeys.rowSearch' },
     ],
   },
   {
-    title: 'In quick add',
+    titleKey: 'hotkeys.groupInQuickAdd',
     rows: [
-      { keys: ['Enter'], label: 'Add the task' },
-      { keys: ['Shift+Enter'], label: 'Add and keep the box open' },
+      { keys: ['Enter'], labelKey: 'hotkeys.rowAddTheTask' },
+      { keys: ['Shift+Enter'], labelKey: 'hotkeys.rowAddKeepOpen' },
     ],
   },
   {
-    title: 'Timer',
+    titleKey: 'hotkeys.groupTimer',
     rows: [
-      { keys: ['Space'], label: 'Start, pause or carry on' },
-      { keys: ['S'], label: 'Same as Space' },
-      { keys: ['X'], label: 'Stop' },
+      { keys: ['Space'], labelKey: 'hotkeys.rowStartPause' },
+      { keys: ['S'], labelKey: 'hotkeys.rowSameAsSpace' },
+      { keys: ['X'], labelKey: 'hotkeys.rowStop' },
     ],
   },
   {
-    title: 'Go to',
+    titleKey: 'hotkeys.groupGoTo',
     rows: [
-      { keys: ['G', 'A'], label: 'All Projects' },
-      { keys: ['G', 'C'], label: 'Calendar' },
-      { keys: ['G', 'T'], label: 'Timer' },
-      { keys: ['G', 'Y'], label: 'Analytics' },
-      { keys: ['['], label: 'Previous project' },
-      { keys: [']'], label: 'Next project' },
+      { keys: ['G', 'A'], labelKey: 'hotkeys.rowAllProjects' },
+      { keys: ['G', 'C'], labelKey: 'hotkeys.rowCalendar' },
+      { keys: ['G', 'T'], labelKey: 'hotkeys.rowTimer' },
+      { keys: ['G', 'Y'], labelKey: 'hotkeys.rowAnalytics' },
+      { keys: ['['], labelKey: 'hotkeys.rowPreviousProject' },
+      { keys: [']'], labelKey: 'hotkeys.rowNextProject' },
     ],
   },
   {
-    title: 'Help',
+    titleKey: 'hotkeys.groupHelp',
     rows: [
-      { keys: ['?'], label: 'This list' },
-      { keys: ['Esc'], label: 'Close the open panel' },
+      { keys: ['?'], labelKey: 'hotkeys.rowThisList' },
+      { keys: ['Esc'], labelKey: 'hotkeys.rowCloseOpenPanel' },
     ],
   },
 ]
 
+/** Keywords are typed as written; the day words are shown in the language's own word. */
 export const QUICK_ADD_SYNTAX: ShortcutRow[] = [
   {
     keys: ['#Work'],
-    label: 'Put it in a project; pick from the list as you type',
+    labelKey: 'hotkeys.syntaxProject',
   },
   {
     keys: ['#New_name'],
-    label: 'Start a new project (underscores become spaces)',
+    labelKey: 'hotkeys.syntaxNewProject',
   },
-  { keys: ['today'], label: 'Schedule for today (also “сьогодні”)' },
-  { keys: ['tomorrow'], label: 'Schedule for tomorrow (also “завтра”)' },
+  {
+    keys: ['today'],
+    wordKey: 'hotkeys.dayWordToday',
+    labelKey: 'hotkeys.syntaxToday',
+  },
+  {
+    keys: ['tomorrow'],
+    wordKey: 'hotkeys.dayWordTomorrow',
+    labelKey: 'hotkeys.syntaxTomorrow',
+  },
   {
     keys: ['25.10.2026'],
-    label: 'Schedule for a date; 25.10 means the next 25 October',
+    labelKey: 'hotkeys.syntaxDate',
   },
 ]
 

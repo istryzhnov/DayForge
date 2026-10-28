@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { ActiveView } from '../../../pages/composables/useMainPageState'
 import ProfileAvatar from '../../profile/components/ProfileAvatar.vue'
@@ -17,13 +18,16 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (e: 'open-timer'): void }>()
 
-const VIEW_TITLES: Record<Exclude<ActiveView, 'goals'>, string> = {
-  calendar: 'Calendar',
-  planned: 'Planned tasks',
-  archive: 'What I did',
-  timer: 'Timer',
-  analytics: 'Analytics',
+/** Message keys for each non-project view's title. */
+const VIEW_TITLE_KEYS: Record<Exclude<ActiveView, 'goals'>, string> = {
+  calendar: 'sidebar.calendar',
+  planned: 'sidebar.plannedTasks',
+  archive: 'sidebar.whatIDid',
+  timer: 'sidebar.timer',
+  analytics: 'sidebar.analytics',
 }
+
+const { t } = useI18n()
 
 const { isOpen: isNavOpen, open: openNav } = useMobileNav()
 const { isOpen: isProfileOpen, open: openProfile } = useProfilePanel()
@@ -32,9 +36,15 @@ const { isLive, displayLabel } = useTimer()
 const { openQuickAdd, openSearch } = useHotkeyOverlay()
 
 const title = computed(() => {
-  if (props.activeView === 'goals') return props.goalTitle ?? 'All Projects'
-  return VIEW_TITLES[props.activeView]
+  if (props.activeView === 'goals')
+    return props.goalTitle ?? t('sidebar.allProjects')
+  return t(VIEW_TITLE_KEYS[props.activeView])
 })
+
+/** A project's name is data and may be cut; view and "All Projects" labels wrap. */
+const isLabelTitle = computed(
+  () => props.activeView !== 'goals' || !props.goalTitle,
+)
 
 const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
 </script>
@@ -44,7 +54,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
     <button
       class="mobile-topbar__btn"
       type="button"
-      aria-label="Open navigation"
+      :aria-label="t('sidebar.openNavigation')"
       aria-controls="app-sidebar"
       :aria-expanded="isNavOpen"
       @click="openNav"
@@ -52,14 +62,19 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       <AppIcon name="menu" :size="20" />
     </button>
 
-    <p class="mobile-topbar__title">{{ title }}</p>
+    <p
+      class="mobile-topbar__title"
+      :class="{ 'mobile-topbar__title--label': isLabelTitle }"
+    >
+      {{ title }}
+    </p>
 
     <div class="mobile-topbar__end">
       <button
         v-if="isLive"
         class="mobile-topbar__timer"
         type="button"
-        :aria-label="`Open timer, ${displayLabel} on the clock`"
+        :aria-label="t('sidebar.openTimer', { time: displayLabel })"
         @click="emit('open-timer')"
       >
         <span class="mobile-topbar__timer-dot" aria-hidden="true"></span>
@@ -69,8 +84,8 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       <button
         class="mobile-topbar__btn"
         type="button"
-        aria-label="Search projects and tasks"
-        title="Search"
+        :aria-label="t('sidebar.searchProjectsAndTasks')"
+        :title="t('sidebar.search')"
         @click="openSearch"
       >
         <svg
@@ -92,8 +107,8 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       <button
         class="mobile-topbar__btn"
         type="button"
-        aria-label="Quick add task"
-        title="Quick add task"
+        :aria-label="t('sidebar.quickAddTask')"
+        :title="t('sidebar.quickAddTask')"
         @click="openQuickAdd"
       >
         <AppIcon name="plus" :size="20" />

@@ -41,12 +41,15 @@ export const BOARD_COLUMN = {
 
 export type BoardColumn = (typeof BOARD_COLUMN)[keyof typeof BOARD_COLUMN]
 
-export const BOARD_COLUMNS: ReadonlyArray<{ key: BoardColumn; title: string }> =
-  [
-    { key: BOARD_COLUMN.TODO, title: 'To do' },
-    { key: BOARD_COLUMN.DOING, title: 'In progress' },
-    { key: BOARD_COLUMN.DONE, title: 'Done' },
-  ]
+/** `titleKey` is a message key, rendered with t() where the column is shown. */
+export const BOARD_COLUMNS: ReadonlyArray<{
+  key: BoardColumn
+  titleKey: string
+}> = [
+  { key: BOARD_COLUMN.TODO, titleKey: 'board.columnTodo' },
+  { key: BOARD_COLUMN.DOING, titleKey: 'board.columnDoing' },
+  { key: BOARD_COLUMN.DONE, titleKey: 'board.columnDone' },
+]
 
 /** How far ahead a repeating task is searched for its next occurrence. */
 const NEXT_OCCURRENCE_SEARCH_DAYS = 800

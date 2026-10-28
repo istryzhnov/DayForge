@@ -3,6 +3,8 @@ import type { ID } from '../../../entities/types'
 import { useTimer } from '../../../composables/useTimer'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import { formatShortDuration } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
+import { i18n } from '../../../i18n'
 
 type TaskTimerProps = {
   taskId: ID
@@ -52,13 +54,13 @@ export function useTaskTimerButton(props: TaskTimerProps) {
     isShown,
     totalMs,
     totalLabel: computed(() =>
-      totalMs.value > 0 ? formatShortDuration(totalMs.value) : '',
+      totalMs.value > 0
+        ? formatShortDuration(totalMs.value, durationWords())
+        : '',
     ),
     runningLabel: timer.displayLabel,
     hint: computed(() =>
-      isActive.value
-        ? 'Stop the timer on this task'
-        : 'Start a timer on this task',
+      i18n.global.t(isActive.value ? 'timer.stopOnTask' : 'timer.startOnTask'),
     ),
     toggle,
   }

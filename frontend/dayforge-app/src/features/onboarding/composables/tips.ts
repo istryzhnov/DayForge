@@ -24,13 +24,14 @@ export interface Tip {
   /** Matches a `data-tip-anchor` value on the control the tip explains. */
   anchor: string
   placement?: TipPlacement
-  title: string
-  body: string
+  /** Message keys: rendered with t() at display time, so a language switch updates them. */
+  titleKey: string
+  bodyKey: string
   /** Replaces body where the gesture differs, e.g. long-press on a phone. */
-  touchBody?: string
+  touchBodyKey?: string
   /** A tip that only makes sense with a mouse and a wide screen, or only on a phone. */
   only?: 'desktop' | 'mobile'
-  action?: { label: string }
+  action?: { labelKey: string }
   when?: (facts: TipFacts) => boolean
 }
 
@@ -44,32 +45,32 @@ export const TIPS: readonly Tip[] = [
     id: 'first-task',
     view: 'goals',
     anchor: 'composer-input',
-    title: "Type what you're working on",
-    body: 'A couple of words is enough. You can edit it anytime.',
-    action: { label: 'Use a template' },
+    titleKey: 'onboarding.tipFirstTaskTitle',
+    bodyKey: 'onboarding.tipFirstTaskBody',
+    action: { labelKey: 'onboarding.tipFirstTaskAction' },
     when: (facts) => facts.taskCount === 0,
   },
   {
     id: 'add-to-project',
     view: 'goals',
     anchor: 'composer-project',
-    title: 'Add it to a project',
-    body: 'Grouping by project keeps your list and reports tidy.',
+    titleKey: 'onboarding.tipAddToProjectTitle',
+    bodyKey: 'onboarding.tipAddToProjectBody',
   },
   {
     id: 'give-a-date',
     view: 'goals',
     anchor: 'composer-calendar',
-    title: 'Give it a date',
-    body: 'Dated tasks move to Planned and show up on their day.',
+    titleKey: 'onboarding.tipGiveDateTitle',
+    bodyKey: 'onboarding.tipGiveDateBody',
   },
   {
     id: 'nest-tasks',
     view: 'goals',
     anchor: 'task-row',
-    title: 'Tasks can hold tasks',
-    body: 'Right-click a task to make it a project, or press + to add steps.',
-    touchBody: 'Long-press a task to make it a project, or tap + to add steps.',
+    titleKey: 'onboarding.tipNestTasksTitle',
+    bodyKey: 'onboarding.tipNestTasksBody',
+    touchBodyKey: 'onboarding.tipNestTasksTouchBody',
     when: (facts) => facts.taskCount > 0,
   },
   {
@@ -77,8 +78,8 @@ export const TIPS: readonly Tip[] = [
     view: 'sidebar',
     anchor: 'sidebar-project',
     placement: 'right',
-    title: 'Projects filter the list',
-    body: 'Pick a project to see only its tasks. Drag its grip to reorder.',
+    titleKey: 'onboarding.tipProjectFilterTitle',
+    bodyKey: 'onboarding.tipProjectFilterBody',
     // On a phone the list sits in a closed drawer, so there is nothing to point at.
     only: 'desktop',
     when: (facts) => facts.projectCount > 0,
@@ -87,45 +88,44 @@ export const TIPS: readonly Tip[] = [
     id: 'timer-modes',
     view: 'timer',
     anchor: 'timer-mode',
-    title: 'Stopwatch, countdown, pomodoro',
-    body: 'Stopwatch counts up, countdown runs to a length you pick, pomodoro alternates focus and breaks.',
+    titleKey: 'onboarding.tipTimerModesTitle',
+    bodyKey: 'onboarding.tipTimerModesBody',
   },
   {
     id: 'timer-length',
     view: 'timer',
     anchor: 'timer-lengths',
-    title: 'Pick a length',
-    body: 'Tap a chip or type your own minutes.',
+    titleKey: 'onboarding.tipTimerLengthTitle',
+    bodyKey: 'onboarding.tipTimerLengthBody',
   },
   {
     id: 'calendar-time',
     view: 'calendar',
     anchor: 'calendar-toolbar',
     placement: 'bottom',
-    title: 'Give tasks a time',
-    body: 'Drag a task onto the day grid, or draw a block on empty space.',
-    touchBody:
-      'Long-press a task and drag it onto the day grid, or draw a block.',
+    titleKey: 'onboarding.tipCalendarTimeTitle',
+    bodyKey: 'onboarding.tipCalendarTimeBody',
+    touchBodyKey: 'onboarding.tipCalendarTimeTouchBody',
   },
   {
     id: 'analytics-tabs',
     view: 'analytics',
     anchor: 'analytics-tabs',
-    title: 'Three ways to read',
-    body: 'Time, Money and Habits each answer one question about your work.',
+    titleKey: 'onboarding.tipAnalyticsTitle',
+    bodyKey: 'onboarding.tipAnalyticsBody',
   },
   {
     id: 'planned-dates',
     view: 'planned',
     anchor: 'planned-header',
-    title: 'Dated tasks wait here',
-    body: 'Tasks with a date sit here until their day, so nothing gets lost.',
+    titleKey: 'onboarding.tipPlannedTitle',
+    bodyKey: 'onboarding.tipPlannedBody',
   },
   {
     id: 'archive-done',
     view: 'archive',
     anchor: 'archive-header',
-    title: 'Everything you finished',
-    body: 'What I did lists finished tasks by day, so you can see how a week went.',
+    titleKey: 'onboarding.tipArchiveTitle',
+    bodyKey: 'onboarding.tipArchiveBody',
   },
 ]

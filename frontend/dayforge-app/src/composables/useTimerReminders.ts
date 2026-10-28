@@ -11,10 +11,10 @@ import {
   isAwayLongEnough,
   isEndOfDay,
   isLongRunDue,
-  plannedNudgeLabel,
   sittingRunningMs,
   sittingStartMs,
 } from './timer/reminders'
+import { i18n } from '../i18n'
 import {
   blockFromTask,
   localMs,
@@ -114,7 +114,24 @@ function once(key: string, show: () => void) {
 }
 
 function subjectOf(task: TimerTaskRef | undefined): string {
-  return task ? `Timer on "${task.taskTitle}"` : 'The timer'
+  return task
+    ? i18n.global.t('timer.subjectTask', { title: task.taskTitle })
+    : i18n.global.t('timer.subjectNone')
+}
+
+/** The three choices offered when a sitting runs long or past midnight. */
+function stopChoices(sessionId: ID) {
+  return [
+    { label: i18n.global.t('timer.keepGoing'), run: () => {} },
+    {
+      label: i18n.global.t('timer.stopNow'),
+      run: () => stopSitting(sessionId, false),
+    },
+    {
+      label: i18n.global.t('timer.stopAt'),
+      run: () => stopSitting(sessionId, true),
+    },
+  ]
 }
 
 function stopSitting(sessionId: ID, thenEdit: boolean) {
@@ -147,20 +164,16 @@ function checkLongRunning(now: number) {
   const runningMs = sittingRunningMs(entries, sessionId, stretch)
   if (isLongRunDue(runningMs, hours)) {
     once(`${sessionId}:long:${hours}`, () => {
+      const message = i18n.global.t('timer.runningLong', {
+        subject,
+        hours,
+      })
       notifyBrowser(
-        'DayForge timer',
-        `${subject} has been running for ${hours} h`,
+        i18n.global.t('timer.notificationTitle'),
+        message,
         `long-${sessionId}`,
       )
-      toast.offerChoices(
-        `${subject} has been running for ${hours} h`,
-        [
-          { label: 'Keep going', run: () => {} },
-          { label: 'Stop now', run: () => stopSitting(sessionId, false) },
-          { label: 'Stop at…', run: () => stopSitting(sessionId, true) },
-        ],
-        { sticky: true },
-      )
+      toast.offerChoices(message, stopChoices(sessionId), { sticky: true })
     })
   }
 
@@ -168,17 +181,13 @@ function checkLongRunning(now: number) {
   if (crossedMidnight(sittingStart, now)) {
     once(`${sessionId}:midnight`, () => {
       notifyBrowser(
-        'DayForge timer',
-        'The timer is still running after midnight',
+        i18n.global.t('timer.notificationTitle'),
+        i18n.global.t('timer.midnightBody'),
         `midnight-${sessionId}`,
       )
       toast.offerChoices(
-        `${subject} is still running after midnight`,
-        [
-          { label: 'Keep going', run: () => {} },
-          { label: 'Stop now', run: () => stopSitting(sessionId, false) },
-          { label: 'Stop at…', run: () => stopSitting(sessionId, true) },
-        ],
+        i18n.global.t('timer.midnightRunning', { subject }),
+        stopChoices(sessionId),
         { sticky: true },
       )
     })
@@ -227,19 +236,27 @@ function checkPlannedStart(tasks: DailyTask[], now: number) {
   const { formatTime } = useFormat()
 
   notifyBrowser(
-    'DayForge timer',
-    `"${task.title}" started ${minutes} min ago`,
+    i18n.global.t('timer.notificationTitle'),
+    i18n.global.t('timer.plannedStartedAgo', { title: task.title, minutes }),
     `planned-${task.id}`,
   )
   useUndoToast().offerChoices(
-    `"${task.title}" started ${minutes} min ago — start the timer?`,
+    i18n.global.t('timer.plannedStartedAsk', { title: task.title, minutes }),
     [
-      { label: 'Start now', run: () => startPlanned(task, false) },
       {
-        label: `Start from ${formatTime(task.startTime)}`,
+        label: i18n.global.t('timer.startNow'),
+        run: () => startPlanned(task, false),
+      },
+      {
+        label: i18n.global.t('timer.startFrom', {
+          time: formatTime(task.startTime),
+        }),
         run: () => startPlanned(task, true),
       },
-      { label: 'Dismiss', run: () => dismissBlock(today, task.id) },
+      {
+        label: i18n.global.t('timer.dismiss'),
+        run: () => dismissBlock(today, task.id),
+      },
     ],
     { sticky: true },
   )
@@ -266,10 +283,13 @@ function checkEndOfDay(tasks: DailyTask[], now: number) {
   persist()
 
   useUndoToast().offerChoices(
-    plannedNudgeLabel(count),
+    i18n.global.t('timer.plannedNudge', count),
     [
-      { label: 'Log all', run: () => useLogPlanned().logBlocks(blocks) },
-      { label: 'Dismiss', run: () => {} },
+      {
+        label: i18n.global.t('timer.logAll'),
+        run: () => useLogPlanned().logBlocks(blocks),
+      },
+      { label: i18n.global.t('timer.dismiss'), run: () => {} },
     ],
     { sticky: true },
   )

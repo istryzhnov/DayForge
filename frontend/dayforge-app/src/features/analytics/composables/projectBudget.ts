@@ -7,6 +7,7 @@ import {
 } from '../../../composables/timer/analytics'
 import type { RateLookup } from '../../../composables/timer/rates'
 import { projectEarnings } from './projectEarnings'
+import { ENGLISH_MESSAGES, type Messages } from './projectBilling'
 
 /** A project's spend limit, as stored on the goal. */
 export type ProjectBudget = NonNullable<Goal['budget']>
@@ -99,30 +100,43 @@ export type BudgetParseResult =
 
 /** Empty fields mean "no limit of this kind"; a set field must be a positive number. */
 function parseLimit(
-  text: string | number,
+  input: string | number,
   max: number,
   label: string,
+  messages: Messages,
 ): { value?: number; error?: string } {
-  const trimmed = String(text).trim().replace(',', '.')
+  const trimmed = String(input).trim().replace(',', '.')
   if (trimmed === '') return {}
 
   const value = Number(trimmed)
   if (!isFiniteNumber(value) || value <= 0 || value > max) {
     return {
-      error: `${label} must be a number above 0 and up to ${max.toLocaleString('en-US')}.`,
+      error: messages.text('billing.budgetLimitError', {
+        label,
+        max: max.toLocaleString(messages.locale),
+      }),
     }
   }
   return { value }
 }
 
-export function parseBudgetDraft(draft: BudgetDraft): BudgetParseResult {
-  const hours = parseLimit(draft.hours, BUDGET_LIMITS.HOURS_MAX, 'Hours budget')
+export function parseBudgetDraft(
+  draft: BudgetDraft,
+  messages: Messages = ENGLISH_MESSAGES,
+): BudgetParseResult {
+  const hours = parseLimit(
+    draft.hours,
+    BUDGET_LIMITS.HOURS_MAX,
+    messages.text('billing.budgetHoursLabel'),
+    messages,
+  )
   if (hours.error) return { ok: false, error: hours.error }
 
   const amount = parseLimit(
     draft.amount,
     BUDGET_LIMITS.AMOUNT_MAX,
-    'Money budget',
+    messages.text('billing.budgetMoneyLabel'),
+    messages,
   )
   if (amount.error) return { ok: false, error: amount.error }
 

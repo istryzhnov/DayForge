@@ -91,33 +91,67 @@ export function occursOn(template: TaskTemplate, date: ISODate): boolean {
 
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
-/** Short English rule label, e.g. "Daily", "Every 8 days", "Weekly · Mon, Wed". */
-export function describeRecurrence(rule: RecurrenceRule): string {
+/**
+ * The words a rule label is built from. The English set is the default, so the
+ * pure function stays testable; the app passes the translated set.
+ */
+export interface RecurrenceWords {
+  once: string
+  daily: string
+  every: (days: number) => string
+  weekly: string
+  weeklyOn: (days: string) => string
+  monthly: string
+  monthlyOn: (days: string) => string
+  yearly: string
+  repeats: string
+  /** Short weekday name for 0 (Sunday) to 6 (Saturday). */
+  weekday: (day: number) => string
+}
+
+export const ENGLISH_RECURRENCE_WORDS: RecurrenceWords = {
+  once: 'Once',
+  daily: 'Daily',
+  every: (days) => `Every ${days} days`,
+  weekly: 'Weekly',
+  weeklyOn: (days) => `Weekly · ${days}`,
+  monthly: 'Monthly',
+  monthlyOn: (days) => `Monthly · day ${days}`,
+  yearly: 'Every year',
+  repeats: 'Repeats',
+  weekday: (day) => WEEKDAY_SHORT[day],
+}
+
+/** Short rule label, e.g. "Daily", "Every 8 days", "Weekly · Mon, Wed". */
+export function describeRecurrence(
+  rule: RecurrenceRule,
+  words: RecurrenceWords = ENGLISH_RECURRENCE_WORDS,
+): string {
   const interval = Math.max(1, rule.interval ?? 1)
 
   switch (rule.type) {
     case RECURRENCE_TYPE.NONE:
-      return 'Once'
+      return words.once
 
     case RECURRENCE_TYPE.DAILY:
     case RECURRENCE_TYPE.CUSTOM:
-      return interval > 1 ? `Every ${interval} days` : 'Daily'
+      return interval > 1 ? words.every(interval) : words.daily
 
     case RECURRENCE_TYPE.WEEKLY: {
-      const names = (rule.daysOfWeek ?? []).map((day) => WEEKDAY_SHORT[day])
-      return names.length ? `Weekly · ${names.join(', ')}` : 'Weekly'
+      const names = (rule.daysOfWeek ?? []).map((day) => words.weekday(day))
+      return names.length ? words.weeklyOn(names.join(', ')) : words.weekly
     }
 
     case RECURRENCE_TYPE.MONTHLY: {
       const days = rule.daysOfMonth ?? []
-      return days.length ? `Monthly · day ${days.join(', ')}` : 'Monthly'
+      return days.length ? words.monthlyOn(days.join(', ')) : words.monthly
     }
 
     case RECURRENCE_TYPE.YEARLY:
-      return 'Every year'
+      return words.yearly
 
     default:
-      return 'Repeats'
+      return words.repeats
   }
 }
 

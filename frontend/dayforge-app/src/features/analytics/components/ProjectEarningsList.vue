@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ID } from '../../../entities/types'
 import type { ProjectRow } from '../composables/useTimerAnalytics'
 
@@ -11,6 +12,8 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'edit', goalId: ID): void
 }>()
+
+const { t } = useI18n()
 
 /** On phones the rate and the edit button sit behind a tap; wide screens show them. */
 const expanded = ref<Set<string>>(new Set())
@@ -30,12 +33,12 @@ function rateLabel(
   rate: number | null,
   money: (value: number) => string,
 ): string {
-  return rate === null ? '—' : `${money(rate)} / h`
+  return rate === null ? '—' : t('analytics.ratePerHour', { rate: money(rate) })
 }
 </script>
 
 <template>
-  <div class="ui-rows" role="list" aria-label="Earnings by project">
+  <div class="ui-rows" role="list" :aria-label="t('analytics.earningsAria')">
     <div
       v-for="row in rows"
       :key="row.key"
@@ -60,7 +63,7 @@ function rateLabel(
             v-if="row.billing?.fixedPrice !== undefined"
             class="earnings-row__lock"
             role="img"
-            aria-label="Fixed price"
+            :aria-label="t('analytics.fixedPrice')"
           >
             <svg
               viewBox="0 0 24 24"
@@ -88,7 +91,7 @@ function rateLabel(
         <button
           class="ui-icon-btn"
           type="button"
-          :aria-label="`Edit ${row.title} price`"
+          :aria-label="t('analytics.editPriceAria', { title: row.title })"
           @click="emit('edit', row.goalId)"
         >
           <svg
@@ -175,9 +178,7 @@ function rateLabel(
   font-size: calc(12px * var(--text-scale));
   color: var(--muted);
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .earnings-row.is-open .earnings-row__rate {

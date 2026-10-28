@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useContextMenu } from '../../../composables/useContextMenu'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 
@@ -39,6 +40,8 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const { t } = useI18n()
+
 const { menuPositionStyle } = useContextMenu({
   getPosition: () => ({ x: props.x, y: props.y }),
   onClose: () => emit('close'),
@@ -57,7 +60,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      Edit
+      {{ t('tasks.edit') }}
     </button>
     <button
       class="task-context-menu__item"
@@ -69,7 +72,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ isDone ? 'Mark as not done' : 'Check it' }}
+      {{ isDone ? t('tasks.markNotDone') : t('tasks.checkIt') }}
     </button>
     <button
       class="task-context-menu__item"
@@ -81,7 +84,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ isScheduled ? 'Change the time' : 'Add to calendar' }}
+      {{ isScheduled ? t('tasks.changeTime') : t('tasks.addToCalendar') }}
     </button>
     <button
       class="task-context-menu__item"
@@ -93,7 +96,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ hasNotes ? 'Edit note' : 'Add note' }}
+      {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
     </button>
     <button
       class="task-context-menu__item"
@@ -105,7 +108,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      {{ isTimerActive ? 'Stop timer' : 'Start timer' }}
+      {{ isTimerActive ? t('tasks.stopTimer') : t('tasks.startTimer') }}
     </button>
     <button
       v-if="canLogPlanned"
@@ -118,9 +121,9 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      Log as planned
+      {{ t('tasks.logAsPlanned') }}
     </button>
-    <DisclosureSection label="More" class="task-context-menu__more">
+    <DisclosureSection :label="t('tasks.more')" class="task-context-menu__more">
       <button
         v-if="canMove"
         class="task-context-menu__item"
@@ -132,7 +135,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        Move to…
+        {{ t('tasks.moveTo') }}
       </button>
       <button
         v-if="canSetAsProject"
@@ -145,7 +148,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        Set as project
+        {{ t('tasks.setAsProject') }}
       </button>
       <button
         v-if="canAddChild"
@@ -158,7 +161,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        Add to this
+        {{ t('tasks.addToThis') }}
       </button>
       <button
         v-if="isProject"
@@ -171,7 +174,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        Show habit
+        {{ t('tasks.showHabit') }}
       </button>
       <button
         class="task-context-menu__item"
@@ -183,7 +186,7 @@ const { menuPositionStyle } = useContextMenu({
           }
         "
       >
-        {{ hasOwnRate ? 'Change the rate…' : 'Set rate…' }}
+        {{ hasOwnRate ? t('tasks.changeRate') : t('tasks.setRate') }}
       </button>
     </DisclosureSection>
     <div class="task-context-menu__divider"></div>
@@ -197,7 +200,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
-      Delete
+      {{ t('common.delete') }}
     </button>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { PRIORITY } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
@@ -32,6 +33,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatDate, formatTime } = useFormat()
+const { t } = useI18n()
 const isCoarsePointer = useIsCoarsePointer()
 const timer = useTimer()
 
@@ -52,7 +54,12 @@ function onPointerDownCard(event: PointerEvent) {
 
 const isDone = computed(() => props.card.done)
 const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
-const priorityLabel = computed(() => (isMajor.value ? 'Major' : 'Minor'))
+const priorityLabel = computed(() =>
+  t(isMajor.value ? 'tasks.priorityMajor' : 'tasks.priorityMinor'),
+)
+const priorityText = computed(() =>
+  t('tasks.priorityLabel', { level: priorityLabel.value }),
+)
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
 
 const notesButton =
@@ -105,11 +112,13 @@ const scheduleLabel = computed(() => {
   const isToday = card.date === getTodayISODate()
 
   if (card.isRepeating) {
-    if (!card.date) return 'Repeats'
+    if (!card.date) return t('tasks.repeats')
     const day = isToday
       ? ''
       : formatDate(card.date, { month: 'short', day: 'numeric' })
-    return ['Repeats', day && `· ${day}`, time].filter(Boolean).join(' ')
+    return [t('tasks.repeats'), day && `· ${day}`, time]
+      .filter(Boolean)
+      .join(' ')
   }
 
   if (!card.date) return time
@@ -119,9 +128,10 @@ const scheduleLabel = computed(() => {
   return [day, time].filter(Boolean).join(' ')
 })
 
-const columnTitle = computed(
-  () => BOARD_COLUMNS.find((column) => column.key === props.card.column)?.title,
-)
+const columnTitle = computed(() => {
+  const column = BOARD_COLUMNS.find((item) => item.key === props.card.column)
+  return column ? t(column.titleKey) : ''
+})
 
 function onMoveChange(event: Event) {
   emit('move', (event.target as HTMLSelectElement).value as BoardColumn)
@@ -145,7 +155,9 @@ function onMoveChange(event: Event) {
     <button
       type="button"
       class="board-card__body"
-      :aria-label="`${card.title}, ${columnTitle}`"
+      :aria-label="
+        t('board.cardLabel', { title: card.title, column: columnTitle })
+      "
       @click="emit('open')"
     >
       <span class="board-card__title" :class="{ 'task-done': isDone }">
@@ -157,14 +169,16 @@ function onMoveChange(event: Event) {
           class="board-card__priority"
           :class="{ 'is-major': isMajor }"
           role="img"
-          :aria-label="`${priorityLabel} priority`"
-          :title="`${priorityLabel} priority`"
+          :aria-label="priorityText"
+          :title="priorityText"
         ></span>
 
         <span
           v-if="scheduleLabel"
           class="board-chip"
-          :title="card.isRepeating ? 'Repeats' : 'Scheduled date'"
+          :title="
+            card.isRepeating ? t('tasks.repeats') : t('board.scheduledDate')
+          "
         >
           {{ scheduleLabel }}
         </span>
@@ -172,7 +186,12 @@ function onMoveChange(event: Event) {
         <span
           v-if="card.subtasksTotal"
           class="board-chip"
-          :title="`${card.subtasksDone} of ${card.subtasksTotal} subtasks done`"
+          :title="
+            t('board.subtasksDone', {
+              done: card.subtasksDone,
+              total: card.subtasksTotal,
+            })
+          "
         >
           <AppIcon name="check" :size="11" />
           {{ card.subtasksDone }}/{{ card.subtasksTotal }}
@@ -203,9 +222,9 @@ function onMoveChange(event: Event) {
       <button
         type="button"
         class="board-card__more"
-        aria-label="More actions"
+        :aria-label="t('board.moreActions')"
         aria-haspopup="menu"
-        title="More actions"
+        :title="t('board.moreActions')"
         @pointerdown.stop
         @click.stop="openMenuFromButton"
       >
@@ -213,7 +232,7 @@ function onMoveChange(event: Event) {
       </button>
 
       <label class="board-card__move">
-        <span>Move to</span>
+        <span>{{ t('board.moveTo') }}</span>
         <select :value="card.column" @change="onMoveChange">
           <option
             v-for="column in BOARD_COLUMNS"
@@ -221,7 +240,7 @@ function onMoveChange(event: Event) {
             :value="column.key"
             :disabled="column.key === BOARD_COLUMN.DONE && !card.canFinish"
           >
-            {{ column.title }}
+            {{ t(column.titleKey) }}
           </option>
         </select>
       </label>

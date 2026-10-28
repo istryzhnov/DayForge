@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useContextMenu } from '../../../composables/useContextMenu'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   x: number
@@ -31,7 +34,7 @@ const { menuPositionStyle } = useContextMenu({
       type="button"
       @click="emit('move', -1)"
     >
-      Move up
+      {{ t('sidebar.moveUp') }}
     </button>
     <button
       v-if="canMoveDown"
@@ -39,7 +42,7 @@ const { menuPositionStyle } = useContextMenu({
       type="button"
       @click="emit('move', 1)"
     >
-      Move down
+      {{ t('sidebar.moveDown') }}
     </button>
     <div v-if="canMoveUp || canMoveDown" class="goal-settings__divider"></div>
     <button
@@ -47,7 +50,7 @@ const { menuPositionStyle } = useContextMenu({
       type="button"
       @click="emit('delete')"
     >
-      Delete goal
+      {{ t('sidebar.deleteProject') }}
     </button>
   </div>
 </template>

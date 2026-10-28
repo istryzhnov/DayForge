@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { SyncStatus } from '../../../sync/types'
+
+const { t } = useI18n()
 
 const props = defineProps<{ status: SyncStatus }>()
 
@@ -11,14 +14,16 @@ const needsAttention = computed(
 )
 
 const label = computed(() =>
-  props.status.state === 'error' ? 'Sync error' : 'Offline',
+  props.status.state === 'error'
+    ? t('sync.errorLabel')
+    : t('sync.offlineLabel'),
 )
 
 const detail = computed(() => {
   if (props.status.state === 'error') {
-    return props.status.lastError ?? 'Open your profile to look.'
+    return props.status.lastError ?? t('sync.openProfileToLook')
   }
-  return 'They will go up on their own once there is a connection.'
+  return t('sync.willUploadLater')
 })
 
 const isActionable = computed(() => props.status.state === 'error')

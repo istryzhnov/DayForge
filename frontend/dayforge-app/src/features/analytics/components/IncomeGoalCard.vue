@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TaskTemplate } from '../../../entities/TaskEntity'
 import { useSettings } from '../../../composables/useSettings'
@@ -26,6 +27,7 @@ const props = defineProps<{
 
 const { settings, update } = useSettings()
 const { entries } = useTimeEntries()
+const { t } = useI18n()
 
 const money = computed(
   () =>
@@ -98,7 +100,9 @@ const perDayText = computed(() => {
     current.earned,
     workingDaysLeft(new Date()),
   )
-  return needed === null ? '' : `${money.value.format(needed)} / day`
+  return needed === null
+    ? ''
+    : t('analytics.amountPerDay', { amount: money.value.format(needed) })
 })
 
 function startEditing() {
@@ -112,7 +116,9 @@ function save() {
   const value = text === '' ? undefined : Number(text)
 
   if (value !== undefined && sanitizeMonthlyIncome(value) === undefined) {
-    error.value = `Enter an amount above 0 and up to ${INCOME_GOAL_MAX.toLocaleString('en-US')}.`
+    error.value = t('analytics.goalError', {
+      max: INCOME_GOAL_MAX.toLocaleString(settings.format.locale),
+    })
     return
   }
 
@@ -129,11 +135,13 @@ function clear() {
 </script>
 
 <template>
-  <section class="income-goal" aria-label="Monthly income goal">
+  <section class="income-goal" :aria-label="t('analytics.goalAria')">
     <template v-if="!status && !isEditing">
       <button class="income-goal__empty" type="button" @click="startEditing">
-        <span class="analytics__card-label">Monthly income goal</span>
-        <strong>Set a goal</strong>
+        <span class="analytics__card-label">{{
+          t('analytics.goalLabel')
+        }}</span>
+        <strong>{{ t('analytics.setGoal') }}</strong>
       </button>
     </template>
 
@@ -144,7 +152,9 @@ function clear() {
     >
       <label class="income-goal__field">
         <span class="analytics__card-label">
-          Monthly goal ({{ settings.timer.currency }})
+          {{
+            t('analytics.goalFieldLabel', { currency: settings.timer.currency })
+          }}
         </span>
         <input
           v-model="draft"
@@ -152,7 +162,7 @@ function clear() {
           min="0"
           step="any"
           inputmode="decimal"
-          placeholder="e.g. 3000"
+          :placeholder="t('analytics.goalPlaceholder')"
           @input="error = ''"
         />
       </label>
@@ -160,9 +170,11 @@ function clear() {
         {{ error }}
       </p>
       <div class="income-goal__actions">
-        <button class="btn btn-primary" type="submit">Save goal</button>
+        <button class="btn btn-primary" type="submit">
+          {{ t('analytics.saveGoal') }}
+        </button>
         <button class="btn btn-ghost" type="button" @click="isEditing = false">
-          Cancel
+          {{ t('analytics.cancel') }}
         </button>
         <button
           v-if="goalAmount !== undefined"
@@ -170,7 +182,7 @@ function clear() {
           type="button"
           @click="clear"
         >
-          Remove goal
+          {{ t('analytics.removeGoal') }}
         </button>
       </div>
     </form>
@@ -178,7 +190,9 @@ function clear() {
     <div v-else-if="status" class="income-goal__body">
       <div class="income-goal__head">
         <div class="income-goal__figure">
-          <span class="analytics__card-label">Earned this month</span>
+          <span class="analytics__card-label">{{
+            t('analytics.earnedThisMonth')
+          }}</span>
           <span class="income-goal__amount">
             <strong class="income-goal__earned">{{
               money.format(status.earned)
@@ -194,7 +208,7 @@ function clear() {
           type="button"
           @click="startEditing"
         >
-          Edit goal
+          {{ t('analytics.editGoal') }}
         </button>
       </div>
 
@@ -202,7 +216,7 @@ function clear() {
         <div
           class="ui-progress"
           role="progressbar"
-          aria-label="Share of the monthly goal earned"
+          :aria-label="t('analytics.goalProgressAria')"
           aria-valuemin="0"
           aria-valuemax="100"
           :aria-valuenow="Math.min(100, Math.round(status.fraction * 100))"

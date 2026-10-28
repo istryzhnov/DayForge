@@ -47,6 +47,7 @@ import type { ProjectBilling } from '../../features/analytics/composables/projec
 import { useProjectBudget } from '../../features/analytics/composables/useProjectBudget'
 import type { ProjectBudget } from '../../features/analytics/composables/projectBudget'
 import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
+import { i18n } from '../../i18n'
 
 export type ActiveView =
   'goals' | 'calendar' | 'planned' | 'archive' | 'timer' | 'analytics'
@@ -67,7 +68,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
           ? goalSpace.goals.value.find(
               (goal: Goal) => goal.id === template.goalId,
             )?.title
-          : 'All Tasks') ?? 'Unknown Goal',
+          : i18n.global.t('tasks.allTasks')) ??
+        i18n.global.t('tasks.unknownGoal'),
     })),
   )
 
@@ -84,7 +86,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
             ? goalSpace.goals.value.find(
                 (goal: Goal) => goal.id === template.goalId,
               )?.title
-            : 'No project') ?? 'No project',
+            : i18n.global.t('goals.noProject')) ??
+          i18n.global.t('goals.noProject'),
       })),
   )
 
@@ -199,8 +202,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       day: 'numeric',
       month: 'short',
     })
-    offerNotice(`Scheduled for ${day}`, 'Show', () =>
-      goalSpace.goToDate(schedule.date),
+    offerNotice(
+      i18n.global.t('tasks.scheduledFor', { day }),
+      i18n.global.t('common.show'),
+      () => goalSpace.goToDate(schedule.date),
     )
   }
 

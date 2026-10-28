@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
+import { useI18n } from 'vue-i18n'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import ProjectRateEditor from '../../settings/components/ProjectRateEditor.vue'
+
+const { t } = useI18n()
 
 defineProps<{ goals: Goal[] }>()
 
@@ -23,11 +26,8 @@ useFocusTrap({ onEscape: () => emit('close') })
       role="dialog"
       aria-modal="true"
     >
-      <h3>Hourly rates</h3>
-      <p class="settings-group-hint">
-        Each project bills at its own rate. Leave one empty to use the default
-        from Settings → Timer.
-      </p>
+      <h3>{{ t('analytics.ratesTitle') }}</h3>
+      <p class="settings-group-hint">{{ t('analytics.ratesHint') }}</p>
 
       <div v-for="goal in goals" :key="goal.id" class="project-rates__row">
         <span class="project-rates__name">{{ goal.title }}</span>
@@ -38,12 +38,12 @@ useFocusTrap({ onEscape: () => emit('close') })
       </div>
 
       <p v-if="goals.length === 0" class="settings-group-hint">
-        Create a project first, then set its rate here.
+        {{ t('analytics.ratesEmpty') }}
       </p>
 
       <div class="modal-actions">
         <button class="btn btn-primary" type="button" @click="emit('close')">
-          Done
+          {{ t('analytics.done') }}
         </button>
       </div>
     </div>

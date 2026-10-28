@@ -14,10 +14,10 @@
   background: color-mix(in srgb, var(--panel-soft) 50%, transparent);
 }
 
+/* Labels wrap rather than ellipsise: the state word must stay readable. */
 .budget-chip__text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .budget-chip__text strong {
@@ -126,7 +126,6 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .income-goal__earned {
@@ -182,7 +181,6 @@
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .income-goal__need svg {

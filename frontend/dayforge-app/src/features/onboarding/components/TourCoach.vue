@@ -7,6 +7,7 @@ import {
   useTemplateRef,
   watch,
 } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ID } from '../../../entities/types'
 import { useMediaQuery } from '../../../composables/useMediaQuery'
 import { useMobileNav } from '../../sidebar/composables/useMobileNav'
@@ -24,6 +25,8 @@ const emit = defineEmits<{
   /** The owner brings the control on screen: the project, the board, or the drawer. */
   (e: 'navigate', target: TourOffscreen, projectId: ID | undefined): void
 }>()
+
+const { t } = useI18n()
 
 const {
   state,
@@ -84,7 +87,9 @@ const isFinish = computed(() => visibleStep.value?.doneOn === null)
 const bodyText = computed(() => {
   const step = visibleStep.value
   if (!step) return ''
-  return isMobile.value && step.touchBody ? step.touchBody : step.body
+  return isMobile.value && step.touchBodyKey
+    ? t(step.touchBodyKey)
+    : t(step.bodyKey)
 })
 
 function navigate(target: TourOffscreen) {
@@ -146,13 +151,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <CoachBubble
       v-if="visibleStep && (docked || position)"
       ref="bubble"
-      :title="visibleStep.title"
+      :title="t(visibleStep.titleKey)"
       :body="bodyText"
       :position="docked ? null : position"
-      close-label="Hide this step"
+      :close-label="t('onboarding.tourHideStep')"
       @close="close"
     >
-      <template #eyebrow>Step {{ stepNumber }} of {{ stepCount }}</template>
+      <template #eyebrow>{{
+        t('onboarding.tourStepOf', { number: stepNumber, total: stepCount })
+      }}</template>
       <template #actions>
         <button
           v-if="showMeTarget"
@@ -160,7 +167,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           type="button"
           @click="navigate(showMeTarget)"
         >
-          Show me
+          {{ t('onboarding.tourShowMe') }}
         </button>
         <button
           v-if="visibleStep.offer"
@@ -168,7 +175,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           type="button"
           @click="offer"
         >
-          {{ visibleStep.offer.label }}
+          {{ t(visibleStep.offer.labelKey) }}
         </button>
         <button
           v-if="visibleStep.branch"
@@ -176,7 +183,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           type="button"
           @click="decline"
         >
-          Not now
+          {{ t('onboarding.tourNotNow') }}
         </button>
         <button
           v-if="visibleStep.skipOn"
@@ -184,7 +191,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           type="button"
           @click="skipStep"
         >
-          Skip
+          {{ t('onboarding.tourSkip') }}
         </button>
         <button
           v-if="isFinish"
@@ -192,10 +199,10 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           type="button"
           @click="finish"
         >
-          Finish
+          {{ t('onboarding.tourFinish') }}
         </button>
         <button class="coach-mark__quiet" type="button" @click="skip">
-          Skip tour
+          {{ t('onboarding.tourSkipTour') }}
         </button>
       </template>
     </CoachBubble>

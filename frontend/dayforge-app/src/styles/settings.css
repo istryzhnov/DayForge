@@ -152,15 +152,13 @@
   font-size: calc(13px * var(--text-scale));
 }
 
-/* The current value. Truncated rather than wrapped so every row is one height
-   and the list stays scannable. */
+/* The current value. It wraps rather than cutting off, so translated text
+   (German and Polish run long) stays readable. */
 .settings-menu__text em {
   font-style: normal;
   font-size: calc(11px * var(--text-scale));
   color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .settings-menu__chevron {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useProjectRateField } from '../composables/useProjectRateField'
 import ProjectRateEditor from './ProjectRateEditor.vue'
@@ -9,6 +10,7 @@ const emit = defineEmits<{
   (e: 'update-rate', hourlyRate: number | undefined): void
 }>()
 
+const { t } = useI18n()
 const { hint } = useProjectRateField(props, {
   onUpdate: (hourlyRate) => emit('update-rate', hourlyRate),
 })
@@ -16,7 +18,7 @@ const { hint } = useProjectRateField(props, {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Billing</p>
+    <p class="sidebar-caption">{{ t('billing.billingCaption') }}</p>
 
     <p class="settings-group-hint">{{ hint }}</p>
 

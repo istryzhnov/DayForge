@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { CURRENCY_OPTIONS, useSettings } from '../../../composables/useSettings'
 import {
   COUNTDOWN_LENGTHS,
@@ -17,26 +18,31 @@ import {
   LONG_RUN_HOUR_OPTIONS,
 } from '../../../composables/timer/reminders'
 
+const { t } = useI18n()
+
 const { settings, update, resetSection } = useSettings()
 
 function longRunLabel(hours: number): string {
-  return hours === 0 ? 'Off' : `${hours} h`
+  return hours === 0
+    ? t('settings.summaryOff')
+    : t('settings.hoursShort', { n: hours })
 }
 
 function idleLabel(minutes: number): string {
-  if (minutes === 0) return 'Off'
-  return minutes === 60 ? '1 h' : `${minutes} min`
+  if (minutes === 0) return t('settings.summaryOff')
+  return minutes === 60
+    ? t('settings.hoursShort', { n: 1 })
+    : t('settings.minutesShort', { n: minutes })
 }
 </script>
 
 <template>
   <div class="settings-section">
     <p class="settings-section__intro">
-      One timer runs at a time. It keeps counting while the tab is closed, and
-      settles up when you come back.
+      {{ t('settings.timerIntro') }}
     </p>
 
-    <p class="settings-group-hint">Focus lasts</p>
+    <p class="settings-group-hint">{{ t('settings.timerFocusLasts') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in FOCUS_LENGTHS"
@@ -46,13 +52,13 @@ function idleLabel(minutes: number): string {
         type="button"
         @click="update('timer', { focusMinutes: minutes })"
       >
-        {{ minutes }} min
+        {{ t('settings.minutesShort', { n: minutes }) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Countdown</p>
+    <p class="sidebar-caption">{{ t('settings.timerCountdownCaption') }}</p>
 
-    <p class="settings-group-hint">Starts from</p>
+    <p class="settings-group-hint">{{ t('settings.timerStartsFrom') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in COUNTDOWN_LENGTHS"
@@ -62,18 +68,16 @@ function idleLabel(minutes: number): string {
         type="button"
         @click="update('timer', { defaultCountdownMinutes: minutes })"
       >
-        {{ minutes }} min
+        {{ t('settings.minutesShort', { n: minutes }) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Reminders while running</p>
+    <p class="sidebar-caption">{{ t('settings.timerRemindersCaption') }}</p>
     <p class="settings-group-hint">
-      In the app, these show while DayForge is open. Turn on "Notify me when the
-      app is closed" in Reminders to get them as push notifications too. A
-      closed tab cannot remind you.
+      {{ t('settings.timerRemindersHint') }}
     </p>
 
-    <p class="settings-group-hint">Remind me after the timer has run</p>
+    <p class="settings-group-hint">{{ t('settings.timerLongRunLabel') }}</p>
     <div class="settings-chips">
       <button
         v-for="hours in LONG_RUN_HOUR_OPTIONS"
@@ -87,7 +91,7 @@ function idleLabel(minutes: number): string {
       </button>
     </div>
 
-    <p class="settings-group-hint">Ask what to do after I was away for</p>
+    <p class="settings-group-hint">{{ t('settings.timerIdleLabel') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in IDLE_RETURN_MINUTE_OPTIONS"
@@ -101,10 +105,10 @@ function idleLabel(minutes: number): string {
       </button>
     </div>
 
-    <DisclosureSection label="Advanced">
-      <p class="sidebar-caption">Breaks</p>
+    <DisclosureSection :label="t('settings.advanced')">
+      <p class="sidebar-caption">{{ t('settings.timerBreaksCaption') }}</p>
 
-      <p class="settings-group-hint">Short break</p>
+      <p class="settings-group-hint">{{ t('settings.timerShortBreak') }}</p>
       <div class="settings-chips">
         <button
           v-for="minutes in BREAK_LENGTHS"
@@ -114,11 +118,11 @@ function idleLabel(minutes: number): string {
           type="button"
           @click="update('timer', { shortBreakMinutes: minutes })"
         >
-          {{ minutes }} min
+          {{ t('settings.minutesShort', { n: minutes }) }}
         </button>
       </div>
 
-      <p class="settings-group-hint">Long break</p>
+      <p class="settings-group-hint">{{ t('settings.timerLongBreak') }}</p>
       <div class="settings-chips">
         <button
           v-for="minutes in BREAK_LENGTHS"
@@ -128,11 +132,11 @@ function idleLabel(minutes: number): string {
           type="button"
           @click="update('timer', { longBreakMinutes: minutes })"
         >
-          {{ minutes }} min
+          {{ t('settings.minutesShort', { n: minutes }) }}
         </button>
       </div>
 
-      <p class="settings-group-hint">Long break after</p>
+      <p class="settings-group-hint">{{ t('settings.timerLongBreakAfter') }}</p>
       <div class="settings-chips">
         <button
           v-for="count in LONG_BREAK_EVERY"
@@ -142,7 +146,7 @@ function idleLabel(minutes: number): string {
           type="button"
           @click="update('timer', { longBreakEvery: count })"
         >
-          {{ count }} focus
+          {{ t('settings.timerFocusCount', count) }}
         </button>
       </div>
 
@@ -153,8 +157,8 @@ function idleLabel(minutes: number): string {
           @change="update('timer', { autoStartBreaks: checkedValue($event) })"
         />
         <span>
-          <strong>Start breaks on their own</strong>
-          <em>Off means a finished focus phase waits for you.</em>
+          <strong>{{ t('settings.timerAutoBreaks') }}</strong>
+          <em>{{ t('settings.timerAutoBreaksHint') }}</em>
         </span>
       </label>
 
@@ -165,8 +169,8 @@ function idleLabel(minutes: number): string {
           @change="update('timer', { autoStartFocus: checkedValue($event) })"
         />
         <span>
-          <strong>Start the next focus on its own</strong>
-          <em>A break rolls straight back into work.</em>
+          <strong>{{ t('settings.timerAutoFocus') }}</strong>
+          <em>{{ t('settings.timerAutoFocusHint') }}</em>
         </span>
       </label>
 
@@ -177,21 +181,20 @@ function idleLabel(minutes: number): string {
           @change="update('timer', { sound: checkedValue($event) })"
         />
         <span>
-          <strong>Chime when a phase ends</strong>
-          <em>Uses the reminder volume. Silent while the tab is closed.</em>
+          <strong>{{ t('settings.timerChime') }}</strong>
+          <em>{{ t('settings.timerChimeHint') }}</em>
         </span>
       </label>
 
-      <p class="sidebar-caption">Default rate</p>
+      <p class="sidebar-caption">{{ t('settings.timerDefaultRate') }}</p>
 
       <p class="settings-group-hint">
-        Projects and tasks bill at their own rate when they have one. This is
-        the fallback for everything else. Zero keeps it out of the way.
+        {{ t('settings.timerRateHint') }}
       </p>
 
       <div class="settings-times">
         <label>
-          Per hour
+          {{ t('settings.timerPerHour') }}
           <input
             type="number"
             min="0"
@@ -201,7 +204,7 @@ function idleLabel(minutes: number): string {
           />
         </label>
         <label>
-          Currency
+          {{ t('settings.timerCurrency') }}
           <select
             :value="settings.timer.currency"
             @change="update('timer', { currency: textValue($event) })"
@@ -223,7 +226,7 @@ function idleLabel(minutes: number): string {
       type="button"
       @click="resetSection('timer')"
     >
-      Reset timer
+      {{ t('settings.timerReset') }}
     </button>
   </div>
 </template>

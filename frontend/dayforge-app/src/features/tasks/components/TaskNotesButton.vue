@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import TaskNotesPopover from './TaskNotesPopover.vue'
 import { useNotesPopoverSlot } from '../composables/useNotesPopover'
 
@@ -16,13 +17,14 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const { t } = useI18n()
 const { isOpen, open, release } = useNotesPopoverSlot()
 const button = useTemplateRef<HTMLButtonElement>('button')
 const popover = useTemplateRef<InstanceType<typeof TaskNotesPopover>>('popover')
 
 const hasNotes = computed(() => !!props.notes?.trim())
 const label = computed(() =>
-  hasNotes.value ? 'Notes (has text)' : 'Add notes',
+  hasNotes.value ? t('tasks.notesHasText') : t('tasks.addNotes'),
 )
 
 function onClick() {

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { formatHoursMinutes } from '../../../composables/timer/format'
 import type { ProjectProgress } from '../composables/projectProgress'
 
 defineProps<{
   rows: ProjectProgress[]
 }>()
+
+const { t } = useI18n()
 
 /** Rows start closed so the list reads as bars; a tap opens the figures. */
 const expanded = ref<Set<string>>(new Set())
@@ -23,7 +26,9 @@ function toggle(key: string) {
 
 /** The plan gap in words read at a glance: time still to go, or time over. */
 function gapLabel(row: ProjectProgress): string {
-  return row.diffMs !== null && row.diffMs > 0 ? 'Over' : 'Left'
+  return row.diffMs !== null && row.diffMs > 0
+    ? t('analytics.over')
+    : t('analytics.left')
 }
 
 function gapValue(row: ProjectProgress): string {
@@ -44,7 +49,7 @@ function fillStyle(row: ProjectProgress) {
 </script>
 
 <template>
-  <div class="ui-rows" role="list" aria-label="Projects">
+  <div class="ui-rows" role="list" :aria-label="t('analytics.projectsAria')">
     <div
       v-for="row in rows"
       :key="row.key"
@@ -85,7 +90,7 @@ function fillStyle(row: ProjectProgress) {
         class="ui-row__detail project-progress__detail"
       >
         <div>
-          <dt>Done</dt>
+          <dt>{{ t('analytics.done') }}</dt>
           <dd>{{ donePercent(row) }}</dd>
         </div>
         <div>
@@ -93,7 +98,7 @@ function fillStyle(row: ProjectProgress) {
           <dd>{{ gapValue(row) }}</dd>
         </div>
         <div>
-          <dt>Tasks</dt>
+          <dt>{{ t('analytics.tasks') }}</dt>
           <dd>{{ row.taskCount }}</dd>
         </div>
       </dl>
@@ -160,9 +165,8 @@ function fillStyle(row: ProjectProgress) {
 .project-progress__detail dt {
   font-size: calc(11px * var(--text-scale));
   color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .project-progress__detail dd {

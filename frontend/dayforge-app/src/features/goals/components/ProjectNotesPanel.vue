@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { onMounted, useTemplateRef, type StyleValue } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ID } from '../../../entities/types'
 import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
@@ -30,6 +31,7 @@ const { draft, flush } = useProjectNotes(
   (notes) => emit('save', goalId, notes),
 )
 
+const { t } = useI18n()
 const textareaRef = useTemplateRef<HTMLTextAreaElement>('textareaRef')
 useTextareaFit(textareaRef, draft)
 
@@ -53,11 +55,13 @@ onMounted(() => {
         :style="themeStyle"
       >
         <header class="project-notes__head">
-          <h3 id="project-notes-title">Notes · {{ title }}</h3>
+          <h3 id="project-notes-title">
+            {{ t('goals.notesTitle', { title }) }}
+          </h3>
           <button
             type="button"
             class="project-notes__close"
-            aria-label="Close notes"
+            :aria-label="t('goals.closeNotes')"
             @click="emit('close')"
           >
             <AppIcon name="close" :size="14" />
@@ -68,13 +72,13 @@ onMounted(() => {
           ref="textareaRef"
           v-model="draft"
           class="project-notes__text"
-          aria-label="Project notes"
-          placeholder="Ideas, links, anything about this project…"
+          :aria-label="t('goals.projectNotes')"
+          :placeholder="t('goals.notesPlaceholder')"
           :maxlength="NOTES_MAX_LENGTH"
           @blur="flush"
         />
 
-        <p class="project-notes__hint">Saved automatically</p>
+        <p class="project-notes__hint">{{ t('goals.savedAutomatically') }}</p>
       </aside>
     </div>
   </Teleport>

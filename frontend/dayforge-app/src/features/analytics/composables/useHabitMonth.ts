@@ -21,13 +21,15 @@ import {
 import { isRepeating } from '../../../composables/goalSpace/recurrence'
 import { panelDateLabel } from '../../../composables/panelDateLabel'
 import { projectColors } from '../../../composables/theme/goalTheme'
+import { i18n } from '../../../i18n'
 
-const STATE_WORDS: Record<HabitDayState, string> = {
-  done: 'done',
-  missed: 'missed',
-  pending: 'not done yet',
-  upcoming: 'upcoming',
-  off: 'not scheduled',
+/** Message keys for each day state, read at call time so the language follows. */
+const STATE_KEYS: Record<HabitDayState, string> = {
+  done: 'analytics.habitDone',
+  missed: 'analytics.habitMissed',
+  pending: 'analytics.habitPending',
+  upcoming: 'analytics.habitUpcoming',
+  off: 'analytics.habitOff',
 }
 
 export interface HabitMonthSources {
@@ -118,7 +120,10 @@ export function useHabitMonth(sources: HabitMonthSources) {
 
   function projectNameOf(goalId?: ID): string {
     if (!goalId) return ''
-    return projectById.value.get(goalId)?.title ?? 'Deleted project'
+    return (
+      projectById.value.get(goalId)?.title ??
+      i18n.global.t('analytics.deletedProject')
+    )
   }
 
   function dateText(date: ISODate): string {
@@ -130,16 +135,31 @@ export function useHabitMonth(sources: HabitMonthSources) {
   }
 
   function cellLabel(cell: HabitMonthCell): string {
-    return `${dateText(cell.date)} — ${STATE_WORDS[cell.state]}`
+    return i18n.global.t('analytics.habitCell', {
+      date: dateText(cell.date),
+      state: i18n.global.t(STATE_KEYS[cell.state]),
+    })
   }
 
   function dayLabel(day: HabitMonthDayTotal): string {
+    const date = dateText(day.date)
     if (day.date > getTodayISODate()) {
-      const state = day.total ? 'upcoming' : 'nothing scheduled'
-      return `${dateText(day.date)} — ${state}`
+      const state = day.total
+        ? i18n.global.t('analytics.habitUpcoming')
+        : i18n.global.t('analytics.habitNothing')
+      return i18n.global.t('analytics.habitCell', { date, state })
     }
-    if (day.total === 0) return `${dateText(day.date)} — nothing scheduled`
-    return `${dateText(day.date)} — ${day.done} of ${day.total} done`
+    if (day.total === 0) {
+      return i18n.global.t('analytics.habitCell', {
+        date,
+        state: i18n.global.t('analytics.habitNothing'),
+      })
+    }
+    return i18n.global.t('analytics.habitDay', {
+      date,
+      done: day.done,
+      total: day.total,
+    })
   }
 
   function dayTone(day: HabitMonthDayTotal): string {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { useSettings } from '../../../composables/useSettings'
@@ -7,6 +8,7 @@ import { formatHoursMinutes } from '../../../composables/timer/format'
 import {
   draftFromBilling,
   parseBillingDraft,
+  type Messages,
   type ProjectBilling,
 } from '../composables/projectBilling'
 
@@ -22,6 +24,7 @@ const emit = defineEmits<{
 }>()
 
 const { settings } = useSettings()
+const { t } = useI18n()
 useFocusTrap({ onEscape: () => emit('close') })
 
 const currency = computed(() => settings.timer.currency)
@@ -31,7 +34,11 @@ const draft = ref(draftFromBilling(props.goal.billing))
 const error = ref('')
 
 function save() {
-  const result = parseBillingDraft(draft.value)
+  const messages: Messages = {
+    text: (key, params) => t(key, params ?? {}),
+    locale: settings.format.locale,
+  }
+  const result = parseBillingDraft(draft.value, messages)
   if (!result.ok) {
     error.value = result.error
     return
@@ -56,48 +63,43 @@ function clear() {
       @submit.prevent="save"
     >
       <h3 id="project-billing-title">{{ goal.title }}</h3>
-      <p class="project-billing__note">
-        Only used in Analytics — your time entries stay as they are.
-      </p>
+      <p class="project-billing__note">{{ t('analytics.billingNote') }}</p>
 
       <label class="project-billing__field">
-        <span>Fixed price ({{ currency }})</span>
+        <span>{{ t('analytics.fixedPriceLabel', { currency }) }}</span>
         <input
           v-model="draft.fixedPrice"
           type="number"
           min="0"
           step="any"
           inputmode="decimal"
-          placeholder="Priced by hours"
+          :placeholder="t('analytics.pricedByHours')"
           @input="error = ''"
         />
-        <em>
-          All time shows this as the earnings. Shorter periods split it by their
-          share of tracked time.
-        </em>
+        <em>{{ t('analytics.fixedPriceHint') }}</em>
       </label>
 
       <label class="project-billing__field">
-        <span>Hours spent</span>
+        <span>{{ t('analytics.hoursSpent') }}</span>
         <input
           v-model="draft.manualHours"
           type="number"
           min="0"
           step="any"
           inputmode="decimal"
-          placeholder="Tracked time"
+          :placeholder="t('analytics.trackedTime')"
           @input="error = ''"
         />
-        <em> Tracked so far: {{ trackedLabel }}. Used in All time only. </em>
+        <em>{{ t('analytics.hoursHint', { tracked: trackedLabel }) }}</em>
       </label>
 
       <label class="project-billing__field">
-        <span>Note (optional)</span>
+        <span>{{ t('analytics.noteOptional') }}</span>
         <input
           v-model="draft.note"
           type="text"
           maxlength="500"
-          placeholder="e.g. paid by invoice 12"
+          :placeholder="t('analytics.notePlaceholder')"
           @input="error = ''"
         />
       </label>
@@ -108,12 +110,14 @@ function clear() {
 
       <div class="modal-actions project-billing__actions">
         <button class="btn btn-ghost" type="button" @click="clear">
-          Clear adjustments
+          {{ t('analytics.clearAdjustments') }}
         </button>
         <button class="btn btn-ghost" type="button" @click="emit('close')">
-          Cancel
+          {{ t('analytics.cancel') }}
         </button>
-        <button class="btn btn-primary" type="submit">Save</button>
+        <button class="btn btn-primary" type="submit">
+          {{ t('analytics.save') }}
+        </button>
       </div>
     </form>
   </div>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 
 export interface PickerOption {
@@ -21,10 +22,12 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
 }>()
 
-const GROUP_LABEL: Record<PickerOption['group'], string | null> = {
+const { t } = useI18n()
+
+const GROUP_LABEL_KEY: Record<PickerOption['group'], string | null> = {
   none: null,
-  goal: 'Projects',
-  major: 'Inside a project',
+  goal: 'goals.groupProjects',
+  major: 'goals.groupInside',
 }
 
 const isOpen = ref(false)
@@ -46,7 +49,7 @@ const rows = computed(() =>
     index,
     heading:
       index === 0 || props.options[index - 1].group !== option.group
-        ? GROUP_LABEL[option.group]
+        ? GROUP_LABEL_KEY[option.group]
         : null,
   })),
 )
@@ -123,7 +126,7 @@ onBeforeUnmount(() =>
     <button
       class="task-composer__target"
       type="button"
-      aria-label="Project"
+      :aria-label="t('goals.project')"
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
       :aria-controls="listId"
@@ -148,11 +151,11 @@ onBeforeUnmount(() =>
       ref="listRef"
       class="project-picker__list"
       role="listbox"
-      aria-label="Project"
+      :aria-label="t('goals.project')"
     >
       <template v-for="row in rows" :key="row.option.value">
         <p v-if="row.heading" class="ui-section-label project-picker__heading">
-          {{ row.heading }}
+          {{ t(row.heading) }}
         </p>
         <div
           :id="`${listId}-${row.index}`"

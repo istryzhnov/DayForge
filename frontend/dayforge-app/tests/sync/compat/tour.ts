@@ -1,5 +1,7 @@
 /** Compat checks: the getting-started tour advances only on the matching action, on either path. */
 
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   finishTourState,
   freshTourState,
@@ -71,17 +73,29 @@ export function verifyTourSteps() {
     'the board path has eleven steps and the widget path eight',
     BOARD_PATH.length === 11 && WIDGET_PATH.length === 8,
   )
+  // The copy lives in the message catalogue; the word limits apply to English.
+  const english = JSON.parse(
+    readFileSync(
+      join(process.cwd(), 'src', 'i18n', 'locales', 'en', 'onboarding.json'),
+      'utf8',
+    ),
+  ) as Record<string, string>
+  const englishOf = (key: string): string =>
+    english[key.slice('onboarding.'.length)] ?? ''
+  const words = (text: string): number => text.split(/\s+/).length
+
   check(
     'every step title is five words or fewer',
-    TOUR_STEPS.every((step) => step.title.split(/\s+/).length <= 5),
-    TOUR_STEPS.map((step) => step.title),
+    TOUR_STEPS.every((step) => words(englishOf(step.titleKey)) <= 5),
+    TOUR_STEPS.map((step) => englishOf(step.titleKey)),
   )
   check(
     'every step body, and every touch body, is eighteen words or fewer',
     TOUR_STEPS.every(
       (step) =>
-        step.body.split(/\s+/).length <= 18 &&
-        (step.touchBody ?? '').split(/\s+/).length <= 18,
+        words(englishOf(step.bodyKey)) <= 18 &&
+        (step.touchBodyKey === undefined ||
+          words(englishOf(step.touchBodyKey)) <= 18),
     ),
   )
   check(

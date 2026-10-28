@@ -28,7 +28,7 @@ export function verifyPrimaryButtonContrast() {
     const accent = preset.colors.accent ?? designed?.accent
     const ink = designed ? designed.ink : readableButtonTextOn(accent ?? '')
     if (!accent) {
-      check(`${preset.name} has an accent`, false)
+      check(`${preset.id} has an accent`, false)
       continue
     }
     const shade = mix(accent, '#000000', PRIMARY_BUTTON_SHADE)
@@ -37,7 +37,7 @@ export function verifyPrimaryButtonContrast() {
       contrastRatio(ink, shade),
     )
     check(
-      `${preset.name} button text clears 4.5:1 on both gradient ends (${worst.toFixed(2)}:1)`,
+      `${preset.id} button text clears 4.5:1 on both gradient ends (${worst.toFixed(2)}:1)`,
       worst >= 4.5,
     )
   }

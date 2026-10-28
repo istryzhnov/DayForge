@@ -1,0 +1,22 @@
+{
+  "placeholder": "Projekte und Aufgaben durchsuchen",
+  "results": "Ergebnisse",
+  "noMatches": "Keine Treffer",
+  "idle": "Tippen, um Projekte, Aufgaben und Erledigtes zu durchsuchen.",
+  "move": "wählen",
+  "open": "öffnen",
+  "close": "schließen",
+  "paused": "Pausiert",
+  "archived": "Archiviert",
+  "project": "Projekt",
+  "repeatDaily": "Täglich",
+  "repeatWeekly": "Wöchentlich",
+  "repeatMonthly": "Monatlich",
+  "repeatYearly": "Jährlich",
+  "repeats": "Wiederholt",
+  "groupProjects": "Projekte",
+  "groupTasks": "Aufgaben",
+  "groupDone": "Archiviert und erledigt",
+  "noProject": "Kein Projekt",
+  "unknownProject": "Unbekanntes Projekt"
+}

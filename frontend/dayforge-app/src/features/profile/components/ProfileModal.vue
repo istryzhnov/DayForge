@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ProfileAvatar from './ProfileAvatar.vue'
 import DeleteAccountDialog from './DeleteAccountDialog.vue'
 import { useProfile } from '../composables/useProfile'
@@ -13,6 +14,8 @@ const emit = defineEmits<{
 }>()
 
 useFocusTrap({ onEscape: () => emit('close') })
+
+const { t } = useI18n()
 
 const isDeleteOpen = ref(false)
 const { isOnline, offlineHint } = useAccountDeletion()
@@ -49,11 +52,11 @@ const {
       aria-labelledby="profile-title"
     >
       <header class="profile-card__head">
-        <h3 id="profile-title">Profile</h3>
+        <h3 id="profile-title">{{ t('profile.profileTitle') }}</h3>
         <button
           class="event-details__close"
           type="button"
-          aria-label="Close"
+          :aria-label="t('profile.close')"
           @click="emit('close')"
         >
           <AppIcon name="close" :size="14" />
@@ -61,23 +64,24 @@ const {
       </header>
 
       <template v-if="!auth.isConfigured">
-        <p class="settings-group-hint">
-          This build has no sync keys, so DayForge is working entirely in this
-          browser — which is exactly how it has always worked. Adding
-          <code>VITE_SUPABASE_URL</code> and
-          <code>VITE_SUPABASE_ANON_KEY</code> to the project's
-          <code>.env</code> turns an account on, once the tables in
-          <code>supabase/schema.sql</code> have been created.
-        </p>
+        <i18n-t
+          keypath="profile.noSyncKeysBody"
+          tag="p"
+          class="settings-group-hint"
+        >
+          <template #urlVar><code>VITE_SUPABASE_URL</code></template>
+          <template #keyVar><code>VITE_SUPABASE_ANON_KEY</code></template>
+          <template #schema><code>supabase/schema.sql</code></template>
+        </i18n-t>
       </template>
 
       <template v-else-if="!auth.isSignedIn.value">
         <div class="profile-card__hero">
           <ProfileAvatar :avatar-url="null" initial="" :signed-in="false" />
           <div>
-            <strong>Sign in or create an account</strong>
+            <strong>{{ t('profile.signInTitle') }}</strong>
             <p class="settings-group-hint">
-              Keep the same projects, tasks and tracked time on every device.
+              {{ t('profile.signInBody') }}
             </p>
           </div>
         </div>
@@ -88,30 +92,39 @@ const {
           :disabled="auth.isBusy.value || !auth.isReady.value"
           @click="signIn"
         >
-          {{ auth.isBusy.value ? 'Opening Google…' : 'Continue with Google' }}
+          {{
+            auth.isBusy.value
+              ? t('profile.openingGoogle')
+              : t('profile.continueWithGoogle')
+          }}
         </button>
 
-        <p class="settings-group-hint legal-links">
-          By signing in you agree to the
-          <a href="/terms.html" target="_blank" rel="noopener">Terms</a> and
-          <a href="/privacy.html" target="_blank" rel="noopener"
-            >Privacy Policy</a
-          >.
-        </p>
+        <i18n-t
+          keypath="profile.legalAgree"
+          tag="p"
+          class="settings-group-hint legal-links"
+        >
+          <template #terms>
+            <a href="/terms.html" target="_blank" rel="noopener">{{
+              t('profile.termsLink')
+            }}</a>
+          </template>
+          <template #privacy>
+            <a href="/privacy.html" target="_blank" rel="noopener">{{
+              t('profile.privacyLink')
+            }}</a>
+          </template>
+        </i18n-t>
 
         <p class="settings-group-hint legal-links">
-          <a href="/about">About DayForge</a>
+          <a href="/about">{{ t('profile.aboutLink') }}</a>
         </p>
 
         <p class="settings-group-hint">
-          New here? The same button creates the account. Without one nothing
-          leaves this browser, and everything keeps working as it does now.
+          {{ t('profile.newHere') }}
         </p>
         <p class="settings-group-hint">
-          Your existing projects and tasks are kept. The first sign-in brings
-          them together with whatever the account already holds, and tucks a
-          copy of the current state away first — see Backup and data in
-          settings.
+          {{ t('profile.firstSignInNote') }}
         </p>
 
         <p v-if="auth.error.value" class="settings-message is-error">
@@ -145,34 +158,31 @@ const {
         </div>
 
         <p v-if="status.queued > 0" class="settings-group-hint">
-          Nothing is lost while they wait. They are stored here and sent once
-          there is a connection.
+          {{ t('profile.nothingLost') }}
         </p>
 
         <div v-if="failures.length > 0" class="account-failures">
           <strong>
-            {{ failures.length }} change{{ failures.length === 1 ? '' : 's' }}
-            the server refused
+            {{ t('profile.refusedChanges', failures.length) }}
           </strong>
           <p>
-            Retrying these will not help on its own, so they were set aside
-            rather than left to block everything behind them.
+            {{ t('profile.refusedNote') }}
           </p>
           <ul>
             <li v-for="failure in failures.slice(0, 5)" :key="failure.id">
               {{ failure.table }} · {{ failure.op }} ·
-              {{ failure.lastError ?? 'refused' }}
+              {{ failure.lastError ?? t('profile.refusedFallback') }}
             </li>
           </ul>
           <button class="btn btn-ghost" type="button" @click="retryDead">
-            Try these again
+            {{ t('profile.tryAgain') }}
           </button>
           <button
             class="btn btn-ghost settings-action--danger"
             type="button"
             @click="discardDead"
           >
-            Give up on them
+            {{ t('profile.giveUp') }}
           </button>
         </div>
 
@@ -185,7 +195,7 @@ const {
           type="button"
           @click="copyLog"
         >
-          {{ logCopied ? 'Copied' : 'Copy sync log' }}
+          {{ logCopied ? t('profile.copied') : t('profile.copySyncLog') }}
         </button>
 
         <template v-if="!isSignOutConfirmOpen">
@@ -195,21 +205,16 @@ const {
             :disabled="auth.isBusy.value || isSigningOut"
             @click="signOut"
           >
-            {{ isSigningOut ? 'Signing out…' : 'Sign out' }}
+            {{ isSigningOut ? t('profile.signingOut') : t('profile.signOut') }}
           </button>
           <p class="settings-group-hint">
-            Signing out sends any unsent changes first, then removes this
-            account's projects, tasks and time from this browser. They stay on
-            the server and come back when you sign in again.
+            {{ t('profile.signOutNote') }}
           </p>
         </template>
 
         <div v-else class="sign-out-confirm">
           <p class="settings-message is-error">
-            {{ unsyncedCount }}
-            {{ unsyncedCount === 1 ? 'change' : 'changes' }}
-            {{ unsyncedCount === 1 ? "hasn't" : "haven't" }} synced yet. Signing
-            out now deletes them from this browser.
+            {{ t('profile.unsyncedChanges', unsyncedCount) }}
           </p>
           <button
             class="btn btn-ghost settings-action settings-action--danger"
@@ -217,14 +222,14 @@ const {
             :disabled="isSigningOut"
             @click="confirmSignOut"
           >
-            Sign out anyway
+            {{ t('profile.signOutAnyway') }}
           </button>
           <button
             class="btn btn-ghost settings-action"
             type="button"
             @click="cancelSignOut"
           >
-            Cancel
+            {{ t('profile.cancel') }}
           </button>
         </div>
 
@@ -234,12 +239,11 @@ const {
           :disabled="!isOnline"
           @click="isDeleteOpen = true"
         >
-          Delete account
+          {{ t('profile.deleteAccount') }}
         </button>
         <p v-if="!isOnline" class="settings-group-hint">{{ offlineHint }}</p>
         <p v-else class="settings-group-hint">
-          Permanently deletes your account and all of its data on the server.
-          This device's copy is erased too.
+          {{ t('profile.deleteAccountNote') }}
         </p>
 
         <DeleteAccountDialog

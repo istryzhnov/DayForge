@@ -32,8 +32,9 @@ export interface ColorTokenMeta {
   key: ThemeColorKey
   /** The custom property the value is written to. */
   cssVar: string
-  label: string
-  description: string
+  /** Message keys, rendered with t() where the colour is shown. */
+  labelKey: string
+  descriptionKey: string
   group: 'primary' | 'surface' | 'secondary'
 }
 
@@ -41,64 +42,64 @@ export const COLOR_TOKENS: ColorTokenMeta[] = [
   {
     key: THEME_COLOR_KEY.ACCENT,
     cssVar: '--accent',
-    label: 'Accent',
-    description: 'Primary colour: buttons, progress rings, active states.',
+    labelKey: 'settings.tokenAccent',
+    descriptionKey: 'settings.tokenAccentDescription',
     group: 'primary',
   },
   {
     key: THEME_COLOR_KEY.MAJOR,
     cssVar: '--major',
-    label: 'Projects',
-    description: 'Project circles, badges and calendar blocks.',
+    labelKey: 'settings.tokenProjects',
+    descriptionKey: 'settings.tokenProjectsDescription',
     group: 'primary',
   },
   {
     key: THEME_COLOR_KEY.MINOR,
     cssVar: '--minor',
-    label: 'Tasks',
-    description: 'Ordinary task circles and their calendar blocks.',
+    labelKey: 'settings.tokenTasks',
+    descriptionKey: 'settings.tokenTasksDescription',
     group: 'primary',
   },
   {
     key: THEME_COLOR_KEY.BG,
     cssVar: '--bg',
-    label: 'Background',
-    description: 'The canvas behind every panel.',
+    labelKey: 'settings.tokenBackground',
+    descriptionKey: 'settings.tokenBackgroundDescription',
     group: 'surface',
   },
   {
     key: THEME_COLOR_KEY.PANEL,
     cssVar: '--panel',
-    label: 'Panels',
-    description: 'Cards, the sidebar and every raised surface.',
+    labelKey: 'settings.tokenPanels',
+    descriptionKey: 'settings.tokenPanelsDescription',
     group: 'surface',
   },
   {
     key: THEME_COLOR_KEY.LINE,
     cssVar: '--line',
-    label: 'Borders',
-    description: 'Frames, dividers and outlines.',
+    labelKey: 'settings.tokenBorders',
+    descriptionKey: 'settings.tokenBordersDescription',
     group: 'surface',
   },
   {
     key: THEME_COLOR_KEY.TEXT,
     cssVar: '--text',
-    label: 'Text',
-    description: 'Titles and body copy.',
+    labelKey: 'settings.tokenText',
+    descriptionKey: 'settings.tokenTextDescription',
     group: 'secondary',
   },
   {
     key: THEME_COLOR_KEY.MUTED,
     cssVar: '--muted',
-    label: 'Secondary text',
-    description: 'Captions, counters and hints.',
+    labelKey: 'settings.tokenSecondaryText',
+    descriptionKey: 'settings.tokenSecondaryTextDescription',
     group: 'secondary',
   },
   {
     key: THEME_COLOR_KEY.DANGER,
     cssVar: '--danger',
-    label: 'Danger',
-    description: 'Delete actions and warnings.',
+    labelKey: 'settings.tokenDanger',
+    descriptionKey: 'settings.tokenDangerDescription',
     group: 'secondary',
   },
 ]
@@ -140,14 +141,6 @@ export const FONT_STACKS: Record<FontOption, string> = {
   [FONT_OPTION.SERIF]: "'Iowan Old Style', Georgia, 'Times New Roman', serif",
   [FONT_OPTION.MONO]: "'JetBrains Mono', 'Cascadia Mono', Consolas, monospace",
   [FONT_OPTION.ROUNDED]: "'Nunito', 'Trebuchet MS', 'Segoe UI', sans-serif",
-}
-
-export const FONT_LABELS: Record<FontOption, string> = {
-  [FONT_OPTION.MANROPE]: 'Manrope',
-  [FONT_OPTION.SYSTEM]: 'System',
-  [FONT_OPTION.SERIF]: 'Serif',
-  [FONT_OPTION.MONO]: 'Mono',
-  [FONT_OPTION.ROUNDED]: 'Rounded',
 }
 
 export const DENSITY = {
@@ -289,8 +282,9 @@ export function buildWorkspaceVars(
 
 export interface PalettePreset {
   id: string
-  name: string
-  hint: string
+  /** Message keys: the names are translated where the gallery shows them. */
+  nameKey: string
+  hintKey: string
   mode: ThemeMode
   style: ThemeStyle
   colors: ThemePalette
@@ -299,24 +293,24 @@ export interface PalettePreset {
 export const PALETTE_PRESETS: PalettePreset[] = [
   {
     id: 'forge',
-    name: 'Forge',
-    hint: 'The DayForge original: neon lime on deep navy.',
+    nameKey: 'settings.paletteForge',
+    hintKey: 'settings.paletteForgeHint',
     mode: 'dark',
     style: 'vivid',
     colors: {},
   },
   {
     id: 'daylight',
-    name: 'Daylight',
-    hint: 'The built-in light theme, untouched.',
+    nameKey: 'settings.paletteDaylight',
+    hintKey: 'settings.paletteDaylightHint',
     mode: 'light',
     style: 'vivid',
     colors: {},
   },
   {
     id: 'evergreen',
-    name: 'Evergreen',
-    hint: 'Green against charcoal — the calm classic pairing.',
+    nameKey: 'settings.paletteEvergreen',
+    hintKey: 'settings.paletteEvergreenHint',
     mode: 'dark',
     style: 'vivid',
     colors: {
@@ -332,8 +326,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'ocean',
-    name: 'Deep ocean',
-    hint: 'Cyan and rose: cool, low-glare, easy at night.',
+    nameKey: 'settings.paletteDeepOcean',
+    hintKey: 'settings.paletteDeepOceanHint',
     mode: 'dark',
     style: 'vivid',
     colors: {
@@ -349,8 +343,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'sunset',
-    name: 'Sunset',
-    hint: 'Warm amber against plum — high energy.',
+    nameKey: 'settings.paletteSunset',
+    hintKey: 'settings.paletteSunsetHint',
     mode: 'dark',
     style: 'vivid',
     colors: {
@@ -366,8 +360,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'grape',
-    name: 'Grape',
-    hint: 'Violet accent on a near-black canvas.',
+    nameKey: 'settings.paletteGrape',
+    hintKey: 'settings.paletteGrapeHint',
     mode: 'dark',
     style: 'minimal',
     colors: {
@@ -383,8 +377,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'slate',
-    name: 'Slate',
-    hint: 'Monochrome greys — nothing competes for attention.',
+    nameKey: 'settings.paletteSlate',
+    hintKey: 'settings.paletteSlateHint',
     mode: 'dark',
     style: 'minimal',
     colors: {
@@ -400,8 +394,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'paper',
-    name: 'Paper',
-    hint: 'Warm off-white with ink — daylight reading.',
+    nameKey: 'settings.palettePaper',
+    hintKey: 'settings.palettePaperHint',
     mode: 'light',
     style: 'minimal',
     colors: {
@@ -417,8 +411,8 @@ export const PALETTE_PRESETS: PalettePreset[] = [
   },
   {
     id: 'meadow',
-    name: 'Meadow',
-    hint: 'Fresh green on a bright, airy canvas.',
+    nameKey: 'settings.paletteMeadow',
+    hintKey: 'settings.paletteMeadowHint',
     mode: 'light',
     style: 'vivid',
     colors: {

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import AppIcon from '../../../components/AppIcon.vue'
 import { useFormat } from '../../../composables/useFormat'
+import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
 import {
   describeRecurrence,
   isRepeating,
@@ -66,12 +68,13 @@ function onRowPointerDown(event: PointerEvent) {
 
 const timer = useTimer()
 const { formatTime } = useFormat()
+const { t } = useI18n()
 
 /** "Every 2 days", the same wording the Upcoming list uses. */
 const repeatLabel = computed(() => {
   const template = props.node.template
   return template?.recurrence && isRepeating(template)
-    ? describeRecurrence(template.recurrence)
+    ? describeRecurrence(template.recurrence, recurrenceWords())
     : undefined
 })
 
@@ -190,7 +193,7 @@ const {
           'is-done': isDone,
           'task-dot-check--project': isProject,
         }"
-        :aria-label="isDone ? 'Mark as not done' : 'Mark as done'"
+        :aria-label="isDone ? t('tasks.markNotDone') : t('tasks.markDone')"
         @click="onToggleDone(node.task.id)"
       >
         <AppIcon
@@ -236,16 +239,16 @@ const {
           <span
             v-if="hasOwnRate"
             class="task-priority-chip"
-            title="This task bills at its own rate"
+            :title="t('tasks.ownRateTitle')"
           >
-            {{ node.template?.hourlyRate }} / h
+            {{ t('tasks.rateChip', { rate: node.template?.hourlyRate ?? 0 }) }}
           </span>
 
           <!-- Repeating tasks only: a running tally of days completed. -->
           <span
             v-if="node.completedCount"
             class="task-repeat-chip"
-            :title="`Completed ${node.completedCount} times`"
+            :title="t('tasks.completedTimes', node.completedCount)"
           >
             <AppIcon name="check" :size="11" />
             {{ node.completedCount }}
@@ -276,8 +279,9 @@ const {
         v-if="!isNested"
         class="ui-icon-btn ui-icon-btn--outlined task-add-btn"
         type="button"
-        aria-label="Add task to this"
-        title="Add task to this"
+        data-tour-action="add-subtask"
+        :aria-label="t('tasks.addTaskToThis')"
+        :title="t('tasks.addTaskToThis')"
         @click="onToggleParent(node.task.id)"
       >
         <svg

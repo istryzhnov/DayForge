@@ -1,6 +1,7 @@
 export interface ProjectIconDef {
   id: string
-  label: string
+  /** Message key of the name, shown as the picker's label. */
+  labelKey: string
   /** SVG path data on a 24×24 grid, drawn with currentColor strokes. */
   paths: string[]
 }
@@ -9,11 +10,19 @@ const circle = (cx: number, cy: number, r: number) =>
   `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 ${-r * 2} 0`
 
 export const PROJECT_ICONS: readonly ProjectIconDef[] = [
-  { id: 'work', label: 'Work', paths: ['M3 7h18v12H3z', 'M9 7V5h6v2'] },
-  { id: 'laptop', label: 'Laptop', paths: ['M5 6h14v10H5z', 'M2 19h20'] },
+  {
+    id: 'work',
+    labelKey: 'settings.iconWork',
+    paths: ['M3 7h18v12H3z', 'M9 7V5h6v2'],
+  },
+  {
+    id: 'laptop',
+    labelKey: 'settings.iconLaptop',
+    paths: ['M5 6h14v10H5z', 'M2 19h20'],
+  },
   {
     id: 'study',
-    label: 'Study',
+    labelKey: 'settings.iconStudy',
     paths: [
       'M2 9l10-5 10 5-10 5z',
       'M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5',
@@ -21,7 +30,7 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'book',
-    label: 'Book',
+    labelKey: 'settings.iconBook',
     paths: [
       'M12 6c-2-1.5-5-2-8-1.5v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z',
       'M12 6v13.5',
@@ -29,32 +38,32 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'write',
-    label: 'Writing',
+    labelKey: 'settings.iconWriting',
     paths: ['M4 20l4-1L19 8l-3-3L5 16z', 'M14 6l3 3'],
   },
   {
     id: 'code',
-    label: 'Code',
+    labelKey: 'settings.iconCode',
     paths: ['M8 7l-5 5 5 5', 'M16 7l5 5-5 5', 'M14 4l-4 16'],
   },
   {
     id: 'music',
-    label: 'Music',
+    labelKey: 'settings.iconMusic',
     paths: [circle(6, 18, 3), circle(18, 16, 3), 'M9 18V5l12-2v13'],
   },
   {
     id: 'camera',
-    label: 'Camera',
+    labelKey: 'settings.iconCamera',
     paths: ['M3 8h4l2-3h6l2 3h4v11H3z', circle(12, 13, 3.5)],
   },
   {
     id: 'sport',
-    label: 'Sport',
+    labelKey: 'settings.iconSport',
     paths: ['M6 8v8', 'M18 8v8', 'M3 10v4', 'M21 10v4', 'M6 12h12'],
   },
   {
     id: 'bike',
-    label: 'Bike',
+    labelKey: 'settings.iconBike',
     paths: [
       circle(6, 16, 3),
       circle(18, 16, 3),
@@ -64,7 +73,7 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'globe',
-    label: 'Travel',
+    labelKey: 'settings.iconTravel',
     paths: [
       circle(12, 12, 9),
       'M3 12h18',
@@ -74,19 +83,19 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'health',
-    label: 'Health',
+    labelKey: 'settings.iconHealth',
     paths: ['M3 12h4l2-4 4 8 2-4h6'],
   },
   {
     id: 'heart',
-    label: 'Heart',
+    labelKey: 'settings.iconHeart',
     paths: [
       'M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z',
     ],
   },
   {
     id: 'money',
-    label: 'Money',
+    labelKey: 'settings.iconMoney',
     paths: [
       circle(12, 12, 9),
       'M14.5 9.5c-.5-1-1.5-1.5-2.5-1.5-1.5 0-2.5.8-2.5 2s1 1.8 2.5 2 2.5.6 2.5 2-1 2-2.5 2c-1 0-2-.5-2.5-1.5',
@@ -94,17 +103,17 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'shop',
-    label: 'Shopping',
+    labelKey: 'settings.iconShopping',
     paths: ['M3 4h2l2.5 11h10L20 7H6', circle(9, 19, 1.2), circle(17, 19, 1.2)],
   },
   {
     id: 'home',
-    label: 'Home',
+    labelKey: 'settings.iconHome',
     paths: ['M3 11l9-7 9 7', 'M5 10v10h14V10', 'M10 20v-6h4v6'],
   },
   {
     id: 'plant',
-    label: 'Plant',
+    labelKey: 'settings.iconPlant',
     paths: [
       'M12 21v-9',
       'M12 12c0-4 3-7 7-7 0 4-3 7-7 7z',
@@ -113,14 +122,14 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'star',
-    label: 'Star',
+    labelKey: 'settings.iconStar',
     paths: [
       'M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z',
     ],
   },
   {
     id: 'sun',
-    label: 'Sun',
+    labelKey: 'settings.iconSun',
     paths: [
       circle(12, 12, 4),
       'M12 2v2',
@@ -135,23 +144,31 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'moon',
-    label: 'Moon',
+    labelKey: 'settings.iconMoon',
     paths: ['M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z'],
   },
-  { id: 'flag', label: 'Flag', paths: ['M5 21V4', 'M5 4h12l-2 4 2 4H5'] },
+  {
+    id: 'flag',
+    labelKey: 'settings.iconFlag',
+    paths: ['M5 21V4', 'M5 4h12l-2 4 2 4H5'],
+  },
   {
     id: 'idea',
-    label: 'Idea',
+    labelKey: 'settings.iconIdea',
     paths: [
       'M9 18h6',
       'M10 21h4',
       'M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z',
     ],
   },
-  { id: 'mail', label: 'Mail', paths: ['M3 6h18v12H3z', 'M3 7l9 6 9-6'] },
+  {
+    id: 'mail',
+    labelKey: 'settings.iconMail',
+    paths: ['M3 6h18v12H3z', 'M3 7l9 6 9-6'],
+  },
   {
     id: 'people',
-    label: 'People',
+    labelKey: 'settings.iconPeople',
     paths: [
       circle(9, 8, 3),
       'M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6',
@@ -160,10 +177,14 @@ export const PROJECT_ICONS: readonly ProjectIconDef[] = [
   },
   {
     id: 'target',
-    label: 'Target',
+    labelKey: 'settings.iconTarget',
     paths: [circle(12, 12, 9), circle(12, 12, 5), circle(12, 12, 1)],
   },
-  { id: 'clock', label: 'Clock', paths: [circle(12, 12, 9), 'M12 7v5l3 2'] },
+  {
+    id: 'clock',
+    labelKey: 'settings.iconClock',
+    paths: [circle(12, 12, 9), 'M12 7v5l3 2'],
+  },
 ]
 
 export function findProjectIcon(

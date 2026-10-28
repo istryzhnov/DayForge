@@ -86,16 +86,31 @@ export function splitStretchAroundAway(
   }
 }
 
-/** "1 h 20 min", "45 min", "1 h". */
-export function formatAwayTime(ms: number): string {
+export interface AwayTimeWords {
+  hours: string
+  minutes: string
+  lessThanMinute: string
+}
+
+const ENGLISH_AWAY_WORDS: AwayTimeWords = {
+  hours: 'h',
+  minutes: 'min',
+  lessThanMinute: 'less than a minute',
+}
+
+/** "1 h 20 min", "45 min", "1 h". The words default to English. */
+export function formatAwayTime(
+  ms: number,
+  words: AwayTimeWords = ENGLISH_AWAY_WORDS,
+): string {
   const totalMinutes = Math.floor(Math.max(0, ms) / MINUTE_MS)
-  if (totalMinutes < 1) return 'less than a minute'
+  if (totalMinutes < 1) return words.lessThanMinute
 
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
-  if (hours === 0) return `${minutes} min`
-  if (minutes === 0) return `${hours} h`
-  return `${hours} h ${minutes} min`
+  if (hours === 0) return `${minutes} ${words.minutes}`
+  if (minutes === 0) return `${hours} ${words.hours}`
+  return `${hours} ${words.hours} ${minutes} ${words.minutes}`
 }
 
 /** Whether the local clock has reached the end-of-day nudge time (`HH:mm`). */

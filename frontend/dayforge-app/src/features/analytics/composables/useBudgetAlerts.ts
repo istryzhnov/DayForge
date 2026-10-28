@@ -5,6 +5,7 @@ import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import { useUndoToast } from '../../../composables/useUndoToast'
 import { buildRateLookup } from '../../../composables/timer/rates'
+import { i18n } from '../../../i18n'
 import {
   BUDGET_LEVEL,
   budgetStandingOf,
@@ -16,9 +17,9 @@ import {
 function noticeFor(title: string, standing: BudgetStanding): string {
   const percent = Math.round(standing.fraction * 100)
   if (standing.level === BUDGET_LEVEL.OVER) {
-    return `${title} is over its budget (${percent}%).`
+    return i18n.global.t('analytics.budgetOver', { title, percent })
   }
-  return `${title} has used ${percent}% of its budget.`
+  return i18n.global.t('analytics.budgetWarn', { title, percent })
 }
 
 /**
@@ -64,7 +65,11 @@ export function useBudgetAlerts(
       if (!notify || standing.level === BUDGET_LEVEL.OK) return
       if (!isLevelUp(previous, standing.level)) return
 
-      offerNotice(noticeFor(goal.title, standing), 'Got it', () => {})
+      offerNotice(
+        noticeFor(goal.title, standing),
+        i18n.global.t('analytics.gotIt'),
+        () => {},
+      )
     })
   }
 

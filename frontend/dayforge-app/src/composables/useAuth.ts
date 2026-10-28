@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { i18n } from '../i18n'
 import { getSupabase, isSyncConfigured } from '../lib/supabaseClient'
 import { releasePushSubscription } from './usePushReminders'
 
@@ -77,7 +78,7 @@ export function useAuth() {
   async function signInWithGoogle(): Promise<boolean> {
     const supabase = getSupabase()
     if (!supabase) {
-      error.value = 'Sync is not configured on this build.'
+      error.value = i18n.global.t('profile.syncNotConfigured')
       return false
     }
 
@@ -142,7 +143,10 @@ export function useAuth() {
     isConfigured: isSyncConfigured,
     isSignedIn: computed(() => user.value !== null),
     displayName: computed(
-      () => user.value?.name ?? user.value?.email ?? 'Signed in',
+      () =>
+        user.value?.name ??
+        user.value?.email ??
+        i18n.global.t('profile.signedInFallback'),
     ),
     signInWithGoogle,
     signOut,

@@ -1,0 +1,13 @@
+{
+  "notSyncing": "未同步",
+  "syncing": "正在同步…",
+  "offline": "离线",
+  "offlineWaiting": "离线 · {count} 项更改等待中",
+  "errorRefused": "同步错误 · {count} 项被拒绝",
+  "synced": "已同步",
+  "syncedAt": "已同步 · {time}",
+  "errorLabel": "同步错误",
+  "offlineLabel": "离线",
+  "openProfileToLook": "打开个人资料查看。",
+  "willUploadLater": "恢复连接后会自动上传。"
+}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { ArchivedTask } from '../composables/useArchive'
 import { dayHeadingLabel, type DayGroup } from '../composables/dayGroups'
 import { useFormat } from '../../../composables/useFormat'
@@ -14,6 +15,7 @@ defineProps<{
 }>()
 
 const { locale, uses12Hour, formatTime } = useFormat()
+const { t } = useI18n()
 
 /** Explains the list on demand; the header stays one line. */
 const showHint = ref(false)
@@ -32,21 +34,27 @@ function whenLabel(task: ArchivedTask): string {
     <header class="goal-panel-header" data-tip-anchor="archive-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
-          <h2>What I did</h2>
+          <h2>{{ t('tasks.archiveTitle') }}</h2>
         </div>
 
         <ul class="goal-panel-stats">
           <li class="goal-panel-stats__item">
             <AppIcon name="check" :size="14" />
-            <span class="ui-oneline">{{ totalDone }} completed</span>
+            <span class="ui-oneline">{{
+              t('tasks.completedCount', { n: totalDone })
+            }}</span>
           </li>
           <li class="goal-panel-stats__item">
             <AppIcon name="calendar" :size="14" />
-            <span class="ui-oneline">{{ doneThisWeek }} this week</span>
+            <span class="ui-oneline">{{
+              t('tasks.thisWeek', { n: doneThisWeek })
+            }}</span>
           </li>
           <li class="goal-panel-stats__item">
             <AppIcon name="calendar" :size="14" />
-            <span class="ui-oneline">{{ doneThisMonth }} this month</span>
+            <span class="ui-oneline">{{
+              t('tasks.thisMonth', { n: doneThisMonth })
+            }}</span>
           </li>
         </ul>
       </div>
@@ -56,8 +64,8 @@ function whenLabel(task: ArchivedTask): string {
           class="ui-icon-btn ui-icon-btn--outlined"
           :class="{ 'is-active': showHint }"
           type="button"
-          aria-label="About this list"
-          title="About this list"
+          :aria-label="t('tasks.aboutThisList')"
+          :title="t('tasks.aboutThisList')"
           :aria-expanded="showHint"
           @click="showHint = !showHint"
         >
@@ -67,7 +75,7 @@ function whenLabel(task: ArchivedTask): string {
     </header>
 
     <p v-if="showHint" class="day-list__hint">
-      Finished tasks, newest first, one card per day.
+      {{ t('tasks.archiveHint') }}
     </p>
 
     <div v-if="days.length" class="day-list">
@@ -76,7 +84,9 @@ function whenLabel(task: ArchivedTask): string {
           <span class="day-group__title ui-oneline">
             {{ dayHeadingLabel(day.date) }}
           </span>
-          <span class="day-group__count">{{ day.items.length }} done</span>
+          <span class="day-group__count">{{
+            t('tasks.doneCount', { n: day.items.length })
+          }}</span>
         </header>
 
         <div class="ui-card day-group__card">
@@ -114,6 +124,6 @@ function whenLabel(task: ArchivedTask): string {
       </section>
     </div>
 
-    <p v-else class="task-empty">Nothing completed yet.</p>
+    <p v-else class="task-empty">{{ t('tasks.nothingCompleted') }}</p>
   </section>
 </template>

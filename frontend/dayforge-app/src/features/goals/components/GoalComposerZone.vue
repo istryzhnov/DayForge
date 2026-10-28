@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID, Priority } from '../../../entities/types'
 import type {
@@ -18,6 +19,7 @@ const props = defineProps<{
 }>()
 
 const { settings } = useSettings()
+const { t } = useI18n()
 const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
 const emit = defineEmits<{
@@ -46,7 +48,7 @@ const target = ref('')
 const colorByGoal = computed(() => projectColors(props.goals))
 
 const targetOptions = computed<PickerOption[]>(() => [
-  { value: '', label: 'No project', group: 'none' },
+  { value: '', label: t('goals.noProject'), group: 'none' },
   ...props.goals.map((goal) => ({
     value: `goal:${goal.id}`,
     label: goal.title,

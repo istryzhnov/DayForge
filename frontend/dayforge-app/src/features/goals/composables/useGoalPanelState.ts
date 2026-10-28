@@ -23,6 +23,7 @@ import {
   habitWindowView,
 } from '../../../composables/analytics/habits'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
+import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
 import {
   collectUpcoming,
   UPCOMING_WINDOW_DAYS,
@@ -155,6 +156,7 @@ export function useGoalPanelState(
       props.currentDate,
       UPCOMING_WINDOW_DAYS,
       goalScopeId.value,
+      recurrenceWords(),
     )
   })
 

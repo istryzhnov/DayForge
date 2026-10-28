@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { i18n } from '../i18n'
 import { useSettings } from './useSettings'
 
 const undoWindowMs = computed(
@@ -58,7 +59,7 @@ export function useUndoToast() {
   }
 
   function offerUndo(label: string, restore: () => void) {
-    show(label, 'Undo', restore)
+    show(label, i18n.global.t('common.undo'), restore)
   }
 
   function offerNotice(label: string, actionLabel: string, run: () => void) {

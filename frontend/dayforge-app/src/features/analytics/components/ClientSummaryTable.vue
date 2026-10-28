@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   PAYMENT_STATUS,
   type PaymentRecord,
@@ -28,11 +29,19 @@ const emit = defineEmits<{
   (e: 'set-amount', clientId: ID, amount: number | undefined): void
 }>()
 
-const STATUS_OPTIONS: { id: PaymentStatus; label: string }[] = [
-  { id: PAYMENT_STATUS.UNBILLED, label: 'Unbilled' },
-  { id: PAYMENT_STATUS.INVOICED, label: 'Invoiced' },
-  { id: PAYMENT_STATUS.PAID, label: 'Paid' },
+const { t } = useI18n()
+
+/** `labelKey` is rendered with `t()` in the template, so a language switch updates it. */
+const STATUS_OPTIONS: { id: PaymentStatus; labelKey: string }[] = [
+  { id: PAYMENT_STATUS.UNBILLED, labelKey: 'analytics.statusUnbilled' },
+  { id: PAYMENT_STATUS.INVOICED, labelKey: 'analytics.statusInvoiced' },
+  { id: PAYMENT_STATUS.PAID, labelKey: 'analytics.statusPaid' },
 ]
+
+/** Clients with no name fall back to the translated "No client". */
+function titleOf(row: ClientSummaryRow): string {
+  return row.clientId ? row.title : t('analytics.noClient')
+}
 
 const dateFormat = computed(
   () => new Intl.DateTimeFormat(props.locale, { dateStyle: 'medium' }),
@@ -89,24 +98,28 @@ function dateLabel(iso: string | undefined): string {
     <table class="analytics-table analytics-table--clients">
       <thead>
         <tr>
-          <th class="analytics-table__name">Client</th>
-          <th class="analytics-table__num">Hours</th>
-          <th class="analytics-table__num">Earned</th>
-          <th class="analytics-table__name">Invoice</th>
+          <th class="analytics-table__name">{{ t('analytics.colClient') }}</th>
+          <th class="analytics-table__num">{{ t('analytics.colHours') }}</th>
+          <th class="analytics-table__num">{{ t('analytics.earned') }}</th>
+          <th class="analytics-table__name">
+            {{ t('analytics.colInvoice') }}
+          </th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="row in rows" :key="row.key">
-          <td class="analytics-table__name" :title="row.title">
-            <span class="analytics-project__title">{{ row.title }}</span>
+          <td class="analytics-table__name" :title="titleOf(row)">
+            <span class="analytics-project__title">{{ titleOf(row) }}</span>
             <span
               v-if="row.hasFixedPrice || row.archived"
               class="analytics-project__badges"
             >
-              <span v-if="row.hasFixedPrice" class="analytics-badge"
-                >Fixed</span
-              >
-              <span v-if="row.archived" class="analytics-badge">Archived</span>
+              <span v-if="row.hasFixedPrice" class="analytics-badge">{{
+                t('analytics.fixedBadge')
+              }}</span>
+              <span v-if="row.archived" class="analytics-badge">{{
+                t('analytics.archivedBadge')
+              }}</span>
             </span>
           </td>
           <td class="analytics-table__num">{{ hours(row.ms) }}</td>
@@ -117,7 +130,12 @@ function dateLabel(iso: string | undefined): string {
                 class="analytics-status"
                 :class="`analytics-status--${statusOf(row)}`"
                 :value="statusOf(row)"
-                :aria-label="`Payment status for ${row.title} in ${month}`"
+                :aria-label="
+                  t('analytics.paymentStatusAria', {
+                    title: titleOf(row),
+                    month,
+                  })
+                "
                 @change="handleStatus(row, $event)"
               >
                 <option
@@ -125,7 +143,7 @@ function dateLabel(iso: string | undefined): string {
                   :key="option.id"
                   :value="option.id"
                 >
-                  {{ option.label }}
+                  {{ t(option.labelKey) }}
                 </option>
               </select>
               <input
@@ -135,20 +153,32 @@ function dateLabel(iso: string | undefined): string {
                 inputmode="decimal"
                 :value="paymentOf(row)?.amount ?? ''"
                 placeholder="0.00"
-                :aria-label="`Invoice amount for ${row.title}`"
+                :aria-label="
+                  t('analytics.invoiceAmountAria', { title: titleOf(row) })
+                "
                 @change="handleAmount(row, $event)"
               />
               <span
                 v-if="paymentOf(row)?.invoicedAt"
                 class="analytics-table__muted"
               >
-                Invoiced {{ dateLabel(paymentOf(row)?.invoicedAt) }}
+                {{
+                  t('analytics.invoicedOn', {
+                    date: dateLabel(paymentOf(row)?.invoicedAt),
+                  })
+                }}
                 <template v-if="paymentOf(row)?.paidAt">
-                  · paid {{ dateLabel(paymentOf(row)?.paidAt) }}
+                  {{
+                    t('analytics.paidOn', {
+                      date: dateLabel(paymentOf(row)?.paidAt),
+                    })
+                  }}
                 </template>
               </span>
             </div>
-            <span v-else class="analytics-table__muted">Not invoiced</span>
+            <span v-else class="analytics-table__muted">{{
+              t('analytics.notInvoiced')
+            }}</span>
           </td>
         </tr>
       </tbody>

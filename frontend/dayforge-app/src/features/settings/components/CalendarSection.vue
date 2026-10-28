@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useSettings } from '../../../composables/useSettings'
 import {
   MINUTE_STEPS,
@@ -7,17 +8,18 @@ import {
 } from '../composables/settingsOptions'
 import { rangeValue, textValue } from '../../../composables/inputValue'
 
+const { t } = useI18n()
+
 const { settings, update, resetSection } = useSettings()
 </script>
 
 <template>
   <div class="settings-section">
     <p class="settings-section__intro">
-      The grid always covers a full 00:00–24:00 day, so a task can never be
-      scheduled somewhere it cannot be seen.
+      {{ t('settings.calendarIntro') }}
     </p>
 
-    <p class="sidebar-caption">Snap dragging to</p>
+    <p class="sidebar-caption">{{ t('settings.calendarSnap') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in MINUTE_STEPS"
@@ -27,13 +29,13 @@ const { settings, update, resetSection } = useSettings()
         type="button"
         @click="update('calendar', { snapMinutes: minutes })"
       >
-        {{ minutes }} min
+        {{ t('settings.minutesShort', { n: minutes }) }}
       </button>
     </div>
 
     <label class="settings-slider">
       <span>
-        Hour height
+        {{ t('settings.calendarHourHeight') }}
         <em>{{ settings.calendar.hourHeight }}px</em>
       </span>
       <input
@@ -44,12 +46,12 @@ const { settings, update, resetSection } = useSettings()
         :value="settings.calendar.hourHeight"
         @input="update('calendar', { hourHeight: rangeValue($event) })"
       />
-      <small>Zoom for the day and week grids.</small>
+      <small>{{ t('settings.calendarZoomHint') }}</small>
     </label>
 
-    <p class="sidebar-caption">New task</p>
+    <p class="sidebar-caption">{{ t('settings.calendarNewTask') }}</p>
 
-    <p class="settings-group-hint">Lasts</p>
+    <p class="settings-group-hint">{{ t('settings.calendarLasts') }}</p>
     <div class="settings-chips">
       <button
         v-for="minutes in TASK_DURATIONS"
@@ -61,13 +63,13 @@ const { settings, update, resetSection } = useSettings()
         type="button"
         @click="update('calendar', { defaultDurationMinutes: minutes })"
       >
-        {{ minutes }} min
+        {{ t('settings.minutesShort', { n: minutes }) }}
       </button>
     </div>
 
     <div class="settings-times">
       <label>
-        Starts at
+        {{ t('settings.calendarStartsAt') }}
         <input
           type="time"
           :value="settings.calendar.defaultStartTime"
@@ -76,9 +78,9 @@ const { settings, update, resetSection } = useSettings()
       </label>
     </div>
 
-    <p class="sidebar-caption">Week</p>
+    <p class="sidebar-caption">{{ t('settings.calendarWeek') }}</p>
 
-    <p class="settings-group-hint">Starts on</p>
+    <p class="settings-group-hint">{{ t('settings.calendarStartsOn') }}</p>
     <div class="settings-chips">
       <button
         v-for="option in WEEK_START_OPTIONS"
@@ -88,14 +90,16 @@ const { settings, update, resetSection } = useSettings()
         type="button"
         @click="update('calendar', { weekStartsOn: option.id })"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
     <label class="settings-slider">
       <span>
-        A full day is
-        <em>{{ settings.calendar.fullDayHours }} h</em>
+        {{ t('settings.calendarFullDay') }}
+        <em>{{
+          t('settings.hoursShort', { n: settings.calendar.fullDayHours })
+        }}</em>
       </span>
       <input
         type="range"
@@ -105,7 +109,7 @@ const { settings, update, resetSection } = useSettings()
         :value="settings.calendar.fullDayHours"
         @input="update('calendar', { fullDayHours: rangeValue($event) })"
       />
-      <small>The scale the month view tints a day's workload against.</small>
+      <small>{{ t('settings.calendarFullDayHint') }}</small>
     </label>
 
     <button
@@ -113,7 +117,7 @@ const { settings, update, resetSection } = useSettings()
       type="button"
       @click="resetSection('calendar')"
     >
-      Reset calendar
+      {{ t('settings.calendarReset') }}
     </button>
   </div>
 </template>

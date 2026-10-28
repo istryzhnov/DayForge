@@ -10,6 +10,7 @@ import {
 } from './timer/reminders'
 import { sanitizeMonthlyIncome } from '../features/analytics/composables/incomeGoal'
 import { sanitizeClients, sanitizePayments } from './billing/clients'
+import { LANGUAGES, languageFromTag, type Language } from '../i18n/languages'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -31,15 +32,31 @@ export const CLOCK_FORMAT = {
 
 export type ClockFormat = (typeof CLOCK_FORMAT)[keyof typeof CLOCK_FORMAT]
 
+/** Date and number formats. Separate from the interface language, see DATE_LOCALE_BY_LANGUAGE. */
 export const LOCALE_OPTIONS = [
   { id: 'uk-UA', label: 'Українська' },
   { id: 'en-GB', label: 'English (UK)' },
   { id: 'en-US', label: 'English (US)' },
   { id: 'de-DE', label: 'Deutsch' },
   { id: 'pl-PL', label: 'Polski' },
+  { id: 'zh-CN', label: '中文' },
+  { id: 'es-ES', label: 'Español' },
 ] as const
 
 export type LocaleId = (typeof LOCALE_OPTIONS)[number]['id']
+
+/**
+ * Picking a language also sets the date format to match, so a German user
+ * gets German dates. The date format can still be changed on its own.
+ */
+export const DATE_LOCALE_BY_LANGUAGE: Record<Language, LocaleId> = {
+  en: 'en-GB',
+  uk: 'uk-UA',
+  pl: 'pl-PL',
+  de: 'de-DE',
+  zh: 'zh-CN',
+  es: 'es-ES',
+}
 
 export interface NotificationSettings {
   /** How long before a task starts the reminder fires. */
@@ -93,6 +110,8 @@ export interface BehaviorSettings {
 }
 
 export interface FormatSettings {
+  /** Interface language. */
+  language: Language
   locale: LocaleId
   clock: ClockFormat
 }
@@ -164,6 +183,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
     welcomeDone: false,
   },
   format: {
+    // Used only when no language is stored yet: from the browser, else English.
+    // The date format is separate and stays as it was for existing users.
+    language: languageFromTag(
+      typeof navigator !== 'undefined' ? navigator.language : undefined,
+    ),
     locale: 'uk-UA',
     clock: CLOCK_FORMAT.H24,
   },
@@ -379,6 +403,7 @@ function sanitize(input: unknown): AppSettings {
     },
     format: {
       ...format,
+      language: oneOf(format.language, LANGUAGES, defaults.format.language),
       locale: oneOf(
         format.locale,
         LOCALE_OPTIONS.map((option) => option.id),

@@ -1674,6 +1674,48 @@ function verifyQuickAdd() {
     todayUk,
   )
 
+  // Day words of every interface language, in any UI language.
+  const dayWordCases: Array<[string, string, string | null]> = [
+    ['Zahlen heute', 'today', today],
+    ['Zahlen Heute', 'today', today],
+    ['Listo dziś', 'today', today],
+    ['Pagar hoy', 'today', today],
+    ['Pagar Hoy', 'today', today],
+    ['Trening dzisiaj', 'today', today],
+    ['买牛奶 今天', 'today', today],
+    ['Wash the car morgen', 'tomorrow', '2026-10-13'],
+    ['Miasto jutro', 'tomorrow', '2026-10-13'],
+    ['Pay rent MAÑANA', 'tomorrow', '2026-10-13'],
+    ['Pay rent manana', 'tomorrow', '2026-10-13'],
+    ['Lunch 明天', 'tomorrow', '2026-10-13'],
+    ['明天买牛奶', 'tomorrow', '2026-10-13'],
+    ['买牛奶明天', 'tomorrow', '2026-10-13'],
+  ]
+  for (const [text, day, expected] of dayWordCases) {
+    const parsed = parseQuickAdd(text, { goals, today })
+    check(
+      `"${text}" reads as ${day}`,
+      parsed.day === day && parsed.date === expected,
+      parsed,
+    )
+  }
+
+  const morgenRoutine = parseQuickAdd('Morgenroutine', { goals, today })
+  check(
+    'a title that only contains a day word is not a date',
+    morgenRoutine.day === null &&
+      morgenRoutine.date === null &&
+      morgenRoutine.title === 'Morgenroutine',
+    morgenRoutine,
+  )
+
+  const chineseNoun = parseQuickAdd('明天的计划', { goals, today })
+  check(
+    'a noun phrase with 明天 at its start stays the title',
+    chineseNoun.day === null && chineseNoun.title === '明天的计划',
+    chineseNoun,
+  )
+
   const bang = parseQuickAdd('Wow! not a priority', { goals, today })
   check(
     'a ! glued to a word is part of the title',

@@ -15,10 +15,11 @@ import {
   type ThemeMode,
 } from './tokens'
 
+/** Message keys: the settings namespace translates them where they show. */
 export interface ColorSuggestion {
   color: string
-  label: string
-  hint: string
+  labelKey: string
+  hintKey: string
 }
 
 /** Nudges lightness until a colour has a fighting chance on the surface. */
@@ -50,33 +51,33 @@ export function suggestionsFor(
       return [
         {
           color: fit(accent),
-          label: 'Tuned',
-          hint: 'Same hue, lightness adjusted to read on your panels.',
+          labelKey: 'settings.suggestTuned',
+          hintKey: 'settings.suggestHintAccentTuned',
         },
         {
           color: fit(rotateHue(accent, 30)),
-          label: 'Warmer',
-          hint: 'One step around the wheel towards red.',
+          labelKey: 'settings.suggestWarmer',
+          hintKey: 'settings.suggestHintAccentWarmer',
         },
         {
           color: fit(rotateHue(accent, -30)),
-          label: 'Cooler',
-          hint: 'One step towards blue — calmer over a long session.',
+          labelKey: 'settings.suggestCooler',
+          hintKey: 'settings.suggestHintAccentCooler',
         },
         {
           color: fit(saturate(accent, 22)),
-          label: 'Vivid',
-          hint: 'More saturation: the accent speaks up.',
+          labelKey: 'settings.suggestVivid',
+          hintKey: 'settings.suggestHintAccentVivid',
         },
         {
           color: fit(saturate(accent, -28)),
-          label: 'Muted',
-          hint: 'Desaturated, for a quieter workspace.',
+          labelKey: 'settings.suggestMuted',
+          hintKey: 'settings.suggestHintAccentMuted',
         },
         {
           color: fit(mix(accent, palette.text, 0.7)),
-          label: 'Blended',
-          hint: 'Pulled towards your text colour so it sits inside the theme.',
+          labelKey: 'settings.suggestBlended',
+          hintKey: 'settings.suggestHintAccentBlended',
         },
       ]
 
@@ -84,28 +85,28 @@ export function suggestionsFor(
       return [
         {
           color: fit(rotateHue(accent, 180)),
-          label: 'Complement',
-          hint: 'Opposite the accent — projects read apart from tasks.',
+          labelKey: 'settings.suggestComplement',
+          hintKey: 'settings.suggestHintMajorComplement',
         },
         {
           color: fit(rotateHue(accent, 150)),
-          label: 'Split',
-          hint: 'Near-opposite: contrast without the clash.',
+          labelKey: 'settings.suggestSplit',
+          hintKey: 'settings.suggestHintMajorSplit',
         },
         {
           color: fit(rotateHue(accent, 120)),
-          label: 'Triad',
-          hint: 'A third of the wheel away — balanced and distinct.',
+          labelKey: 'settings.suggestTriad',
+          hintKey: 'settings.suggestHintMajorTriad',
         },
         {
           color: fit(mix(accent, '#ff7a2f', 0.35)),
-          label: 'Amber',
-          hint: 'The classic project orange, tinted by your accent.',
+          labelKey: 'settings.suggestAmber',
+          hintKey: 'settings.suggestHintMajorAmber',
         },
         {
           color: fit(lighten(accent, isDark ? 16 : -16)),
-          label: 'Same family',
-          hint: 'A brighter accent, for a single-hue palette.',
+          labelKey: 'settings.suggestSameFamily',
+          hintKey: 'settings.suggestHintMajorSameFamily',
         },
       ]
 
@@ -113,28 +114,28 @@ export function suggestionsFor(
       return [
         {
           color: fit(accent),
-          label: 'Match accent',
-          hint: 'Tasks share the accent — the most cohesive option.',
+          labelKey: 'settings.suggestMatchAccent',
+          hintKey: 'settings.suggestHintMinorMatchAccent',
         },
         {
           color: fit(rotateHue(accent, 30)),
-          label: 'Analogous',
-          hint: 'A neighbouring hue: related, still separable.',
+          labelKey: 'settings.suggestAnalogous',
+          hintKey: 'settings.suggestHintMinorAnalogous',
         },
         {
           color: fit(rotateHue(accent, -30)),
-          label: 'Analogous cool',
-          hint: 'The other neighbour, a shade calmer.',
+          labelKey: 'settings.suggestAnalogousCool',
+          hintKey: 'settings.suggestHintMinorAnalogousCool',
         },
         {
           color: fit(saturate(accent, -34)),
-          label: 'Soft',
-          hint: 'Low saturation, so projects keep the loud colour.',
+          labelKey: 'settings.suggestSoft',
+          hintKey: 'settings.suggestHintMinorSoft',
         },
         {
           color: isDark ? '#dddddd' : '#1d1d1d',
-          label: 'Neutral',
-          hint: 'No hue at all — the Minimal theme look.',
+          labelKey: 'settings.suggestNeutral',
+          hintKey: 'settings.suggestHintMinorNeutral',
         },
       ]
 
@@ -144,25 +145,25 @@ export function suggestionsFor(
           color: isDark
             ? mix(accent, '#0b0d12', 0.07)
             : mix(accent, '#f7f9fc', 0.05),
-          label: 'Accent tint',
-          hint: 'Barely tinted with your accent — surfaces feel related.',
+          labelKey: 'settings.suggestAccentTint',
+          hintKey: 'settings.suggestHintBgAccentTint',
         },
         {
           color: isDark ? '#0c111a' : '#eef3fb',
-          label: 'Classic',
-          hint: 'The built-in DayForge canvas.',
+          labelKey: 'settings.suggestClassic',
+          hintKey: 'settings.suggestHintBgClassic',
         },
         {
           color: isDark ? '#0a0a0b' : '#fbfbfa',
-          label: 'Neutral',
-          hint: 'Pure greyscale: lets the accent do all the talking.',
+          labelKey: 'settings.suggestNeutral',
+          hintKey: 'settings.suggestHintBgNeutral',
         },
         {
           color: isDark
             ? mix(accent, '#101014', 0.14)
             : mix(accent, '#ffffff', 0.1),
-          label: 'Immersive',
-          hint: 'A stronger wash of the accent across the canvas.',
+          labelKey: 'settings.suggestImmersive',
+          hintKey: 'settings.suggestHintBgImmersive',
         },
       ]
 
@@ -170,25 +171,25 @@ export function suggestionsFor(
       return [
         {
           color: isDark ? lighten(palette.bg, 5) : lighten(palette.bg, 4),
-          label: 'Lifted',
-          hint: 'One step off the background — the usual card look.',
+          labelKey: 'settings.suggestLifted',
+          hintKey: 'settings.suggestHintPanelLifted',
         },
         {
           color: isDark
             ? mix(accent, lighten(palette.bg, 5), 0.06)
             : mix(accent, '#ffffff', 0.04),
-          label: 'Accent tint',
-          hint: 'Cards pick up a hint of the accent.',
+          labelKey: 'settings.suggestAccentTint',
+          hintKey: 'settings.suggestHintPanelAccentTint',
         },
         {
           color: isDark ? '#151d29' : '#ffffff',
-          label: 'Classic',
-          hint: 'The built-in panel colour.',
+          labelKey: 'settings.suggestClassic',
+          hintKey: 'settings.suggestHintPanelClassic',
         },
         {
           color: palette.bg,
-          label: 'Flat',
-          hint: 'Same as the background — panels read through borders only.',
+          labelKey: 'settings.suggestFlat',
+          hintKey: 'settings.suggestHintPanelFlat',
         },
       ]
 
@@ -199,25 +200,25 @@ export function suggestionsFor(
       return [
         {
           color: subtle,
-          label: 'Subtle',
-          hint: 'Just visible against your panels.',
+          labelKey: 'settings.suggestSubtle',
+          hintKey: 'settings.suggestHintLineSubtle',
         },
         {
           color: mix(accent, subtle, 0.3),
-          label: 'Accent frame',
-          hint: 'Borders tinted with the accent — frames join the theme.',
+          labelKey: 'settings.suggestAccentFrame',
+          hintKey: 'settings.suggestHintLineAccentFrame',
         },
         {
           color: isDark
             ? lighten(palette.panel, 20)
             : darken(palette.panel, 22),
-          label: 'Defined',
-          hint: 'Stronger outlines for a more structured layout.',
+          labelKey: 'settings.suggestDefined',
+          hintKey: 'settings.suggestHintLineDefined',
         },
         {
           color: isDark ? lighten(palette.panel, 3) : darken(palette.panel, 4),
-          label: 'Nearly none',
-          hint: 'Almost invisible frames — very quiet.',
+          labelKey: 'settings.suggestNearlyNone',
+          hintKey: 'settings.suggestHintLineNearlyNone',
         },
       ]
     }
@@ -226,25 +227,25 @@ export function suggestionsFor(
       return [
         {
           color: isDark ? '#eef4ff' : '#162033',
-          label: 'Classic',
-          hint: 'Maximum readability against the default panels.',
+          labelKey: 'settings.suggestClassic',
+          hintKey: 'settings.suggestHintTextClassic',
         },
         {
           color: isDark
             ? mix(accent, '#ffffff', 0.1)
             : mix(accent, '#101828', 0.12),
-          label: 'Accent tint',
-          hint: 'A whisper of the accent in every line of text.',
+          labelKey: 'settings.suggestAccentTint',
+          hintKey: 'settings.suggestHintTextAccentTint',
         },
         {
           color: isDark ? '#ffffff' : '#000000',
-          label: 'Maximum',
-          hint: 'The highest contrast available.',
+          labelKey: 'settings.suggestMaximum',
+          hintKey: 'settings.suggestHintTextMaximum',
         },
         {
           color: isDark ? '#cfd8e6' : '#33415c',
-          label: 'Softer',
-          hint: 'Slightly dimmed — easier at night.',
+          labelKey: 'settings.suggestSofter',
+          hintKey: 'settings.suggestHintTextSofter',
         },
       ]
 
@@ -252,18 +253,18 @@ export function suggestionsFor(
       return [
         {
           color: mix(palette.text, palette.panel, 0.62),
-          label: 'Balanced',
-          hint: 'Between your text and panel — reliably legible.',
+          labelKey: 'settings.suggestBalanced',
+          hintKey: 'settings.suggestHintMutedBalanced',
         },
         {
           color: mix(palette.text, palette.panel, 0.45),
-          label: 'Quieter',
-          hint: 'Recedes further into the surface.',
+          labelKey: 'settings.suggestQuieter',
+          hintKey: 'settings.suggestHintMutedQuieter',
         },
         {
           color: mix(accent, mix(palette.text, palette.panel, 0.6), 0.35),
-          label: 'Accent tint',
-          hint: 'Captions carry a trace of the accent.',
+          labelKey: 'settings.suggestAccentTint',
+          hintKey: 'settings.suggestHintMutedAccentTint',
         },
       ]
 
@@ -271,23 +272,23 @@ export function suggestionsFor(
       return [
         {
           color: fit('#ef4444'),
-          label: 'Classic red',
-          hint: 'The universal delete colour.',
+          labelKey: 'settings.suggestClassicRed',
+          hintKey: 'settings.suggestHintDangerClassicRed',
         },
         {
           color: fit(matchEnergy('#ef4444', accent)),
-          label: 'Matched',
-          hint: 'Red at the same saturation and lightness as your accent.',
+          labelKey: 'settings.suggestMatched',
+          hintKey: 'settings.suggestHintDangerMatched',
         },
         {
           color: fit('#ff6b6b'),
-          label: 'Soft red',
-          hint: 'Less alarming, still unmistakable.',
+          labelKey: 'settings.suggestSoftRed',
+          hintKey: 'settings.suggestHintDangerSoftRed',
         },
         {
           color: fit('#ff2d55'),
-          label: 'Hot red',
-          hint: 'For palettes that already lean magenta.',
+          labelKey: 'settings.suggestHotRed',
+          hintKey: 'settings.suggestHintDangerHotRed',
         },
       ]
 
@@ -298,50 +299,47 @@ export function suggestionsFor(
 
 export function suggestedModeFor(color: string): {
   mode: ThemeMode
-  reason: string
+  reasonKey: string
 } {
   const { s, l } = toHsl(color)
 
   if (l >= 68 && s >= 45) {
     return {
       mode: 'dark',
-      reason:
-        'Bright, saturated colours glow on a dark canvas and glare on a light one.',
+      reasonKey: 'settings.suggestModeDarkBright',
     }
   }
 
   if (l <= 35) {
     return {
       mode: 'light',
-      reason: 'Deep colours keep their detail against a light background.',
+      reasonKey: 'settings.suggestModeLightDeep',
     }
   }
 
   if (s <= 12) {
     return {
       mode: 'dark',
-      reason:
-        'Near-neutral colours look deliberate in a dark, minimal workspace.',
+      reasonKey: 'settings.suggestModeDarkNeutral',
     }
   }
 
   return l > 55
     ? {
         mode: 'dark',
-        reason:
-          'A little lighter than mid-tone — it separates best from a dark surface.',
+        reasonKey: 'settings.suggestModeDarkLighter',
       }
     : {
         mode: 'light',
-        reason:
-          'A little darker than mid-tone — it separates best from a light surface.',
+        reasonKey: 'settings.suggestModeLightDarker',
       }
 }
 
 export interface ContrastReport {
   ratio: number
   level: 'good' | 'ok' | 'poor'
-  message: string
+  /** Message key; takes the {ratio} placeholder. */
+  messageKey: string
 }
 
 /** Plain-language contrast feedback for a colour drawn on a surface. */
@@ -352,19 +350,19 @@ export function contrastReport(color: string, surface: string): ContrastReport {
     return {
       ratio,
       level: 'good',
-      message: `Contrast ${ratio}:1 — comfortable.`,
+      messageKey: 'settings.contrastGood',
     }
   }
   if (ratio >= 3) {
     return {
       ratio,
       level: 'ok',
-      message: `Contrast ${ratio}:1 — fine for large shapes, tight for small text.`,
+      messageKey: 'settings.contrastOk',
     }
   }
   return {
     ratio,
     level: 'poor',
-    message: `Contrast ${ratio}:1 — hard to see on this surface.`,
+    messageKey: 'settings.contrastPoor',
   }
 }

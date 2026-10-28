@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import { useTheme } from '../../../composables/useTheme'
 import { useSettings } from '../../../composables/useSettings'
@@ -14,6 +15,8 @@ import {
   rangeValue,
 } from '../../../composables/inputValue'
 
+const { t } = useI18n()
+
 const { workspace, setWorkspace, resetWorkspace } = useTheme()
 const { settings, update, resetSection } = useSettings()
 
@@ -25,7 +28,7 @@ function resetEverything() {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Spacing</p>
+    <p class="sidebar-caption">{{ t('settings.workspaceSpacing') }}</p>
     <div class="settings-chips">
       <button
         v-for="option in DENSITY_OPTIONS"
@@ -35,11 +38,11 @@ function resetEverything() {
         type="button"
         @click="setWorkspace({ density: option.id })"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Typeface</p>
+    <p class="sidebar-caption">{{ t('settings.workspaceTypeface') }}</p>
     <div class="settings-chips">
       <button
         v-for="option in FONT_OPTIONS"
@@ -49,15 +52,15 @@ function resetEverything() {
         type="button"
         @click="setWorkspace({ font: option.id })"
       >
-        {{ option.label }}
+        {{ t(option.labelKey) }}
       </button>
     </div>
 
-    <p class="sidebar-caption">Reading comfort</p>
+    <p class="sidebar-caption">{{ t('settings.workspaceReadingComfort') }}</p>
 
     <label class="settings-slider">
       <span>
-        Text size
+        {{ t('settings.workspaceTextSize') }}
         <em>{{ Math.round(settings.accessibility.textScale * 100) }}%</em>
       </span>
       <input
@@ -68,13 +71,13 @@ function resetEverything() {
         :value="Math.round(settings.accessibility.textScale * 100)"
         @input="update('accessibility', { textScale: fractionValue($event) })"
       />
-      <small>Scales every label in the app, layout included.</small>
+      <small>{{ t('settings.workspaceTextSizeHint') }}</small>
     </label>
 
-    <DisclosureSection label="Advanced">
+    <DisclosureSection :label="t('settings.advanced')">
       <label class="settings-slider">
         <span>
-          Corner roundness
+          {{ t('settings.workspaceCornerRoundness') }}
           <em>{{ Math.round(workspace.radiusScale * 100) }}%</em>
         </span>
         <input
@@ -85,10 +88,10 @@ function resetEverything() {
           :value="Math.round(workspace.radiusScale * 100)"
           @input="setWorkspace({ radiusScale: fractionValue($event) })"
         />
-        <small>0% is square, 100% is the designed shape.</small>
+        <small>{{ t('settings.workspaceCornerHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">Background</p>
+      <p class="sidebar-caption">{{ t('settings.workspaceBackground') }}</p>
       <div class="settings-chips">
         <button
           v-for="option in PATTERN_OPTIONS"
@@ -98,13 +101,13 @@ function resetEverything() {
           type="button"
           @click="setWorkspace({ pattern: option.id })"
         >
-          {{ option.label }}
+          {{ t(option.labelKey) }}
         </button>
       </div>
 
       <label class="settings-slider">
         <span>
-          Glow strength
+          {{ t('settings.workspaceGlowStrength') }}
           <em>{{ Math.round(workspace.glow * 100) }}%</em>
         </span>
         <input
@@ -115,12 +118,12 @@ function resetEverything() {
           :value="Math.round(workspace.glow * 100)"
           @input="setWorkspace({ glow: fractionValue($event) })"
         />
-        <small>How strongly the accent lights the canvas behind panels.</small>
+        <small>{{ t('settings.workspaceGlowHint') }}</small>
       </label>
 
       <label class="settings-slider">
         <span>
-          Panel blur
+          {{ t('settings.workspacePanelBlur') }}
           <em>{{ workspace.blur }}px</em>
         </span>
         <input
@@ -131,10 +134,10 @@ function resetEverything() {
           :value="workspace.blur"
           @input="setWorkspace({ blur: rangeValue($event) })"
         />
-        <small>Frosted glass behind translucent panels.</small>
+        <small>{{ t('settings.workspacePanelBlurHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">Motion</p>
+      <p class="sidebar-caption">{{ t('settings.workspaceMotion') }}</p>
       <div class="settings-chips">
         <button
           v-for="option in MOTION_OPTIONS"
@@ -144,7 +147,7 @@ function resetEverything() {
           type="button"
           @click="setWorkspace({ motion: option.id })"
         >
-          {{ option.label }}
+          {{ t(option.labelKey) }}
         </button>
       </div>
 
@@ -157,8 +160,8 @@ function resetEverything() {
           "
         />
         <span>
-          <strong>Larger touch targets</strong>
-          <em>Roomier buttons, rows and circles — easier to hit on a phone.</em>
+          <strong>{{ t('settings.workspaceLargerTargets') }}</strong>
+          <em>{{ t('settings.workspaceLargerTargetsHint') }}</em>
         </span>
       </label>
 
@@ -171,8 +174,8 @@ function resetEverything() {
           "
         />
         <span>
-          <strong>High contrast</strong>
-          <em>Firmer borders and text, no translucent surfaces.</em>
+          <strong>{{ t('settings.workspaceHighContrast') }}</strong>
+          <em>{{ t('settings.workspaceHighContrastHint') }}</em>
         </span>
       </label>
     </DisclosureSection>
@@ -182,7 +185,7 @@ function resetEverything() {
       type="button"
       @click="resetEverything"
     >
-      Reset workspace
+      {{ t('settings.workspaceReset') }}
     </button>
   </div>
 </template>

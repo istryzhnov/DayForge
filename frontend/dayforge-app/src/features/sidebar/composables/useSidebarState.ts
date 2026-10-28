@@ -3,6 +3,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { sortGoals } from '../../../composables/goalSpace/goalOrder'
+import { i18n } from '../../../i18n'
 
 type SidebarProps = {
   goals: Goal[]
@@ -83,8 +84,9 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     closeGoalContextMenu()
     if (!goal) return
 
+    // Outside a component, so the global translator is used.
     const confirmed = window.confirm(
-      `Delete goal "${goal.title}"? This cannot be undone.`,
+      i18n.global.t('sidebar.deleteProjectConfirm', { title: goal.title }),
     )
     if (confirmed) actions.onDeleteGoal(goal.id)
   }

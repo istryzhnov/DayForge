@@ -1,5 +1,6 @@
 import { ref, useTemplateRef } from 'vue'
 import { parseBackupFile } from './useDataTransfer'
+import { i18n } from '../../../i18n'
 
 export type BackupFileMessage = {
   text: string
@@ -35,26 +36,35 @@ export function useBackupFile(actions: BackupFileActions) {
     try {
       parsed = JSON.parse(await file.text())
     } catch {
-      message.value = { text: 'That file is not valid JSON.', tone: 'error' }
+      message.value = {
+        text: i18n.global.t('settings.backupNotJson'),
+        tone: 'error',
+      }
       return
     }
 
     const backup = parseBackupFile(parsed)
     if (!backup) {
       message.value = {
-        text: 'That JSON is not a DayForge backup.',
+        text: i18n.global.t('settings.backupNotDayforge'),
         tone: 'error',
       }
       return
     }
 
     actions.onImport(parsed)
+    // A notice is written once, in the language in force at the time of import.
     message.value = backup.newerVersion
       ? {
-          text: `Imported ${file.name}. This backup was made by a newer version of DayForge; some data may not be shown.`,
+          text: i18n.global.t('settings.backupImportedNewer', {
+            name: file.name,
+          }),
           tone: 'warning',
         }
-      : { text: `Imported ${file.name}.`, tone: 'ok' }
+      : {
+          text: i18n.global.t('settings.backupImported', { name: file.name }),
+          tone: 'ok',
+        }
   }
 
   return { message, clearMessage, pickFile, onFileChosen }

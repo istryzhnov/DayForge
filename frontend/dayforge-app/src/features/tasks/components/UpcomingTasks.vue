@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import AppIcon from '../../../components/AppIcon.vue'
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatTime } = useFormat()
+const { t } = useI18n()
 
 const COLLAPSED_KEY = 'dayforge-upcoming-collapsed-v1'
 
@@ -55,7 +57,9 @@ function timeRange(item: UpcomingItem) {
 <template>
   <section class="ui-card upcoming">
     <details :open="isOpen" @toggle="onToggle">
-      <summary class="ui-section-label upcoming__summary">Upcoming</summary>
+      <summary class="ui-section-label upcoming__summary">
+        {{ t('tasks.upcoming') }}
+      </summary>
 
       <ul class="upcoming__list">
         <template v-for="day in days" :key="day.date">
@@ -69,7 +73,7 @@ function timeRange(item: UpcomingItem) {
             <button
               type="button"
               class="upcoming-row__btn"
-              :title="`Show ${dayLabel(item.date)}`"
+              :title="t('tasks.showDay', { day: dayLabel(item.date) })"
               @click="emit('select-date', item.date)"
             >
               <span class="upcoming-row__day">{{ dayLabel(item.date) }}</span>
@@ -82,7 +86,7 @@ function timeRange(item: UpcomingItem) {
                 v-if="item.repeatLabel"
                 class="upcoming-row__repeat"
                 role="img"
-                aria-label="Repeats"
+                :aria-label="t('tasks.repeats')"
               >
                 <AppIcon name="repeat" :size="13" />
               </span>

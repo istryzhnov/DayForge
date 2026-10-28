@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ID, ISODate } from '../../../entities/types'
 import type {
   MonthDayCell,
@@ -24,6 +25,17 @@ const emit = defineEmits<{
 
 const { weekdayLabels, days, monthSummary } = props.month
 
+const { t } = useI18n()
+
+/** "3 tasks · 4 h scheduled", with the count and the unit in the interface language. */
+function scheduleText(key: string, tasks: number, hours: number): string {
+  return t(key, {
+    tasks: t('calendar.taskCount', tasks),
+    hours,
+    unit: t('timer.unitHour'),
+  })
+}
+
 /** Only a few fit in a cell; the rest collapse into a "+N" hint. */
 const VISIBLE_EVENTS = 3
 
@@ -38,10 +50,16 @@ function hiddenCount(day: MonthDayCell) {
 
 <template>
   <section class="calendar-month">
-    <p class="calendar-month__summary ui-oneline">
-      {{ monthSummary.tasks }} tasks · {{ monthSummary.hours }}h scheduled
+    <p class="calendar-month__summary">
+      {{
+        scheduleText(
+          'calendar.monthSummary',
+          monthSummary.tasks,
+          monthSummary.hours,
+        )
+      }}
       <template v-if="monthSummary.busiestDay?.scheduledMinutes">
-        · busiest {{ monthSummary.busiestDay.date }}
+        · {{ t('calendar.busiestDay', { date: monthSummary.busiestDay.date }) }}
       </template>
     </p>
 
@@ -63,7 +81,13 @@ function hiddenCount(day: MonthDayCell) {
             'is-selected': day.date === currentDate,
           },
         ]"
-        :title="`${day.totalCount} tasks · ${Math.round(day.scheduledMinutes / 60)}h`"
+        :title="
+          scheduleText(
+            'calendar.dayCell',
+            day.totalCount,
+            Math.round(day.scheduledMinutes / 60),
+          )
+        "
         @click="emit('open-day', day.date)"
       >
         <span class="calendar-month__day-head">

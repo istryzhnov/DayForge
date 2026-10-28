@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import type { ColorSuggestion } from '../../../composables/theme/suggestions'
 import { useColorField } from '../composables/useColorField'
 import { swatchStyle, textValue } from '../../../composables/inputValue'
@@ -20,6 +21,8 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 
+const { t } = useI18n()
+
 const {
   showSuggestions,
   pickerValue,
@@ -34,7 +37,10 @@ const {
 
 <template>
   <div class="color-field">
-    <label class="color-field__swatch" :title="`Pick ${label}`">
+    <label
+      class="color-field__swatch"
+      :title="t('settings.colourPick', { name: label })"
+    >
       <input
         type="color"
         :value="pickerValue"
@@ -49,7 +55,9 @@ const {
     <div class="color-field__body">
       <div class="color-field__head">
         <span class="color-field__label">{{ label }}</span>
-        <span v-if="isCustom" class="color-field__badge">custom</span>
+        <span v-if="isCustom" class="color-field__badge">{{
+          t('settings.colourCustom')
+        }}</span>
       </div>
       <p v-if="description" class="color-field__desc">{{ description }}</p>
 
@@ -59,7 +67,7 @@ const {
           type="text"
           spellcheck="false"
           :value="hexValue"
-          :aria-label="`${label} hex value`"
+          :aria-label="t('settings.colourHexValue', { name: label })"
           @input="typeHex(textValue($event))"
           @blur="commitHex"
         />
@@ -69,7 +77,11 @@ const {
           :aria-expanded="showSuggestions"
           @click="toggleSuggestions"
         >
-          {{ showSuggestions ? 'Hide matches' : 'Matches' }}
+          {{
+            showSuggestions
+              ? t('settings.colourHideMatches')
+              : t('settings.colourMatches')
+          }}
         </button>
         <button
           v-if="isCustom"
@@ -77,7 +89,7 @@ const {
           type="button"
           @click="emit('reset')"
         >
-          Reset
+          {{ t('settings.colourReset') }}
         </button>
       </div>
 
@@ -92,7 +104,7 @@ const {
       <div v-if="showSuggestions" class="color-field__suggestions">
         <button
           v-for="suggestion in suggestions"
-          :key="`${suggestion.label}-${suggestion.color}`"
+          :key="`${suggestion.labelKey}-${suggestion.color}`"
           class="color-suggestion"
           type="button"
           @click="applySuggestion(suggestion)"
@@ -102,8 +114,8 @@ const {
             :style="swatchStyle(suggestion.color)"
           ></span>
           <span class="color-suggestion__text">
-            <strong>{{ suggestion.label }}</strong>
-            <em>{{ suggestion.hint }}</em>
+            <strong>{{ t(suggestion.labelKey) }}</strong>
+            <em>{{ t(suggestion.hintKey) }}</em>
           </span>
         </button>
       </div>

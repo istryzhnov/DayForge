@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
 /**
  * The floating copy of a task that is being dragged. It follows the pointer
  * (or the finger, placed above it so the finger does not cover it). Drawn in
  * the body so no list or column clips it; `pointer-events: none` keeps it out
  * of `elementFromPoint`, which the drop targets rely on.
  */
+const { t } = useI18n()
+
 withDefaults(
   defineProps<{
     title: string
@@ -37,7 +41,7 @@ withDefaults(
       <span
         v-if="isMajor"
         class="drag-ghost__priority"
-        title="Major priority"
+        :title="t('tasks.priorityLabel', { level: t('tasks.priorityMajor') })"
       ></span>
     </div>
   </Teleport>

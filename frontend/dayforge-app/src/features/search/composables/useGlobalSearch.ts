@@ -4,6 +4,7 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { RecurrenceType } from '../../../entities/RecurrenceEntity'
 import type { GoalStatus, ID, ISODate } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
+import { i18n } from '../../../i18n'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import {
   isRepeating,
@@ -101,8 +102,8 @@ function buildGroups(needle: string, source: SearchSource): SearchGroup[] {
   })
 
   function projectTitleOf(goalId: ID | undefined): string {
-    if (!goalId) return 'No project'
-    return goalTitleById.get(goalId) ?? 'Unknown project'
+    if (!goalId) return i18n.global.t('search.noProject')
+    return goalTitleById.get(goalId) ?? i18n.global.t('search.unknownProject')
   }
 
   const projects = goals
@@ -203,9 +204,9 @@ function buildGroups(needle: string, source: SearchSource): SearchGroup[] {
   })
 
   const labels: Record<SearchGroupKey, string> = {
-    projects: 'Projects',
-    tasks: 'Tasks',
-    done: 'Archived and done',
+    projects: i18n.global.t('search.groupProjects'),
+    tasks: i18n.global.t('search.groupTasks'),
+    done: i18n.global.t('search.groupDone'),
   }
   const keys: SearchGroupKey[] = ['projects', 'tasks', 'done']
 

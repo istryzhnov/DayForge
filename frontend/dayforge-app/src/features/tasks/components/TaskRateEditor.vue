@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import { useTaskRateEditor } from '../composables/useTaskRateEditor'
 
@@ -10,6 +11,7 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const { t } = useI18n()
 const rateInput = useTemplateRef<HTMLInputElement>('rateInput')
 
 const { draft, currency, hasOwnRate, isValid, hint, placeholder, save, clear } =
@@ -27,7 +29,7 @@ onMounted(() => rateInput.value?.focus())
   <div class="task-editor" @keydown.esc="emit('close')">
     <label class="task-editor__field">
       <span class="task-schedule__label">
-        Rate per hour for "{{ node.task.title }}" ({{ currency }})
+        {{ t('tasks.rateLabel', { title: node.task.title, currency }) }}
       </span>
       <input
         ref="rateInput"
@@ -45,7 +47,7 @@ onMounted(() => rateInput.value?.focus())
 
     <div class="task-editor__actions">
       <button class="btn btn-ghost" type="button" @click="emit('close')">
-        Cancel
+        {{ t('common.cancel') }}
       </button>
       <button
         v-if="hasOwnRate"
@@ -53,7 +55,7 @@ onMounted(() => rateInput.value?.focus())
         type="button"
         @click="clear"
       >
-        Use inherited
+        {{ t('tasks.useInherited') }}
       </button>
       <button
         class="btn btn-primary"
@@ -61,7 +63,7 @@ onMounted(() => rateInput.value?.focus())
         :disabled="!isValid"
         @click="save"
       >
-        Save
+        {{ t('common.save') }}
       </button>
     </div>
   </div>

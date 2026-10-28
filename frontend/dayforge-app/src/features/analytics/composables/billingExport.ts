@@ -4,6 +4,7 @@ import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import { entryDate, entryDurationMs } from '../../../composables/timer/entries'
 import { earningsFor } from '../../../composables/timer/analytics'
+import { englishText, type Text } from './projectBilling'
 import { roundMoney } from './clientBilling'
 
 /** One line of a report: a time entry with its project, client and money. */
@@ -51,10 +52,12 @@ export interface ReportLineInput {
   clients: Client[]
   /** The hourly rate an entry was billed at: task, then project, then default. */
   rateOf: (taskId?: ID, goalId?: ID) => number
+  text?: Text
 }
 
 /** Entries in time order, each with the rate and amount it was billed at. */
 export function buildReportLines(input: ReportLineInput): ReportLine[] {
+  const t = input.text ?? englishText
   const goalById = new Map(input.goals.map((goal) => [goal.id, goal]))
   const clientById = new Map(input.clients.map((client) => [client.id, client]))
 
@@ -70,10 +73,12 @@ export function buildReportLines(input: ReportLineInput): ReportLine[] {
         start: clockOf(entry.startedAt),
         end: clockOf(entry.endedAt),
         ms,
-        clientTitle: client?.name ?? 'No client',
+        clientTitle: client?.name ?? t('analytics.noClient'),
         projectTitle:
           goal?.title ??
-          (entry.goalId ? 'Deleted project' : 'Without a project'),
+          (entry.goalId
+            ? t('analytics.deletedProject')
+            : t('analytics.noProject')),
         taskTitle: entry.taskTitle ?? '',
         rate,
         amount: earningsFor(ms, rate),
@@ -118,17 +123,21 @@ function csvRow(
  * The time-entry report as CSV text, BOM first, with a totals row at the end.
  * Durations are decimal hours; amounts are in the account currency.
  */
-export function buildCsv(lines: ReportLine[], currency: string): string {
+export function buildCsv(
+  lines: ReportLine[],
+  currency: string,
+  text: Text = englishText,
+): string {
   const header = csvRow([
-    { value: 'Date' },
-    { value: 'Start' },
-    { value: 'End' },
-    { value: 'Duration (h)' },
-    { value: 'Client' },
-    { value: 'Project' },
-    { value: 'Task' },
-    { value: `Rate (${currency})` },
-    { value: `Amount (${currency})` },
+    { value: text('analytics.colDate') },
+    { value: text('analytics.colStart') },
+    { value: text('analytics.colEnd') },
+    { value: text('analytics.colDuration') },
+    { value: text('analytics.colClient') },
+    { value: text('analytics.colProject') },
+    { value: text('analytics.colTask') },
+    { value: text('analytics.colRateCurrency', { currency }) },
+    { value: text('analytics.colAmountCurrency', { currency }) },
   ])
 
   const body = lines.map((line) =>
@@ -147,7 +156,7 @@ export function buildCsv(lines: ReportLine[], currency: string): string {
 
   const totals = reportTotals(lines)
   const totalRow = csvRow([
-    { value: 'Total' },
+    { value: text('analytics.colTotal') },
     { value: '' },
     { value: '' },
     { value: hoursOf(totals.ms) },

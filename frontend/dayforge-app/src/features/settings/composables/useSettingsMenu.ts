@@ -1,16 +1,13 @@
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../composables/useTheme'
 import { GOAL_STATUS } from '../../../entities/constants'
-import {
-  LOCALE_OPTIONS,
-  START_VIEW,
-  useSettings,
-} from '../../../composables/useSettings'
-import { FONT_LABELS } from '../../../composables/theme/tokens'
+import { START_VIEW, useSettings } from '../../../composables/useSettings'
+import { FONT_LABEL_KEYS } from './settingsOptions'
 import type { AppIconName } from '../../../components/appIconPaths'
 import {
-  SETTINGS_GROUP_LABELS,
+  SETTINGS_GROUP_LABEL_KEYS,
   SETTINGS_SECTIONS,
   type SettingsGroup,
   type SettingsSection,
@@ -19,6 +16,7 @@ import {
   CLOCK_OPTIONS,
   DENSITY_OPTIONS,
   GOAL_STATUS_OPTIONS,
+  LANGUAGE_OPTIONS,
   START_VIEW_OPTIONS,
 } from './settingsOptions'
 
@@ -43,22 +41,21 @@ type MenuProps = {
   dataStats: { goals: number; templates: number; kilobytes: number }
 }
 
-/** "1 project", "2 projects" — the menu reads as a sentence, not a log line. */
-function plural(count: number, word: string) {
-  return count + ' ' + word + (count === 1 ? '' : 's')
-}
-
-function labelOf<T>(
-  options: readonly { id: T; label: string }[],
-  value: T,
-  fallback: string,
-) {
-  return options.find((option) => option.id === value)?.label ?? fallback
-}
-
 export function useSettingsMenu(props: MenuProps) {
+  const { t } = useI18n()
   const { themeStyle, themeMode, palette, workspace } = useTheme()
   const { settings } = useSettings()
+
+  /** Translated label of an option, or of a fallback key when none matches. */
+  function labelOf<T>(
+    options: readonly { id: T; labelKey: string }[],
+    value: T,
+    fallbackKey: string,
+  ) {
+    return t(
+      options.find((option) => option.id === value)?.labelKey ?? fallbackKey,
+    )
+  }
 
   const summaries = computed<Record<SettingsSection, string>>(() => {
     const customCount = Object.keys(palette.value).length
@@ -66,59 +63,98 @@ export function useSettingsMenu(props: MenuProps) {
       settings
 
     return {
-      theme: `${themeStyle.value === 'vivid' ? 'Fresh' : 'Minimal'} · ${
-        themeMode.value === 'dark' ? 'Night' : 'Day'
-      }`,
+      theme: [
+        t(
+          themeStyle.value === 'vivid'
+            ? 'settings.summaryThemeFresh'
+            : 'settings.summaryThemeMinimal',
+        ),
+        t(
+          themeMode.value === 'dark'
+            ? 'settings.summaryThemeNight'
+            : 'settings.summaryThemeDay',
+        ),
+      ].join(' · '),
       colors:
         customCount === 0
-          ? 'Theme defaults'
-          : `${customCount} colour${customCount > 1 ? 's' : ''} changed`,
+          ? t('settings.summaryColoursDefault')
+          : t('settings.summaryColoursChanged', customCount),
       project: props.activeGoal
         ? [
             props.activeGoal.title,
             props.activeGoal.status === GOAL_STATUS.ACTIVE
               ? null
-              : labelOf(GOAL_STATUS_OPTIONS, props.activeGoal.status, 'Active'),
-            props.activeGoal.theme?.accent ? 'own colours' : 'theme colours',
+              : labelOf(
+                  GOAL_STATUS_OPTIONS,
+                  props.activeGoal.status,
+                  'settings.statusActive',
+                ),
+            props.activeGoal.theme?.accent
+              ? t('settings.summaryOwnColours')
+              : t('settings.summaryThemeColours'),
             (props.activeGoal.hourlyRate ?? 0) > 0
-              ? `${props.activeGoal.hourlyRate} / h`
+              ? t('settings.summaryRate', { rate: props.activeGoal.hourlyRate })
               : null,
           ]
             .filter(Boolean)
             .join(' · ')
-        : 'Open a project first',
+        : t('settings.summaryOpenProjectFirst'),
       workspace: [
-        labelOf(DENSITY_OPTIONS, workspace.value.density, 'Cozy'),
-        FONT_LABELS[workspace.value.font],
+        labelOf(
+          DENSITY_OPTIONS,
+          workspace.value.density,
+          'settings.densityCozy',
+        ),
+        t(FONT_LABEL_KEYS[workspace.value.font]),
         accessibility.textScale === 1
           ? null
-          : `text ${Math.round(accessibility.textScale * 100)}%`,
+          : t('settings.summaryTextScale', {
+              percent: Math.round(accessibility.textScale * 100),
+            }),
       ]
         .filter(Boolean)
         .join(' · '),
       reminders: props.notificationsEnabled
-        ? `On · ${notifications.leadMinutes} min before`
-        : 'Off',
-      calendar: `${calendar.snapMinutes} min steps · ${
-        calendar.weekStartsOn === 1 ? 'week from Mon' : 'week from Sun'
-      }`,
-      timer: `${timer.focusMinutes} / ${timer.shortBreakMinutes} min · long break every ${timer.longBreakEvery}`,
-      behavior: `Opens ${
-        behavior.startView === START_VIEW.GOALS && behavior.startGoalId
-          ? 'a project'
-          : labelOf(START_VIEW_OPTIONS, behavior.startView, 'All tasks')
-      }${behavior.keyboardShortcuts ? '' : ' · no shortcuts'}`,
-      format: `${labelOf(LOCALE_OPTIONS, format.locale, 'Українська')} · ${labelOf(
-        CLOCK_OPTIONS,
-        format.clock,
-        '24-hour',
-      )}`,
-      clients: plural(settings.billing.clients.length, 'client'),
-      data: [
-        plural(props.dataStats.goals, 'project'),
-        plural(props.dataStats.templates, 'task'),
-        `${props.dataStats.kilobytes} KB`,
+        ? t('settings.summaryRemindersOn', {
+            minutes: notifications.leadMinutes,
+          })
+        : t('settings.summaryOff'),
+      calendar: t('settings.summaryCalendar', {
+        minutes: calendar.snapMinutes,
+        week:
+          calendar.weekStartsOn === 1
+            ? t('settings.summaryWeekFromMon')
+            : t('settings.summaryWeekFromSun'),
+      }),
+      timer: t('settings.summaryTimer', {
+        focus: timer.focusMinutes,
+        rest: timer.shortBreakMinutes,
+        every: timer.longBreakEvery,
+      }),
+      behavior: (() => {
+        const view =
+          behavior.startView === START_VIEW.GOALS && behavior.startGoalId
+            ? t('settings.viewAProject')
+            : labelOf(
+                START_VIEW_OPTIONS,
+                behavior.startView,
+                'settings.viewAllTasks',
+              )
+        return behavior.keyboardShortcuts
+          ? t('settings.summaryOpens', { view })
+          : t('settings.summaryOpensNoShortcuts', { view })
+      })(),
+      format: [
+        LANGUAGE_OPTIONS.find((option) => option.id === format.language)
+          ?.label ?? 'English',
+        labelOf(CLOCK_OPTIONS, format.clock, 'settings.clock24'),
       ].join(' · '),
+      clients: t('settings.summaryClients', settings.billing.clients.length),
+      data: t('settings.summaryData', {
+        projects: t('settings.summaryProjects', props.dataStats.goals),
+        tasks: t('settings.summaryTasks', props.dataStats.templates),
+        kb: props.dataStats.kilobytes,
+      }),
     }
   })
 
@@ -130,7 +166,7 @@ export function useSettingsMenu(props: MenuProps) {
       rows.push({
         id: section.id,
         icon: section.icon,
-        label: section.label,
+        label: t(section.labelKey),
         summary: summaries.value[section.id],
         disabled: section.id === 'project' && !props.activeGoal,
       })
@@ -139,7 +175,7 @@ export function useSettingsMenu(props: MenuProps) {
 
     return [...byGroup].map(([id, rows]) => ({
       id,
-      label: SETTINGS_GROUP_LABELS[id],
+      label: t(SETTINGS_GROUP_LABEL_KEYS[id]),
       rows,
     }))
   })

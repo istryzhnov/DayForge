@@ -13,6 +13,7 @@ import {
   type ThemeMode,
 } from '../../../composables/theme/tokens'
 import { suggestionsFor } from '../../../composables/theme/suggestions'
+import { i18n } from '../../../i18n'
 
 /** The colour fields a project can override by hand. */
 export type GoalThemeColorKey = 'major' | 'minor' | 'line' | 'surface'
@@ -61,8 +62,8 @@ export function useProjectThemeEditor(
   const fields = computed(() => [
     {
       key: 'major' as GoalThemeColorKey,
-      label: 'Project circles',
-      description: 'Rows that hold other tasks, and their calendar blocks.',
+      label: i18n.global.t('settings.projectCircles'),
+      description: i18n.global.t('settings.projectCirclesDescription'),
       value: vars.value['--major'] ?? props.palette.major,
       isCustom: theme.value.major !== undefined,
       suggestions: suggestionsFor(
@@ -73,8 +74,8 @@ export function useProjectThemeEditor(
     },
     {
       key: 'minor' as GoalThemeColorKey,
-      label: 'Task circles',
-      description: 'Ordinary task circles inside this project.',
+      label: i18n.global.t('settings.projectTaskCircles'),
+      description: i18n.global.t('settings.projectTaskCirclesDescription'),
       value: vars.value['--minor'] ?? props.palette.minor,
       isCustom: theme.value.minor !== undefined,
       suggestions: suggestionsFor(
@@ -85,8 +86,8 @@ export function useProjectThemeEditor(
     },
     {
       key: 'line' as GoalThemeColorKey,
-      label: 'Borders',
-      description: 'Frames and dividers inside the panel.',
+      label: i18n.global.t('settings.projectBorders'),
+      description: i18n.global.t('settings.projectBordersDescription'),
       value: vars.value['--line'] ?? props.palette.line,
       isCustom: theme.value.line !== undefined,
       suggestions: suggestionsFor(
@@ -97,8 +98,8 @@ export function useProjectThemeEditor(
     },
     {
       key: 'surface' as GoalThemeColorKey,
-      label: 'Panels',
-      description: 'Cards and raised surfaces inside the panel.',
+      label: i18n.global.t('settings.projectPanels'),
+      description: i18n.global.t('settings.projectPanelsDescription'),
       value: vars.value['--panel'] ?? props.palette.panel,
       isCustom: theme.value.surface !== undefined,
       suggestions: suggestionsFor(

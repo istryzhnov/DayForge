@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import ColorField from './ColorField.vue'
 import { useColorTokenGroups } from '../composables/useColorTokenGroups'
+
+const { t } = useI18n()
 
 const { groups, setColor, resetColor, resetPalette } = useColorTokenGroups()
 </script>
@@ -8,19 +11,17 @@ const { groups, setColor, resetColor, resetPalette } = useColorTokenGroups()
 <template>
   <div class="settings-section">
     <p class="settings-section__intro">
-      Pick any colour by hand. Each field can also suggest companions built from
-      the rest of your palette — a complement for the colours that should stand
-      apart, a neighbouring hue for the ones that should belong.
+      {{ t('settings.colourIntro') }}
     </p>
 
     <template v-for="group in groups" :key="group.id">
-      <p class="sidebar-caption">{{ group.label }}</p>
-      <p class="settings-group-hint">{{ group.hint }}</p>
+      <p class="sidebar-caption">{{ t(group.labelKey) }}</p>
+      <p class="settings-group-hint">{{ t(group.hintKey) }}</p>
       <ColorField
         v-for="token in group.tokens"
         :key="token.key"
-        :label="token.label"
-        :description="token.description"
+        :label="t(token.labelKey)"
+        :description="t(token.descriptionKey)"
         :value="token.value"
         :is-custom="token.isCustom"
         :suggestions="token.suggestions"
@@ -36,7 +37,7 @@ const { groups, setColor, resetColor, resetPalette } = useColorTokenGroups()
       type="button"
       @click="resetPalette"
     >
-      Back to theme colours
+      {{ t('settings.colourBackToTheme') }}
     </button>
   </div>
 </template>

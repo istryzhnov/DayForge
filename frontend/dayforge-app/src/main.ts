@@ -1,6 +1,8 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import './style.css'
 import App from './App.vue'
+import { i18n, setLanguage } from './i18n'
+import { useSettings } from './composables/useSettings'
 
 const RELOAD_FLAG = 'dayforge-chunk-reload'
 
@@ -18,6 +20,13 @@ window.addEventListener('vite:preloadError', (event) => {
 })
 
 const app = createApp(App)
+app.use(i18n)
+
+// Settings load before the first render, so the interface opens in the saved
+// language. Later changes re-run the watcher.
+const { settings } = useSettings()
+watch(() => settings.format.language, setLanguage, { immediate: true })
+
 app.mount('#app')
 
 window.setTimeout(() => {

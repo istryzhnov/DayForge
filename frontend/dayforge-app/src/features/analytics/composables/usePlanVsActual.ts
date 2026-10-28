@@ -8,6 +8,7 @@ import type {
 import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
+import { i18n } from '../../../i18n'
 import {
   earliestPlanDate,
   planBounds,
@@ -54,7 +55,12 @@ export function usePlanVsActual(source: {
   )
 
   const result = computed(() =>
-    planVsActual(planned.value, source.getActual(), source.getGoals()),
+    planVsActual(
+      planned.value,
+      source.getActual(),
+      source.getGoals(),
+      (key, params) => i18n.global.t(key, params ?? {}),
+    ),
   )
 
   return { bounds, result }

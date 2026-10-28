@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import AppIcon from '../../../components/AppIcon.vue'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
@@ -8,6 +9,8 @@ import {
   type GesturePoint,
 } from '../../../composables/usePressGesture'
 import { goalDropState } from '../../tasks/composables/taskDropTarget'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   goal: Goal
@@ -84,7 +87,7 @@ function onContextMenu(event: MouseEvent) {
       'is-drop-flash': isDropFlash,
     }"
     :style="themeVars"
-    :title="isArchived ? undefined : 'Drag to reorder'"
+    :title="isArchived ? undefined : t('sidebar.dragToReorder')"
     :data-drop-goal-id="dropAttribute"
     @click="emit('select')"
     @contextmenu.prevent="onContextMenu"

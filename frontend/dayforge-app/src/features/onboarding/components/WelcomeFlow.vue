@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { AppIconName } from '../../../components/appIconPaths'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
@@ -18,6 +19,8 @@ const emit = defineEmits<{
   (e: 'create-project', title: string, color: string, select: boolean): void
   (e: 'use-template'): void
 }>()
+
+const { t } = useI18n()
 
 /** Mounted only while the card is open, so the trap is live exactly then. */
 const flow = useWelcome({
@@ -50,56 +53,63 @@ useFocusTrap({ onEscape: () => skip() })
 
 const STEP_COPY: Record<
   WelcomeStep,
-  { icon: AppIconName; title: string; subtitle: string }
+  { icon: AppIconName; titleKey: string; subtitleKey: string }
 > = {
   1: {
     icon: 'globe',
-    title: 'Welcome to DayForge',
-    subtitle: 'Plan your day, track your time, keep it all in sync.',
+    titleKey: 'onboarding.welcomeStep1Title',
+    subtitleKey: 'onboarding.welcomeStep1Subtitle',
   },
   2: {
     icon: 'target',
-    title: 'What will you mainly use DayForge for?',
-    subtitle: "We'll set things up to match.",
+    titleKey: 'onboarding.welcomeStep2Title',
+    subtitleKey: 'onboarding.welcomeStep2Subtitle',
   },
   3: {
     icon: 'plus',
-    title: 'Start your first project',
-    subtitle: 'Give it a name, or start from a template.',
+    titleKey: 'onboarding.welcomeStep3Title',
+    subtitleKey: 'onboarding.welcomeStep3Subtitle',
   },
 }
 
 const ACCOUNT_OPTIONS: ReadonlyArray<{
   value: AccountChoice
   icon: AppIconName
-  label: string
-  description: string
+  labelKey: string
+  descriptionKey: string
 }> = [
   {
     value: 'signin',
     icon: 'users',
-    label: 'I have an account',
-    description: 'Sign in with Google and pick up where you left off.',
+    labelKey: 'onboarding.welcomeAccountSignin',
+    descriptionKey: 'onboarding.welcomeAccountSigninHint',
   },
   {
     value: 'signup',
     icon: 'plus',
-    label: 'Create an account',
-    description: 'Sign up with Google to sync across devices.',
+    labelKey: 'onboarding.welcomeAccountSignup',
+    descriptionKey: 'onboarding.welcomeAccountSignupHint',
   },
   {
     value: 'local',
     icon: 'save',
-    label: 'Continue without an account',
-    description: 'Everything stays in this browser. You can sign in later.',
+    labelKey: 'onboarding.welcomeAccountLocal',
+    descriptionKey: 'onboarding.welcomeAccountLocalHint',
   },
 ]
 
-/** Same names as the new-project form, in the same order as the presets. */
-const COLOR_NAMES = ['Lime', 'Orange', 'Cyan', 'Yellow', 'Pink', 'Violet']
+/** The same colour names as the new-project form (sidebar), in the same order as the presets. */
+const COLOR_NAME_KEYS = [
+  'sidebar.colourLime',
+  'sidebar.colourOrange',
+  'sidebar.colourCyan',
+  'sidebar.colourYellow',
+  'sidebar.colourPink',
+  'sidebar.colourViolet',
+]
 const SWATCHES = GOAL_COLOR_PRESETS.map((value, index) => ({
   value,
-  name: COLOR_NAMES[index],
+  nameKey: COLOR_NAME_KEYS[index],
 }))
 
 function pickAccount(value: AccountChoice) {
@@ -126,7 +136,7 @@ function pickUse(value: UseChoice) {
         <div
           class="welcome__progress"
           role="img"
-          :aria-label="`Step ${step} of 3`"
+          :aria-label="t('onboarding.welcomeProgress', { step })"
         >
           <span
             v-for="n in 3"
@@ -142,10 +152,10 @@ function pickUse(value: UseChoice) {
 
         <header class="welcome__head">
           <h2 id="welcome-title" class="welcome__title">
-            {{ STEP_COPY[step].title }}
+            {{ t(STEP_COPY[step].titleKey) }}
           </h2>
           <p id="welcome-subtitle" class="welcome__subtitle">
-            {{ STEP_COPY[step].subtitle }}
+            {{ t(STEP_COPY[step].subtitleKey) }}
           </p>
         </header>
 
@@ -156,14 +166,14 @@ function pickUse(value: UseChoice) {
             class="welcome__options welcome__step"
             :class="{ 'is-current': step === 1 }"
             role="group"
-            aria-label="Account"
+            :aria-label="t('onboarding.welcomeAccountGroup')"
           >
             <WelcomeOption
               v-for="option in ACCOUNT_OPTIONS"
               :key="option.value"
               :icon="option.icon"
-              :label="option.label"
-              :description="option.description"
+              :label="t(option.labelKey)"
+              :description="t(option.descriptionKey)"
               :selected="account === option.value"
               :disabled="isBusy"
               @select="pickAccount(option.value)"
@@ -174,14 +184,14 @@ function pickUse(value: UseChoice) {
             class="welcome__options welcome__step"
             :class="{ 'is-current': step === 2 }"
             role="group"
-            aria-label="Main use"
+            :aria-label="t('onboarding.welcomeUseGroup')"
           >
             <WelcomeOption
               v-for="option in USE_OPTIONS"
               :key="option.value"
               :icon="option.icon"
-              :label="option.label"
-              :description="option.hint"
+              :label="t(option.labelKey)"
+              :description="t(option.hintKey)"
               :selected="useChoice === option.value"
               @select="pickUse(option.value)"
             />
@@ -192,21 +202,21 @@ function pickUse(value: UseChoice) {
             :class="{ 'is-current': step === 3 }"
             @submit.prevent="createProject"
           >
-            <label class="welcome__label" for="welcome-project-name"
-              >Project name</label
-            >
+            <label class="welcome__label" for="welcome-project-name">{{
+              t('onboarding.welcomeProjectName')
+            }}</label>
             <input
               id="welcome-project-name"
               v-model="projectName"
               class="welcome__input"
               type="text"
-              placeholder="For example, Website redesign"
+              :placeholder="t('onboarding.welcomeProjectPlaceholder')"
               autocomplete="off"
             />
             <div
               class="new-goal-colors"
               role="group"
-              aria-label="Project colour"
+              :aria-label="t('onboarding.welcomeColourGroup')"
             >
               <button
                 v-for="swatch in SWATCHES"
@@ -215,7 +225,7 @@ function pickUse(value: UseChoice) {
                 :class="{ active: projectColor === swatch.value }"
                 type="button"
                 :style="{ backgroundColor: swatch.value }"
-                :aria-label="swatch.name"
+                :aria-label="t(swatch.nameKey)"
                 :aria-pressed="projectColor === swatch.value"
                 @click="projectColor = swatch.value"
               ></button>
@@ -233,7 +243,7 @@ function pickUse(value: UseChoice) {
             type="button"
             @click="back"
           >
-            Back
+            {{ t('onboarding.welcomeBack') }}
           </button>
 
           <div class="welcome__actions">
@@ -243,7 +253,7 @@ function pickUse(value: UseChoice) {
               type="button"
               @click="useTemplate"
             >
-              Use a template
+              {{ t('onboarding.welcomeUseTemplate') }}
             </button>
             <button
               v-if="step === 3"
@@ -252,7 +262,7 @@ function pickUse(value: UseChoice) {
               :disabled="!canCreate"
               @click="createProject"
             >
-              Create project
+              {{ t('onboarding.welcomeCreateProject') }}
             </button>
             <button
               v-else
@@ -261,12 +271,14 @@ function pickUse(value: UseChoice) {
               :disabled="!canContinue || isBusy"
               @click="continueStep"
             >
-              Continue
+              {{ t('onboarding.welcomeContinue') }}
             </button>
           </div>
         </footer>
 
-        <button class="welcome__skip" type="button" @click="skip">Skip</button>
+        <button class="welcome__skip" type="button" @click="skip">
+          {{ t('onboarding.welcomeSkip') }}
+        </button>
       </div>
     </div>
   </Teleport>

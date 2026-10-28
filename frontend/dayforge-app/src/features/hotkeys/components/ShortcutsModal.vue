@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { onMounted, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   QUICK_ADD_SYNTAX,
   SHORTCUT_GROUPS,
@@ -10,6 +11,7 @@ import { useSettings } from '../../../composables/useSettings'
 import { useTips } from '../../onboarding/composables/useTips'
 import { useTour } from '../../onboarding/composables/useTour'
 
+const { t } = useI18n()
 const { closeOverlay } = useHotkeyOverlay()
 const { settings } = useSettings()
 const { resetTips } = useTips()
@@ -45,7 +47,7 @@ onMounted(() => cardRef.value?.focus())
       class="quick-add-modal"
       role="dialog"
       aria-modal="true"
-      aria-label="Help"
+      :aria-label="t('hotkeys.help')"
     >
       <div class="modal-overlay" @click="closeOverlay"></div>
       <div
@@ -55,11 +57,11 @@ onMounted(() => cardRef.value?.focus())
         @keydown="onKeydown"
       >
         <header class="shortcuts-card__head">
-          <h3>Help</h3>
+          <h3>{{ t('hotkeys.help') }}</h3>
           <button
             class="event-details__close"
             type="button"
-            aria-label="Close"
+            :aria-label="t('common.close')"
             @click="closeOverlay"
           >
             <AppIcon name="close" :size="14" />
@@ -67,17 +69,17 @@ onMounted(() => cardRef.value?.focus())
         </header>
 
         <section class="shortcuts-group">
-          <p class="sidebar-caption">Tips</p>
+          <p class="sidebar-caption">{{ t('hotkeys.tips') }}</p>
           <div class="shortcuts-row shortcuts-row--tips">
-            <span>Short notes that point at what each control does.</span>
+            <span>{{ t('hotkeys.tipsHint') }}</span>
             <button class="btn btn-ghost" type="button" @click="showTipsAgain">
-              Show tips again
+              {{ t('hotkeys.showTipsAgain') }}
             </button>
           </div>
           <div class="shortcuts-row shortcuts-row--tips">
-            <span>A step-by-step guide that moves on as you work.</span>
+            <span>{{ t('hotkeys.tourHint') }}</span>
             <button class="btn btn-ghost" type="button" @click="takeTour">
-              Take the tour
+              {{ t('hotkeys.takeTour') }}
             </button>
           </div>
         </section>
@@ -86,22 +88,28 @@ onMounted(() => cardRef.value?.focus())
           v-if="!settings.behavior.keyboardShortcuts"
           class="shortcuts-card__note"
         >
-          Keyboard shortcuts are off. Turn them on in Settings, Behaviour.
+          {{ t('hotkeys.shortcutsOff') }}
         </p>
 
         <section
           v-for="group in settings.behavior.keyboardShortcuts
             ? SHORTCUT_GROUPS
             : []"
-          :key="group.title"
+          :key="group.titleKey"
           class="shortcuts-group"
         >
-          <p class="sidebar-caption">{{ group.title }}</p>
-          <div v-for="row in group.rows" :key="row.label" class="shortcuts-row">
-            <span>{{ row.label }}</span>
+          <p class="sidebar-caption">{{ t(group.titleKey) }}</p>
+          <div
+            v-for="row in group.rows"
+            :key="row.labelKey"
+            class="shortcuts-row"
+          >
+            <span>{{ t(row.labelKey) }}</span>
             <span class="shortcuts-row__keys">
               <template v-for="(key, index) in row.keys" :key="key">
-                <span v-if="index > 0" class="shortcuts-row__then">then</span>
+                <span v-if="index > 0" class="shortcuts-row__then">{{
+                  t('hotkeys.then')
+                }}</span>
                 <kbd>{{ key }}</kbd>
               </template>
             </span>
@@ -112,15 +120,15 @@ onMounted(() => cardRef.value?.focus())
           v-if="settings.behavior.keyboardShortcuts"
           class="shortcuts-group"
         >
-          <p class="sidebar-caption">Quick add</p>
+          <p class="sidebar-caption">{{ t('hotkeys.quickAddGroup') }}</p>
           <div
             v-for="row in QUICK_ADD_SYNTAX"
-            :key="row.label"
+            :key="row.labelKey"
             class="shortcuts-row"
           >
-            <span>{{ row.label }}</span>
+            <span>{{ t(row.labelKey) }}</span>
             <span class="shortcuts-row__keys">
-              <kbd>{{ row.keys[0] }}</kbd>
+              <kbd>{{ row.wordKey ? t(row.wordKey) : row.keys[0] }}</kbd>
             </span>
           </div>
         </section>
@@ -129,8 +137,7 @@ onMounted(() => cardRef.value?.focus())
           v-if="settings.behavior.keyboardShortcuts"
           class="shortcuts-card__note"
         >
-          Shortcuts stay quiet while you type in a field. Turn them off in
-          Settings, Behaviour.
+          {{ t('hotkeys.shortcutsQuiet') }}
         </p>
       </div>
     </section>

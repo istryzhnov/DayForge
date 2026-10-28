@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
@@ -44,6 +45,8 @@ const emit = defineEmits<{
 }>()
 
 // Binds to the `ref="trapRef"` root element below.
+const { t } = useI18n()
+
 useFocusTrap({ onEscape: () => emit('close') })
 
 const notesInput = useTemplateRef<HTMLTextAreaElement>('notesInput')
@@ -99,7 +102,7 @@ function onNotesKeydown(event: KeyboardEvent) {
         <button
           class="event-details__close"
           type="button"
-          aria-label="Close"
+          :aria-label="t('calendar.close')"
           @click="emit('close')"
         >
           <AppIcon name="close" :size="14" />
@@ -107,27 +110,27 @@ function onNotesKeydown(event: KeyboardEvent) {
       </header>
 
       <label class="event-details__field">
-        <span class="event-details__label">Title</span>
+        <span class="event-details__label">{{ t('calendar.titleField') }}</span>
         <input v-model="title" type="text" @keydown.enter="save" />
       </label>
 
       <label class="event-details__field">
-        <span class="event-details__label">Notes</span>
+        <span class="event-details__label">{{ t('calendar.notesField') }}</span>
         <textarea
           ref="notesInput"
           v-model="notes"
           rows="2"
           maxlength="5000"
-          placeholder="Add notes"
+          :placeholder="t('calendar.notesPlaceholder')"
           @blur="commitNotes"
           @keydown="onNotesKeydown"
         ></textarea>
       </label>
 
       <label class="event-details__field">
-        <span class="event-details__label">Goal</span>
+        <span class="event-details__label">{{ t('calendar.goalField') }}</span>
         <select v-model="goalId">
-          <option value="">No goal</option>
+          <option value="">{{ t('calendar.noGoal') }}</option>
           <option v-for="goal in goals" :key="goal.id" :value="goal.id">
             {{ goal.title }}
           </option>
@@ -135,9 +138,11 @@ function onNotesKeydown(event: KeyboardEvent) {
       </label>
 
       <label v-if="canAttachToProject" class="event-details__field">
-        <span class="event-details__label">Project</span>
+        <span class="event-details__label">{{
+          t('calendar.projectField')
+        }}</span>
         <select v-model="projectId">
-          <option value="">No project</option>
+          <option value="">{{ t('calendar.noProject') }}</option>
           <option
             v-for="option in projectsForGoal"
             :key="option.id"
@@ -150,18 +155,18 @@ function onNotesKeydown(event: KeyboardEvent) {
 
       <div class="event-details__time">
         <label>
-          Start
+          {{ t('calendar.startField') }}
           <input v-model="startTime" type="time" />
         </label>
         <label>
-          End
+          {{ t('calendar.endField') }}
           <input v-model="endTime" type="time" />
         </label>
       </div>
 
       <div class="event-details__actions">
         <button class="btn btn-primary" type="button" @click="save">
-          Save
+          {{ t('calendar.save') }}
         </button>
         <button
           v-if="canLogPlanned"
@@ -169,14 +174,14 @@ function onNotesKeydown(event: KeyboardEvent) {
           type="button"
           @click="emit('log-planned')"
         >
-          Log as planned
+          {{ t('calendar.logPlanned') }}
         </button>
         <button
           class="btn btn-ghost"
           type="button"
           @click="emit('unschedule', task.id)"
         >
-          Unschedule
+          {{ t('calendar.unschedule') }}
         </button>
       </div>
     </div>

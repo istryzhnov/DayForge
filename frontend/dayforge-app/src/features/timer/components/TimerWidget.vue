@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import { useTimerView } from '../composables/useTimerView'
 
 import AppIcon from '../../../components/AppIcon.vue'
+
+const { t } = useI18n()
 
 const emit = defineEmits<{ (e: 'open-timer'): void }>()
 
@@ -26,7 +29,7 @@ const {
 <template>
   <section
     class="timer-widget"
-    aria-label="Timer"
+    :aria-label="t('timer.title')"
     data-tip-anchor="sidebar-timer"
   >
     <header class="timer-widget__head">
@@ -34,8 +37,8 @@ const {
       <button
         class="timer-widget__expand"
         type="button"
-        title="Open the timer screen"
-        aria-label="Open the timer screen"
+        :title="t('timer.openTimerScreen')"
+        :aria-label="t('timer.openTimerScreen')"
         @click="emit('open-timer')"
       >
         <AppIcon name="maximize" :size="14" />
@@ -60,6 +63,8 @@ const {
       @skip="skipPhase"
     />
 
-    <p class="timer-widget__today">Today: {{ todayLabel }}</p>
+    <p class="timer-widget__today">
+      {{ t('timer.todayWidget', { time: todayLabel }) }}
+    </p>
   </section>
 </template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useSettings } from '../../../composables/useSettings'
 import {
   BUDGET_LEVEL,
@@ -9,6 +10,7 @@ import {
 
 const props = defineProps<{ standing: BudgetStanding }>()
 
+const { t } = useI18n()
 const { settings } = useSettings()
 
 const percent = computed(() => Math.round(props.standing.fraction * 100))
@@ -19,15 +21,19 @@ const barWidth = computed(
 )
 
 const stateLabel = computed(() => {
-  if (props.standing.level === BUDGET_LEVEL.OVER) return 'Over budget'
-  if (props.standing.level === BUDGET_LEVEL.WARN) return 'Nearly used up'
-  return 'Budget'
+  if (props.standing.level === BUDGET_LEVEL.OVER) {
+    return t('goals.budgetOver')
+  }
+  if (props.standing.level === BUDGET_LEVEL.WARN) {
+    return t('goals.budgetNearly')
+  }
+  return t('goals.budget')
 })
 
 const periodLabel = computed(() =>
   props.standing.budget.period === BUDGET_PERIOD.MONTH
-    ? 'this month'
-    : 'in total',
+    ? t('goals.periodMonth')
+    : t('goals.periodTotal'),
 )
 
 const detail = computed(() => {
@@ -36,7 +42,7 @@ const detail = computed(() => {
 
   if (budget.hours !== undefined && hoursFraction !== null) {
     const spent = (usage.trackedMs / 3_600_000).toFixed(1)
-    parts.push(`${spent} of ${budget.hours} h tracked`)
+    parts.push(t('goals.hoursTracked', { spent, hours: budget.hours }))
   }
   if (budget.amount !== undefined && amountFraction !== null) {
     const money = new Intl.NumberFormat(settings.format.locale, {
@@ -45,11 +51,17 @@ const detail = computed(() => {
       maximumFractionDigits: 2,
     })
     parts.push(
-      `${money.format(usage.earned)} of ${money.format(budget.amount)} earned`,
+      t('goals.amountEarned', {
+        earned: money.format(usage.earned),
+        amount: money.format(budget.amount),
+      }),
     )
   }
 
-  return `${parts.join(' · ')} ${periodLabel.value}`
+  return t('goals.budgetDetail', {
+    parts: parts.join(' · '),
+    period: periodLabel.value,
+  })
 })
 </script>
 
@@ -58,7 +70,7 @@ const detail = computed(() => {
     class="budget-chip"
     :class="`is-${standing.level}`"
     role="status"
-    :aria-label="`${stateLabel} ${percent}%. ${detail}`"
+    :aria-label="t('goals.budgetAria', { state: stateLabel, percent, detail })"
     :title="detail"
   >
     <span class="budget-chip__text">

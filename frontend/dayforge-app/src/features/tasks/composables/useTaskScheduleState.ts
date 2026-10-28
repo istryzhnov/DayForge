@@ -11,24 +11,28 @@ import {
   addMinutesToTime,
   getTodayISODate,
 } from '../../../composables/goalSpace/date'
+import { i18n } from '../../../i18n'
 
-/** Repeat options offered in the composer (monthly/custom aren't exposed yet). */
+/**
+ * Repeat options offered in the composer (monthly/custom aren't exposed yet).
+ * `labelKey` is rendered with t() where the option is shown.
+ */
 export const REPEAT_OPTIONS = [
-  { value: RECURRENCE_TYPE.NONE, label: 'Once' },
-  { value: RECURRENCE_TYPE.DAILY, label: 'Every day' },
-  { value: RECURRENCE_TYPE.CUSTOM, label: 'Every N days' },
-  { value: RECURRENCE_TYPE.WEEKLY, label: 'On weekdays' },
-  { value: RECURRENCE_TYPE.YEARLY, label: 'Every year' },
+  { value: RECURRENCE_TYPE.NONE, labelKey: 'tasks.repeatOnce' },
+  { value: RECURRENCE_TYPE.DAILY, labelKey: 'tasks.repeatDaily' },
+  { value: RECURRENCE_TYPE.CUSTOM, labelKey: 'tasks.repeatCustom' },
+  { value: RECURRENCE_TYPE.WEEKLY, labelKey: 'tasks.repeatWeekly' },
+  { value: RECURRENCE_TYPE.YEARLY, labelKey: 'tasks.repeatYearly' },
 ] as const
 
 export const WEEKDAY_OPTIONS = [
-  { value: 1, label: 'Mon' },
-  { value: 2, label: 'Tue' },
-  { value: 3, label: 'Wed' },
-  { value: 4, label: 'Thu' },
-  { value: 5, label: 'Fri' },
-  { value: 6, label: 'Sat' },
-  { value: 0, label: 'Sun' },
+  { value: 1, labelKey: 'tasks.weekdayMon' },
+  { value: 2, labelKey: 'tasks.weekdayTue' },
+  { value: 3, labelKey: 'tasks.weekdayWed' },
+  { value: 4, labelKey: 'tasks.weekdayThu' },
+  { value: 5, labelKey: 'tasks.weekdayFri' },
+  { value: 6, labelKey: 'tasks.weekdaySat' },
+  { value: 0, labelKey: 'tasks.weekdaySun' },
 ] as const
 
 function pad(value: number) {
@@ -78,19 +82,28 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
 
   const error = computed<string | null>(() => {
     if (!isEnabled.value) return null
-    if (!date.value) return 'Pick a date.'
-    if (date.value < minDate) return 'Pick today or a later date.'
-    if (!startTime.value || !endTime.value) return 'Pick a start and end time.'
-    if (startTime.value < MIN_TIME || startTime.value > MAX_TIME) {
-      return `Start must be between ${MIN_TIME} and ${MAX_TIME}.`
+    if (!date.value) return i18n.global.t('tasks.errPickDate')
+    if (date.value < minDate) return i18n.global.t('tasks.errPickToday')
+    if (!startTime.value || !endTime.value) {
+      return i18n.global.t('tasks.errPickTimes')
     }
-    if (endTime.value <= startTime.value) return 'End must be after start.'
-    if (endTime.value > MAX_TIME) return `End must be ${MAX_TIME} or earlier.`
+    if (startTime.value < MIN_TIME || startTime.value > MAX_TIME) {
+      return i18n.global.t('tasks.errStartRange', {
+        min: MIN_TIME,
+        max: MAX_TIME,
+      })
+    }
+    if (endTime.value <= startTime.value) {
+      return i18n.global.t('tasks.errEndAfterStart')
+    }
+    if (endTime.value > MAX_TIME) {
+      return i18n.global.t('tasks.errEndMax', { max: MAX_TIME })
+    }
     if (isCustomInterval.value && intervalDays.value < 1) {
-      return 'Repeat every 1 day or more.'
+      return i18n.global.t('tasks.errRepeatMin')
     }
     if (isWeekly.value && !weekdays.value.length) {
-      return 'Pick at least one weekday.'
+      return i18n.global.t('tasks.errPickWeekday')
     }
     return null
   })

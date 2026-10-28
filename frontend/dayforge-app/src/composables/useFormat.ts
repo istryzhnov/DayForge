@@ -32,10 +32,13 @@ export function useFormat() {
     if (!time) return ''
     if (!uses12Hour.value) return time
 
+    // The AM/PM marker comes from the date locale, so it reads in that language.
     const [hours, minutes] = time.split(':').map(Number)
-    const suffix = hours < 12 ? 'AM' : 'PM'
-    const hour12 = hours % 12 === 0 ? 12 : hours % 12
-    return `${hour12}:${String(minutes).padStart(2, '0')} ${suffix}`
+    return new Intl.DateTimeFormat(locale.value, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    }).format(new Date(2000, 0, 1, hours, minutes))
   }
 
   const weekdayLabels = computed(() => {

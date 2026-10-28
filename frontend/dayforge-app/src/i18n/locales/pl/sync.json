@@ -1,0 +1,13 @@
+{
+  "notSyncing": "Synchronizacja wyłączona",
+  "syncing": "Synchronizacja…",
+  "offline": "Offline",
+  "offlineWaiting": "Offline · brak zmian w kolejce | Offline · {count} zmiana czeka | Offline · {count} zmiany czekają | Offline · {count} zmian czeka",
+  "errorRefused": "Błąd synchronizacji · odrzucone: {count}",
+  "synced": "Zsynchronizowano",
+  "syncedAt": "Zsynchronizowano · {time}",
+  "errorLabel": "Błąd synchronizacji",
+  "offlineLabel": "Offline",
+  "openProfileToLook": "Otwórz profil, aby sprawdzić.",
+  "willUploadLater": "Wyślą się same, gdy tylko pojawi się połączenie."
+}

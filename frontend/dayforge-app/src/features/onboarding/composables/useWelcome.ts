@@ -31,29 +31,30 @@ export const welcomeStartStep = ref<WelcomeStep>(1)
 /** What each answer on step 2 sets the start page to. */
 export const USE_OPTIONS: ReadonlyArray<{
   value: UseChoice
-  label: string
-  hint: string
+  /** Message keys, rendered with t() where the option is shown. */
+  labelKey: string
+  hintKey: string
   icon: 'calendar' | 'timer' | 'chart'
   view: StartView
 }> = [
   {
     value: 'plan',
-    label: 'Plan my day',
-    hint: 'Tasks, projects and a calendar for the day.',
+    labelKey: 'onboarding.welcomeUsePlan',
+    hintKey: 'onboarding.welcomeUsePlanHint',
     icon: 'calendar',
     view: 'goals',
   },
   {
     value: 'track',
-    label: 'Track my time',
-    hint: 'A timer for focus, with pomodoro breaks.',
+    labelKey: 'onboarding.welcomeUseTrack',
+    hintKey: 'onboarding.welcomeUseTrackHint',
     icon: 'timer',
     view: 'timer',
   },
   {
     value: 'freelance',
-    label: 'Freelance work',
-    hint: 'Hours, rates and what each client owes.',
+    labelKey: 'onboarding.welcomeUseFreelance',
+    hintKey: 'onboarding.welcomeUseFreelanceHint',
     icon: 'chart',
     view: 'analytics',
   },

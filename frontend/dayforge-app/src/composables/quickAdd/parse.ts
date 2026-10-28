@@ -16,12 +16,52 @@ export interface QuickAddResult {
   date: ISODate | null
 }
 
+/**
+ * Day words in every interface language, so a user can mix languages. A word
+ * counts only as a whole token (case-insensitive), so "Morgenroutine" stays a
+ * title. "morgen" is also German for "morning": a title that starts with it as
+ * a separate word is read as tomorrow.
+ */
 const DAY_WORDS = new Map<string, QuickAddDay>([
   ['today', 'today'],
   ['сьогодні', 'today'],
+  ['dziś', 'today'],
+  ['dzisiaj', 'today'],
+  ['heute', 'today'],
+  ['hoy', 'today'],
+  ['今天', 'today'],
   ['tomorrow', 'tomorrow'],
   ['завтра', 'tomorrow'],
+  ['jutro', 'tomorrow'],
+  ['morgen', 'tomorrow'],
+  ['mañana', 'tomorrow'],
+  ['manana', 'tomorrow'],
+  ['明天', 'tomorrow'],
 ])
+
+/**
+ * Chinese has no spaces, so 今天 and 明天 are also read at the very start or
+ * end of the input, next to the rest of the title: "明天买牛奶" schedules
+ * tomorrow for "买牛奶". Not when the word is part of a noun phrase: a rest
+ * that starts with 的 (after the start) or ends with 的 (before the end) is
+ * left alone, so "明天的计划" stays the title "明天的计划".
+ */
+const CHINESE_DAY_WORDS = ['今天', '明天']
+
+/** Splits a leading or trailing Chinese day word off a token, if it is one. */
+function splitChineseDayWord(word: string): string[] {
+  for (const dayWord of CHINESE_DAY_WORDS) {
+    if (word.length > dayWord.length && word.startsWith(dayWord)) {
+      const rest = word.slice(dayWord.length)
+      if (!rest.startsWith('的')) return [dayWord, rest]
+    }
+    if (word.length > dayWord.length && word.endsWith(dayWord)) {
+      const rest = word.slice(0, -dayWord.length)
+      if (!rest.endsWith('的')) return [rest, dayWord]
+    }
+  }
+  return [word]
+}
 
 const pad = (value: number) => String(value).padStart(2, '0')
 
@@ -101,7 +141,14 @@ export function parseQuickAdd(
   let day: QuickAddDay | null = null
   let writtenDate: ISODate | null = null
 
-  const words = input.split(/\s+/).filter((word) => word !== '')
+  const words = input
+    .split(/\s+/)
+    .filter((word) => word !== '')
+    .flatMap((word, index, all) =>
+      index === 0 || index === all.length - 1
+        ? splitChineseDayWord(word)
+        : [word],
+    )
 
   for (let index = 0; index < words.length; index += 1) {
     const word = words[index]

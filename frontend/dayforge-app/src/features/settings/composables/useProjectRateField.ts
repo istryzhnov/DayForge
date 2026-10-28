@@ -1,6 +1,7 @@
 import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useSettings } from '../../../composables/useSettings'
+import { i18n } from '../../../i18n'
 
 type RateFieldProps = {
   goal: Goal
@@ -35,9 +36,12 @@ export function useProjectRateField(
 
   const hint = computed(() => {
     if (defaultRate.value > 0) {
-      return `Empty means this project bills at the default ${defaultRate.value} ${currency.value} an hour. A task can still override it.`
+      return i18n.global.t('billing.rateHintDefault', {
+        rate: defaultRate.value.toLocaleString(settings.format.locale),
+        currency: currency.value,
+      })
     }
-    return 'Empty means this project has no rate of its own, and falls back to the default in Settings → Timer.'
+    return i18n.global.t('billing.rateHintNone')
   })
 
   const placeholder = computed(() =>

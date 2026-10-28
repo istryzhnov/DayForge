@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ISODate } from '../../../entities/types'
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatDate } = useFormat()
+const { t } = useI18n()
 
 const search = useGlobalSearch({
   getGoals: () => props.goals,
@@ -52,21 +54,21 @@ const activeDescendant = computed(() =>
   activeResult.value ? optionId(activeResult.value) : undefined,
 )
 
-const REPEAT_LABEL: Record<string, string> = {
-  daily: 'Daily',
-  weekly: 'Weekly',
-  monthly: 'Monthly',
-  yearly: 'Yearly',
-  custom: 'Repeats',
+const REPEAT_LABEL_KEY: Record<string, string> = {
+  daily: 'search.repeatDaily',
+  weekly: 'search.repeatWeekly',
+  monthly: 'search.repeatMonthly',
+  yearly: 'search.repeatYearly',
+  custom: 'search.repeats',
 }
 
 function metaOf(result: SearchResult): string {
   const parts: string[] = []
 
   if (result.kind === 'project') {
-    if (result.status === GOAL_STATUS.PAUSED) parts.push('Paused')
-    if (result.status === GOAL_STATUS.ARCHIVED) parts.push('Archived')
-    if (parts.length === 0) parts.push('Project')
+    if (result.status === GOAL_STATUS.PAUSED) parts.push(t('search.paused'))
+    if (result.status === GOAL_STATUS.ARCHIVED) parts.push(t('search.archived'))
+    if (parts.length === 0) parts.push(t('search.project'))
     return parts.join(' · ')
   }
 
@@ -74,7 +76,9 @@ function metaOf(result: SearchResult): string {
   if (result.date) {
     parts.push(formatDate(result.date, { day: 'numeric', month: 'short' }))
   }
-  if (result.repeat) parts.push(REPEAT_LABEL[result.repeat] ?? 'Repeats')
+  if (result.repeat) {
+    parts.push(t(REPEAT_LABEL_KEY[result.repeat] ?? 'search.repeats'))
+  }
   return parts.join(' · ')
 }
 
@@ -108,7 +112,7 @@ watch(activeIndex, () => {
       class="quick-add-modal search-palette"
       role="dialog"
       aria-modal="true"
-      aria-label="Search projects and tasks"
+      :aria-label="t('search.placeholder')"
     >
       <div class="modal-overlay" @click="emit('close')"></div>
       <div ref="trapRef" class="search-palette__card">
@@ -132,10 +136,10 @@ watch(activeIndex, () => {
             class="search-palette__input"
             type="text"
             role="combobox"
-            placeholder="Search projects and tasks"
+            :placeholder="t('search.placeholder')"
             autocomplete="off"
             spellcheck="false"
-            aria-label="Search projects and tasks"
+            :aria-label="t('search.placeholder')"
             aria-autocomplete="list"
             aria-controls="search-results"
             :aria-expanded="results.length > 0"
@@ -148,7 +152,7 @@ watch(activeIndex, () => {
           id="search-results"
           class="search-palette__body"
           role="listbox"
-          aria-label="Results"
+          :aria-label="t('search.results')"
         >
           <template v-if="hasQuery">
             <div
@@ -211,19 +215,19 @@ watch(activeIndex, () => {
             </div>
 
             <p v-if="results.length === 0" class="search-palette__empty">
-              No matches
+              {{ t('search.noMatches') }}
             </p>
           </template>
 
           <p v-else class="search-palette__idle">
-            Type to search projects, tasks and finished work.
+            {{ t('search.idle') }}
           </p>
         </div>
 
         <footer class="search-palette__hint">
-          <span><kbd>↑</kbd> <kbd>↓</kbd> move</span>
-          <span><kbd>Enter</kbd> open</span>
-          <span><kbd>Esc</kbd> close</span>
+          <span><kbd>↑</kbd> <kbd>↓</kbd> {{ t('search.move') }}</span>
+          <span><kbd>Enter</kbd> {{ t('search.open') }}</span>
+          <span><kbd>Esc</kbd> {{ t('search.close') }}</span>
         </footer>
       </div>
     </section>

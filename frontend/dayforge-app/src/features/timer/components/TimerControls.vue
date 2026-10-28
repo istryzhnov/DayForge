@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { shortcutTitle } from '../../../composables/useHotkeys'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { AppIconName } from '../../../components/appIconPaths'
+
+const { t } = useI18n()
 
 withDefaults(
   defineProps<{
@@ -49,22 +52,22 @@ const emit = defineEmits<{
       v-if="canSkip"
       :class="size === 'large' ? 'timer-controls__secondary' : 'btn btn-ghost'"
       type="button"
-      title="End this phase and move to the next"
+      :title="t('timer.skipTitle')"
       @click="emit('skip')"
     >
       <AppIcon v-if="size === 'large'" name="chevron-right" :size="16" />
-      <span>Skip</span>
+      <span>{{ t('timer.skip') }}</span>
     </button>
 
     <button
       v-if="canStop"
       :class="size === 'large' ? 'timer-controls__secondary' : 'btn btn-ghost'"
       type="button"
-      title="Stop and record what has been worked"
+      :title="t('timer.stopTitle')"
       @click="emit('stop')"
     >
       <AppIcon v-if="size === 'large'" name="stop" :size="16" />
-      <span>Stop</span>
+      <span>{{ t('timer.stop') }}</span>
     </button>
   </div>
 </template>

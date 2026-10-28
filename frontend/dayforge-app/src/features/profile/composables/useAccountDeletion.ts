@@ -5,6 +5,7 @@ import { useAuth } from '../../../composables/useAuth'
 import { releasePushSubscription } from '../../../composables/usePushReminders'
 import { useSync } from '../../../composables/useSync'
 import { useUndoToast } from '../../../composables/useUndoToast'
+import { i18n } from '../../../i18n'
 import {
   ACCOUNT_DELETED_NOTICE_KEY,
   clearLocalAppData,
@@ -23,17 +24,17 @@ export function useAccountDeletion() {
   const error = ref<string | null>(null)
 
   const isOnline = sync.isOnline
-  const offlineHint = 'Connect to the internet to delete your account.'
+  const offlineHint = computed(() => i18n.global.t('profile.offlineDelete'))
   const canStart = computed(() => auth.isSignedIn.value && isOnline.value)
 
   async function deleteAccount(): Promise<boolean> {
     const client = getSupabase()
     if (!client || !auth.isSignedIn.value) {
-      error.value = 'You are not signed in.'
+      error.value = i18n.global.t('profile.notSignedIn')
       return false
     }
     if (!isOnline.value) {
-      error.value = offlineHint
+      error.value = offlineHint.value
       return false
     }
 
@@ -50,7 +51,7 @@ export function useAccountDeletion() {
       isBusy.value = false
       reportError(caught, { area: 'sync', stage: 'account-delete' })
       const detail = caught instanceof Error ? caught.message : String(caught)
-      error.value = `Your account was not deleted (${detail}). Nothing was changed, so you can try again.`
+      error.value = i18n.global.t('profile.deleteFailed', { detail })
       return false
     }
 
@@ -102,5 +103,9 @@ export function showAccountDeletedNotice(): void {
   if (!pending) return
 
   const { offerNotice } = useUndoToast()
-  offerNotice('Your account was deleted', 'OK', () => {})
+  offerNotice(
+    i18n.global.t('profile.deletedNotice'),
+    i18n.global.t('profile.ok'),
+    () => {},
+  )
 }

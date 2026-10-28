@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useSettings } from '../../../composables/useSettings'
 import {
@@ -11,6 +12,7 @@ import {
   type BudgetPeriod,
   type ProjectBudget,
 } from '../../analytics/composables/projectBudget'
+import type { Messages } from '../../analytics/composables/projectBilling'
 
 const props = defineProps<{ goal: Goal }>()
 
@@ -19,11 +21,13 @@ const emit = defineEmits<{
 }>()
 
 const { settings } = useSettings()
+const { t } = useI18n()
 const currency = computed(() => settings.timer.currency)
 
-const PERIODS: ReadonlyArray<{ id: BudgetPeriod; label: string }> = [
-  { id: BUDGET_PERIOD.TOTAL, label: 'Whole project' },
-  { id: BUDGET_PERIOD.MONTH, label: 'Each month' },
+/** `labelKey` is rendered with `t()` in the template, so a language switch updates it. */
+const PERIODS: ReadonlyArray<{ id: BudgetPeriod; labelKey: string }> = [
+  { id: BUDGET_PERIOD.TOTAL, labelKey: 'billing.periodWhole' },
+  { id: BUDGET_PERIOD.MONTH, labelKey: 'billing.periodMonth' },
 ]
 
 const draft = ref<BudgetDraft>(
@@ -45,7 +49,11 @@ watch(
 )
 
 function save() {
-  const result = parseBudgetDraft(draft.value)
+  const messages: Messages = {
+    text: (key, params) => t(key, params ?? {}),
+    locale: settings.format.locale,
+  }
+  const result = parseBudgetDraft(draft.value, messages)
   if (!result.ok) {
     error.value = result.error
     return
@@ -63,35 +71,34 @@ function clear() {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">Budget</p>
+    <p class="sidebar-caption">{{ t('billing.budgetCaption') }}</p>
 
     <p class="settings-group-hint">
-      A limit for this project. Progress shows in the project header, and you
-      get a notice at 80% and at 100%.
+      {{ t('billing.budgetHint') }}
     </p>
 
     <div class="settings-times">
       <label>
-        Hours
+        {{ t('billing.budgetHours') }}
         <input
           v-model="draft.hours"
           type="number"
           min="0"
           step="any"
           inputmode="decimal"
-          placeholder="No limit"
+          :placeholder="t('billing.noLimit')"
           @input="error = ''"
         />
       </label>
       <label>
-        Money ({{ currency }})
+        {{ t('billing.budgetMoney', { currency }) }}
         <input
           v-model="draft.amount"
           type="number"
           min="0"
           step="any"
           inputmode="decimal"
-          placeholder="No limit"
+          :placeholder="t('billing.noLimit')"
           @input="error = ''"
         />
       </label>
@@ -100,7 +107,7 @@ function clear() {
     <div
       class="settings-chips budget-period"
       role="group"
-      aria-label="Budget period"
+      :aria-label="t('billing.budgetPeriodAria')"
     >
       <button
         v-for="period in PERIODS"
@@ -111,7 +118,7 @@ function clear() {
         :aria-pressed="draft.period === period.id"
         @click="draft.period = period.id"
       >
-        {{ period.label }}
+        {{ t(period.labelKey) }}
       </button>
     </div>
 
@@ -123,7 +130,7 @@ function clear() {
         type="button"
         @click="save"
       >
-        Save budget
+        {{ t('billing.saveBudget') }}
       </button>
       <button
         v-if="hasBudget"
@@ -131,7 +138,7 @@ function clear() {
         type="button"
         @click="clear"
       >
-        Remove budget
+        {{ t('billing.removeBudget') }}
       </button>
     </div>
   </div>

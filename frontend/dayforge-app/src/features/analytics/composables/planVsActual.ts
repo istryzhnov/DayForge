@@ -17,6 +17,7 @@ import {
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
 import { occursOn } from '../../../composables/goalSpace/recurrence'
+import { englishText, type Text } from './projectBilling'
 
 const MINUTE_MS = 60 * 1000
 
@@ -241,6 +242,7 @@ export function planVsActual(
   planned: Map<string, number>,
   actual: ProjectTotal[],
   goals: Goal[],
+  text: Text = englishText,
 ): PlanVsActualResult {
   const actualByKey = new Map(
     actual.map((project) => [projectTotalKey(project), project]),
@@ -258,7 +260,9 @@ export function planVsActual(
       const title =
         found?.title ??
         goal?.title ??
-        (key === NO_PROJECT_KEY ? 'Without a project' : 'Deleted project')
+        (key === NO_PROJECT_KEY
+          ? text('analytics.noProject')
+          : text('analytics.deletedProject'))
 
       return rowFor(key, title, goal?.id ?? found?.goalId, plannedMs, actualMs)
     })
@@ -267,7 +271,13 @@ export function planVsActual(
   // Totals count every row; the sub-minute cut only trims what is listed.
   const plannedTotal = allRows.reduce((sum, row) => sum + row.plannedMs, 0)
   const actualTotal = allRows.reduce((sum, row) => sum + row.actualMs, 0)
-  const overall = rowFor('total', 'Total', undefined, plannedTotal, actualTotal)
+  const overall = rowFor(
+    'total',
+    text('analytics.colTotal'),
+    undefined,
+    plannedTotal,
+    actualTotal,
+  )
 
   const rows = allRows
     .filter((row) => row.plannedMs > 0 || row.actualMs >= MINUTE_MS)

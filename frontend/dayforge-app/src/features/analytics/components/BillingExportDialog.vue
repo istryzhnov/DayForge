@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Client } from '../../../entities/BillingEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TimeEntry } from '../../../entities/TimerEntity'
@@ -15,6 +16,12 @@ import {
 } from '../composables/billingExport'
 import { buildPrintHtml, openPrintReport } from '../composables/printReport'
 import { roundMoney } from '../composables/clientBilling'
+import type { Text } from '../composables/projectBilling'
+
+const { t } = useI18n()
+
+/** The export follows the UI language: headers, fallbacks and the printed report. */
+const text: Text = (key, params) => t(key, params ?? {})
 
 /**
  * Loaded on demand from Analytics, so the export code stays out of the main
@@ -57,8 +64,8 @@ const projectOptions = computed(() => {
     const key = entry.goalId ?? NO_PROJECT_KEY
     if (keys.has(key)) return
     const title = entry.goalId
-      ? (goalById.get(entry.goalId)?.title ?? 'Deleted project')
-      : 'Without a project'
+      ? (goalById.get(entry.goalId)?.title ?? t('analytics.deletedProject'))
+      : t('analytics.noProject')
     keys.set(key, title)
   })
 
@@ -79,6 +86,7 @@ const lines = computed(() =>
     goals: props.goals,
     clients: props.clients,
     rateOf: props.rateOf,
+    text,
   }),
 )
 
@@ -93,11 +101,13 @@ const money = computed(
     }),
 )
 
-const summaryLabel = computed(() => {
-  const count = lines.value.length
-  const entriesLabel = `${count} ${count === 1 ? 'entry' : 'entries'}`
-  return `${entriesLabel} · ${formatHoursMinutes(totals.value.ms)} · ${money.value.format(roundMoney(totals.value.amount))}`
-})
+const summaryLabel = computed(() =>
+  t('analytics.exportSummary', {
+    entries: t('analytics.entryCount', lines.value.length),
+    hours: formatHoursMinutes(totals.value.ms),
+    amount: money.value.format(roundMoney(totals.value.amount)),
+  }),
+)
 
 /** Saves a text file through a temporary link, the same way the backup does. */
 function saveFile(content: string, type: string, fileName: string) {
@@ -113,9 +123,9 @@ function saveFile(content: string, type: string, fileName: string) {
 }
 
 function exportCsv() {
-  const csv = buildCsv(lines.value, props.currency)
+  const csv = buildCsv(lines.value, props.currency, text)
   saveFile(csv, 'text/csv;charset=utf-8', reportFileName(props.from, props.to))
-  message.value = 'CSV saved to your downloads.'
+  message.value = t('analytics.csvSaved')
   failed.value = false
 }
 
@@ -130,16 +140,16 @@ function exportPdf() {
     locale: props.locale,
     lines: lines.value,
     generatedAt: new Date().toLocaleString(props.locale),
+    text,
   })
 
   if (!openPrintReport(html)) {
     failed.value = true
-    message.value =
-      'The browser blocked the report window. Allow pop-ups for this site and try again.'
+    message.value = t('analytics.popupBlocked')
     return
   }
   failed.value = false
-  message.value = 'In the print dialog, choose "Save as PDF".'
+  message.value = t('analytics.printHint')
 }
 
 function handleExport() {
@@ -159,12 +169,19 @@ function handleExport() {
       aria-labelledby="billing-export-title"
       @submit.prevent="handleExport"
     >
-      <h3 id="billing-export-title">Export report</h3>
+      <h3 id="billing-export-title">{{ t('analytics.exportReport') }}</h3>
       <p class="project-billing__note">
-        {{ periodLabel }} · {{ clientLabel }} · {{ from }} to {{ to }}
+        {{
+          t('analytics.exportScope', {
+            period: periodLabel,
+            client: clientLabel,
+            from,
+            to,
+          })
+        }}
       </p>
 
-      <p class="sidebar-caption">Format</p>
+      <p class="sidebar-caption">{{ t('analytics.formatLabel') }}</p>
       <div class="settings-chips">
         <button
           class="theme-chip"
@@ -173,7 +190,7 @@ function handleExport() {
           :aria-pressed="format === 'csv'"
           @click="format = 'csv'"
         >
-          CSV spreadsheet
+          {{ t('analytics.formatCsv') }}
         </button>
         <button
           class="theme-chip"
@@ -182,14 +199,14 @@ function handleExport() {
           :aria-pressed="format === 'pdf'"
           @click="format = 'pdf'"
         >
-          PDF (print)
+          {{ t('analytics.formatPdf') }}
         </button>
       </div>
 
       <label class="project-billing__field">
-        <span>Project</span>
+        <span>{{ t('analytics.projectLabel') }}</span>
         <select v-model="projectKey">
-          <option value="all">All projects</option>
+          <option value="all">{{ t('analytics.allProjects') }}</option>
           <option
             v-for="[key, title] in projectOptions"
             :key="key"
@@ -203,14 +220,10 @@ function handleExport() {
       <p class="billing-export__summary">{{ summaryLabel }}</p>
 
       <p class="project-billing__note">
-        <template v-if="format === 'csv'">
-          UTF-8 with a byte order mark, so Excel and Numbers read the letters
-          correctly. Durations are decimal hours.
-        </template>
-        <template v-else>
-          Opens a print view. Choose "Save as PDF" in the print dialog. Nothing
-          leaves your device.
-        </template>
+        <template v-if="format === 'csv'">{{
+          t('analytics.csvNote')
+        }}</template>
+        <template v-else>{{ t('analytics.pdfNote') }}</template>
       </p>
 
       <p
@@ -223,21 +236,25 @@ function handleExport() {
 
       <div class="modal-actions project-billing__actions">
         <button class="btn btn-ghost" type="button" @click="emit('close')">
-          Close
+          {{ t('analytics.close') }}
         </button>
         <button
           class="btn btn-ghost"
           type="button"
           @click="emit('copy-report')"
         >
-          {{ copied ? 'Copied' : 'Copy report' }}
+          {{ copied ? t('analytics.copied') : t('analytics.copyReport') }}
         </button>
         <button
           class="btn btn-primary"
           type="submit"
           :disabled="lines.length === 0"
         >
-          {{ format === 'csv' ? 'Download CSV' : 'Open print view' }}
+          {{
+            format === 'csv'
+              ? t('analytics.downloadCsv')
+              : t('analytics.openPrint')
+          }}
         </button>
       </div>
     </form>

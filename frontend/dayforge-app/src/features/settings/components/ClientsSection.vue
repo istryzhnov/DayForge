@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { Client } from '../../../entities/BillingEntity'
 import { useSettings } from '../../../composables/useSettings'
 import { CLIENT_LIMITS } from '../../../composables/billing/clients'
@@ -7,6 +8,7 @@ import { createId } from '../../../composables/goalSpace/date'
 import { textValue } from '../../../composables/inputValue'
 
 const { settings, update } = useSettings()
+const { t } = useI18n()
 
 const newName = ref('')
 const newEmail = ref('')
@@ -71,13 +73,11 @@ function addClient() {
 
 <template>
   <div class="settings-section">
-    <p class="settings-section__intro">
-      Clients are only for billing. They never change your time entries.
-    </p>
+    <p class="settings-section__intro">{{ t('billing.clientsIntro') }}</p>
 
     <form class="settings-client-form" @submit.prevent="addClient">
       <label class="settings-field">
-        Client name
+        {{ t('billing.clientName') }}
         <input
           v-model="newName"
           type="text"
@@ -86,7 +86,7 @@ function addClient() {
         />
       </label>
       <label class="settings-field">
-        Email (optional)
+        {{ t('billing.emailOptional') }}
         <input
           v-model="newEmail"
           type="email"
@@ -99,13 +99,13 @@ function addClient() {
         type="submit"
         :disabled="newName.trim() === ''"
       >
-        Add client
+        {{ t('billing.addClient') }}
       </button>
     </form>
 
-    <p class="sidebar-caption">Active</p>
+    <p class="sidebar-caption">{{ t('billing.activeClients') }}</p>
     <p v-if="activeClients.length === 0" class="settings-group-hint">
-      No active clients yet.
+      {{ t('billing.noActiveClients') }}
     </p>
 
     <div
@@ -114,7 +114,7 @@ function addClient() {
       class="settings-client"
     >
       <label class="settings-field">
-        Name
+        {{ t('billing.fieldName') }}
         <input
           type="text"
           :value="client.name"
@@ -123,7 +123,7 @@ function addClient() {
         />
       </label>
       <label class="settings-field">
-        Email
+        {{ t('billing.fieldEmail') }}
         <input
           type="email"
           :value="client.email ?? ''"
@@ -132,7 +132,7 @@ function addClient() {
         />
       </label>
       <label class="settings-field">
-        Notes
+        {{ t('billing.fieldNotes') }}
         <textarea
           rows="2"
           :value="client.notes ?? ''"
@@ -145,15 +145,14 @@ function addClient() {
         type="button"
         @click="setArchived(client, true)"
       >
-        Archive {{ client.name }}
+        {{ t('billing.archiveClient', { name: client.name }) }}
       </button>
     </div>
 
     <template v-if="archivedClients.length > 0">
-      <p class="sidebar-caption">Archived</p>
+      <p class="sidebar-caption">{{ t('billing.archivedClients') }}</p>
       <p class="settings-group-hint">
-        Hidden from the project picker. Their projects and history stay as they
-        are.
+        {{ t('billing.archivedHint') }}
       </p>
       <div
         v-for="client in archivedClients"
@@ -166,7 +165,7 @@ function addClient() {
           type="button"
           @click="setArchived(client, false)"
         >
-          Restore {{ client.name }}
+          {{ t('billing.restoreClient', { name: client.name }) }}
         </button>
       </div>
     </template>

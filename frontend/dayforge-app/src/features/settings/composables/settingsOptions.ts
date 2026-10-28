@@ -1,7 +1,6 @@
 import {
   BACKGROUND_PATTERN,
   DENSITY,
-  FONT_LABELS,
   FONT_OPTION,
   MOTION,
   type BackgroundPattern,
@@ -17,8 +16,26 @@ import {
 } from '../../../composables/useSettings'
 import { GOAL_STATUS, PRIORITY } from '../../../entities/constants'
 import type { GoalStatus, Priority } from '../../../entities/types'
+import type { Language } from '../../../i18n/languages'
 
-export type SettingOption<T> = { id: T; label: string }
+/**
+ * Options whose labels are translated: `labelKey` is a full message key,
+ * rendered with t() where the option is shown, so a language switch updates it.
+ */
+export type SettingOption<T> = { id: T; labelKey: string }
+
+/**
+ * Language names are written in their own language, so they are never
+ * translated. A language is not a message, so it has no key.
+ */
+export const LANGUAGE_OPTIONS: { id: Language; label: string }[] = [
+  { id: 'en', label: 'English' },
+  { id: 'uk', label: 'Українська' },
+  { id: 'pl', label: 'Polski' },
+  { id: 'de', label: 'Deutsch' },
+  { id: 'zh', label: '中文' },
+  { id: 'es', label: 'Español' },
+]
 
 /** Minutes, shared by the reminder lead time and the grid's snapping. */
 export const MINUTE_STEPS = [5, 10, 15, 30, 60]
@@ -35,62 +52,69 @@ export const COUNTDOWN_LENGTHS = [5, 10, 15, 25, 45, 60]
 export const LONG_BREAK_EVERY = [2, 3, 4, 5, 6]
 
 export const DENSITY_OPTIONS: SettingOption<Density>[] = [
-  { id: DENSITY.COMPACT, label: 'Compact' },
-  { id: DENSITY.COZY, label: 'Cozy' },
-  { id: DENSITY.ROOMY, label: 'Roomy' },
+  { id: DENSITY.COMPACT, labelKey: 'settings.densityCompact' },
+  { id: DENSITY.COZY, labelKey: 'settings.densityCozy' },
+  { id: DENSITY.ROOMY, labelKey: 'settings.densityRoomy' },
 ]
 
 export const PATTERN_OPTIONS: SettingOption<BackgroundPattern>[] = [
-  { id: BACKGROUND_PATTERN.GLOW, label: 'Glow' },
-  { id: BACKGROUND_PATTERN.GRID, label: 'Grid' },
-  { id: BACKGROUND_PATTERN.DOTS, label: 'Dots' },
-  { id: BACKGROUND_PATTERN.NONE, label: 'Plain' },
+  { id: BACKGROUND_PATTERN.GLOW, labelKey: 'settings.patternGlow' },
+  { id: BACKGROUND_PATTERN.GRID, labelKey: 'settings.patternGrid' },
+  { id: BACKGROUND_PATTERN.DOTS, labelKey: 'settings.patternDots' },
+  { id: BACKGROUND_PATTERN.NONE, labelKey: 'settings.patternPlain' },
 ]
 
-export const FONT_OPTIONS: SettingOption<FontOption>[] = (
+/** Message key of each typeface name. Manrope is a proper noun and stays as it is. */
+export const FONT_LABEL_KEYS: Record<FontOption, string> = {
+  [FONT_OPTION.MANROPE]: 'settings.fontManrope',
+  [FONT_OPTION.SYSTEM]: 'settings.fontSystem',
+  [FONT_OPTION.SERIF]: 'settings.fontSerif',
+  [FONT_OPTION.MONO]: 'settings.fontMono',
+  [FONT_OPTION.ROUNDED]: 'settings.fontRounded',
+}
+
+export const FONT_OPTIONS: { id: FontOption; labelKey: string }[] = (
   Object.values(FONT_OPTION) as FontOption[]
-).map((font) => ({ id: font, label: FONT_LABELS[font] }))
+).map((font) => ({ id: font, labelKey: FONT_LABEL_KEYS[font] }))
 
 export const MOTION_OPTIONS: SettingOption<Motion>[] = [
-  { id: MOTION.FULL, label: 'Full' },
-  { id: MOTION.REDUCED, label: 'Reduced' },
+  { id: MOTION.FULL, labelKey: 'settings.motionFull' },
+  { id: MOTION.REDUCED, labelKey: 'settings.motionReduced' },
 ]
 
 export const START_VIEW_OPTIONS: SettingOption<StartView>[] = [
-  { id: START_VIEW.GOALS, label: 'All tasks' },
-  { id: START_VIEW.TIMER, label: 'Timer' },
-  { id: START_VIEW.CALENDAR, label: 'Calendar' },
-  { id: START_VIEW.ANALYTICS, label: 'Analytics' },
-  { id: START_VIEW.PLANNED, label: 'Planned' },
-  { id: START_VIEW.ARCHIVE, label: 'What I did' },
+  { id: START_VIEW.GOALS, labelKey: 'settings.viewAllTasks' },
+  { id: START_VIEW.TIMER, labelKey: 'settings.viewTimer' },
+  { id: START_VIEW.CALENDAR, labelKey: 'settings.viewCalendar' },
+  { id: START_VIEW.ANALYTICS, labelKey: 'settings.viewAnalytics' },
+  { id: START_VIEW.PLANNED, labelKey: 'settings.viewPlanned' },
+  { id: START_VIEW.ARCHIVE, labelKey: 'settings.viewArchive' },
 ]
 
 export const PRIORITY_OPTIONS: SettingOption<Priority>[] = [
-  { id: PRIORITY.MINOR, label: 'Task' },
-  { id: PRIORITY.MAJOR, label: 'Project' },
+  { id: PRIORITY.MINOR, labelKey: 'settings.priorityTask' },
+  { id: PRIORITY.MAJOR, labelKey: 'settings.priorityProject' },
 ]
 
 export const GOAL_STATUS_OPTIONS: SettingOption<GoalStatus>[] = [
-  { id: GOAL_STATUS.ACTIVE, label: 'Active' },
-  { id: GOAL_STATUS.PAUSED, label: 'Paused' },
-  { id: GOAL_STATUS.ARCHIVED, label: 'Archived' },
+  { id: GOAL_STATUS.ACTIVE, labelKey: 'settings.statusActive' },
+  { id: GOAL_STATUS.PAUSED, labelKey: 'settings.statusPaused' },
+  { id: GOAL_STATUS.ARCHIVED, labelKey: 'settings.statusArchived' },
 ]
 
+/** Message keys: the hint under the status chips is translated where it is shown. */
 export const GOAL_STATUS_HINTS: Record<GoalStatus, string> = {
-  [GOAL_STATUS.ACTIVE]:
-    'Today\u2019s list is rebuilt from this project every morning, as usual.',
-  [GOAL_STATUS.PAUSED]:
-    'Its tasks stop arriving on today: repeats no longer fire and unfinished ones stay on the day they were left. Rows already on today are kept, and nothing is deleted.',
-  [GOAL_STATUS.ARCHIVED]:
-    'Paused, and the project also drops out of the sidebar list \u2014 it stays visible only while it is the one you have open.',
+  [GOAL_STATUS.ACTIVE]: 'settings.projectStatusHintActive',
+  [GOAL_STATUS.PAUSED]: 'settings.projectStatusHintPaused',
+  [GOAL_STATUS.ARCHIVED]: 'settings.projectStatusHintArchived',
 }
 
 export const CLOCK_OPTIONS: SettingOption<ClockFormat>[] = [
-  { id: CLOCK_FORMAT.H24, label: '24-hour' },
-  { id: CLOCK_FORMAT.H12, label: '12-hour' },
+  { id: CLOCK_FORMAT.H24, labelKey: 'settings.clock24' },
+  { id: CLOCK_FORMAT.H12, labelKey: 'settings.clock12' },
 ]
 
 export const WEEK_START_OPTIONS: SettingOption<0 | 1>[] = [
-  { id: 1, label: 'Monday' },
-  { id: 0, label: 'Sunday' },
+  { id: 1, labelKey: 'settings.weekMonday' },
+  { id: 0, labelKey: 'settings.weekSunday' },
 ]

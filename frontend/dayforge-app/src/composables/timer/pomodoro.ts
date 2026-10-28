@@ -3,12 +3,6 @@ import type { PomodoroPhase, TimerSettings } from '../../entities/TimerEntity'
 
 export const MINUTE_MS = 60 * 1000
 
-export const PHASE_LABELS: Record<PomodoroPhase, string> = {
-  [POMODORO_PHASE.FOCUS]: 'Focus',
-  [POMODORO_PHASE.SHORT_BREAK]: 'Short break',
-  [POMODORO_PHASE.LONG_BREAK]: 'Long break',
-}
-
 export function phaseDurationMs(
   phase: PomodoroPhase,
   settings: TimerSettings,

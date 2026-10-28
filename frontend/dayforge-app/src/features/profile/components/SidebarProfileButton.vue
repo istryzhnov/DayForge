@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import ProfileAvatar from './ProfileAvatar.vue'
 import { useProfile } from '../composables/useProfile'
 import { useProfilePanel } from '../composables/useProfilePanel'
 
+const { t } = useI18n()
 const { auth, status, initial, avatarUrl, syncSummary, triggerTitle } =
   useProfile()
 const { isOpen, open } = useProfilePanel()
@@ -37,10 +39,12 @@ const { isOpen, open } = useProfilePanel()
     </span>
     <span class="sidebar-profile__text">
       <strong>{{
-        auth.isSignedIn.value ? auth.displayName.value : 'Sign in'
+        auth.isSignedIn.value ? auth.displayName.value : t('profile.signIn')
       }}</strong>
       <span>{{
-        auth.isSignedIn.value ? auth.user.value?.email : 'Sync across devices'
+        auth.isSignedIn.value
+          ? auth.user.value?.email
+          : t('profile.syncAcrossDevices')
       }}</span>
     </span>
   </button>
