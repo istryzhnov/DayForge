@@ -1,13 +1,20 @@
 import type { ID, ISODateTime } from '../entities/types'
+import { stableStringify } from './diff'
+import {
+  EPOCH,
+  fieldStampsOf,
+  groupIndexOf,
+  ROW_FIELD_GROUPS,
+  stampOf,
+  stampOfGroup,
+  type FieldGroups,
+} from './fieldGroups'
 import {
   SYNC_TABLE,
   type SyncedRow,
   type TableName,
   type Tombstone,
 } from './types'
-
-/** Older than any real stamp, so a row with no stamp always loses. */
-const EPOCH = '1970-01-01T00:00:00.000Z'
 
 /**
  * Groups of fields on a day row that are edited independently: ticking a task
@@ -27,15 +34,6 @@ const DAILY_GROUP_FIELDS: Record<DailyFieldGroup, string[]> = {
   status: ['status', 'completedAt'],
   time: ['startTime', 'endTime'],
   date: ['date'],
-}
-
-/**
- * A row written before stamps existed falls back to its creation time, and
- * then to the epoch — so the side that has been through a migration wins,
- * which is the safe direction.
- */
-export function stampOf(row: SyncedRow): ISODateTime {
-  return row.updatedAt ?? row.createdAt ?? EPOCH
 }
 
 function groupStamps(row: SyncedRow): Partial<Record<DailyFieldGroup, string>> {
@@ -123,14 +121,102 @@ function mergeDailyRow(local: SyncedRow, remote: SyncedRow): RowMerge {
   }
 }
 
+/**
+ * Goals, task templates and settings merge a group at a time, so an edit to
+ * one field group on each device survives. A group comes from the side whose
+ * stamp for it is newer; a tie goes to the side stamped later. A field outside
+ * every group follows the same rule under its own name, and is kept from the
+ * other side when the winner has no value for it, so a newer build's fields
+ * are never dropped. Only a named group can be cleared by a newer write.
+ */
+function mergeGroupedRow(
+  groups: FieldGroups,
+  local: SyncedRow,
+  remote: SyncedRow,
+): RowMerge {
+  const localStamp = stampOf(local)
+  const remoteStamp = stampOf(remote)
+  const owner = groupIndexOf(groups)
+
+  // Every group named by either side, so a stamp a newer build wrote for a
+  // group this build does not know is carried along.
+  const names = new Set<string>([
+    ...Object.keys(groups),
+    ...Object.keys(fieldStampsOf(local) ?? {}),
+    ...Object.keys(fieldStampsOf(remote) ?? {}),
+  ])
+  const fieldsAt: Record<string, ISODateTime> = {}
+  names.forEach((group) => {
+    const localAt = stampOfGroup(local, group)
+    const remoteAt = stampOfGroup(remote, group)
+    const newest = remoteAt > localAt ? remoteAt : localAt
+    // Only a stamp someone actually set is carried forward, as for day rows.
+    if (newest > EPOCH) fieldsAt[group] = newest
+  })
+
+  const remoteWins = (group: string): boolean => {
+    const localAt = stampOfGroup(local, group)
+    const remoteAt = stampOfGroup(remote, group)
+    if (localAt !== remoteAt) return remoteAt > localAt
+    return remoteStamp > localStamp
+  }
+
+  const merged: SyncedRow = { id: local.id }
+  const keys = new Set([...Object.keys(local), ...Object.keys(remote)])
+  keys.forEach((key) => {
+    if (key === 'updatedAt' || key === 'fieldsAt') return
+
+    const group = owner.get(key) ?? key
+    const fromRemote = remoteWins(group)
+    const winner = fromRemote ? remote : local
+    const loser = fromRemote ? local : remote
+
+    let value = winner[key]
+    if (value === undefined && !owner.has(key)) value = loser[key]
+    if (value !== undefined) merged[key] = value
+  })
+
+  // The row's own stamp has to cover every group, or the server would refuse
+  // the write and the next merge would undo the half that came from the loser.
+  merged.updatedAt = localStamp > remoteStamp ? localStamp : remoteStamp
+  if (Object.keys(fieldsAt).length > 0) merged.fieldsAt = fieldsAt
+
+  const matchesLocal = stableStringify(merged) === stableStringify(local)
+  const matchesRemote = stableStringify(merged) === stableStringify(remote)
+  const outcome: MergeOutcome =
+    matchesLocal && matchesRemote
+      ? 'equal'
+      : matchesRemote
+        ? 'remote'
+        : matchesLocal
+          ? 'local'
+          : 'merged'
+
+  return { row: merged, outcome }
+}
+
 export function mergeRow(
   table: TableName,
   local: SyncedRow,
   remote: SyncedRow,
 ): RowMerge {
-  return table === SYNC_TABLE.DAILY_TASKS
-    ? mergeDailyRow(local, remote)
-    : mergeByRow(local, remote)
+  if (table === SYNC_TABLE.DAILY_TASKS) return mergeDailyRow(local, remote)
+
+  const groups = ROW_FIELD_GROUPS[table]
+  // A row with no group stamps on either side is a whole row, as it always was.
+  if (
+    groups === undefined ||
+    (fieldStampsOf(local) === undefined && fieldStampsOf(remote) === undefined)
+  ) {
+    return mergeByRow(local, remote)
+  }
+  return mergeGroupedRow(groups, local, remote)
+}
+
+/** The group names a row of this table is stamped under. */
+export function groupNamesOf(table: TableName): string[] {
+  if (table === SYNC_TABLE.DAILY_TASKS) return Object.values(DAILY_FIELD_GROUPS)
+  return Object.keys(ROW_FIELD_GROUPS[table] ?? {})
 }
 
 export type TombstoneIndex = Map<string, ISODateTime>
@@ -219,6 +305,36 @@ export function mergeCollection(
   })
 
   return { merged, toPush, toDelete }
+}
+
+/**
+ * A delete still waiting in the queue was made on this device at the stamp the
+ * map records. An incoming row no newer than that stays deleted: it is the
+ * same version, or an older one. A row edited after the delete was made on
+ * another device revives, the same rule mergeIncoming applies to a remote
+ * deletion. `revived` names the rows whose queued delete must be dropped, so it
+ * is not sent and undo the edit.
+ */
+export function resolveQueuedDeletes(
+  incoming: SyncedRow[],
+  queued: ReadonlyMap<ID, ISODateTime>,
+): { keep: SyncedRow[]; revived: ID[] } {
+  const keep: SyncedRow[] = []
+  const revived: ID[] = []
+
+  incoming.forEach((row) => {
+    const deletedAt = queued.get(row.id)
+    if (deletedAt === undefined) {
+      keep.push(row)
+      return
+    }
+    if (stampOf(row) > deletedAt) {
+      keep.push(row)
+      revived.push(row.id)
+    }
+  })
+
+  return { keep, revived }
 }
 
 /**

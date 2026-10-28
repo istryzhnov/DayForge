@@ -13,6 +13,21 @@ export const DELETE_CONFIRMATION = 'DELETE'
  */
 export const ACCOUNT_DELETED_NOTICE_KEY = 'dayforge-account-deleted-notice-v1'
 
+/**
+ * The account that owns the data on this browser. It is written as soon as a
+ * signed-in session is seen, so data left behind by an expired session still
+ * says whose it is. It is not a device key, so sign-out and deletion remove it
+ * with the rest of the account data.
+ */
+export const DATA_OWNER_STORAGE_KEY = 'dayforge-data-owner-v1'
+
+/**
+ * The Supabase session and its PKCE verifier. They are app keys like any other,
+ * but a wipe before a new sign-in must keep them, or the new account would be
+ * signed out again on reload.
+ */
+export const SESSION_KEY_PREFIX = 'dayforge-auth-v1'
+
 type KeyedStorage = Pick<Storage, 'length' | 'key' | 'removeItem'>
 
 export function appStorageKeys(
@@ -60,14 +75,37 @@ export function accountKeysToClear(keys: readonly string[]): string[] {
   )
 }
 
+function isSessionKey(key: string): boolean {
+  return key.startsWith(SESSION_KEY_PREFIX)
+}
+
 /**
- * Removes this account's data on sign-out and leaves DEVICE_KEYS alone.
+ * Removes this account's data and leaves DEVICE_KEYS alone. With `keepSession`
+ * the auth session is kept too, for a wipe that precedes a new sign-in.
  * Returns how many keys were removed.
  */
-export function clearAccountData(storage: KeyedStorage): number {
-  const keys = accountKeysToClear(appStorageKeys(storage))
+export function clearAccountData(
+  storage: KeyedStorage,
+  keepSession = false,
+): number {
+  const keys = accountKeysToClear(appStorageKeys(storage)).filter(
+    (key) => !(keepSession && isSessionKey(key)),
+  )
   keys.forEach((key) => storage.removeItem(key))
   return keys.length
+}
+
+/**
+ * Whether the data on this browser must be cleared before `userId` signs in.
+ * Only a different owner counts: guest data (no owner recorded) is merged into
+ * the first account that signs in, and the same account signing back in keeps
+ * its data.
+ */
+export function shouldWipeBeforeSignIn(
+  owner: string | null,
+  userId: string,
+): boolean {
+  return owner !== null && owner !== userId
 }
 
 export function isDeleteConfirmed(typed: string): boolean {

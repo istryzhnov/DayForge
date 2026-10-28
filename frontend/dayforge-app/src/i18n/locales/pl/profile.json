@@ -24,6 +24,7 @@
   "signOut": "Wyloguj",
   "signingOut": "Wylogowuję…",
   "signOutNote": "Wylogowanie najpierw wysyła niewysłane zmiany, a potem usuwa projekty, zadania i czas tego konta z tej przeglądarki. Zostają na serwerze i wracają po ponownym zalogowaniu.",
+  "signOutOffline": "Brak połączenia. Ta przeglądarka zostanie wylogowana, a jej dane usunięte; sesja na serwerze wygaśnie sama.",
   "unsyncedChanges": "Wszystkie zmiany są zsynchronizowane | {count} zmiana nie została jeszcze zsynchronizowana. Wylogowanie usunie ją z tej przeglądarki. | {count} zmiany nie zostały jeszcze zsynchronizowane. Wylogowanie usunie je z tej przeglądarki. | {count} zmian nie zostało jeszcze zsynchronizowanych. Wylogowanie usunie je z tej przeglądarki.",
   "signOutAnyway": "Wyloguj mimo to",
   "deleteAccount": "Usuń konto",

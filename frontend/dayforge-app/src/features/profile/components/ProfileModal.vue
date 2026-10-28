@@ -199,6 +199,9 @@ const {
         </button>
 
         <template v-if="!isSignOutConfirmOpen">
+          <p v-if="!isOnline" class="settings-message is-error">
+            {{ t('profile.signOutOffline') }}
+          </p>
           <button
             class="btn btn-ghost settings-action settings-action--danger"
             type="button"

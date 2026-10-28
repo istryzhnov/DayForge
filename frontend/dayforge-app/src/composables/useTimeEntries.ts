@@ -6,7 +6,8 @@ import type {
   TimerTaskRef,
 } from '../entities/TimerEntity'
 import { TIMER_MODE, TIME_ENTRY_SOURCE } from '../entities/constants'
-import { createId, getTodayISODate } from './goalSpace/date'
+import { createId } from './goalSpace/date'
+import { useToday } from './goalSpace/today'
 import { readJson, writeJson } from '../lib/storage'
 import { useTombstones } from './useTombstones'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
@@ -97,6 +98,8 @@ function initialize() {
 
 export function useTimeEntries() {
   initialize()
+  // Reactive, so the day totals reset when midnight passes.
+  const today = useToday()
 
   /**
    * The id comes from the stretch itself: two devices that both watch a
@@ -178,9 +181,7 @@ export function useTimeEntries() {
 
   const days = computed(() => groupByDay(entries.value))
   const recent = computed(() => sortByStart(entries.value))
-  const todayTotalMs = computed(() =>
-    totalForDay(entries.value, getTodayISODate()),
-  )
+  const todayTotalMs = computed(() => totalForDay(entries.value, today.value))
 
   return {
     entries,
@@ -195,6 +196,6 @@ export function useTimeEntries() {
     removeEntry,
     totalForTasks: (taskIds: ID[]) => totalForTasks(entries.value, taskIds),
     totalForTaskToday: (taskId: ID) =>
-      totalForTaskOnDate(entries.value, taskId, getTodayISODate()),
+      totalForTaskOnDate(entries.value, taskId, today.value),
   }
 }

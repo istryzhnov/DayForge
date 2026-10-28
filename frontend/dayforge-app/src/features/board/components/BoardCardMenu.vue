@@ -14,7 +14,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'add-note'): void
   (e: 'toggle-timer'): void
-  (e: 'delete'): void
   (e: 'close'): void
 }>()
 
@@ -50,18 +49,6 @@ const { menuPositionStyle } = useContextMenu({
         "
       >
         {{ isTimerActive ? t('tasks.stopTimer') : t('tasks.startTimer') }}
-      </button>
-      <button
-        class="task-context-menu__item task-context-menu__item--danger"
-        type="button"
-        @click="
-          () => {
-            emit('delete')
-            emit('close')
-          }
-        "
-      >
-        {{ t('common.delete') }}
       </button>
     </div>
   </Teleport>

@@ -20,8 +20,18 @@ const emit = defineEmits<{
   (e: 'open-starter'): void
 }>()
 
-const { message, clearMessage, pickFile, onFileChosen } = useBackupFile({
+const {
+  message,
+  clearMessage,
+  pickFile,
+  onFileChosen,
+  pending,
+  askRestoreSnapshot,
+  confirmReplace,
+  cancelReplace,
+} = useBackupFile({
   onImport: (payload) => emit('import', payload),
+  onRestoreSnapshot: (payload) => emit('restore-snapshot', payload),
 })
 
 const auth = useAuth()
@@ -29,6 +39,15 @@ const sync = useSync()
 const { locale, uses12Hour } = useFormat()
 
 const { t } = useI18n()
+
+/** Says whose data is replaced: every device for an account, this browser otherwise. */
+const replaceWarning = computed(() =>
+  t(
+    auth.isSignedIn.value
+      ? 'settings.dataReplaceConfirm'
+      : 'settings.dataReplaceConfirmLocal',
+  ),
+)
 
 const summary = computed(() =>
   t('settings.dataSummary', {
@@ -58,8 +77,7 @@ function formatWhen(at: string) {
 }
 
 function restore(record: SnapshotRecord) {
-  clearMessage()
-  emit('restore-snapshot', record.payload)
+  askRestoreSnapshot(record.payload)
 }
 
 function clearEverything() {
@@ -112,6 +130,24 @@ function clearEverything() {
       {{ message.text }}
     </p>
 
+    <div v-if="pending?.kind === 'import'" class="settings-confirm">
+      <p class="settings-group-hint">{{ replaceWarning }}</p>
+      <button
+        class="btn btn-primary settings-action"
+        type="button"
+        @click="confirmReplace"
+      >
+        {{ t('settings.dataReplaceAction') }}
+      </button>
+      <button
+        class="btn btn-ghost settings-action"
+        type="button"
+        @click="cancelReplace"
+      >
+        {{ t('settings.dataReplaceCancel') }}
+      </button>
+    </div>
+
     <template v-if="snapshots.length > 0">
       <p class="ui-section-label ui-section-label--wrap">
         {{ t('settings.dataSnapshotsCaption') }}
@@ -134,6 +170,24 @@ function clearEverything() {
       <p class="settings-group-hint">
         {{ t('settings.dataRestoreNote') }}
       </p>
+
+      <div v-if="pending?.kind === 'snapshot'" class="settings-confirm">
+        <p class="settings-group-hint">{{ replaceWarning }}</p>
+        <button
+          class="btn btn-primary settings-action"
+          type="button"
+          @click="confirmReplace"
+        >
+          {{ t('settings.dataReplaceAction') }}
+        </button>
+        <button
+          class="btn btn-ghost settings-action"
+          type="button"
+          @click="cancelReplace"
+        >
+          {{ t('settings.dataReplaceCancel') }}
+        </button>
+      </div>
     </template>
 
     <p class="ui-section-label ui-section-label--wrap">

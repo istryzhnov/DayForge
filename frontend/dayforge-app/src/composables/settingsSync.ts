@@ -20,8 +20,20 @@ const SETTINGS_SYNC_STORAGE_KEY = 'dayforge-settings-sync-v1'
 const SETTINGS_HELD_STORAGE_KEY = 'dayforge-settings-sync-held-v1'
 const SETTINGS_ROW_ID = 'settings'
 
+/**
+ * What this device remembers about its settings: the signature they had last,
+ * and when each section was last edited. `updatedAt` is the stamp from before
+ * sections were stamped one by one; it counts for every section.
+ */
 interface SettingsStamp {
   signature: string
+  fieldsAt?: Record<string, string>
+  updatedAt?: string
+}
+
+/** The two stamps the settings row carries, as they stand for this device. */
+interface RowStamps {
+  fieldsAt?: Record<string, string>
   updatedAt?: string
 }
 
@@ -39,8 +51,82 @@ function isStamp(value: unknown): value is SettingsStamp {
   return (
     typeof candidate.signature === 'string' &&
     (candidate.updatedAt === undefined ||
-      typeof candidate.updatedAt === 'string')
+      typeof candidate.updatedAt === 'string') &&
+    (candidate.fieldsAt === undefined || isPlainObject(candidate.fieldsAt))
   )
+}
+
+/**
+ * Stamps as the row carries them. A stamp with only `updatedAt` came from a
+ * build that stamped the whole row, so every section counts as stamped then.
+ */
+function stampsOf(stamp: SettingsStamp): RowStamps {
+  if (stamp.fieldsAt !== undefined) {
+    return { fieldsAt: stamp.fieldsAt, updatedAt: stamp.updatedAt }
+  }
+  const whole = stamp.updatedAt
+  if (whole === undefined) return {}
+  return {
+    fieldsAt: Object.fromEntries(
+      SYNCED_SECTIONS.map((section) => [section, whole]),
+    ),
+    updatedAt: whole,
+  }
+}
+
+function previousPayload(
+  signature: string,
+): Record<string, unknown> | undefined {
+  try {
+    const parsed: unknown = JSON.parse(signature)
+    return isPlainObject(parsed) ? parsed : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * The stamp after the settings changed. Only the sections that changed are
+ * stamped now; the others keep the stamp they had, so a tweak to one section on
+ * this device does not overwrite another section edited on the other device.
+ */
+function nextStamp(
+  previous: SettingsStamp,
+  payload: Record<SyncedSection, unknown>,
+  now: string,
+): SettingsStamp {
+  const before = previousPayload(previous.signature)
+  const prior = stampsOf(previous).fieldsAt ?? {}
+  const fieldsAt: Record<string, string> = {}
+
+  SYNCED_SECTIONS.forEach((section) => {
+    const unchanged =
+      before !== undefined &&
+      stableStringify(before[section]) === stableStringify(payload[section])
+    // A new build that only adds settings at their defaults is not an edit.
+    const grewWithDefaults =
+      before !== undefined &&
+      onlyGrewWithDefaults(stableStringify({ [section]: before[section] }), {
+        [section]: payload[section],
+      })
+
+    if (unchanged || grewWithDefaults) {
+      if (prior[section] !== undefined) fieldsAt[section] = prior[section]
+      return
+    }
+    fieldsAt[section] = now
+  })
+
+  const stamps = Object.values(fieldsAt)
+  const updatedAt = stamps.reduce(
+    (latest, at) => (at > latest ? at : latest),
+    '',
+  )
+  return {
+    signature: stableStringify(payload),
+    fieldsAt: stamps.length > 0 ? fieldsAt : undefined,
+    updatedAt: updatedAt === '' ? undefined : updatedAt,
+  }
 }
 
 function readHeld(): Record<string, unknown> {
@@ -106,12 +192,7 @@ export function createSettingsCollection(): SyncCollection {
     const payload = pick(settings)
     const signature = stableStringify(payload)
     if (signature !== stamp.signature) {
-      // A new build that only adds settings at their defaults is not an edit,
-      // so it keeps the old stamp instead of outranking newer devices.
-      const updatedAt = onlyGrewWithDefaults(stamp.signature, payload)
-        ? stamp.updatedAt
-        : new Date().toISOString()
-      stamp = { signature, updatedAt }
+      stamp = nextStamp(stamp, payload, new Date().toISOString())
       writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
     }
 
@@ -119,7 +200,9 @@ export function createSettingsCollection(): SyncCollection {
       id: SETTINGS_ROW_ID,
       ...withHeld(payload, readHeld()),
     }
-    if (stamp.updatedAt !== undefined) row.updatedAt = stamp.updatedAt
+    const stamps = stampsOf(stamp)
+    if (stamps.fieldsAt !== undefined) row.fieldsAt = stamps.fieldsAt
+    if (stamps.updatedAt !== undefined) row.updatedAt = stamps.updatedAt
     return [row]
   }
 
@@ -144,10 +227,16 @@ export function createSettingsCollection(): SyncCollection {
       update(section, patch as Partial<AppSettings[typeof section]>)
     })
 
+    // The merged row's stamps are what this device now holds; without them,
+    // the stamps it had are kept.
+    const held = stampsOf(stamp)
     stamp = {
       signature: stableStringify(pick(settings)),
+      fieldsAt: isPlainObject(row.fieldsAt)
+        ? (row.fieldsAt as Record<string, string>)
+        : held.fieldsAt,
       updatedAt:
-        typeof row.updatedAt === 'string' ? row.updatedAt : stamp.updatedAt,
+        typeof row.updatedAt === 'string' ? row.updatedAt : held.updatedAt,
     }
     writeJson(SETTINGS_SYNC_STORAGE_KEY, stamp)
   }

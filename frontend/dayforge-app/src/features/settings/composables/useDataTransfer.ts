@@ -8,9 +8,12 @@ import {
   useTimeEntries,
 } from '../../../composables/useTimeEntries'
 import { TOMBSTONES_STORAGE_KEY } from '../../../composables/useTombstones'
+import { groupNamesOf } from '../../../sync/merge'
 import { restampForRestore } from '../../../sync/tombstoneRules'
-import type { SyncedRow } from '../../../sync/types'
+import { SYNC_TABLE, type SyncedRow, type TableName } from '../../../sync/types'
 import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { useSettings } from '../../../composables/useSettings'
+import { useTheme } from '../../../composables/useTheme'
 import {
   BACKUP_FORMAT,
   BACKUP_VERSION,
@@ -25,9 +28,11 @@ export { parseBackupFile, type BackupFile } from './backupFormat'
  * account attached, their original stamps could easily be older than what the
  * server holds, and the restore would be quietly undone by the next sync.
  */
-function restampAll<T>(rows: T[]): T[] {
+function restampAll<T>(rows: T[], table: TableName): T[] {
+  const groups = groupNamesOf(table)
   return rows.map(
-    (row) => restampForRestore(row as unknown as SyncedRow) as unknown as T,
+    (row) =>
+      restampForRestore(row as unknown as SyncedRow, groups) as unknown as T,
   )
 }
 
@@ -46,6 +51,8 @@ function readJson(key: string): unknown {
 export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
   const { offerUndo } = useUndoToast()
   const { entries: timeEntries, heldEntries } = useTimeEntries()
+  const { exportSettings, replaceSettings } = useSettings()
+  const { replaceTheme } = useTheme()
 
   const stats = computed(() => {
     const bytes = [
@@ -84,7 +91,7 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
         ...heldEntries(),
       ] as unknown as TimeEntry[],
       theme: readJson(THEME_STORAGE_KEY),
-      settings: readJson(SETTINGS_STORAGE_KEY),
+      settings: exportSettings(),
     }
   }
 
@@ -95,13 +102,20 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
     const rows = [...goalSpace.dailyTasks.value]
     const entries = [...timeEntries.value]
     const activeGoalId = goalSpace.activeGoalId.value
+    const theme = readJson(THEME_STORAGE_KEY)
+    const settings = exportSettings()
 
     return () => {
-      goalSpace.setGoals(restampAll(goals))
-      goalSpace.taskTemplates.value = restampAll(templates)
-      goalSpace.dailyTasks.value = restampAll(rows)
-      timeEntries.value = restampAll(entries)
+      goalSpace.setGoals(restampAll(goals, SYNC_TABLE.GOALS))
+      goalSpace.taskTemplates.value = restampAll(
+        templates,
+        SYNC_TABLE.TASK_TEMPLATES,
+      )
+      goalSpace.dailyTasks.value = restampAll(rows, SYNC_TABLE.DAILY_TASKS)
+      timeEntries.value = restampAll(entries, SYNC_TABLE.TIME_ENTRIES)
       goalSpace.selectGoal(activeGoalId)
+      replaceTheme(theme)
+      replaceSettings(settings)
     }
   }
 
@@ -126,21 +140,25 @@ export function useDataTransfer(goalSpace: ReturnType<typeof useGoalSpace>) {
 
     const restore = snapshot()
 
-    goalSpace.setGoals(restampAll(backup.goals))
-    goalSpace.taskTemplates.value = restampAll(backup.taskTemplates)
-    goalSpace.dailyTasks.value = restampAll(backup.dailyTasks)
-    timeEntries.value = restampAll(backup.timeEntries ?? [])
+    goalSpace.setGoals(restampAll(backup.goals, SYNC_TABLE.GOALS))
+    goalSpace.taskTemplates.value = restampAll(
+      backup.taskTemplates,
+      SYNC_TABLE.TASK_TEMPLATES,
+    )
+    goalSpace.dailyTasks.value = restampAll(
+      backup.dailyTasks,
+      SYNC_TABLE.DAILY_TASKS,
+    )
+    timeEntries.value = restampAll(
+      backup.timeEntries ?? [],
+      SYNC_TABLE.TIME_ENTRIES,
+    )
     goalSpace.selectGoal(backup.goals[0]?.id ?? null)
 
-    if (backup.theme !== undefined) {
-      localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(backup.theme))
-    }
-    if (backup.settings !== undefined) {
-      localStorage.setItem(
-        SETTINGS_STORAGE_KEY,
-        JSON.stringify(backup.settings),
-      )
-    }
+    // Through the live stores, not localStorage: the open screens show the change
+    // at once, the stores save it, and the settings sync sees a normal edit.
+    if (backup.theme !== undefined) replaceTheme(backup.theme)
+    if (backup.settings !== undefined) replaceSettings(backup.settings)
 
     offerUndo(i18n.global.t('settings.undoBackupImported'), restore)
     return true

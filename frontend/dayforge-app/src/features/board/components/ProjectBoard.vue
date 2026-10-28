@@ -47,7 +47,6 @@ const emit = defineEmits<{
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'edit-notes', templateId: ID, notes: string): void
   (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
-  (e: 'delete-task', templateId: ID): void
 }>()
 
 const { settings } = useSettings()
@@ -226,7 +225,6 @@ function submitAdd() {
               @save-notes="
                 (notes) => emit('edit-notes', card.templateId, notes)
               "
-              @delete="emit('delete-task', card.templateId)"
             />
           </li>
         </ul>

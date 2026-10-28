@@ -24,6 +24,11 @@ import { useTombstones } from './useTombstones'
 import { reportError } from '../lib/errorReporter'
 import { createSettingsCollection } from './settingsSync'
 import { createTimerCollection } from './timerSync'
+import {
+  clearAccountData,
+  DATA_OWNER_STORAGE_KEY,
+  shouldWipeBeforeSignIn,
+} from '../sync/accountDeletion'
 
 const OUTBOX_STORAGE_KEY = 'dayforge-sync-outbox-v1'
 const META_STORAGE_KEY = 'dayforge-sync-meta-v1'
@@ -169,6 +174,35 @@ function subscribeRealtime(userId: string) {
   channel = next
 }
 
+/**
+ * Stops every sync path on this page: timers, the live channel, the outbox and
+ * any later trigger. Shared by the account deletion and the wipe below.
+ */
+function haltSync() {
+  stopped = true
+  if (realtimeTimer !== undefined) window.clearTimeout(realtimeTimer)
+  realtimeTimer = undefined
+  unsubscribeRealtime()
+  engine.onSignedOut()
+}
+
+/**
+ * Another account's data is on this browser: its session expired or it was
+ * signed out elsewhere, and its profile sign-out never ran. The data is cleared
+ * instead of being merged into the new account, then the page reloads so no
+ * in-memory copy can write it back. The session itself is kept.
+ */
+async function replaceLocalAccountData() {
+  haltSync()
+  try {
+    await snapshots.clear()
+  } catch {
+    // A backup store that cannot clear must not keep the other account's data.
+  }
+  clearAccountData(window.localStorage, true)
+  window.location.reload()
+}
+
 function watchSession() {
   watch(
     () => useAuth().user.value?.id ?? null,
@@ -176,11 +210,23 @@ function watchSession() {
       if (userId === previous) return
 
       if (userId === null) {
+        // An expired session keeps the local data: offline use must still work.
         transport = null
         unsubscribeRealtime()
         engine.onSignedOut()
         return
       }
+
+      if (
+        shouldWipeBeforeSignIn(
+          readJson<string | null>(DATA_OWNER_STORAGE_KEY, null),
+          userId,
+        )
+      ) {
+        void replaceLocalAccountData()
+        return
+      }
+      writeJson(DATA_OWNER_STORAGE_KEY, userId)
 
       // A fresh session needs a transport bound to it before anything is sent.
       transport = null
@@ -217,11 +263,7 @@ export function useSync() {
    * deleted, so nothing re-creates rows the server has just removed.
    */
   function stopSync() {
-    stopped = true
-    if (realtimeTimer !== undefined) window.clearTimeout(realtimeTimer)
-    realtimeTimer = undefined
-    unsubscribeRealtime()
-    engine.onSignedOut()
+    haltSync()
   }
 
   /** Changes this browser has not yet got onto the server. */

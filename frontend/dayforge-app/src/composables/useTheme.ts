@@ -182,41 +182,50 @@ function isOldDefault(style: unknown, mode: unknown, colors: ThemePalette) {
   )
 }
 
+/** The shape of a saved theme, as persist() writes it. */
+type StoredTheme = {
+  v?: number
+  style?: ThemeStyle
+  mode?: ThemeMode
+  colors?: unknown
+  preset?: unknown
+  workspace?: unknown
+}
+
+/**
+ * Applies a saved theme to the live refs; the watcher then draws and saves it.
+ * Used on load and for an imported backup, so both read a theme the same way.
+ */
+function applyStoredTheme(parsed: StoredTheme) {
+  const colors = sanitizePalette(parsed.colors)
+  workspace.value = sanitizeWorkspace(parsed.workspace)
+
+  const onOldDefault =
+    (parsed.v ?? 1) < THEME_VERSION &&
+    isOldDefault(parsed.style, parsed.mode, colors)
+
+  // The old default migrates to Sunset, so presetId keeps its initial value.
+  if (!onOldDefault) {
+    if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
+    if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
+    palette.value = colors
+    // Themes saved before the preset was remembered are matched by value.
+    presetId.value = presetIdFor(
+      parsed.preset,
+      themeStyle.value,
+      themeMode.value,
+      colors,
+    )
+  }
+}
+
 function initializeTheme() {
   if (initialized) return
   initialized = true
 
   try {
-    const parsed = readJson<{
-      v?: number
-      style?: ThemeStyle
-      mode?: ThemeMode
-      colors?: unknown
-      preset?: unknown
-      workspace?: unknown
-    } | null>(THEME_STORAGE_KEY, null)
-    if (parsed) {
-      const colors = sanitizePalette(parsed.colors)
-      workspace.value = sanitizeWorkspace(parsed.workspace)
-
-      const onOldDefault =
-        (parsed.v ?? 1) < THEME_VERSION &&
-        isOldDefault(parsed.style, parsed.mode, colors)
-
-      // The old default migrates to Sunset, so presetId keeps its initial value.
-      if (!onOldDefault) {
-        if (isThemeStyle(parsed.style)) themeStyle.value = parsed.style
-        if (isThemeMode(parsed.mode)) themeMode.value = parsed.mode
-        palette.value = colors
-        // Themes saved before the preset was remembered are matched by value.
-        presetId.value = presetIdFor(
-          parsed.preset,
-          themeStyle.value,
-          themeMode.value,
-          colors,
-        )
-      }
-    }
+    const parsed = readJson<StoredTheme | null>(THEME_STORAGE_KEY, null)
+    if (parsed) applyStoredTheme(parsed)
   } catch {
     // Ignore malformed theme data and use defaults.
   }
@@ -310,7 +319,20 @@ export function useTheme() {
     resetWorkspace()
   }
 
+  /**
+   * Replaces the whole look with a saved or imported theme. Starts from the
+   * defaults, so a part the theme leaves out resets rather than keeping the
+   * current value. The change is saved and drawn like any other edit.
+   */
+  function replaceTheme(raw: unknown) {
+    if (typeof raw !== 'object' || raw === null) return
+    applyPreset(DEFAULT_PRESET)
+    resetWorkspace()
+    applyStoredTheme(raw as StoredTheme)
+  }
+
   return {
+    replaceTheme,
     themeStyle,
     themeMode,
     palette,

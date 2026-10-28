@@ -1,9 +1,8 @@
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID, ISODate } from '../../entities/types'
 import { TASK_KIND_BY_SCHEDULE, TASK_STATUS } from '../../entities/constants'
-import { addDaysToISODate, dailyTaskId, getTodayISODate } from './date'
+import { dailyTaskId, getTodayISODate, instantToLocalISODate } from './date'
 import { occursOn, scheduleKindOf } from './recurrence'
-import { isOvernight } from './overnight'
 import { useSettings } from '../useSettings'
 import { DAILY_FIELD_GROUPS, type DailyFieldGroup } from '../../sync/merge'
 
@@ -86,15 +85,19 @@ export function migrateDailyTasks(rows: DailyTask[]): DailyTask[] {
  * ticked off somewhere else, and that tick is the newer, deliberate word on it.
  * Reopening it here would stamp this device's guess over another device's fact.
  *
- * The comparison is deliberately lenient — a UTC stamp against a local date, so
- * an early-morning tick reads as yesterday's — because the cost of being wrong
- * is a project reopened the way it always was, not a lost completion.
+ * The completion is read as the local date it fell on, the same date the rest of
+ * the app shows. Reading the stored UTC stamp instead would move a tick made
+ * after local midnight back onto the previous day.
  */
-function completedAfterItsOwnDay(row: DailyTask, today: ISODate): boolean {
+export function completedAfterItsOwnDay(
+  row: DailyTask,
+  today: ISODate,
+  utcOffsetMinutes?: number,
+): boolean {
   if (row.status !== TASK_STATUS.DONE) return false
   const at = row.completedAt
-  if (at === undefined) return false
-  return at.slice(0, 10) >= today
+  if (at === undefined || Number.isNaN(Date.parse(at))) return false
+  return instantToLocalISODate(at, utcOffsetMinutes) >= today
 }
 
 export function carryOpenTasksForward(
@@ -174,35 +177,6 @@ function reattachToParentsOfDay(
   })
 }
 
-/**
- * A task that runs past midnight is also listed on the day after, and ticking
- * it there must tick its own start row. So the day before a snapshot always
- * has the row of any overnight task that ran on it.
- */
-function ensureOvernightRowsOfPreviousDay(
-  taskTemplates: TaskTemplate[],
-  dailyTasks: DailyTask[],
-  date: ISODate,
-  pausedGoalIds: ReadonlySet<ID>,
-) {
-  const previousDate = addDaysToISODate(date, -1)
-
-  taskTemplates.forEach((template) => {
-    if (isOnPausedGoal(template, pausedGoalIds)) return
-    if (scheduleKindOf(template) === TASK_KIND_BY_SCHEDULE.OPEN) return
-    if (!isOvernight(template.startTime, template.endTime)) return
-    if (!occursOn(template, previousDate)) return
-    ensureDailyTaskForTemplate({
-      taskTemplates,
-      dailyTasks,
-      template,
-      date: previousDate,
-    })
-  })
-
-  reattachToParentsOfDay(taskTemplates, dailyTasks, previousDate)
-}
-
 export function ensureTodaySnapshot(
   taskTemplates: TaskTemplate[],
   dailyTasks: DailyTask[],
@@ -234,12 +208,6 @@ export function ensureTodaySnapshot(
     ensureDailyTaskForTemplate({ taskTemplates, dailyTasks, template, date })
   })
 
-  ensureOvernightRowsOfPreviousDay(
-    taskTemplates,
-    dailyTasks,
-    date,
-    pausedGoalIds,
-  )
   reattachToParentsOfDay(taskTemplates, dailyTasks, date)
 }
 

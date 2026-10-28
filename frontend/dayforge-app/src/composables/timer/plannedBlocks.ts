@@ -2,8 +2,6 @@ import type { DailyTask } from '../../entities/TaskEntity'
 import type { TimeEntry } from '../../entities/TimerEntity'
 import type { ID, ISODate, TimeOfDay } from '../../entities/types'
 import { TASK_STATUS } from '../../entities/constants'
-import { addDaysToISODate } from '../goalSpace/date'
-import { isOvernight } from '../goalSpace/overnight'
 import { findOverlaps, validateEntry } from './entries'
 import { PLANNED_START_GRACE_MS } from './reminders'
 
@@ -44,11 +42,7 @@ export function blockFromTask(task: DailyTask): PlannedBlock {
 export function blockRange(block: PlannedBlock): BlockRange | null {
   if (!block.startTime || !block.endTime) return null
   const startedAt = localMs(block.date, block.startTime)
-  // A block past midnight ends on the day after it starts.
-  const endDate = isOvernight(block.startTime, block.endTime)
-    ? addDaysToISODate(block.date, 1)
-    : block.date
-  const endedAt = localMs(endDate, block.endTime)
+  const endedAt = localMs(block.date, block.endTime)
   return endedAt > startedAt ? { startedAt, endedAt } : null
 }
 

@@ -15,7 +15,6 @@ import {
   type DayEvent,
 } from './useCalendarOccurrences'
 import { useSettings } from '../../../composables/useSettings'
-import { defaultDurationMinutes } from './useCalendarGrid'
 import {
   formatCalendarMonthTitle,
   formatCalendarWeekday,
@@ -103,10 +102,7 @@ export function useCalendarMonth(options: MonthOptions) {
       const events = collectDayEvents({ templates, rowsByDate, date }).filter(
         (event) => isGoalVisible(event.goalId),
       )
-      const scheduledMinutes = scheduledMinutesOf(
-        events,
-        defaultDurationMinutes(),
-      )
+      const scheduledMinutes = scheduledMinutesOf(events)
       const doneCount = events.filter((event) => event.isDone).length
 
       cells.push({

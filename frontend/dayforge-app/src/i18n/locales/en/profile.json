@@ -24,6 +24,7 @@
   "signOut": "Sign out",
   "signingOut": "Signing out…",
   "signOutNote": "Signing out sends any unsent changes first, then removes this account's projects, tasks and time from this browser. They stay on the server and come back when you sign in again.",
+  "signOutOffline": "You're offline. This browser will be signed out and its data cleared; the session on the server will expire on its own.",
   "unsyncedChanges": "{count} change hasn't synced yet. Signing out now deletes it from this browser. | {count} changes haven't synced yet. Signing out now deletes them from this browser.",
   "signOutAnyway": "Sign out anyway",
   "deleteAccount": "Delete account",

@@ -9,7 +9,6 @@ import {
   minutesFromDayStart,
   timeFromMinutes,
 } from './useCalendarGrid'
-import { MINUTES_PER_DAY } from '../../../composables/goalSpace/overnight'
 
 export type SchedulePayload = {
   taskId: ID
@@ -44,8 +43,7 @@ export function useCalendarDragDrop(options: DragDropOptions) {
 
   function scheduleAt(task: DailyTask, startMin: number) {
     const duration = durationMinutes(task.startTime, task.endTime)
-    // A block dragged past midnight wraps, so its end lands on the next day.
-    const endMin = (startMin + duration) % MINUTES_PER_DAY
+    const endMin = clampMinutes(startMin + duration)
 
     options.onSchedule({
       taskId: task.id,

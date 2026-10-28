@@ -1,20 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import type { GesturePoint } from '../../../composables/usePressGesture'
 import { useCalendarEventBlock } from '../composables/useCalendarEventBlock'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
-import { isOvernight } from '../../../composables/goalSpace/overnight'
 
 /** Below this height the icon would crowd out the title, so it is dropped. */
 const MIN_ICON_HEIGHT_PX = 28
 
 const props = defineProps<{
   task: DailyTask
-  /** The tail of a block that started the day before. */
-  isTail?: boolean
   topPx: number
   heightPx: number
   isDragging?: boolean
@@ -25,8 +20,6 @@ const props = defineProps<{
   /** Left/width once overlapping blocks have been split into columns. */
   columnStyle?: Record<string, string>
 }>()
-
-const { t } = useI18n()
 
 const emit = defineEmits<{
   (e: 'select', taskId: ID): void
@@ -59,18 +52,6 @@ const {
   onTouchDrop: (point) => emit('touch-drop', point),
   onTouchCancel: () => emit('touch-cancel'),
 })
-
-/** A block past midnight says so; its tail says when it ends. */
-const timeLabel = computed(() => {
-  const { startTime, endTime } = props.task
-  if (props.isTail) {
-    return t('tasks.untilTime', { time: formatTime(endTime) })
-  }
-  const range = `${formatTime(startTime)}–${formatTime(endTime)}`
-  return isOvernight(startTime, endTime)
-    ? `${range} ${t('tasks.nextDay')}`
-    : range
-})
 </script>
 
 <template>
@@ -84,7 +65,6 @@ const timeLabel = computed(() => {
         'is-resizing': isResizing,
         'is-lifted': isLifted,
         'is-dragging': isDragging,
-        'is-tail': isTail,
       },
     ]"
     :style="blockStyle(topPx, heightPx)"
@@ -94,7 +74,9 @@ const timeLabel = computed(() => {
     @click="emit('select', task.id)"
     @contextmenu.prevent="onContextMenu"
   >
-    <span class="cal-event__time">{{ timeLabel }}</span>
+    <span class="cal-event__time">
+      {{ formatTime(task.startTime) }}–{{ formatTime(task.endTime) }}
+    </span>
     <ProjectIcon
       v-if="icon && heightPx >= MIN_ICON_HEIGHT_PX"
       class="cal-event__icon"
@@ -102,7 +84,6 @@ const timeLabel = computed(() => {
     />
     <span class="cal-event__title">{{ task.title }}</span>
     <div
-      v-if="!isTail"
       class="cal-event__resize-handle"
       @pointerdown="onResizeHandleDown"
       @click.stop

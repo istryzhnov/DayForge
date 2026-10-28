@@ -49,10 +49,14 @@ import {
   verifyTourStorage,
 } from './compat/tour'
 import { verifySignOutKeySelection } from './compat/signout'
+import { verifyFieldGroupMerge } from './compat/fieldGroups'
+import { verifyAccountSwitchWipe } from './compat/accountSwitch'
+import { verifyQueuedDeletes } from './compat/queuedDeletes'
+import { verifyDayBoundaries } from './compat/dayBoundaries'
+import { verifyRecurrenceEdges } from './compat/recurrenceEdges'
 import { verifyTranslations } from './compat/i18n'
 import { verifyProjectDropTargets } from './compat/dropTargets'
 import { verifyTaskOrder } from './compat/taskOrder'
-import { verifyOvernightTasks } from './compat/overnight'
 import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
@@ -92,14 +96,18 @@ function main() {
   verifyProjectDropTargets()
   verifyTaskOrder()
   verifySignOutKeySelection()
+  verifyAccountSwitchWipe()
+  verifyQueuedDeletes()
+  verifyDayBoundaries()
+  verifyRecurrenceEdges()
   verifyTourSteps()
   verifyTourPaths()
   verifyTourGuards()
   verifyTourLifecycle()
   verifyTourDeletions()
   verifyTourStorage()
-  verifyOvernightTasks()
   verifyTranslations()
+  verifyFieldGroupMerge()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

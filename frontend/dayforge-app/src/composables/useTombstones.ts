@@ -1,6 +1,13 @@
 import { ref, watch } from 'vue'
 import type { ID } from '../entities/types'
-import { readJson, writeJson } from '../lib/storage'
+import {
+  onExternalWrite,
+  parseStored,
+  readJson,
+  writeJsonIfChanged,
+} from '../lib/storage'
+import { stableStringify } from '../sync/diff'
+import { groupNamesOf } from '../sync/merge'
 import {
   addTombstones,
   makeTombstones,
@@ -27,18 +34,36 @@ function isTombstone(value: unknown): value is Tombstone {
   )
 }
 
+/** Keeps only well-formed burials, and drops any older than the window. */
+function fromStored(stored: unknown): Tombstone[] {
+  const list = Array.isArray(stored) ? stored.filter(isTombstone) : []
+  // Anything older than the window is dropped on the way in, so the list
+  // cannot grow without bound.
+  return sweepTombstones(list, Date.now())
+}
+
 function initialize() {
   if (initialized) return
   initialized = true
 
-  const stored = readJson<unknown>(TOMBSTONES_STORAGE_KEY, [])
-  const list = Array.isArray(stored) ? stored.filter(isTombstone) : []
-  // Anything older than the window is dropped on the way in, so the list
-  // cannot grow without bound.
-  tombstones.value = sweepTombstones(list, Date.now())
+  tombstones.value = fromStored(readJson<unknown>(TOMBSTONES_STORAGE_KEY, []))
 
-  watch(tombstones, (value) => writeJson(TOMBSTONES_STORAGE_KEY, value), {
-    deep: true,
+  watch(
+    tombstones,
+    (value) => writeJsonIfChanged(TOMBSTONES_STORAGE_KEY, value),
+    { deep: true },
+  )
+
+  // A burial made in another tab must be known here, or this tab would later
+  // save a list without it and bring the row back.
+  onExternalWrite(TOMBSTONES_STORAGE_KEY, (raw) => {
+    const parsed = parseStored(raw)
+    if (parsed === undefined) return
+    const next = fromStored(parsed)
+    // Same burials again: leave the list alone, so no write follows.
+    if (stableStringify(next) !== stableStringify(tombstones.value)) {
+      tombstones.value = next
+    }
   })
 }
 
@@ -65,7 +90,7 @@ export function useTombstones() {
     const result = removeTombstone(tombstones.value, table, id)
     tombstones.value = result.list
     if (!result.payload) return undefined
-    return restampForRestore(result.payload)
+    return restampForRestore(result.payload, groupNamesOf(table))
   }
 
   function exhumeAll(table: TableName, ids: ID[]): SyncedRow[] {
