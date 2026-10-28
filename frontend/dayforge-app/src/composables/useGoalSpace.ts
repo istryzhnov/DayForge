@@ -34,6 +34,7 @@ import {
   orderFromStoredPosition,
   planTaskReorder,
 } from './goalSpace/taskOrder'
+import { rowsShownOn } from './goalSpace/overnight'
 import {
   bindStorage,
   onExternalWrite,
@@ -193,10 +194,9 @@ export function useGoalSpace() {
   bindStorage(taskTemplates, TASKS_STORAGE_KEY)
   bindStorage(dailyTasks, DAILY_TASKS_STORAGE_KEY)
 
+  // A task that runs past midnight is listed on the day after too, as one row.
   const tasksForActiveGoal = computed(() => {
-    const todayTasks = dailyTasks.value.filter(
-      (task) => task.date === currentDate.value,
-    )
+    const todayTasks = rowsShownOn(dailyTasks.value, currentDate.value)
 
     return activeGoalId.value
       ? todayTasks.filter((task) => task.goalId === activeGoalId.value)

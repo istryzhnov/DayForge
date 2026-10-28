@@ -57,6 +57,7 @@ import { verifyRecurrenceEdges } from './compat/recurrenceEdges'
 import { verifyTranslations } from './compat/i18n'
 import { verifyProjectDropTargets } from './compat/dropTargets'
 import { verifyTaskOrder } from './compat/taskOrder'
+import { verifyOvernightTasks } from './compat/overnight'
 import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
@@ -106,6 +107,7 @@ function main() {
   verifyTourLifecycle()
   verifyTourDeletions()
   verifyTourStorage()
+  verifyOvernightTasks()
   verifyTranslations()
   verifyFieldGroupMerge()
 

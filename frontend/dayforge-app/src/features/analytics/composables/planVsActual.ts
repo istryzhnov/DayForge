@@ -17,6 +17,7 @@ import {
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
 import { occursOn } from '../../../composables/goalSpace/recurrence'
+import { segmentForDay } from '../../../composables/goalSpace/overnight'
 import { englishText, type Text } from './projectBilling'
 
 const MINUTE_MS = 60 * 1000
@@ -63,12 +64,25 @@ export interface PlanSource {
   defaultDurationMinutes: number
 }
 
+/** One scheduled block as the plan sees it: a row, or a template's rule on a day. */
+type PlanBlock = {
+  date: ISODate
+  goalId?: string
+  startTime?: string
+  endTime?: string
+}
+
 /**
  * Planned ms per project over an inclusive date range. The calendar shows a
  * repeating task on every day its rule hits, and a day row replaces that
  * projection, so a day is counted once: from its row if it has one, from the
  * template's rule otherwise. Inactive templates are not planned, as in the
  * upcoming list.
+ *
+ * A block that runs past midnight is split by day: its evening counts on the
+ * day it starts and its morning on the next day. The day before the range is
+ * read too, so the first day of a week or month still gets the morning of a
+ * block that began the night before.
  */
 export function plannedMsByProject(
   source: PlanSource,
@@ -82,53 +96,88 @@ export function plannedMsByProject(
     activeTemplates.map((template) => [template.id, template]),
   )
 
+  const earliestRead = addDaysToISODate(from, -1)
   const rowsByDate = new Map<ISODate, DailyTask[]>()
   source.dailyTasks.forEach((row) => {
-    if (row.date < from || row.date > to) return
+    if (row.date < earliestRead || row.date > to) return
     if (!templateById.has(row.templateId)) return
     const bucket = rowsByDate.get(row.date)
     if (bucket) bucket.push(row)
     else rowsByDate.set(row.date, [row])
   })
 
+  const blocksOn = (date: ISODate): PlanBlock[] => {
+    const rows = rowsByDate.get(date) ?? []
+    const materialized = new Set(rows.map((row) => row.templateId))
+    const blocks: PlanBlock[] = rows.map((row) => ({
+      date,
+      goalId: row.goalId,
+      startTime: row.startTime,
+      endTime: row.endTime,
+    }))
+
+    activeTemplates.forEach((template) => {
+      if (materialized.has(template.id)) return
+      if (!occursOn(template, date)) return
+      blocks.push({
+        date,
+        goalId: template.goalId,
+        startTime: template.startTime,
+        endTime: template.endTime,
+      })
+    })
+
+    return blocks
+  }
+
+  // What one block plans on `day`: all of it on its own day, or its share of
+  // the day when it runs past midnight.
+  const planOn = (day: ISODate, block: PlanBlock, add: PlanAdder) => {
+    if (!block.endTime) {
+      if (day === block.date) {
+        add(
+          block.goalId,
+          blockDurationMs(
+            block.startTime,
+            undefined,
+            source.defaultDurationMinutes,
+          ),
+        )
+      }
+      return
+    }
+
+    const segment = segmentForDay(day, block)
+    if (!segment) return
+    add(
+      block.goalId,
+      blockDurationMs(
+        segment.startTime,
+        segment.endTime,
+        source.defaultDurationMinutes,
+      ),
+    )
+  }
+
   const planned = new Map<string, number>()
-  const add = (goalId: string | undefined, ms: number) => {
+  const add: PlanAdder = (goalId, ms) => {
     if (ms <= 0) return
     const key = goalId ?? NO_PROJECT_KEY
     planned.set(key, (planned.get(key) ?? 0) + ms)
   }
 
+  let yesterday = blocksOn(earliestRead)
   for (let date = from; date <= to; date = addDaysToISODate(date, 1)) {
-    const rows = rowsByDate.get(date) ?? []
-    const materialized = new Set(rows.map((row) => row.templateId))
-
-    rows.forEach((row) =>
-      add(
-        row.goalId,
-        blockDurationMs(
-          row.startTime,
-          row.endTime,
-          source.defaultDurationMinutes,
-        ),
-      ),
-    )
-
-    activeTemplates.forEach((template) => {
-      if (materialized.has(template.id)) return
-      if (!occursOn(template, date)) return
-      add(
-        template.goalId,
-        blockDurationMs(
-          template.startTime,
-          template.endTime,
-          source.defaultDurationMinutes,
-        ),
-      )
-    })
+    const today = blocksOn(date)
+    today.forEach((block) => planOn(date, block, add))
+    yesterday.forEach((block) => planOn(date, block, add))
+    yesterday = today
   }
 
   return planned
 }
+
+type PlanAdder = (goalId: string | undefined, ms: number) => void
 
 /**
  * The dates a plan covers for a period. The current week or month runs up to
