@@ -51,6 +51,7 @@
   "closeNotes": "Cerrar notas",
   "writeNote": "Escribe una nota…",
   "notesHint": "Se guarda automáticamente · Esc para descartar",
+  "notesHintTouch": "Se guarda automáticamente",
   "upcoming": "Próximas",
   "showDay": "Mostrar {day}",
   "repeats": "Se repite",

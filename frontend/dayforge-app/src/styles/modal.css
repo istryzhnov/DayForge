@@ -618,3 +618,23 @@
     display: none;
   }
 }
+
+/* A touch tablet is wider than a phone but has no keys either: the same
+   short syntax line, without Enter / Shift / Esc. */
+@media (pointer: coarse) {
+  .quick-add-card__hint {
+    display: none;
+  }
+
+  .quick-add-card__syntax {
+    display: flex;
+  }
+
+  .quick-add-card__syntax-short {
+    display: inline;
+  }
+
+  .quick-add-card__syntax-full {
+    display: none;
+  }
+}

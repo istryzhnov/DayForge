@@ -51,6 +51,7 @@
   "closeNotes": "Zamknij notatki",
   "writeNote": "Napisz notatkę…",
   "notesHint": "Zapisywane automatycznie · Esc anuluje",
+  "notesHintTouch": "Zapisywane automatycznie",
   "upcoming": "Nadchodzące",
   "showDay": "Pokaż: {day}",
   "repeats": "Powtarzane",

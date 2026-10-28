@@ -41,7 +41,7 @@
   "taskTitle": "任务标题",
   "quickAddPlaceholder": "买牛奶 明天  #项目",
   "projectsList": "项目",
-  "noProjectYet": "还没有这个项目：按 Enter 将创建“{name}”",
+  "noProjectYet": "还没有这个项目：添加任务时会创建“{name}”",
   "typeProjectName": "输入项目名称",
   "today": "今天",
   "tomorrow": "明天",

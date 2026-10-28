@@ -41,7 +41,7 @@
   "taskTitle": "Aufgabentitel",
   "quickAddPlaceholder": "Milch kaufen morgen  #Projekt",
   "projectsList": "Projekte",
-  "noProjectYet": "Noch kein Projekt: Enter erstellt „{name}“",
+  "noProjectYet": "Noch kein Projekt: Beim Hinzufügen wird „{name}“ angelegt",
   "typeProjectName": "Projektnamen eingeben",
   "today": "Heute",
   "tomorrow": "Morgen",

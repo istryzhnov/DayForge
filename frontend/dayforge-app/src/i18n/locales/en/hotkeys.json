@@ -41,7 +41,7 @@
   "taskTitle": "Task title",
   "quickAddPlaceholder": "Buy milk tomorrow  #project",
   "projectsList": "Projects",
-  "noProjectYet": "No project yet: Enter creates “{name}”",
+  "noProjectYet": "No project yet: adding the task creates “{name}”",
   "typeProjectName": "Type a project name",
   "today": "Today",
   "tomorrow": "Tomorrow",
