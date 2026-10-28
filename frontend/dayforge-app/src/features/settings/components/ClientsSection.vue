@@ -103,7 +103,9 @@ function addClient() {
       </button>
     </form>
 
-    <p class="sidebar-caption">{{ t('billing.activeClients') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('billing.activeClients') }}
+    </p>
     <p v-if="activeClients.length === 0" class="settings-group-hint">
       {{ t('billing.noActiveClients') }}
     </p>
@@ -150,7 +152,9 @@ function addClient() {
     </div>
 
     <template v-if="archivedClients.length > 0">
-      <p class="sidebar-caption">{{ t('billing.archivedClients') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('billing.archivedClients') }}
+      </p>
       <p class="settings-group-hint">
         {{ t('billing.archivedHint') }}
       </p>

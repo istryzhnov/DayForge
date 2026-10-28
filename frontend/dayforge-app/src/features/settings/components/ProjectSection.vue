@@ -69,7 +69,9 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('settings.projectNameCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.projectNameCaption') }}
+    </p>
 
     <label class="settings-field">
       {{ t('settings.projectName') }}
@@ -83,7 +85,9 @@ const {
       />
     </label>
 
-    <p class="sidebar-caption">{{ t('settings.projectClient') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.projectClient') }}
+    </p>
 
     <label class="settings-field">
       {{ t('settings.projectBilledTo') }}
@@ -151,14 +155,16 @@ const {
       </label>
     </DisclosureSection>
 
-    <p class="sidebar-caption">{{ t('settings.projectStatus') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.projectStatus') }}
+    </p>
 
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="option in statusOptions"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: status === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': status === option.id }"
         type="button"
         @click="setStatus(option.id)"
       >
@@ -168,9 +174,11 @@ const {
 
     <p class="settings-group-hint">{{ t(statusHint) }}</p>
 
-    <p class="sidebar-caption">{{ t('settings.projectBoard') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.projectBoard') }}
+    </p>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="goal.boardEnabled === true"

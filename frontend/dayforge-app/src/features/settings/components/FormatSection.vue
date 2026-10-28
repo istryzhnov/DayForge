@@ -56,13 +56,15 @@ function chooseLanguage(language: Language) {
       </select>
     </label>
 
-    <p class="sidebar-caption">{{ t('settings.clockCaption') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.clockCaption') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="option in CLOCK_OPTIONS"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: settings.format.clock === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.format.clock === option.id }"
         type="button"
         @click="update('format', { clock: option.id })"
       >

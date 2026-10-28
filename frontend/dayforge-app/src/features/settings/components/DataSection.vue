@@ -77,7 +77,7 @@ function clearEverything() {
       {{ t('settings.dataIntroLocal') }}
     </p>
 
-    <div class="settings-stats">
+    <div class="settings-stats ui-card">
       <strong>{{ summary }}</strong>
       <em>{{ t('settings.dataKilobytes', { kb: stats.kilobytes }) }}</em>
     </div>
@@ -113,7 +113,9 @@ function clearEverything() {
     </p>
 
     <template v-if="snapshots.length > 0">
-      <p class="sidebar-caption">{{ t('settings.dataSnapshotsCaption') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.dataSnapshotsCaption') }}
+      </p>
       <p class="settings-group-hint">
         {{ t('settings.dataSnapshotsNote') }}
       </p>
@@ -134,7 +136,9 @@ function clearEverything() {
       </p>
     </template>
 
-    <p class="sidebar-caption">{{ t('settings.dataStartOverCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.dataStartOverCaption') }}
+    </p>
 
     <button
       class="btn btn-ghost settings-action"
@@ -165,7 +169,9 @@ function clearEverything() {
     </p>
 
     <template v-if="auth.isSignedIn.value">
-      <p class="sidebar-caption">{{ t('settings.dataAccountCaption') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.dataAccountCaption') }}
+      </p>
 
       <button
         class="btn btn-ghost settings-action settings-action--danger"

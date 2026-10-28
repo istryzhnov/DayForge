@@ -28,13 +28,15 @@ function resetEverything() {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('settings.workspaceSpacing') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.workspaceSpacing') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="option in DENSITY_OPTIONS"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: workspace.density === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': workspace.density === option.id }"
         type="button"
         @click="setWorkspace({ density: option.id })"
       >
@@ -42,13 +44,15 @@ function resetEverything() {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.workspaceTypeface') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.workspaceTypeface') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="option in FONT_OPTIONS"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: workspace.font === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': workspace.font === option.id }"
         type="button"
         @click="setWorkspace({ font: option.id })"
       >
@@ -56,9 +60,11 @@ function resetEverything() {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.workspaceReadingComfort') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.workspaceReadingComfort') }}
+    </p>
 
-    <label class="settings-slider">
+    <label class="settings-slider ui-card">
       <span>
         {{ t('settings.workspaceTextSize') }}
         <em>{{ Math.round(settings.accessibility.textScale * 100) }}%</em>
@@ -75,7 +81,7 @@ function resetEverything() {
     </label>
 
     <DisclosureSection :label="t('settings.advanced')">
-      <label class="settings-slider">
+      <label class="settings-slider ui-card">
         <span>
           {{ t('settings.workspaceCornerRoundness') }}
           <em>{{ Math.round(workspace.radiusScale * 100) }}%</em>
@@ -91,13 +97,15 @@ function resetEverything() {
         <small>{{ t('settings.workspaceCornerHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">{{ t('settings.workspaceBackground') }}</p>
-      <div class="settings-chips">
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.workspaceBackground') }}
+      </p>
+      <div class="ui-chips">
         <button
           v-for="option in PATTERN_OPTIONS"
           :key="option.id"
-          class="theme-chip"
-          :class="{ active: workspace.pattern === option.id }"
+          class="ui-chip ui-chip--wrap"
+          :class="{ 'is-active': workspace.pattern === option.id }"
           type="button"
           @click="setWorkspace({ pattern: option.id })"
         >
@@ -105,7 +113,7 @@ function resetEverything() {
         </button>
       </div>
 
-      <label class="settings-slider">
+      <label class="settings-slider ui-card">
         <span>
           {{ t('settings.workspaceGlowStrength') }}
           <em>{{ Math.round(workspace.glow * 100) }}%</em>
@@ -121,7 +129,7 @@ function resetEverything() {
         <small>{{ t('settings.workspaceGlowHint') }}</small>
       </label>
 
-      <label class="settings-slider">
+      <label class="settings-slider ui-card">
         <span>
           {{ t('settings.workspacePanelBlur') }}
           <em>{{ workspace.blur }}px</em>
@@ -137,13 +145,15 @@ function resetEverything() {
         <small>{{ t('settings.workspacePanelBlurHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">{{ t('settings.workspaceMotion') }}</p>
-      <div class="settings-chips">
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.workspaceMotion') }}
+      </p>
+      <div class="ui-chips">
         <button
           v-for="option in MOTION_OPTIONS"
           :key="option.id"
-          class="theme-chip"
-          :class="{ active: workspace.motion === option.id }"
+          class="ui-chip ui-chip--wrap"
+          :class="{ 'is-active': workspace.motion === option.id }"
           type="button"
           @click="setWorkspace({ motion: option.id })"
         >
@@ -151,7 +161,7 @@ function resetEverything() {
         </button>
       </div>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.accessibility.largeTargets"
@@ -165,7 +175,7 @@ function resetEverything() {
         </span>
       </label>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.accessibility.highContrast"

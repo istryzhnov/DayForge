@@ -22,14 +22,14 @@ const { groups } = useSettingsMenu(props)
     <section
       v-for="group in groups"
       :key="group.id"
-      class="settings-menu__group"
+      class="settings-menu__group ui-rows"
     >
-      <p class="sidebar-caption">{{ group.label }}</p>
+      <p class="ui-section-label ui-section-label--wrap">{{ group.label }}</p>
 
       <button
         v-for="row in group.rows"
         :key="row.id"
-        class="settings-menu__row"
+        class="ui-row__head settings-menu__row"
         type="button"
         :disabled="row.disabled"
         @click="emit('open', row.id)"

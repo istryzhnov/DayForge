@@ -36,7 +36,7 @@ const {
 </script>
 
 <template>
-  <div class="color-field">
+  <div class="color-field ui-card">
     <label
       class="color-field__swatch"
       :title="t('settings.colourPick', { name: label })"

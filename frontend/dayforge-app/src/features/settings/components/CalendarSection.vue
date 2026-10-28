@@ -19,13 +19,15 @@ const { settings, update, resetSection } = useSettings()
       {{ t('settings.calendarIntro') }}
     </p>
 
-    <p class="sidebar-caption">{{ t('settings.calendarSnap') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.calendarSnap') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="minutes in MINUTE_STEPS"
         :key="minutes"
-        class="theme-chip"
-        :class="{ active: settings.calendar.snapMinutes === minutes }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.calendar.snapMinutes === minutes }"
         type="button"
         @click="update('calendar', { snapMinutes: minutes })"
       >
@@ -33,7 +35,7 @@ const { settings, update, resetSection } = useSettings()
       </button>
     </div>
 
-    <label class="settings-slider">
+    <label class="settings-slider ui-card">
       <span>
         {{ t('settings.calendarHourHeight') }}
         <em>{{ settings.calendar.hourHeight }}px</em>
@@ -49,16 +51,18 @@ const { settings, update, resetSection } = useSettings()
       <small>{{ t('settings.calendarZoomHint') }}</small>
     </label>
 
-    <p class="sidebar-caption">{{ t('settings.calendarNewTask') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.calendarNewTask') }}
+    </p>
 
     <p class="settings-group-hint">{{ t('settings.calendarLasts') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="minutes in TASK_DURATIONS"
         :key="minutes"
-        class="theme-chip"
+        class="ui-chip ui-chip--wrap"
         :class="{
-          active: settings.calendar.defaultDurationMinutes === minutes,
+          'is-active': settings.calendar.defaultDurationMinutes === minutes,
         }"
         type="button"
         @click="update('calendar', { defaultDurationMinutes: minutes })"
@@ -78,15 +82,17 @@ const { settings, update, resetSection } = useSettings()
       </label>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.calendarWeek') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.calendarWeek') }}
+    </p>
 
     <p class="settings-group-hint">{{ t('settings.calendarStartsOn') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="option in WEEK_START_OPTIONS"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: settings.calendar.weekStartsOn === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.calendar.weekStartsOn === option.id }"
         type="button"
         @click="update('calendar', { weekStartsOn: option.id })"
       >
@@ -94,7 +100,7 @@ const { settings, update, resetSection } = useSettings()
       </button>
     </div>
 
-    <label class="settings-slider">
+    <label class="settings-slider ui-card">
       <span>
         {{ t('settings.calendarFullDay') }}
         <em>{{

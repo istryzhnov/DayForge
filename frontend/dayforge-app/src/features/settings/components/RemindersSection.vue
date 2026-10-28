@@ -47,7 +47,7 @@ function togglePush() {
 
 <template>
   <div class="settings-section">
-    <label v-if="notificationsSupported" class="settings-toggle">
+    <label v-if="notificationsSupported" class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="notificationsEnabled"
@@ -62,13 +62,15 @@ function togglePush() {
       {{ t('settings.remindersNoSupport') }}
     </p>
 
-    <p class="sidebar-caption">{{ t('settings.remindersLeadCaption') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.remindersLeadCaption') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="minutes in MINUTE_STEPS"
         :key="minutes"
-        class="theme-chip"
-        :class="{ active: settings.notifications.leadMinutes === minutes }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.notifications.leadMinutes === minutes }"
         type="button"
         @click="update('notifications', { leadMinutes: minutes })"
       >
@@ -76,12 +78,14 @@ function togglePush() {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.remindersPlannedCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.remindersPlannedCaption') }}
+    </p>
     <p class="settings-group-hint">
       {{ t('settings.remindersPlannedHint') }}
     </p>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="settings.notifications.plannedStartReminder"
@@ -97,7 +101,7 @@ function togglePush() {
       </span>
     </label>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="settings.notifications.endOfDayNudge"
@@ -129,7 +133,7 @@ function togglePush() {
     </div>
 
     <template v-if="isSignedIn">
-      <p class="sidebar-caption">
+      <p class="ui-section-label ui-section-label--wrap">
         {{ t('settings.remindersWhenClosedCaption') }}
       </p>
 
@@ -144,7 +148,7 @@ function togglePush() {
       </p>
 
       <template v-else>
-        <label class="settings-toggle">
+        <label class="settings-toggle ui-card">
           <input
             type="checkbox"
             :checked="push.status.value === 'on'"
@@ -165,9 +169,11 @@ function togglePush() {
       </template>
     </template>
 
-    <p class="sidebar-caption">{{ t('settings.remindersSoundCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.remindersSoundCaption') }}
+    </p>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="settings.notifications.sound"
@@ -180,7 +186,10 @@ function togglePush() {
     </label>
 
     <DisclosureSection :label="t('settings.advanced')">
-      <label v-if="settings.notifications.sound" class="settings-slider">
+      <label
+        v-if="settings.notifications.sound"
+        class="settings-slider ui-card"
+      >
         <span>
           {{ t('settings.remindersVolume') }}
           <em>{{ Math.round(settings.notifications.volume * 100) }}%</em>
@@ -195,7 +204,7 @@ function togglePush() {
         />
       </label>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.notifications.repeatAlert"
@@ -209,9 +218,11 @@ function togglePush() {
         </span>
       </label>
 
-      <p class="sidebar-caption">{{ t('settings.remindersQuietCaption') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.remindersQuietCaption') }}
+      </p>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.notifications.quietHours"
