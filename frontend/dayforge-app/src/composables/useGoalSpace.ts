@@ -28,8 +28,12 @@ import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { isRepeating } from './goalSpace/recurrence'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
-import { placeBeside } from './goalSpace/taskOrder'
-import { bindStorage, readJson } from '../lib/storage'
+import {
+  nextTopOrder,
+  orderFromStoredPosition,
+  planTaskReorder,
+} from './goalSpace/taskOrder'
+import { bindStorage, readJson, writeJson } from '../lib/storage'
 import {
   ensureDailyTaskForTemplate,
   ensureTodaySnapshot,
@@ -40,6 +44,9 @@ import { useTombstones } from './useTombstones'
 import { i18n } from '../i18n'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 import { DAILY_FIELD_GROUPS } from '../sync/merge'
+
+/** Set once this browser's task list was numbered from its stored position. */
+const TASK_ORDER_MIGRATED_KEY = 'dayforge-task-order-migrated-v1'
 
 export function useGoalSpace() {
   const {
@@ -107,6 +114,13 @@ export function useGoalSpace() {
         delete template.recurrence.endDate
       }
     })
+
+    // Once per browser: keep the order people arranged by dragging before the
+    // number on each row was used. A fresh browser has nothing to carry over.
+    if (!readJson<boolean>(TASK_ORDER_MIGRATED_KEY, false)) {
+      orderFromStoredPosition(stored)
+      writeJson(TASK_ORDER_MIGRATED_KEY, true)
+    }
 
     taskTemplates.value = stored
   }
@@ -180,11 +194,13 @@ export function useGoalSpace() {
       parentTemplateId = parent.id
     }
 
-    const order = taskTemplates.value.filter((task) => {
-      if (task.goalId !== goalId) return false
-      if (parentTemplateId) return task.parentTemplateId === parentTemplateId
-      return !task.parentTemplateId
-    }).length
+    // The new task goes on top of its list, whichever project is in view.
+    const order = nextTopOrder(
+      taskTemplates.value.filter(
+        (task) =>
+          (task.parentTemplateId ?? null) === (parentTemplateId ?? null),
+      ),
+    )
 
     const newTask: TaskTemplate = {
       id: createId(parentTemplateId ? TASK_KIND.SUBTASK : TASK_KIND.TASK),
@@ -689,26 +705,30 @@ export function useGoalSpace() {
   }
 
   /**
-   * Puts one task next to another in the list (`placeBeside` says which side
-   * is which). The position is not a synced field, so the moved row is
-   * stamped; otherwise the change would never reach the outbox.
+   * Puts one task next to another in the list. The order is a number on each
+   * row, so only the rows whose number changed are stamped, and sync carries
+   * them to the other devices. Array position is not synced and is never used.
    */
   function reorderTask(
     templateId: ID,
     targetTemplateId: ID,
     placeAbove: boolean,
   ) {
-    const next = placeBeside(
+    const changes = planTaskReorder(
       taskTemplates.value,
       templateId,
       targetTemplateId,
       placeAbove,
     )
-    if (!next) return
+    if (!changes) return
 
-    const moved = next.find((item) => item.id === templateId)
-    if (moved) moved.updatedAt = new Date().toISOString()
-    taskTemplates.value = next
+    const now = new Date().toISOString()
+    changes.forEach(({ id, order }) => {
+      const row = taskTemplates.value.find((item) => item.id === id)
+      if (!row) return
+      row.order = order
+      row.updatedAt = now
+    })
   }
 
   function convertTaskToProject(templateId: ID) {

@@ -1,10 +1,9 @@
-/** Compat checks: where a dropped task or project lands, and how a list reorders. */
+/** Compat checks: where a dropped task or project lands. */
 
 import {
   DROP_ZONE_ROOT,
   pickDropTarget,
 } from '../../../src/features/tasks/composables/dropRules'
-import { placeBeside } from '../../../src/composables/goalSpace/taskOrder'
 import { check, same, section } from './harness'
 
 export function verifyProjectDropTargets() {
@@ -88,34 +87,5 @@ export function verifyProjectDropTargets() {
       rowId: null,
       isBlock: false,
     }),
-  )
-}
-
-export function verifyPlaceBeside() {
-  section('Reordering keeps the drawn order: newest first in the list')
-
-  const list = ['a', 'b', 'c', 'd'].map((id) => ({ id }))
-  const ids = (result: { id: string }[] | null) =>
-    result?.map((item) => item.id) ?? null
-
-  check(
-    'dropped above c: lands after it in storage',
-    same(ids(placeBeside(list, 'a', 'c', true)), ['b', 'c', 'a', 'd']),
-  )
-  check(
-    'dropped below b: lands before it in storage',
-    same(ids(placeBeside(list, 'd', 'b', false)), ['a', 'd', 'b', 'c']),
-  )
-  check(
-    'already in place: nothing changes',
-    placeBeside(list, 'b', 'a', true) === null,
-  )
-  check(
-    'onto itself: nothing changes',
-    placeBeside(list, 'a', 'a', true) === null,
-  )
-  check(
-    'unknown target: nothing changes',
-    placeBeside(list, 'a', 'zz', true) === null,
   )
 }

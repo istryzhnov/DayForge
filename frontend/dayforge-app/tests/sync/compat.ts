@@ -50,10 +50,8 @@ import {
 } from './compat/tour'
 import { verifySignOutKeySelection } from './compat/signout'
 import { verifyTranslations } from './compat/i18n'
-import {
-  verifyProjectDropTargets,
-  verifyPlaceBeside,
-} from './compat/dropTargets'
+import { verifyProjectDropTargets } from './compat/dropTargets'
+import { verifyTaskOrder } from './compat/taskOrder'
 import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
@@ -91,7 +89,7 @@ function main() {
   verifyPresetMemory()
   verifyGoalReorder()
   verifyProjectDropTargets()
-  verifyPlaceBeside()
+  verifyTaskOrder()
   verifySignOutKeySelection()
   verifyTourSteps()
   verifyTourPaths()

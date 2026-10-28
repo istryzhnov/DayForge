@@ -16,6 +16,7 @@ import {
   occursOn,
 } from '../../../composables/goalSpace/recurrence'
 import { addDaysToISODate } from '../../../composables/goalSpace/date'
+import { sortTasks } from '../../../composables/goalSpace/taskOrder'
 
 /**
  * Pure board rules, kept free of Vue so the sync harness can check them.
@@ -201,7 +202,7 @@ function dueRank(card: BoardCard, today: ISODate): number {
  * browses other days.
  *
  * Open columns sort overdue/today first, then upcoming, then undated; within
- * a date the newest task comes first, as the list does. Done sorts by
+ * a date the task comes first in the order the list draws it. Done sorts by
  * completion time, newest first.
  */
 export function buildBoardCards(
@@ -210,7 +211,9 @@ export function buildBoardCards(
   today: ISODate,
 ): BoardCards {
   const templateIds = new Set(templates.map((item) => item.id))
-  const orderRank = new Map(templates.map((item, index) => [item.id, index]))
+  const drawnRank = new Map(
+    sortTasks(templates).map((item, index) => [item.id, index]),
+  )
 
   const rowsByTemplate = new Map<ID, DailyTask[]>()
   rows.forEach((row) => {
@@ -277,8 +280,9 @@ export function buildBoardCards(
     })
   })
 
-  const newestFirst = (a: BoardCard, b: BoardCard) =>
-    (orderRank.get(b.templateId) ?? -1) - (orderRank.get(a.templateId) ?? -1)
+  const drawnFirst = (a: BoardCard, b: BoardCard) =>
+    (drawnRank.get(a.templateId) ?? templates.length) -
+    (drawnRank.get(b.templateId) ?? templates.length)
 
   const byDue = (a: BoardCard, b: BoardCard) => {
     const rank = dueRank(a, today) - dueRank(b, today)
@@ -286,14 +290,14 @@ export function buildBoardCards(
     if (a.date && b.date && a.date !== b.date) {
       return a.date < b.date ? -1 : 1
     }
-    return newestFirst(a, b)
+    return drawnFirst(a, b)
   }
 
   const byCompletion = (a: BoardCard, b: BoardCard) => {
     const left = a.completedAt ?? ''
     const right = b.completedAt ?? ''
     if (left !== right) return left > right ? -1 : 1
-    return newestFirst(a, b)
+    return drawnFirst(a, b)
   }
 
   cards.todo.sort(byDue)
