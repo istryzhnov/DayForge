@@ -41,6 +41,10 @@ import {
 import { verifyCalendarTitles } from './compat/calendar'
 import { verifyGoalReorder } from './compat/reorder'
 import {
+  verifyProjectDropTargets,
+  verifyPlaceBeside,
+} from './compat/dropTargets'
+import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
   verifyPresetMemory,
@@ -76,6 +80,8 @@ function main() {
   verifyPresetReset()
   verifyPresetMemory()
   verifyGoalReorder()
+  verifyProjectDropTargets()
+  verifyPlaceBeside()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

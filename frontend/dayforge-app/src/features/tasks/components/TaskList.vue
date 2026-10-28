@@ -4,11 +4,8 @@ import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskGroup, TaskNode } from '../../../composables/useTaskTree'
 import { PRIORITY } from '../../../entities/constants'
 import { useTaskListState } from '../composables/useTaskListState'
-import {
-  DROP_ZONE_ROOT,
-  useTaskDrag,
-  type TaskDropPayload,
-} from '../composables/useTaskDrag'
+import { DROP_ZONE_ROOT } from '../composables/dropRules'
+import { useTaskDrag, type TaskDropPayload } from '../composables/useTaskDrag'
 import DragGhost from '../../../components/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
 
@@ -115,12 +112,18 @@ function groupKey(group: TaskGroup) {
   >
     <template v-for="group in groups" :key="groupKey(group)">
       <!-- A project that actually groups something gets its own block. -->
+      <!-- A project block is dragged as a whole: its header carries the gesture,
+           and the drop line goes around the block rather than one row. -->
       <div
         v-if="group.kind === 'project'"
         class="task-project"
         :class="{
           'is-drop-target':
             drag.dropZone.value === group.project.task.templateId,
+          'is-dragging':
+            drag.draggingId.value === group.project.task.templateId,
+          'is-drop-above': dropEdge(group.project) === 'above',
+          'is-drop-below': dropEdge(group.project) === 'below',
         }"
         :data-drop-zone="group.project.task.templateId"
       >
@@ -135,6 +138,7 @@ function groupKey(group: TaskGroup) {
             group.children.map((child) => child.task.templateId)
           "
           :on-focus-project="(id: ID) => emit('focus-project', id)"
+          :drag="rowDrag(group.project, DROP_ZONE_ROOT)"
           v-bind="sharedHandlers()"
         />
 
@@ -161,11 +165,7 @@ function groupKey(group: TaskGroup) {
         :is-all-mode="isAllMode"
         :is-active-parent="activeParentId === group.node.task.id"
         :on-focus-project="(id: ID) => emit('focus-project', id)"
-        :drag="
-          group.node.task.priority === PRIORITY.MAJOR
-            ? undefined
-            : rowDrag(group.node, DROP_ZONE_ROOT)
-        "
+        :drag="rowDrag(group.node, DROP_ZONE_ROOT)"
         :is-dragging="drag.draggingId.value === group.node.task.templateId"
         :drop-edge="dropEdge(group.node)"
         v-bind="sharedHandlers()"
