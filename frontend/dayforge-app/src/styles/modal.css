@@ -637,3 +637,50 @@
     display: none;
   }
 }
+
+/* Help: the step-by-step guide folds into one row, with how many chapters
+   are done, so the panel stays short on a desktop. */
+.help-tour {
+  border-top: 1px solid var(--line);
+}
+
+.help-tour__summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 6px 0;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text);
+  font-size: calc(14px * var(--text-scale));
+  font-weight: 600;
+}
+
+.help-tour__summary::-webkit-details-marker {
+  display: none;
+}
+
+.help-tour__title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.help-tour__count {
+  color: var(--muted);
+  font-size: calc(12px * var(--text-scale));
+  font-weight: 500;
+}
+
+.help-tour__chevron {
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+
+.help-tour[open] .help-tour__chevron {
+  transform: rotate(180deg);
+}
+
+:root[data-motion='reduced'] .help-tour__chevron {
+  transition: none;
+}

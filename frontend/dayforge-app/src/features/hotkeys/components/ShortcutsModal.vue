@@ -13,11 +13,14 @@ import TourChapterList from '../../onboarding/components/TourChapterList.vue'
 import { TOUCH_LAYOUT_QUERY } from '../../onboarding/composables/touchLayout'
 import { useTips } from '../../onboarding/composables/useTips'
 import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
+import { useTour } from '../../onboarding/composables/useTour'
+import { TOUR_CHAPTERS } from '../../onboarding/composables/tourSteps'
 
 const { t } = useI18n()
 const { closeOverlay } = useHotkeyOverlay()
 const { settings } = useSettings()
 const { resetTips } = useTips()
+const { completed } = useTour()
 /** Touch has no keyboard: the key lists would only describe what cannot be pressed. */
 const isMobile = useMediaQuery(TOUCH_LAYOUT_QUERY)
 
@@ -60,7 +63,9 @@ useFocusTrap({ onEscape: () => closeOverlay() })
         </header>
 
         <section class="shortcuts-group">
-          <p class="sidebar-caption">{{ t('hotkeys.tips') }}</p>
+          <p v-if="COACH_TIPS_ENABLED" class="sidebar-caption">
+            {{ t('hotkeys.tips') }}
+          </p>
           <div
             v-if="COACH_TIPS_ENABLED"
             class="shortcuts-row shortcuts-row--tips"
@@ -70,8 +75,25 @@ useFocusTrap({ onEscape: () => closeOverlay() })
               {{ t('hotkeys.showTipsAgain') }}
             </button>
           </div>
-          <p class="shortcuts-card__note">{{ t('hotkeys.tourHint') }}</p>
-          <TourChapterList @start="chapterStarted" />
+          <!-- Folded on a desktop, where the shortcut lists follow; on touch
+               the guide is all this panel holds, so it starts open. -->
+          <details class="help-tour" :open="isMobile">
+            <summary class="help-tour__summary">
+              <span class="help-tour__title">
+                {{ t('hotkeys.tourToggle') }}
+              </span>
+              <span class="help-tour__count">
+                {{ completed.length }}/{{ TOUR_CHAPTERS.length }}
+              </span>
+              <AppIcon
+                class="help-tour__chevron"
+                name="chevron-down"
+                :size="16"
+              />
+            </summary>
+            <p class="shortcuts-card__note">{{ t('hotkeys.tourHint') }}</p>
+            <TourChapterList @start="chapterStarted" />
+          </details>
         </section>
 
         <template v-if="!isMobile">

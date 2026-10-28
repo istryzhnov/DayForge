@@ -33,6 +33,7 @@
   "tipsHint": "简短说明，指向它所解释的控件。",
   "showTipsAgain": "再次显示提示",
   "tourHint": "一步步的引导，随着你的操作前进。",
+  "tourToggle": "分步引导",
   "shortcutsOff": "键盘快捷键已关闭。可在“设置”的“行为”中开启。",
   "shortcutsQuiet": "在输入框中打字时快捷键不会触发。可在“设置”的“行为”中关闭。",
   "quickAddGroup": "快速添加",
