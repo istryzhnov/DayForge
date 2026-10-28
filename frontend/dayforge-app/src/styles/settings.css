@@ -1,6 +1,8 @@
 /* Appearance sidebar: the panel that lives in the `.app-settings` column
    (see layout.css), plus the workspace-wide rules driven by the
-   `data-pattern` / `data-motion` attributes `useTheme` writes on <html>. */
+   `data-pattern` / `data-motion` attributes `useTheme` writes on <html>.
+   Chips, tabs, icon buttons, section labels, cards and rows come from
+   ui.css; what is left here is the panel's own layout and its form fields. */
 
 .settings-panel {
   height: 100%;
@@ -12,70 +14,28 @@
 .settings-panel__head {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
 }
 
 .settings-panel__head strong {
-  font-size: calc(17px * var(--text-scale));
+  font-size: calc(18px * var(--text-scale));
 }
 
 .settings-panel__head p {
-  margin: 2px 0 0;
-  font-size: calc(12px * var(--text-scale));
+  margin: 4px 0 0;
+  font-size: calc(13px * var(--text-scale));
   color: var(--muted);
-}
-
-.settings-panel__close {
-  margin-left: auto;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--panel-soft);
-  color: var(--muted);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease;
-}
-
-.settings-panel__close:hover {
-  color: var(--text);
-  border-color: var(--line-soft);
 }
 
 .settings-panel__title {
   min-width: 0;
 }
 
-/* Sits where the back arrow of a phone settings app would: left of the title,
-   only while a section is open. */
-.settings-panel__back {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--panel-soft);
-  color: var(--muted);
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition:
-    color 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.15s ease;
+.settings-panel__close {
+  margin-left: auto;
 }
 
-.settings-panel__back:hover {
-  color: var(--text);
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
-  transform: translateX(-2px);
-}
-
+.ui-chip:disabled,
 .theme-chip:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -89,43 +49,26 @@
 
 .settings-menu {
   display: grid;
-  gap: 14px;
+  gap: 16px;
   align-content: start;
   padding-bottom: 20px;
 }
 
-.settings-menu__group {
-  display: grid;
-  gap: 4px;
-}
-
-.settings-menu__group .sidebar-caption {
-  margin: 0 6px 2px;
+.settings-menu__group .ui-section-label {
+  margin: 0 12px 4px;
 }
 
 .settings-menu__row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid transparent;
-  border-radius: calc(12px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  gap: 12px;
   color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.12s ease;
+  transition: background 0.15s ease;
 }
 
 .settings-menu__row:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-  background: color-mix(in srgb, var(--panel-soft) 85%, transparent);
-  transform: translateX(2px);
+  background: color-mix(in srgb, var(--panel-soft) 60%, transparent);
 }
 
 .settings-menu__row:disabled {
@@ -134,8 +77,8 @@
 }
 
 .settings-menu__icon {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -144,12 +87,12 @@
 
 .settings-menu__text {
   display: grid;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
 .settings-menu__text strong {
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(14px * var(--text-scale));
 }
 
 /* The current value. It wraps rather than cutting off, so translated text
@@ -184,30 +127,31 @@
 .settings-section__intro,
 .settings-group-hint {
   margin: 0;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.5;
   color: var(--muted);
 }
 
 .settings-group-hint {
-  margin-top: -6px;
+  margin-top: -4px;
 }
 
+/* Shared with the export dialog in analytics; settings uses `.ui-chips`. */
 .settings-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .project-icon-picker {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
 }
 
 .project-icon-option {
   appearance: none;
-  height: 36px;
+  height: 40px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -215,7 +159,7 @@
   font-size: calc(11px * var(--text-scale));
   color: var(--muted);
   background: transparent;
-  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  border: 1px solid var(--line);
   border-radius: calc(8px * var(--radius-scale));
   cursor: pointer;
   transition:
@@ -240,7 +184,7 @@
 }
 
 .settings-reset {
-  margin-top: 6px;
+  margin-top: 4px;
   justify-self: start;
 }
 
@@ -250,12 +194,12 @@
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  margin: 2px 0 0;
-  padding: 10px;
+  margin: 0;
+  padding: 12px;
   border: 1px dashed color-mix(in srgb, var(--accent) 40%, var(--line));
   border-radius: calc(12px * var(--radius-scale));
   background: color-mix(in srgb, var(--accent) 7%, transparent);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.45;
   color: var(--muted);
 }
@@ -270,7 +214,7 @@
   width: 12px;
   height: 12px;
   flex: 0 0 auto;
-  margin-top: 3px;
+  margin-top: 4px;
   border-radius: 999px;
   box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
 }
@@ -279,17 +223,17 @@
 
 .settings-presets {
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .settings-preset {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 10px;
+  column-gap: 12px;
   align-items: center;
   text-align: left;
-  padding: 9px 10px;
+  padding: 12px;
   border: 1px solid var(--line);
   border-radius: calc(12px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel-soft) 55%, transparent);
@@ -314,18 +258,18 @@
   grid-row: 1 / 3;
   display: grid;
   grid-template-columns: repeat(2, 12px);
-  gap: 3px;
+  gap: 4px;
 }
 
 .settings-preset__dots span {
   width: 12px;
   height: 12px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+  border: 1px solid var(--line);
 }
 
 .settings-preset strong {
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(14px * var(--text-scale));
 }
 
 .settings-preset em {
@@ -337,20 +281,19 @@
 
 /* --- sliders -------------------------------------------------------------- */
 
+/* The card surface comes from `.ui-card`. */
 .settings-slider {
   display: grid;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  gap: 8px;
+  padding: 12px;
 }
 
 .settings-slider > span {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 8px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
 }
 
@@ -360,7 +303,7 @@
 }
 
 .settings-slider small {
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.4;
   color: var(--muted);
 }
@@ -376,12 +319,9 @@
 .settings-toggle {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
+  gap: 12px;
   align-items: start;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  padding: 12px;
   cursor: pointer;
 }
 
@@ -400,13 +340,13 @@
 }
 
 .settings-toggle strong {
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(14px * var(--text-scale));
 }
 
 .settings-toggle em,
 .settings-select em {
   font-style: normal;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.4;
   color: var(--muted);
 }
@@ -414,17 +354,21 @@
 .settings-select {
   display: grid;
   gap: 4px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
 }
 
+/* Fields share one height so a row of them lines up. */
 .settings-select select,
-.settings-times input {
+.settings-times input,
+.settings-field input {
+  box-sizing: border-box;
+  min-height: 40px;
   font-family: inherit;
   font-size: calc(13px * var(--text-scale));
-  padding: 7px 8px;
+  padding: 8px 12px;
   border: 1px solid var(--line);
-  border-radius: calc(10px * var(--radius-scale));
+  border-radius: calc(8px * var(--radius-scale));
   background: var(--panel);
   color: var(--text);
 }
@@ -432,23 +376,19 @@
 .settings-field {
   display: grid;
   gap: 4px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
 }
 
-.settings-field input,
 .settings-field textarea {
   font-family: inherit;
   font-size: calc(13px * var(--text-scale));
   font-weight: 400;
-  padding: 8px;
+  padding: 8px 12px;
   border: 1px solid var(--line);
-  border-radius: calc(10px * var(--radius-scale));
+  border-radius: calc(8px * var(--radius-scale));
   background: var(--panel);
   color: var(--text);
-}
-
-.settings-field textarea {
   min-height: 60px;
   resize: vertical;
   line-height: 1.45;
@@ -462,31 +402,28 @@
 .settings-danger {
   display: grid;
   gap: 8px;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
 }
 
 .settings-times {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .settings-times label {
   display: grid;
   gap: 4px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
 }
 
 .settings-stats {
   display: grid;
-  gap: 2px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  gap: 4px;
+  padding: 12px;
   font-size: calc(13px * var(--text-scale));
 }
 
@@ -518,9 +455,9 @@
 
 .settings-message {
   margin: 0;
-  font-size: calc(12px * var(--text-scale));
-  padding: 8px 10px;
-  border-radius: calc(10px * var(--radius-scale));
+  font-size: calc(13px * var(--text-scale));
+  padding: 8px 12px;
+  border-radius: calc(8px * var(--radius-scale));
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--text);
 }
@@ -537,22 +474,20 @@
 
 /* --- colour field --------------------------------------------------------- */
 
+/* The card surface comes from `.ui-card`. */
 .color-field {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 10px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
+  gap: 12px;
+  padding: 12px;
 }
 
 /* The native picker is kept in the layout (so it stays clickable and
    keyboard-reachable) but drawn as our own round swatch on top of it. */
 .color-field__swatch {
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
 }
 
@@ -583,19 +518,19 @@
 .color-field__head {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .color-field__label {
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(14px * var(--text-scale));
   font-weight: 600;
 }
 
 .color-field__badge {
-  font-size: calc(9px * var(--text-scale));
+  font-size: calc(11px * var(--text-scale));
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 999px;
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 16%, transparent);
@@ -603,7 +538,7 @@
 
 .color-field__desc {
   margin: 0;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   line-height: 1.4;
   color: var(--muted);
 }
@@ -616,12 +551,14 @@
 }
 
 .color-field__hex {
-  width: 92px;
-  padding: 5px 8px;
+  box-sizing: border-box;
+  width: 96px;
+  min-height: 40px;
+  padding: 8px 12px;
   font-family: inherit;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   border: 1px solid var(--line);
-  border-radius: calc(9px * var(--radius-scale));
+  border-radius: calc(8px * var(--radius-scale));
   background: var(--panel);
   color: var(--text);
 }
@@ -637,7 +574,7 @@
   background: none;
   padding: 0;
   font: inherit;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
   color: var(--accent);
   cursor: pointer;
@@ -653,7 +590,7 @@
 
 .color-field__contrast {
   margin: 0;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
   color: var(--muted);
 }
 
@@ -676,9 +613,9 @@
   align-items: flex-start;
   gap: 8px;
   text-align: left;
-  padding: 6px 8px;
+  padding: 8px 12px;
   border: 1px solid transparent;
-  border-radius: calc(10px * var(--radius-scale));
+  border-radius: calc(12px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel) 70%, transparent);
   color: var(--text);
   cursor: pointer;
@@ -693,19 +630,19 @@
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
-  margin-top: 1px;
+  margin-top: 2px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
 }
 
 .color-suggestion__text {
   display: grid;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
 }
 
 .color-suggestion__text strong {
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(13px * var(--text-scale));
 }
 
 .color-suggestion__text em {
@@ -724,8 +661,8 @@
 }
 
 .settings-swatch {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 999px;
   border: 2px solid transparent;
   cursor: pointer;
@@ -747,15 +684,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: calc(12px * var(--radius-scale));
-  background: var(--panel);
+  padding: 12px;
 }
 
 .settings-preview__dot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex: 0 0 auto;
   border-radius: 999px;
   border: 2px solid;
@@ -778,16 +712,16 @@
   font-size: calc(11px * var(--text-scale));
   color: var(--muted);
   border: 1px solid var(--line);
-  border-radius: calc(10px * var(--radius-scale));
+  border-radius: calc(8px * var(--radius-scale));
   background: var(--panel-soft);
 }
 
 .settings-preview__btn {
   flex: 0 0 auto;
-  padding: 5px 10px;
-  font-size: calc(11px * var(--text-scale));
+  padding: 6px 12px;
+  font-size: calc(13px * var(--text-scale));
   font-weight: 600;
-  border-radius: calc(9px * var(--radius-scale));
+  border-radius: calc(8px * var(--radius-scale));
   color: var(--ring-check);
   background: var(--accent);
 }
@@ -878,9 +812,10 @@ textarea {
 :root[data-targets='large'] .sidebar-settings__trigger,
 :root[data-targets='large'] .sidebar-notify-trigger,
 :root[data-targets='large'] .sidebar-search-trigger,
-:root[data-targets='large'] .settings-panel__close {
-  width: 42px;
-  height: 42px;
+:root[data-targets='large'] .settings-panel__close,
+:root[data-targets='large'] .settings-panel__back {
+  width: 40px;
+  height: 40px;
 }
 
 :root[data-targets='large'] .goal-settings__item,
@@ -913,6 +848,7 @@ textarea {
 
 :root[data-contrast='high'] .muted,
 :root[data-contrast='high'] .sidebar-caption,
+:root[data-contrast='high'] .ui-section-label,
 :root[data-contrast='high'] .settings-group-hint {
   color: color-mix(in srgb, var(--muted) 55%, var(--text));
 }
@@ -922,6 +858,30 @@ textarea {
   outline-offset: 2px;
 }
 
+/* Touch targets: the controls that are small by nature get a 40px hit area
+   on coarse pointers. */
+@media (pointer: coarse) {
+  .color-field__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+
+  .settings-slider input[type='range'] {
+    height: 40px;
+  }
+
+  .settings-toggle input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+  }
+
+  .settings-swatch {
+    width: 40px;
+    height: 40px;
+  }
+}
+
 @media (max-width: 720px) {
   .app-settings {
     left: 0;
@@ -929,11 +889,6 @@ textarea {
     height: 100dvh;
     padding: 14px 12px;
     border-left: none;
-  }
-
-  /* Roomier rows: on a phone this list is thumb-driven. */
-  .settings-menu__row {
-    padding: 13px 12px;
   }
 
   /* iOS zooms the page when a focused field is under 16px. */

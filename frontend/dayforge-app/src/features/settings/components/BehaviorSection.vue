@@ -65,12 +65,14 @@ function startOnView(view: StartView) {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('settings.openOnStart') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.openOnStart') }}
+    </p>
+    <div class="ui-chips">
       <button
-        class="theme-chip"
+        class="ui-chip ui-chip--wrap"
         :class="{
-          active:
+          'is-active':
             settings.behavior.startView === START_VIEW.GOALS &&
             !startsOnProject,
         }"
@@ -81,8 +83,8 @@ function startOnView(view: StartView) {
       </button>
       <button
         v-if="startProjects.length > 0"
-        class="theme-chip"
-        :class="{ active: startsOnProject }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': startsOnProject }"
         type="button"
         @click="startOnProject()"
       >
@@ -91,8 +93,8 @@ function startOnView(view: StartView) {
       <button
         v-for="option in otherViews"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: settings.behavior.startView === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.behavior.startView === option.id }"
         type="button"
         @click="startOnView(option.id)"
       >
@@ -112,13 +114,17 @@ function startOnView(view: StartView) {
       </select>
     </label>
 
-    <p class="sidebar-caption">{{ t('settings.newItemsAre') }}</p>
-    <div class="settings-chips">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.newItemsAre') }}
+    </p>
+    <div class="ui-chips">
       <button
         v-for="option in PRIORITY_OPTIONS"
         :key="option.id"
-        class="theme-chip"
-        :class="{ active: settings.behavior.defaultPriority === option.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{
+          'is-active': settings.behavior.defaultPriority === option.id,
+        }"
         type="button"
         @click="update('behavior', { defaultPriority: option.id })"
       >
@@ -126,9 +132,11 @@ function startOnView(view: StartView) {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.onItsOwn') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.onItsOwn') }}
+    </p>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="settings.behavior.carryForward"
@@ -140,7 +148,7 @@ function startOnView(view: StartView) {
       </span>
     </label>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="settings.behavior.keyboardShortcuts"
@@ -158,7 +166,7 @@ function startOnView(view: StartView) {
       {{ t('settings.showShortcuts') }}
     </button>
 
-    <label class="settings-toggle">
+    <label class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="!tipsOff"
@@ -178,7 +186,7 @@ function startOnView(view: StartView) {
       {{ t('settings.takeTourAgain') }}
     </button>
 
-    <label class="settings-slider">
+    <label class="settings-slider ui-card">
       <span>
         {{ t('settings.undoWindow') }}
         <em>{{

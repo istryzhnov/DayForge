@@ -43,12 +43,12 @@ function idleLabel(minutes: number): string {
     </p>
 
     <p class="settings-group-hint">{{ t('settings.timerFocusLasts') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="minutes in FOCUS_LENGTHS"
         :key="minutes"
-        class="theme-chip"
-        :class="{ active: settings.timer.focusMinutes === minutes }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.timer.focusMinutes === minutes }"
         type="button"
         @click="update('timer', { focusMinutes: minutes })"
       >
@@ -56,15 +56,19 @@ function idleLabel(minutes: number): string {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.timerCountdownCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.timerCountdownCaption') }}
+    </p>
 
     <p class="settings-group-hint">{{ t('settings.timerStartsFrom') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="minutes in COUNTDOWN_LENGTHS"
         :key="minutes"
-        class="theme-chip"
-        :class="{ active: settings.timer.defaultCountdownMinutes === minutes }"
+        class="ui-chip ui-chip--wrap"
+        :class="{
+          'is-active': settings.timer.defaultCountdownMinutes === minutes,
+        }"
         type="button"
         @click="update('timer', { defaultCountdownMinutes: minutes })"
       >
@@ -72,18 +76,20 @@ function idleLabel(minutes: number): string {
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.timerRemindersCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.timerRemindersCaption') }}
+    </p>
     <p class="settings-group-hint">
       {{ t('settings.timerRemindersHint') }}
     </p>
 
     <p class="settings-group-hint">{{ t('settings.timerLongRunLabel') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="hours in LONG_RUN_HOUR_OPTIONS"
         :key="hours"
-        class="theme-chip"
-        :class="{ active: settings.timer.longRunHours === hours }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.timer.longRunHours === hours }"
         type="button"
         @click="update('timer', { longRunHours: hours })"
       >
@@ -92,12 +98,12 @@ function idleLabel(minutes: number): string {
     </div>
 
     <p class="settings-group-hint">{{ t('settings.timerIdleLabel') }}</p>
-    <div class="settings-chips">
+    <div class="ui-chips">
       <button
         v-for="minutes in IDLE_RETURN_MINUTE_OPTIONS"
         :key="minutes"
-        class="theme-chip"
-        :class="{ active: settings.timer.idleReturnMinutes === minutes }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': settings.timer.idleReturnMinutes === minutes }"
         type="button"
         @click="update('timer', { idleReturnMinutes: minutes })"
       >
@@ -106,15 +112,17 @@ function idleLabel(minutes: number): string {
     </div>
 
     <DisclosureSection :label="t('settings.advanced')">
-      <p class="sidebar-caption">{{ t('settings.timerBreaksCaption') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.timerBreaksCaption') }}
+      </p>
 
       <p class="settings-group-hint">{{ t('settings.timerShortBreak') }}</p>
-      <div class="settings-chips">
+      <div class="ui-chips">
         <button
           v-for="minutes in BREAK_LENGTHS"
           :key="minutes"
-          class="theme-chip"
-          :class="{ active: settings.timer.shortBreakMinutes === minutes }"
+          class="ui-chip ui-chip--wrap"
+          :class="{ 'is-active': settings.timer.shortBreakMinutes === minutes }"
           type="button"
           @click="update('timer', { shortBreakMinutes: minutes })"
         >
@@ -123,12 +131,12 @@ function idleLabel(minutes: number): string {
       </div>
 
       <p class="settings-group-hint">{{ t('settings.timerLongBreak') }}</p>
-      <div class="settings-chips">
+      <div class="ui-chips">
         <button
           v-for="minutes in BREAK_LENGTHS"
           :key="minutes"
-          class="theme-chip"
-          :class="{ active: settings.timer.longBreakMinutes === minutes }"
+          class="ui-chip ui-chip--wrap"
+          :class="{ 'is-active': settings.timer.longBreakMinutes === minutes }"
           type="button"
           @click="update('timer', { longBreakMinutes: minutes })"
         >
@@ -137,12 +145,12 @@ function idleLabel(minutes: number): string {
       </div>
 
       <p class="settings-group-hint">{{ t('settings.timerLongBreakAfter') }}</p>
-      <div class="settings-chips">
+      <div class="ui-chips">
         <button
           v-for="count in LONG_BREAK_EVERY"
           :key="count"
-          class="theme-chip"
-          :class="{ active: settings.timer.longBreakEvery === count }"
+          class="ui-chip ui-chip--wrap"
+          :class="{ 'is-active': settings.timer.longBreakEvery === count }"
           type="button"
           @click="update('timer', { longBreakEvery: count })"
         >
@@ -150,7 +158,7 @@ function idleLabel(minutes: number): string {
         </button>
       </div>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.timer.autoStartBreaks"
@@ -162,7 +170,7 @@ function idleLabel(minutes: number): string {
         </span>
       </label>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.timer.autoStartFocus"
@@ -174,7 +182,7 @@ function idleLabel(minutes: number): string {
         </span>
       </label>
 
-      <label class="settings-toggle">
+      <label class="settings-toggle ui-card">
         <input
           type="checkbox"
           :checked="settings.timer.sound"
@@ -186,7 +194,9 @@ function idleLabel(minutes: number): string {
         </span>
       </label>
 
-      <p class="sidebar-caption">{{ t('settings.timerDefaultRate') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.timerDefaultRate') }}
+      </p>
 
       <p class="settings-group-hint">
         {{ t('settings.timerRateHint') }}

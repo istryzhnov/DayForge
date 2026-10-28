@@ -18,7 +18,9 @@ const { hint } = useProjectRateField(props, {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('billing.billingCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('billing.billingCaption') }}
+    </p>
 
     <p class="settings-group-hint">{{ hint }}</p>
 

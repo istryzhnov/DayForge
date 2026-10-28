@@ -93,6 +93,18 @@
   background: var(--panel);
 }
 
+/* Chip whose label may wrap onto a second line, for long translated words. */
+.ui-chip--wrap {
+  height: auto;
+  min-height: 36px;
+  padding: 8px 14px;
+  line-height: 1.25;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  text-align: center;
+}
+
 .ui-tab {
   flex: 1 1 0;
   /* A tab label is never cut: a tab is at least as wide as its word. */
@@ -175,6 +187,15 @@
     width: 40px;
     height: 40px;
   }
+
+  .ui-chip {
+    height: 40px;
+  }
+
+  .ui-chip--wrap {
+    height: auto;
+    min-height: 40px;
+  }
 }
 
 .ui-chip:focus-visible,
@@ -194,6 +215,13 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* A section label that may run onto several lines instead of being cut. */
+.ui-section-label--wrap {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .ui-oneline {

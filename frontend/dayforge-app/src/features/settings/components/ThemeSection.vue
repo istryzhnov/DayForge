@@ -22,40 +22,48 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('settings.themeStyle') }}</p>
-    <div class="theme-panel__group">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.themeStyle') }}
+    </p>
+    <div class="ui-tabs" role="group" :aria-label="t('settings.themeStyle')">
       <button
-        class="theme-chip"
-        :class="{ active: themeStyle === 'vivid' }"
+        class="ui-tab"
+        :class="{ 'is-active': themeStyle === 'vivid' }"
         type="button"
+        :aria-pressed="themeStyle === 'vivid'"
         @click="setThemeStyle('vivid')"
       >
         {{ t('settings.themeStyleFresh') }}
       </button>
       <button
-        class="theme-chip"
-        :class="{ active: themeStyle === 'minimal' }"
+        class="ui-tab"
+        :class="{ 'is-active': themeStyle === 'minimal' }"
         type="button"
+        :aria-pressed="themeStyle === 'minimal'"
         @click="setThemeStyle('minimal')"
       >
         {{ t('settings.themeStyleMinimal') }}
       </button>
     </div>
 
-    <p class="sidebar-caption">{{ t('settings.themeMode') }}</p>
-    <div class="theme-panel__group">
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.themeMode') }}
+    </p>
+    <div class="ui-tabs" role="group" :aria-label="t('settings.themeMode')">
       <button
-        class="theme-chip"
-        :class="{ active: themeMode === 'light' }"
+        class="ui-tab"
+        :class="{ 'is-active': themeMode === 'light' }"
         type="button"
+        :aria-pressed="themeMode === 'light'"
         @click="setThemeMode('light')"
       >
         {{ t('settings.themeModeDay') }}
       </button>
       <button
-        class="theme-chip"
-        :class="{ active: themeMode === 'dark' }"
+        class="ui-tab"
+        :class="{ 'is-active': themeMode === 'dark' }"
         type="button"
+        :aria-pressed="themeMode === 'dark'"
         @click="setThemeMode('dark')"
       >
         {{ t('settings.themeModeNight') }}
@@ -81,7 +89,9 @@ const {
       </span>
     </p>
 
-    <p class="sidebar-caption">{{ t('settings.themePalettes') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.themePalettes') }}
+    </p>
     <div class="settings-presets">
       <button
         v-for="preset in presets"

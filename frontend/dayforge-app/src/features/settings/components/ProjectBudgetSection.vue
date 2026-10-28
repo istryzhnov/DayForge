@@ -71,7 +71,9 @@ function clear() {
 
 <template>
   <div class="settings-section">
-    <p class="sidebar-caption">{{ t('billing.budgetCaption') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('billing.budgetCaption') }}
+    </p>
 
     <p class="settings-group-hint">
       {{ t('billing.budgetHint') }}
@@ -105,15 +107,15 @@ function clear() {
     </div>
 
     <div
-      class="settings-chips budget-period"
+      class="ui-chips budget-period"
       role="group"
       :aria-label="t('billing.budgetPeriodAria')"
     >
       <button
         v-for="period in PERIODS"
         :key="period.id"
-        class="theme-chip"
-        :class="{ active: draft.period === period.id }"
+        class="ui-chip ui-chip--wrap"
+        :class="{ 'is-active': draft.period === period.id }"
         type="button"
         :aria-pressed="draft.period === period.id"
         @click="draft.period = period.id"

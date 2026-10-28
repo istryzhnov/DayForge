@@ -55,7 +55,9 @@ const {
       </template>
     </i18n-t>
 
-    <p class="sidebar-caption">{{ t('settings.projectColour') }}</p>
+    <p class="ui-section-label ui-section-label--wrap">
+      {{ t('settings.projectColour') }}
+    </p>
     <div class="settings-swatches">
       <button
         v-for="color in presets"
@@ -80,7 +82,7 @@ const {
     />
 
     <template v-if="hasTheme">
-      <div class="settings-preview" :style="vars">
+      <div class="settings-preview ui-card" :style="vars">
         <span
           class="settings-preview__dot settings-preview__dot--project"
         ></span>
@@ -93,7 +95,7 @@ const {
         }}</span>
       </div>
 
-      <label class="settings-slider">
+      <label class="settings-slider ui-card">
         <span>
           {{ t('settings.projectTintStrength') }}
           <em>{{ Math.round(intensity * 100) }}%</em>
@@ -109,7 +111,9 @@ const {
         <small>{{ t('settings.projectTintHint') }}</small>
       </label>
 
-      <p class="sidebar-caption">{{ t('settings.projectFineTuning') }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t('settings.projectFineTuning') }}
+      </p>
       <ColorField
         v-for="field in fields"
         :key="field.key"

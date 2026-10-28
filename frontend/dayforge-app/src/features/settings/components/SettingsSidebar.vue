@@ -129,7 +129,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
     <header class="settings-panel__head">
       <button
         v-if="activeSection !== null"
-        class="settings-panel__back"
+        class="ui-icon-btn ui-icon-btn--outlined settings-panel__back"
         type="button"
         :aria-label="t('settings.panelBack')"
         @click="back"
@@ -141,7 +141,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         <p>{{ heading.description }}</p>
       </div>
       <button
-        class="settings-panel__close"
+        class="ui-icon-btn ui-icon-btn--outlined settings-panel__close"
         type="button"
         :aria-label="t('settings.panelClose')"
         @click="close"

@@ -15,7 +15,9 @@ const { groups, setColor, resetColor, resetPalette } = useColorTokenGroups()
     </p>
 
     <template v-for="group in groups" :key="group.id">
-      <p class="sidebar-caption">{{ t(group.labelKey) }}</p>
+      <p class="ui-section-label ui-section-label--wrap">
+        {{ t(group.labelKey) }}
+      </p>
       <p class="settings-group-hint">{{ t(group.hintKey) }}</p>
       <ColorField
         v-for="token in group.tokens"

@@ -85,16 +85,6 @@
   color: var(--muted);
 }
 
-.theme-panel__group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.theme-panel__group + .theme-panel__group {
-  margin-top: 6px;
-}
-
 .theme-chip {
   border: 1px solid var(--line);
   background: var(--panel-soft);
