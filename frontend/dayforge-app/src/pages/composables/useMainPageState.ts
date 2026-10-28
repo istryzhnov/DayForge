@@ -14,6 +14,7 @@ import {
   GOAL_STATUS,
   PRIORITY,
   RECURRENCE_TYPE,
+  TASK_STATUS,
   type BoardStage,
 } from '../../entities/constants'
 import type { QuickAddResult } from '../../composables/quickAdd/parse'
@@ -24,6 +25,10 @@ import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
 import { noteManualTaskAdded } from '../../composables/useShortcutTip'
 import { setTipFacts } from '../../features/onboarding/composables/useTips'
+import {
+  startTour,
+  tourEvent,
+} from '../../features/onboarding/composables/useTour'
 import { useTimer } from '../../composables/useTimer'
 import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
@@ -138,6 +143,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function selectView(view: ActiveView) {
     activeView.value = view
+    tourEvent('view-opened', { view })
   }
 
   /** Choosing a project always means "show me that project". */
@@ -269,7 +275,18 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule?: TaskSchedule,
   ) {
     if (!goalSpace.activeGoal.value) return
-    goalSpace.addTask(goalSpace.activeGoal.value.id, title, priority, schedule)
+    const created = goalSpace.addTask(
+      goalSpace.activeGoal.value.id,
+      title,
+      priority,
+      schedule,
+    )
+    if (created) {
+      tourEvent('task-added', {
+        goalId: created.goalId,
+        templateId: created.id,
+      })
+    }
     announceScheduled(schedule)
     noteManualTaskAdded()
   }
@@ -288,12 +305,18 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
         }
       : undefined
 
-    goalSpace.addTask(
+    const created = goalSpace.addTask(
       newGoalId ?? result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
       result.title,
       settings.behavior.defaultPriority,
       schedule,
     )
+    if (created) {
+      tourEvent('task-added', {
+        goalId: created.goalId,
+        templateId: created.id,
+      })
+    }
     announceScheduled(schedule)
   }
 
@@ -303,7 +326,18 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     priority: Priority,
     schedule?: TaskSchedule,
   ) {
-    goalSpace.addSubTask(parentTemplateId, title, priority, schedule)
+    const created = goalSpace.addSubTask(
+      parentTemplateId,
+      title,
+      priority,
+      schedule,
+    )
+    if (created) {
+      tourEvent('subtask-added', {
+        parentTemplateId,
+        templateId: created.id,
+      })
+    }
     announceScheduled(schedule)
   }
 
@@ -327,6 +361,8 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   /** The welcome card's project. It opens only when the user plans their day. */
   function createFirstProject(title: string, color: string, select: boolean) {
+    // The tour starts first, so the project it creates counts as its first step.
+    startTour()
     const id = handleCreateGoal(title, '', color)
     if (select) selectGoal(id)
   }
@@ -347,11 +383,18 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       updatedAt: now,
       theme: { accent: color },
     })
+    tourEvent('project-created', { goalId: id })
     return id
   }
 
   function handleToggleDone(dailyTaskId: ID) {
     goalSpace.toggleTaskDone(dailyTaskId)
+    const row = goalSpace.dailyTasks.value.find(
+      (item) => item.id === dailyTaskId,
+    )
+    if (row?.status === TASK_STATUS.DONE) {
+      tourEvent('task-done', { templateId: row.templateId })
+    }
   }
 
   function applyStarterPlan(plan: StarterPlan) {
@@ -366,6 +409,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       createdAt: now,
       updatedAt: now,
     })
+    tourEvent('project-created', { goalId })
     goalSpace.selectGoal(goalId)
 
     const project = goalSpace.addTask(goalId, plan.projectTitle, PRIORITY.MINOR)
@@ -457,11 +501,13 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   function handleDeleteTask(templateId: ID) {
     timer.handleTaskRemoved(templateId)
     goalSpace.deleteTask(templateId)
+    tourEvent('task-removed', { templateId })
   }
 
   function handleDeleteGoal(goalId: ID) {
     timer.handleGoalRemoved(goalId)
     goalSpace.deleteGoal(goalId)
+    tourEvent('project-removed', { goalId })
   }
 
   function handleChangeGoalDetails(
@@ -511,6 +557,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
     goalSpace.updateGoalBoard(goalId, enabled)
+    tourEvent(enabled ? 'board-shown' : 'list-shown', { goalId })
   }
 
   function handleChangeGoalNotes(goalId: ID, notes: string) {
@@ -519,6 +566,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
     goalSpace.setTaskBoardStage(templateId, stage)
+    tourEvent('card-moved', { templateId, stage })
   }
 
   function handleClearBoardDone(templateIds: ID[]) {

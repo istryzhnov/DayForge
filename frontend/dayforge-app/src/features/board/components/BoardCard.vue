@@ -138,6 +138,7 @@ function onMoveChange(event: Event) {
       'is-timing': isTiming,
     }"
     :data-card-id="card.id"
+    :data-tour-task="card.templateId"
     @pointerdown="onPointerDownCard"
     @contextmenu="onContextMenu"
   >

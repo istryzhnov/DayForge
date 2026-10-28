@@ -28,6 +28,7 @@ const VIEWS: ReadonlyArray<{ label: string; boardEnabled: boolean }> = [
         class="ui-tab"
         :class="{ 'is-active': boardEnabled === view.boardEnabled }"
         :aria-pressed="boardEnabled === view.boardEnabled"
+        :data-tip-anchor="view.boardEnabled ? 'board-tab' : 'list-tab'"
         @click="emit('set-board', view.boardEnabled)"
       >
         {{ view.label }}

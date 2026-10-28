@@ -30,6 +30,11 @@ const {
   logCopied,
   retryDead,
   discardDead,
+  isSigningOut,
+  isSignOutConfirmOpen,
+  unsyncedCount,
+  confirmSignOut,
+  cancelSignOut,
 } = useProfile()
 </script>
 
@@ -183,18 +188,45 @@ const {
           {{ logCopied ? 'Copied' : 'Copy sync log' }}
         </button>
 
-        <button
-          class="btn btn-ghost settings-action settings-action--danger"
-          type="button"
-          :disabled="auth.isBusy.value"
-          @click="signOut"
-        >
-          Sign out
-        </button>
-        <p class="settings-group-hint">
-          Signing out leaves every project and task here, on this device. It
-          only stops them being sent anywhere.
-        </p>
+        <template v-if="!isSignOutConfirmOpen">
+          <button
+            class="btn btn-ghost settings-action settings-action--danger"
+            type="button"
+            :disabled="auth.isBusy.value || isSigningOut"
+            @click="signOut"
+          >
+            {{ isSigningOut ? 'Signing out…' : 'Sign out' }}
+          </button>
+          <p class="settings-group-hint">
+            Signing out sends any unsent changes first, then removes this
+            account's projects, tasks and time from this browser. They stay on
+            the server and come back when you sign in again.
+          </p>
+        </template>
+
+        <div v-else class="sign-out-confirm">
+          <p class="settings-message is-error">
+            {{ unsyncedCount }}
+            {{ unsyncedCount === 1 ? 'change' : 'changes' }}
+            {{ unsyncedCount === 1 ? "hasn't" : "haven't" }} synced yet. Signing
+            out now deletes them from this browser.
+          </p>
+          <button
+            class="btn btn-ghost settings-action settings-action--danger"
+            type="button"
+            :disabled="isSigningOut"
+            @click="confirmSignOut"
+          >
+            Sign out anyway
+          </button>
+          <button
+            class="btn btn-ghost settings-action"
+            type="button"
+            @click="cancelSignOut"
+          >
+            Cancel
+          </button>
+        </div>
 
         <button
           class="btn btn-ghost settings-action settings-action--danger"

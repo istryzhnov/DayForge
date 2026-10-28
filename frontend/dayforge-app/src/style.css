@@ -19,6 +19,7 @@
 @import './styles/mobile-nav.css';
 @import './styles/drag-to-project.css';
 @import './styles/tips.css';
+@import './styles/tour.css';
 @import './styles/welcome.css';
 /* After the panels, so one set of control styles wins everywhere. */
 @import './styles/controls.css';

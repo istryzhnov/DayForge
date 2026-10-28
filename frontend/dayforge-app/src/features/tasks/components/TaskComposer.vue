@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useId, useTemplateRef } from 'vue'
+import { onMounted, ref, useId, useTemplateRef } from 'vue'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
@@ -42,6 +42,14 @@ const { title, submit, cancel } = useTaskComposerState(
     onCancel: () => emit('cancel'),
   },
 )
+
+const input = useTemplateRef<HTMLInputElement>('input')
+
+// A subtask row opens because + was pressed, so typing should land in it
+// rather than in the page, where letters are shortcuts.
+onMounted(() => {
+  if (props.isSubtask) input.value?.focus()
+})
 </script>
 
 <template>
@@ -52,6 +60,7 @@ const { title, submit, cancel } = useTaskComposerState(
       <label :for="inputId" class="task-composer__label">Add a task</label>
       <input
         :id="inputId"
+        ref="input"
         v-model="title"
         class="task-composer__input"
         type="text"
