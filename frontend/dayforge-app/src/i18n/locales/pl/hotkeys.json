@@ -40,7 +40,7 @@
   "taskTitle": "Tytuł zadania",
   "quickAddPlaceholder": "Kup mleko jutro  #projekt",
   "projectsList": "Projekty",
-  "noProjectYet": "Brak projektu: Enter utworzy „{name}”",
+  "noProjectYet": "Nie ma jeszcze takiego projektu: dodanie zadania utworzy „{name}”",
   "typeProjectName": "Wpisz nazwę projektu",
   "today": "Dziś",
   "tomorrow": "Jutro",

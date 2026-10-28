@@ -40,7 +40,7 @@
   "taskTitle": "Назва завдання",
   "quickAddPlaceholder": "Купити молоко завтра  #проєкт",
   "projectsList": "Проєкти",
-  "noProjectYet": "Проєкту ще немає: Enter створить «{name}»",
+  "noProjectYet": "Такого проєкту ще немає: додавання завдання створить «{name}»",
   "typeProjectName": "Введіть назву проєкту",
   "today": "Сьогодні",
   "tomorrow": "Завтра",

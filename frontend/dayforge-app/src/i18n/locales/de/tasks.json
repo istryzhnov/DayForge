@@ -53,6 +53,7 @@
   "closeNotes": "Notizen schließen",
   "writeNote": "Notiz schreiben…",
   "notesHint": "Automatisch gespeichert · Esc verwirft",
+  "notesHintTouch": "Automatisch gespeichert",
   "upcoming": "Demnächst",
   "showDay": "{day} anzeigen",
   "repeats": "Wiederholt",

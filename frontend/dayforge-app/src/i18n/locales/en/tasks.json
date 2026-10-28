@@ -53,6 +53,7 @@
   "closeNotes": "Close notes",
   "writeNote": "Write a note…",
   "notesHint": "Saved automatically · Esc to discard",
+  "notesHintTouch": "Saved automatically",
   "upcoming": "Upcoming",
   "showDay": "Show {day}",
   "repeats": "Repeats",

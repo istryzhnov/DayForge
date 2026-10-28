@@ -53,6 +53,7 @@
   "closeNotes": "关闭备注",
   "writeNote": "写一条备注……",
   "notesHint": "自动保存 · Esc 放弃",
+  "notesHintTouch": "自动保存",
   "upcoming": "即将到来",
   "showDay": "显示 {day}",
   "repeats": "重复",
