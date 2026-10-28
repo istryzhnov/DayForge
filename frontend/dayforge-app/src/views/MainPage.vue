@@ -7,6 +7,7 @@ import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
 import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import CoachMark from '../features/onboarding/components/CoachMark.vue'
+import { COACH_TIPS_ENABLED } from '../features/onboarding/composables/tips'
 import TourCoach from '../features/onboarding/components/TourCoach.vue'
 import type { TourOffscreen } from '../features/onboarding/composables/tourSteps'
 import type { ID } from '../entities/types'
@@ -447,7 +448,11 @@ function handleSearchSelect(result: SearchResult) {
 
     <ShortcutTipToast />
 
-    <CoachMark :view="activeView" @action="openStarter" />
+    <CoachMark
+      v-if="COACH_TIPS_ENABLED"
+      :view="activeView"
+      @action="openStarter"
+    />
     <TourCoach @navigate="handleTourNavigate" />
 
     <WelcomeFlow

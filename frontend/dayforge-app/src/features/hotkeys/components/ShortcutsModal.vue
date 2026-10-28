@@ -9,6 +9,7 @@ import {
 } from '../../../composables/useHotkeys'
 import { useSettings } from '../../../composables/useSettings'
 import { useTips } from '../../onboarding/composables/useTips'
+import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
 import { useTour } from '../../onboarding/composables/useTour'
 
 const { t } = useI18n()
@@ -70,7 +71,10 @@ onMounted(() => cardRef.value?.focus())
 
         <section class="shortcuts-group">
           <p class="sidebar-caption">{{ t('hotkeys.tips') }}</p>
-          <div class="shortcuts-row shortcuts-row--tips">
+          <div
+            v-if="COACH_TIPS_ENABLED"
+            class="shortcuts-row shortcuts-row--tips"
+          >
             <span>{{ t('hotkeys.tipsHint') }}</span>
             <button class="btn btn-ghost" type="button" @click="showTipsAgain">
               {{ t('hotkeys.showTipsAgain') }}

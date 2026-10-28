@@ -41,7 +41,7 @@ const {
 } = useTour()
 /** Touch or a phone-width screen: the same cut the phone layout uses. */
 const isMobile = useMediaQuery('(pointer: coarse), (max-width: 720px)')
-const { open: openNav } = useMobileNav()
+const { open: openNav, isOpen: navOpen } = useMobileNav()
 const bubble = useTemplateRef<InstanceType<typeof CoachBubble>>('bubble')
 
 /** A dialog covers the page, so the bubble waits underneath it. */
@@ -127,6 +127,13 @@ watch(
 )
 
 watch([state, bubbleOpen], () => schedule())
+
+// The phone drawer slides in, so its controls are measured again once it has
+// settled; measuring at once would find them still off screen.
+watch(navOpen, () => {
+  schedule()
+  window.setTimeout(schedule, 350)
+})
 
 /** Esc closes the bubble, not the tour; the progress pill brings it back. */
 function onKeydown(event: KeyboardEvent) {

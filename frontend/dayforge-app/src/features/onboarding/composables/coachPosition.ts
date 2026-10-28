@@ -87,11 +87,16 @@ export function placeCoach(
   preferred: TipPlacement,
   margin = 12,
 ): CoachPosition {
-  const placement = fits(preferred, anchor, bubble, viewport, margin)
-    ? preferred
-    : fits(OPPOSITE[preferred], anchor, bubble, viewport, margin)
-      ? OPPOSITE[preferred]
-      : preferred
+  // The preferred side, then its opposite, then the other axis: on a phone a
+  // control in the full-width drawer has no room left or right, and a bubble
+  // squeezed onto its side would cover the very control it points at.
+  const sideways = preferred === 'left' || preferred === 'right'
+  const order: TipPlacement[] = sideways
+    ? [preferred, OPPOSITE[preferred], 'top', 'bottom']
+    : [preferred, OPPOSITE[preferred], 'right', 'left']
+  const placement =
+    order.find((side) => fits(side, anchor, bubble, viewport, margin)) ??
+    preferred
 
   if (placement === 'top' || placement === 'bottom') {
     const top = clamp(
