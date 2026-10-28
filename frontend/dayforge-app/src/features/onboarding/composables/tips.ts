@@ -36,11 +36,6 @@ export interface Tip {
 }
 
 /**
- * Ordered: within a view the first tip that is undismissed, passes `when`, and
- * whose anchor is on screen is the one shown. Goals tips come before the
- * sidebar tip, so the composer is explained first.
- */
-/**
  * Per-screen coach tips are switched off: the getting-started tour covers the
  * first steps, and tips popping up on every visit got in the way. The code
  * stays; set this to true to bring them back (with their settings and Help
@@ -48,6 +43,11 @@ export interface Tip {
  */
 export const COACH_TIPS_ENABLED = false
 
+/**
+ * Ordered: within a view the first tip that is undismissed, passes `when`, and
+ * whose anchor is on screen is the one shown. Goals tips come before the
+ * sidebar tip, so the composer is explained first.
+ */
 export const TIPS: readonly Tip[] = [
   {
     id: 'first-task',

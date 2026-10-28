@@ -41,6 +41,7 @@ import {
 import { verifyCalendarTitles } from './compat/calendar'
 import { verifyGoalReorder } from './compat/reorder'
 import {
+  verifyTourChapters,
   verifyTourDeletions,
   verifyTourGuards,
   verifyTourLifecycle,
@@ -108,6 +109,7 @@ function main() {
   verifyTourDeletions()
   verifyTourStorage()
   verifyOvernightTasks()
+  verifyTourChapters()
   verifyTranslations()
   verifyFieldGroupMerge()
 

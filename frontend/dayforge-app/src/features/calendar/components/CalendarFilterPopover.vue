@@ -68,7 +68,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="rootRef" class="calendar-filter">
+  <div ref="rootRef" class="calendar-filter" data-tip-anchor="calendar-filter">
     <button
       ref="triggerRef"
       class="ui-icon-btn ui-icon-btn--outlined calendar-filter__trigger"

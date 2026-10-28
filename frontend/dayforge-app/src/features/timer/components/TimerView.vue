@@ -238,6 +238,7 @@ function closeEditor() {
       <p v-if="hint" class="timer-view__hint ui-oneline">{{ hint }}</p>
 
       <TimerControls
+        data-tip-anchor="timer-controls"
         :primary-label="primaryLabel"
         :primary-icon="timer.status === TIMER_STATUS.RUNNING ? 'pause' : 'play'"
         :can-stop="canStop"
@@ -269,7 +270,7 @@ function closeEditor() {
       </button>
     </header>
 
-    <TimeEntryList @edit="openEditor" />
+    <TimeEntryList data-tip-anchor="timer-history" @edit="openEditor" />
 
     <TimeEntryEditor
       v-if="isEditorOpen"

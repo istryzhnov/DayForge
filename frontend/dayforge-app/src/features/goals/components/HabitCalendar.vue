@@ -16,7 +16,7 @@ const { rangeLabel, summary, cellLabel } = useHabitCalendar(props)
 </script>
 
 <template>
-  <section class="ui-card habit-card">
+  <section class="ui-card habit-card" data-tip-anchor="habit-card">
     <header class="habit-card__head">
       <h3 class="ui-section-label">{{ t('goals.habits') }}</h3>
       <span class="habit-card__summary">{{ summary }}</span>
