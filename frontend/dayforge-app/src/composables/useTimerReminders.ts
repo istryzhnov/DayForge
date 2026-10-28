@@ -4,15 +4,21 @@ import type { ID, ISODate } from '../entities/types'
 import type { TimerTaskRef } from '../entities/TimerEntity'
 import { readJson, writeJson } from '../lib/storage'
 import { getTodayISODate } from './goalSpace/date'
-import { isLive, isRunning } from './timer/machine'
+import { hasExpired, isLive, isRunning } from './timer/machine'
 import { MINUTE_MS } from './timer/pomodoro'
 import {
+  awayWindowFromStorage,
+  awayWindowFromTickGap,
   crossedMidnight,
-  isAwayLongEnough,
   isEndOfDay,
   isLongRunDue,
+  mergeAwayWindows,
+  sameStretch,
   sittingRunningMs,
   sittingStartMs,
+  type AwayRecord,
+  type AwayWindow,
+  type StretchKey,
 } from './timer/reminders'
 import { i18n } from '../i18n'
 import {
@@ -30,7 +36,11 @@ import { isWithinQuietHours, useSettings } from './useSettings'
 import { useUndoToast } from './useUndoToast'
 
 const REMINDERS_STORAGE_KEY = 'dayforge-timer-reminders-v1'
+/** Where the last-seen mark lives, so a reload or a closed tab can still show away time. */
+const AWAY_RECORD_STORAGE_KEY = 'dayforge-timer-away-v1'
 const TICK_MS = 1000
+/** A visible page refreshes the stored mark this often, not every tick. */
+const AWAY_SAVE_MS = 15_000
 
 interface StoredReminders {
   /** Blocks the user waved away, per day. Only today's list is kept. */
@@ -57,6 +67,14 @@ let hiddenMark: {
   startedAt: number
   idleMinutes: number
 } | null = null
+
+/** Last tick's time and stretch; a jump between ticks means the machine slept. */
+let lastTick: { at: number; running: StretchKey | null } | null = null
+/** Whether this page has written an away record that still needs clearing. */
+let awayRecordOpen = false
+let lastAwaySavedAt = 0
+/** Return time of the last answered prompt; earlier windows are already decided. */
+let answeredThrough = 0
 
 let stored: StoredReminders = { dismissed: {} }
 let initialized = false
@@ -295,62 +313,157 @@ function checkEndOfDay(tasks: DailyTask[], now: number) {
   )
 }
 
+/**
+ * The stretch that is running right now. A countdown already past its end
+ * does not count: the timer stops it at its exact end, so nothing is away.
+ */
+function runningStretch(now: number): StretchKey | null {
+  if (!timerApi) return null
+  const state = timerApi.timer.value
+  if (!isRunning(state) || state.startedAt === null) return null
+  if (hasExpired(state, now)) return null
+  return { sessionId: state.sessionId, startedAt: state.startedAt }
+}
+
+function awayIdleMinutes(): number {
+  return useSettings().settings.timer.idleReturnMinutes
+}
+
+function readAwayRecord(): AwayRecord | null {
+  const raw = readJson<unknown>(AWAY_RECORD_STORAGE_KEY, null)
+  if (typeof raw !== 'object' || raw === null) return null
+
+  const data = raw as Partial<AwayRecord>
+  if (
+    typeof data.sessionId !== 'string' ||
+    typeof data.startedAt !== 'number' ||
+    typeof data.seenAt !== 'number'
+  ) {
+    return null
+  }
+  return {
+    sessionId: data.sessionId,
+    startedAt: data.startedAt,
+    seenAt: data.seenAt,
+  }
+}
+
+/** Writes the last-seen mark, so a reload or a closed tab still knows when the app was last here. */
+function saveAwayRecord(running: StretchKey, now: number) {
+  writeJson(AWAY_RECORD_STORAGE_KEY, { ...running, seenAt: now })
+  awayRecordOpen = true
+  lastAwaySavedAt = now
+}
+
+function clearAwayRecord() {
+  lastAwaySavedAt = 0
+  if (!awayRecordOpen) return
+  writeJson(AWAY_RECORD_STORAGE_KEY, null)
+  awayRecordOpen = false
+}
+
+/**
+ * Raises the prompt for an away window. While a prompt for the same stretch is
+ * on screen, a window that starts earlier only moves its start back.
+ */
+function raiseAway(stretch: StretchKey, away: AwayWindow) {
+  if (away.hiddenAt < answeredThrough) return
+
+  const open = awayPrompt.value
+  if (open && sameStretch(open, stretch)) {
+    const merged = mergeAwayWindows(open, away)
+    if (merged.hiddenAt !== open.hiddenAt) {
+      awayPrompt.value = { ...open, hiddenAt: merged.hiddenAt }
+    }
+    return
+  }
+
+  awayPrompt.value = { ...stretch, ...away }
+}
+
+/**
+ * Sleep or a locked screen: no visibility change fires, so the jump between two
+ * ticks is the away time. Also keeps the stored last-seen mark fresh while visible.
+ */
+function checkAway(now: number) {
+  const running = runningStretch(now)
+  const idleMinutes = awayIdleMinutes()
+
+  const away = awayWindowFromTickGap(lastTick, now, running, idleMinutes)
+  lastTick = { at: now, running }
+  if (away && running) raiseAway(running, away)
+
+  if (!running || idleMinutes === 0) {
+    clearAwayRecord()
+    return
+  }
+  // A hidden page keeps the mark from when it was hidden, so that time stays away.
+  if (document.hidden) return
+  if (now - lastAwaySavedAt >= AWAY_SAVE_MS) saveAwayRecord(running, now)
+}
+
 function tick() {
   const now = Date.now()
   const tasks = tasksRef?.value ?? []
   checkLongRunning(now)
   checkPlannedStart(tasks, now)
   checkEndOfDay(tasks, now)
+  checkAway(now)
+}
+
+/** Closing or reloading a visible page: its last moment in view is the mark. */
+function onPageHide() {
+  if (document.hidden) return
+  const running = runningStretch(Date.now())
+  if (running && awayIdleMinutes() > 0) {
+    saveAwayRecord(running, Date.now())
+  } else {
+    clearAwayRecord()
+  }
 }
 
 function onVisibilityChange() {
   if (!timerApi) return
 
   if (document.hidden) {
-    const state = timerApi.timer.value
-    const idleMinutes = useSettings().settings.timer.idleReturnMinutes
-    hiddenMark =
-      isRunning(state) && state.startedAt !== null && idleMinutes > 0
-        ? {
-            at: Date.now(),
-            sessionId: state.sessionId,
-            startedAt: state.startedAt,
-            idleMinutes,
-          }
-        : null
+    const now = Date.now()
+    const running = runningStretch(now)
+    const idleMinutes = awayIdleMinutes()
+    if (running && idleMinutes > 0) {
+      hiddenMark = { at: now, ...running, idleMinutes }
+      saveAwayRecord(running, now)
+    } else {
+      hiddenMark = null
+      clearAwayRecord()
+    }
     return
   }
 
   const mark = hiddenMark
   hiddenMark = null
+  clearAwayRecord()
   if (!mark) return
 
   const returnedAt = Date.now()
-  const state = timerApi.timer.value
-  const stillSame =
-    isRunning(state) &&
-    state.sessionId === mark.sessionId &&
-    state.startedAt === mark.startedAt
-  if (!stillSame) return
-  if (!isAwayLongEnough(returnedAt - mark.at, mark.idleMinutes)) return
-
-  awayPrompt.value = {
-    sessionId: mark.sessionId,
-    startedAt: mark.startedAt,
-    hiddenAt: mark.at,
+  const away = awayWindowFromStorage(
+    { sessionId: mark.sessionId, startedAt: mark.startedAt, seenAt: mark.at },
     returnedAt,
-  }
+    runningStretch(returnedAt),
+    mark.idleMinutes,
+  )
+  if (away) raiseAway(mark, away)
 }
 
 /** The prompt is only acted on while the same stretch is still running. */
 function awayPromptStillValid(prompt: AwayPrompt): boolean {
-  if (!timerApi) return false
-  const state = timerApi.timer.value
-  return (
-    isRunning(state) &&
-    state.sessionId === prompt.sessionId &&
-    state.startedAt === prompt.startedAt
-  )
+  return sameStretch(prompt, runningStretch(Date.now()))
+}
+
+/** Closes the prompt, and makes sure its window is never raised again. */
+function closeAwayPrompt(prompt: AwayPrompt) {
+  awayPrompt.value = null
+  answeredThrough = prompt.returnedAt
+  clearAwayRecord()
 }
 
 /**
@@ -366,8 +479,27 @@ export function initTimerReminders(dailyTasks: Ref<DailyTask[]>) {
   timerApi = useTimer()
 
   document.addEventListener('visibilitychange', onVisibilityChange)
+  window.addEventListener('pagehide', onPageHide)
+  restoreAway()
   window.setInterval(tick, TICK_MS)
   tick()
+}
+
+/**
+ * A reload or a closed tab: the stored mark says when the app was last seen.
+ * Read once, then cleared; the next visible tick writes a fresh one.
+ */
+function restoreAway() {
+  const record = readAwayRecord()
+  writeJson(AWAY_RECORD_STORAGE_KEY, null)
+
+  const away = awayWindowFromStorage(
+    record,
+    Date.now(),
+    runningStretch(Date.now()),
+    awayIdleMinutes(),
+  )
+  if (record && away) raiseAway(record, away)
 }
 
 export function useTimerReminders() {
@@ -375,21 +507,24 @@ export function useTimerReminders() {
     awayPrompt,
     /** The timer kept counting; nothing changes. */
     keepAway() {
-      awayPrompt.value = null
+      const prompt = awayPrompt.value
+      if (prompt) closeAwayPrompt(prompt)
     },
     /** Cuts the away window out of the running stretch. */
     discardAway() {
       const prompt = awayPrompt.value
-      awayPrompt.value = null
-      if (!prompt || !timerApi || !awayPromptStillValid(prompt)) return
-      timerApi.discardAwayTime(prompt.hiddenAt, prompt.returnedAt)
+      if (!prompt) return
+      closeAwayPrompt(prompt)
+      if (!awayPromptStillValid(prompt)) return
+      timerApi?.discardAwayTime(prompt.hiddenAt, prompt.returnedAt)
     },
     /** Ends the sitting at the moment the tab was hidden. */
     discardAndStopAway() {
       const prompt = awayPrompt.value
-      awayPrompt.value = null
-      if (!prompt || !timerApi || !awayPromptStillValid(prompt)) return
-      timerApi.stopAt(prompt.hiddenAt)
+      if (!prompt) return
+      closeAwayPrompt(prompt)
+      if (!awayPromptStillValid(prompt)) return
+      timerApi?.stopAt(prompt.hiddenAt)
     },
   }
 }

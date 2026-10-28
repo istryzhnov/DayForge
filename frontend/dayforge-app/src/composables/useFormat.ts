@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import type { ISODate, TimeOfDay } from '../entities/types'
-import { parseISODate } from './goalSpace/date'
+import { parseISODate, toLocalISODate } from './goalSpace/date'
 import { CLOCK_FORMAT, useSettings } from './useSettings'
 
 export function useFormat() {
@@ -41,6 +41,21 @@ export function useFormat() {
     }).format(new Date(2000, 0, 1, hours, minutes))
   }
 
+  /** A moment in local time, in the user's clock; with its day when the day is wanted. */
+  function formatMoment(epochMs: number, withDate: boolean): string {
+    const moment = new Date(epochMs)
+    const pad = (value: number) => String(value).padStart(2, '0')
+    const clock = formatTime(
+      `${pad(moment.getHours())}:${pad(moment.getMinutes())}`,
+    )
+    if (!withDate) return clock
+    const day = formatDate(toLocalISODate(moment), {
+      day: 'numeric',
+      month: 'short',
+    })
+    return `${day} ${clock}`
+  }
+
   const weekdayLabels = computed(() => {
     const start = settings.calendar.weekStartsOn
     // 2024-01-07 is a Sunday, so adding the weekday index lands on that day.
@@ -56,6 +71,7 @@ export function useFormat() {
     formatDate,
     formatMonth,
     formatTime,
+    formatMoment,
     weekdayLabels,
   }
 }

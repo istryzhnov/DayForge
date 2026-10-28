@@ -1,11 +1,14 @@
 /** Compat checks: timer reminders, history labels and push reminder parity with the server. */
 
 import {
+  awayWindowFromStorage,
+  awayWindowFromTickGap,
   crossedMidnight,
   formatAwayTime,
   isAwayLongEnough,
   isEndOfDay,
   isLongRunDue,
+  mergeAwayWindows,
   plannedNudgeLabel,
   sittingRunningMs,
   sittingStartMs,
@@ -214,6 +217,108 @@ export function verifyTimerReminders() {
   check(
     'very short away time has its own wording',
     formatAwayTime(10 * 1000) === 'less than a minute',
+  )
+
+  const running = { sessionId: 'away-a', startedAt: 0 }
+  const seenAt = 60 * MIN
+  check(
+    'a reload after a long close asks, from the stored last-seen time',
+    same(
+      awayWindowFromStorage(
+        { ...running, seenAt },
+        seenAt + 3 * HOUR,
+        running,
+        15,
+      ),
+      { hiddenAt: seenAt, returnedAt: seenAt + 3 * HOUR },
+    ),
+  )
+  check(
+    'a reload after a short close does not ask',
+    awayWindowFromStorage(
+      { ...running, seenAt },
+      seenAt + 5 * MIN,
+      running,
+      15,
+    ) === null,
+  )
+  check(
+    'a stored mark for another session does not ask',
+    awayWindowFromStorage(
+      { ...running, sessionId: 'other', seenAt },
+      seenAt + 3 * HOUR,
+      running,
+      15,
+    ) === null,
+  )
+  check(
+    'a stored mark for a stretch that is no longer running does not ask',
+    awayWindowFromStorage(
+      { ...running, seenAt },
+      seenAt + 3 * HOUR,
+      null,
+      15,
+    ) === null,
+  )
+  check(
+    'a stored mark with the away prompt switched off never asks',
+    awayWindowFromStorage(
+      { ...running, seenAt },
+      seenAt + 3 * HOUR,
+      running,
+      0,
+    ) === null,
+  )
+
+  check(
+    'a sleep between two ticks asks, from the last tick before it',
+    same(
+      awayWindowFromTickGap(
+        { at: seenAt, running },
+        seenAt + 2 * HOUR,
+        running,
+        15,
+      ),
+      { hiddenAt: seenAt, returnedAt: seenAt + 2 * HOUR },
+    ),
+  )
+  check(
+    'an ordinary one-second tick gap does not ask',
+    awayWindowFromTickGap(
+      { at: seenAt, running },
+      seenAt + 1000,
+      running,
+      15,
+    ) === null,
+  )
+  check(
+    'a tick gap on another stretch does not ask',
+    awayWindowFromTickGap(
+      { at: seenAt, running: { ...running, startedAt: 5 } },
+      seenAt + 2 * HOUR,
+      running,
+      15,
+    ) === null,
+  )
+  check(
+    'a tick gap never asks when the prompt is switched off',
+    awayWindowFromTickGap(
+      { at: seenAt, running },
+      seenAt + 2 * HOUR,
+      running,
+      0,
+    ) === null,
+  )
+
+  check(
+    'overlapping away windows merge to the earliest start',
+    same(
+      mergeAwayWindows(
+        { hiddenAt: seenAt + MIN, returnedAt: seenAt + 20 * MIN },
+        { hiddenAt: seenAt, returnedAt: seenAt + 2 * HOUR },
+      ),
+      { hiddenAt: seenAt, returnedAt: seenAt + 20 * MIN },
+    ),
   )
 
   check(

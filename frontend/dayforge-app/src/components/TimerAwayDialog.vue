@@ -4,10 +4,13 @@ import { useI18n } from 'vue-i18n'
 import { useTimerReminders } from '../composables/useTimerReminders'
 import { formatAwayTime } from '../composables/timer/reminders'
 import { awayTimeWords } from '../composables/timer/text'
+import { useFormat } from '../composables/useFormat'
+import { toLocalISODate } from '../composables/goalSpace/date'
 
 const { t } = useI18n()
 const { awayPrompt, keepAway, discardAway, discardAndStopAway } =
   useTimerReminders()
+const { formatMoment } = useFormat()
 
 const awayLabel = computed(() =>
   awayPrompt.value
@@ -17,6 +20,19 @@ const awayLabel = computed(() =>
       )
     : '',
 )
+
+/** "13:05 – 16:17", with the days added when the spell crossed midnight. */
+const awayRange = computed(() => {
+  const prompt = awayPrompt.value
+  if (!prompt) return ''
+  const crossesDay =
+    toLocalISODate(new Date(prompt.hiddenAt)) !==
+    toLocalISODate(new Date(prompt.returnedAt))
+  return t('timer.awayWindow', {
+    from: formatMoment(prompt.hiddenAt, crossesDay),
+    to: formatMoment(prompt.returnedAt, crossesDay),
+  })
+})
 </script>
 
 <template>
@@ -32,6 +48,7 @@ const awayLabel = computed(() =>
       <h3 id="timer-away-title">
         {{ t('timer.awayHeading', { time: awayLabel }) }}
       </h3>
+      <p class="task-reminder-card__hint">{{ awayRange }}</p>
       <p class="task-reminder-card__hint">{{ t('timer.awayHint') }}</p>
       <div class="modal-actions">
         <button class="btn btn-ghost" type="button" @click="discardAndStopAway">
