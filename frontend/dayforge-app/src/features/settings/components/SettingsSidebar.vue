@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
@@ -18,6 +18,8 @@ import FormatSection from './FormatSection.vue'
 import DataSection from './DataSection.vue'
 import ProjectSection from './ProjectSection.vue'
 import { sectionMeta, useSettingsPanel } from '../composables/useSettingsPanel'
+import { useMediaQuery } from '../../../composables/useMediaQuery'
+import { useOpenFocusTrap } from '../../../composables/useFocusTrap'
 
 const { t } = useI18n()
 
@@ -120,12 +122,26 @@ function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') escape()
 }
 
+/** Narrow screens float this panel over the workspace: then it behaves as a dialog. */
+const rootRef = useTemplateRef<HTMLElement>('rootRef')
+const isOverlay = useMediaQuery('(max-width: 1240px)')
+useOpenFocusTrap(
+  () => rootRef.value,
+  () => isOverlay.value,
+  { modal: false },
+)
+
 onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
-  <section class="settings-panel" :aria-label="t('settings.panelTitle')">
+  <section
+    ref="rootRef"
+    class="settings-panel"
+    :role="isOverlay ? 'dialog' : undefined"
+    :aria-label="t('settings.panelTitle')"
+  >
     <header class="settings-panel__head">
       <button
         v-if="activeSection !== null"

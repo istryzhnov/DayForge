@@ -89,9 +89,15 @@ const timeLabel = computed(() => {
     ]"
     :style="blockStyle(topPx, heightPx)"
     :draggable="isDraggable"
+    role="button"
+    tabindex="0"
+    aria-haspopup="dialog"
+    :aria-label="`${task.title}, ${timeLabel}`"
     @dragstart="onDragStart"
     @pointerdown="onPointerDown"
     @click="emit('select', task.id)"
+    @keydown.enter.prevent="emit('select', task.id)"
+    @keydown.space.prevent="emit('select', task.id)"
     @contextmenu.prevent="onContextMenu"
   >
     <span class="cal-event__time">{{ timeLabel }}</span>

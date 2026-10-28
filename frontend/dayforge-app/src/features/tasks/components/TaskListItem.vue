@@ -55,6 +55,7 @@ const props = defineProps<{
   onDeleteTask: (templateId: ID) => void
   onSetAsProject: (templateId: ID) => void
   onMoveTask: (templateId: ID) => void
+  onNudgeTask: (templateId: ID, step: -1 | 1) => void
   /** Absent for rows that cannot change their project, like a project header. */
   drag?: TaskRowDrag
   isDragging?: boolean
@@ -326,6 +327,7 @@ const {
     @schedule="openEditor(true)"
     @set-rate="openRateEditor"
     @move="onMoveTask(node.task.templateId)"
+    @nudge="(step) => onNudgeTask(node.task.templateId, step)"
     @delete="onDeleteTask(node.task.templateId)"
     @add-to-this="onToggleParent(node.task.id)"
     @toggle-check="onToggleDone(node.task.id)"

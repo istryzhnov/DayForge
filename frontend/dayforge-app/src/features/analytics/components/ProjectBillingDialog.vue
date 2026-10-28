@@ -55,10 +55,9 @@ function clear() {
 </script>
 
 <template>
-  <div class="new-goal-modal" @click.self="emit('close')">
+  <div ref="trapRef" class="new-goal-modal" @click.self="emit('close')">
     <div class="modal-overlay" @click="emit('close')"></div>
     <form
-      ref="trapRef"
       class="modal-card project-billing"
       role="dialog"
       aria-modal="true"

@@ -17,6 +17,7 @@ type TaskListActions = {
   onDeleteTask: (templateId: ID) => void
   onSetAsProject: (templateId: ID) => void
   onMoveTask: (templateId: ID) => void
+  onNudgeTask: (templateId: ID, step: -1 | 1) => void
 }
 
 export function useTaskListState(actions: TaskListActions) {
@@ -68,6 +69,10 @@ export function useTaskListState(actions: TaskListActions) {
     actions.onMoveTask(templateId)
   }
 
+  function nudgeTask(templateId: ID, step: -1 | 1) {
+    actions.onNudgeTask(templateId, step)
+  }
+
   return {
     activeParentId,
     toggleParent,
@@ -80,5 +85,6 @@ export function useTaskListState(actions: TaskListActions) {
     deleteTask,
     setAsProject,
     moveTask,
+    nudgeTask,
   }
 }

@@ -1,16 +1,30 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTimerReminders } from '../composables/useTimerReminders'
 import { formatAwayTime } from '../composables/timer/reminders'
 import { awayTimeWords } from '../composables/timer/text'
 import { useFormat } from '../composables/useFormat'
 import { toLocalISODate } from '../composables/goalSpace/date'
+import { useOpenFocusTrap } from '../composables/useFocusTrap'
 
 const { t } = useI18n()
 const { awayPrompt, keepAway, discardAway, discardAndStopAway } =
   useTimerReminders()
 const { formatMoment } = useFormat()
+
+const dialogRef = useTemplateRef<HTMLElement>('dialogRef')
+const keepRef = useTemplateRef<HTMLButtonElement>('keepRef')
+
+/** Escape keeps the time (the safe choice); focus starts on that button, not on discard. */
+useOpenFocusTrap(
+  () => dialogRef.value,
+  () => !!awayPrompt.value,
+  {
+    onEscape: () => keepAway(),
+    initialFocus: () => keepRef.value,
+  },
+)
 
 const awayLabel = computed(() =>
   awayPrompt.value
@@ -36,7 +50,11 @@ const awayRange = computed(() => {
 </script>
 
 <template>
-  <div v-if="awayPrompt" class="new-goal-modal task-reminder-modal">
+  <div
+    v-if="awayPrompt"
+    ref="dialogRef"
+    class="new-goal-modal task-reminder-modal"
+  >
     <div class="modal-overlay"></div>
     <div
       class="modal-card task-reminder-card"
@@ -57,7 +75,12 @@ const awayRange = computed(() => {
         <button class="btn btn-ghost" type="button" @click="discardAway">
           {{ t('timer.discardAway') }}
         </button>
-        <button class="btn btn-primary" type="button" @click="keepAway">
+        <button
+          ref="keepRef"
+          class="btn btn-primary"
+          type="button"
+          @click="keepAway"
+        >
           {{ t('timer.keepTime') }}
         </button>
       </div>

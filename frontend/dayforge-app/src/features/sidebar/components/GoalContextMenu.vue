@@ -25,11 +25,18 @@ const { menuPositionStyle } = useContextMenu({
 </script>
 
 <template>
-  <div ref="menuRef" class="goal-context-menu" :style="menuPositionStyle">
-    <p class="goal-context-menu__title">{{ goalTitle }}</p>
-    <div class="goal-settings__divider"></div>
+  <div
+    ref="menuRef"
+    class="goal-context-menu"
+    role="menu"
+    :aria-label="t('common.actions')"
+    :style="menuPositionStyle"
+  >
+    <p class="goal-context-menu__title" role="presentation">{{ goalTitle }}</p>
+    <div class="goal-settings__divider" role="separator"></div>
     <button
       v-if="canMoveUp"
+      role="menuitem"
       class="goal-settings__item"
       type="button"
       @click="emit('move', -1)"
@@ -38,6 +45,7 @@ const { menuPositionStyle } = useContextMenu({
     </button>
     <button
       v-if="canMoveDown"
+      role="menuitem"
       class="goal-settings__item"
       type="button"
       @click="emit('move', 1)"
@@ -46,6 +54,7 @@ const { menuPositionStyle } = useContextMenu({
     </button>
     <div v-if="canMoveUp || canMoveDown" class="goal-settings__divider"></div>
     <button
+      role="menuitem"
       class="goal-settings__item goal-settings__item--danger"
       type="button"
       @click="emit('delete')"

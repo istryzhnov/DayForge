@@ -38,5 +38,6 @@
   "moveUp": "Subir",
   "moveDown": "Bajar",
   "deleteProject": "Eliminar proyecto",
-  "deleteProjectConfirm": "¿Eliminar el proyecto «{title}»? No se puede deshacer."
+  "deleteProjectConfirm": "¿Eliminar el proyecto «{title}»? No se puede deshacer.",
+  "navigation": "Navegación"
 }

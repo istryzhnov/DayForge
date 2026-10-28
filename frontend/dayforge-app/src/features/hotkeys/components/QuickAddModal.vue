@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { GOAL_STATUS } from '../../../entities/constants'
@@ -10,6 +10,7 @@ import {
 } from '../../../composables/quickAdd/parse'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
+import { useFocusTrap } from '../../../composables/useFocusTrap'
 
 const props = defineProps<{
   goals: Goal[]
@@ -159,12 +160,19 @@ function onKeydown(event: KeyboardEvent) {
   }
 }
 
-onMounted(() => inputRef.value?.focus())
+/** Escape first dismisses the suggestion list; the next one closes the dialog. */
+useFocusTrap({
+  onEscape: () => {
+    if (showSuggestions.value) return false
+    closeOverlay()
+  },
+})
 </script>
 
 <template>
   <Teleport to="body">
     <section
+      ref="trapRef"
       class="quick-add-modal"
       role="dialog"
       aria-modal="true"
@@ -181,8 +189,14 @@ onMounted(() => inputRef.value?.focus())
           autocomplete="off"
           :aria-label="t('hotkeys.taskTitle')"
           aria-autocomplete="list"
+          role="combobox"
           :aria-expanded="showSuggestions && suggestions.length > 0"
           aria-controls="quick-add-projects"
+          :aria-activedescendant="
+            showSuggestions && suggestions.length > 0
+              ? `quick-add-option-${highlighted}`
+              : undefined
+          "
           @keydown="onKeydown"
           @input="onInput"
           @click="syncCaret"
@@ -198,6 +212,7 @@ onMounted(() => inputRef.value?.focus())
         >
           <li
             v-for="(goal, index) in suggestions"
+            :id="`quick-add-option-${index}`"
             :key="goal.id"
             class="quick-add-suggest__item"
             :class="{ 'is-active': index === highlighted }"

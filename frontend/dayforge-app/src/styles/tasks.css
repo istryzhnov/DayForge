@@ -870,7 +870,6 @@ body.is-dragging-task {
   color: var(--text);
   font: inherit;
   font-size: max(16px, calc(14px * var(--text-scale)));
-  outline: none;
 }
 
 .task-composer__input::placeholder {

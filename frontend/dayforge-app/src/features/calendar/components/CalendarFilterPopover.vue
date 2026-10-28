@@ -6,6 +6,7 @@ import type { ID } from '../../../entities/types'
 import { NO_PROJECT_FILTER_ID } from '../../../composables/useSettings'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import { useCalendarFilter } from '../composables/useCalendarFilter'
+import { useOpenFocusTrap } from '../../../composables/useFocusTrap'
 
 const props = defineProps<{
   goals: Goal[]
@@ -20,6 +21,8 @@ const { isGoalVisible, toggleGoal, showAll, hideAll, isFilterActive } =
 const isOpen = ref(false)
 const rootRef = useTemplateRef<HTMLElement>('rootRef')
 const triggerRef = useTemplateRef<HTMLButtonElement>('triggerRef')
+const panelRef = useTemplateRef<HTMLElement>('panelRef')
+const panelId = `calendar-filter-panel-${Math.random().toString(36).slice(2, 8)}`
 
 const liveGoals = computed(() => props.goals.filter((goal) => !goal.deletedAt))
 
@@ -47,24 +50,26 @@ function close(restoreFocus = false) {
   if (restoreFocus) triggerRef.value?.focus()
 }
 
+/** Tab stays inside the panel while it is open; Escape closes it and returns focus to the trigger. */
+useOpenFocusTrap(
+  () => panelRef.value,
+  () => isOpen.value,
+  {
+    modal: false,
+    onEscape: () => close(true),
+  },
+)
+
 function handlePointerDown(event: PointerEvent) {
   if (!isOpen.value) return
   if (rootRef.value && !rootRef.value.contains(event.target as Node)) close()
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') close(true)
-}
+onMounted(() => document.addEventListener('pointerdown', handlePointerDown))
 
-onMounted(() => {
-  document.addEventListener('pointerdown', handlePointerDown)
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('pointerdown', handlePointerDown)
-  document.removeEventListener('keydown', handleKeydown)
-})
+onUnmounted(() =>
+  document.removeEventListener('pointerdown', handlePointerDown),
+)
 </script>
 
 <template>
@@ -77,6 +82,7 @@ onUnmounted(() => {
       :aria-label="t('calendar.filterLabel')"
       aria-haspopup="dialog"
       :aria-expanded="isOpen"
+      :aria-controls="isOpen ? panelId : undefined"
       @click="toggleOpen"
     >
       <svg
@@ -98,6 +104,8 @@ onUnmounted(() => {
 
     <div
       v-if="isOpen"
+      :id="panelId"
+      ref="panelRef"
       class="calendar-filter__panel"
       role="dialog"
       :aria-label="t('calendar.filterLabel')"

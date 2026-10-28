@@ -577,7 +577,6 @@
 }
 
 .color-field__hex:focus {
-  outline: none;
   border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
 }
 

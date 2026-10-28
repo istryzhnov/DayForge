@@ -27,6 +27,12 @@ const emit = defineEmits<{
 
 const isCoarsePointer = useIsCoarsePointer()
 
+/** Keyboard users get the same menu as a right click, opened from the item's corner. */
+function openMenuFromKeyboard(event: KeyboardEvent) {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  emit('context-menu', { taskId: props.task.id, x: rect.left, y: rect.bottom })
+}
+
 const { isLifted, onPointerDown } = usePressGesture({
   isEnabled: () => isCoarsePointer.value,
   onLift: () => emit('touch-lift', props.task.id),
@@ -44,6 +50,11 @@ const { isLifted, onPointerDown } = usePressGesture({
     :class="[task.priority, { 'is-lifted': isLifted }]"
     :style="themeVars"
     :draggable="!isCoarsePointer"
+    role="button"
+    tabindex="0"
+    aria-haspopup="menu"
+    @keydown.enter.prevent="openMenuFromKeyboard"
+    @keydown.space.prevent="openMenuFromKeyboard"
     @dragstart="emit('drag-start', $event, task.id)"
     @pointerdown="onPointerDown"
     @contextmenu.prevent="

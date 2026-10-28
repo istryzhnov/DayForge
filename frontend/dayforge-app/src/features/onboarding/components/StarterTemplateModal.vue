@@ -24,10 +24,18 @@ const { focus, start, load, plan } = useStarterTemplate()
 
 <template>
   <div class="starter-overlay" @click.self="emit('close')">
-    <div ref="trapRef" class="starter" role="dialog" aria-modal="true">
+    <div
+      ref="trapRef"
+      class="starter"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="starter-title"
+    >
       <header class="starter__head">
         <div>
-          <h2 class="starter__title">{{ t('onboarding.starterTitle') }}</h2>
+          <h2 id="starter-title" class="starter__title">
+            {{ t('onboarding.starterTitle') }}
+          </h2>
           <p class="starter__subtitle">
             {{ t('onboarding.starterSubtitle') }}
           </p>

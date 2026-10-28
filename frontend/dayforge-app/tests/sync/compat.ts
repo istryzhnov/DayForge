@@ -51,6 +51,12 @@ import {
 } from './compat/tour'
 import { verifySignOutKeySelection } from './compat/signout'
 import { verifyFieldGroupMerge } from './compat/fieldGroups'
+import {
+  verifyFocusTrapTab,
+  verifyMenuKeys,
+  verifyStackedTraps,
+  verifyTaskNudge,
+} from './compat/a11y'
 import { verifyAccountSwitchWipe } from './compat/accountSwitch'
 import { verifyQueuedDeletes } from './compat/queuedDeletes'
 import { verifyDayBoundaries } from './compat/dayBoundaries'
@@ -114,6 +120,10 @@ function main() {
   verifyTranslations()
   verifyAboutPage()
   verifyFieldGroupMerge()
+  verifyFocusTrapTab()
+  verifyStackedTraps()
+  verifyMenuKeys()
+  verifyTaskNudge()
 
   console.log(
     `\n${tally.checks - tally.failures}/${tally.checks} compat checks passed`,

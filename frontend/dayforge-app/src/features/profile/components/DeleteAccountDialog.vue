@@ -39,10 +39,9 @@ async function confirm() {
 
 <template>
   <Teleport to="body">
-    <section class="account-delete">
+    <section ref="trapRef" class="account-delete">
       <div class="modal-overlay" @click="close"></div>
       <div
-        ref="trapRef"
         class="modal-card account-delete__card"
         role="alertdialog"
         aria-modal="true"

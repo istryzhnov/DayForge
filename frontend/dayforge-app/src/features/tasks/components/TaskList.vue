@@ -32,6 +32,7 @@ const emit = defineEmits<{
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
   (e: 'move-task', templateId: ID): void
+  (e: 'nudge-task', templateId: ID, step: -1 | 1): void
   (e: 'move-task-to', payload: TaskDropPayload): void
 }>()
 
@@ -68,6 +69,7 @@ const {
   deleteTask,
   setAsProject,
   moveTask,
+  nudgeTask,
 } = useTaskListState({
   onAddSubtask: (parentTemplateId, title, priority, schedule) =>
     emit('add-subtask', parentTemplateId, title, priority, schedule),
@@ -81,6 +83,7 @@ const {
   onDeleteTask: (templateId) => emit('delete-task', templateId),
   onSetAsProject: (templateId) => emit('set-as-project', templateId),
   onMoveTask: (templateId) => emit('move-task', templateId),
+  onNudgeTask: (templateId, step) => emit('nudge-task', templateId, step),
 })
 
 function sharedHandlers() {
@@ -96,6 +99,7 @@ function sharedHandlers() {
     onDeleteTask: deleteTask,
     onSetAsProject: setAsProject,
     onMoveTask: moveTask,
+    onNudgeTask: nudgeTask,
   }
 }
 

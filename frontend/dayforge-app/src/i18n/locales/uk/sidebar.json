@@ -38,5 +38,6 @@
   "moveUp": "Пересунути вгору",
   "moveDown": "Пересунути вниз",
   "deleteProject": "Видалити проєкт",
-  "deleteProjectConfirm": "Видалити проєкт «{title}»? Це не можна скасувати."
+  "deleteProjectConfirm": "Видалити проєкт «{title}»? Це не можна скасувати.",
+  "navigation": "Навігація"
 }

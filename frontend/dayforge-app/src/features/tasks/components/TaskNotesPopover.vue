@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
+import { createFocusTrap } from '../../../composables/useFocusTrap'
 import { useI18n } from 'vue-i18n'
 import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
 import {
@@ -56,13 +57,17 @@ function commitAndClose(returnFocus = true) {
   emit('close', returnFocus)
 }
 
-function onKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    event.stopPropagation()
+/** Tab stays inside the note; Escape throws the edit away and returns focus to the note button. */
+const trap = createFocusTrap(() => root.value, {
+  modal: false,
+  initialFocus: () => null,
+  onEscape: () => {
     revert()
     emit('close', true)
-    return
-  }
+  },
+})
+
+function onKeydown(event: KeyboardEvent) {
   if (isCommitShortcut(event)) {
     event.preventDefault()
     commitAndClose()
@@ -79,6 +84,8 @@ function onPointerDownOutside(event: PointerEvent) {
 
 onMounted(() => {
   reposition()
+  // Before the textarea takes focus, so the trap remembers the note button.
+  trap.activate()
   const field = textarea.value
   if (field) {
     field.focus()
@@ -93,6 +100,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('pointerdown', onPointerDownOutside, true)
   window.removeEventListener('resize', reposition)
   window.removeEventListener('scroll', reposition, true)
+  trap.deactivate()
   // Covers an unmount from outside (the row going away, another note opening).
   commit()
 })
@@ -133,6 +141,7 @@ defineExpose({ commitAndClose })
         class="notes-pop__text"
         rows="3"
         :maxlength="NOTES_MAX_LENGTH"
+        :aria-label="t('tasks.writeNote')"
         :placeholder="t('tasks.writeNote')"
         @blur="commit"
       ></textarea>

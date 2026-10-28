@@ -20,10 +20,17 @@ function submit() {
 </script>
 
 <template>
-  <div class="new-goal-modal" @click.self="emit('close')">
+  <div ref="trapRef" class="new-goal-modal" @click.self="emit('close')">
     <div class="modal-overlay" @click="emit('close')"></div>
-    <div ref="trapRef" class="modal-card" role="dialog" aria-modal="true">
-      <h3>{{ entry ? t('timer.editEntry') : t('timer.addEntryTitle') }}</h3>
+    <div
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="time-entry-title"
+    >
+      <h3 id="time-entry-title">
+        {{ entry ? t('timer.editEntry') : t('timer.addEntryTitle') }}
+      </h3>
 
       <label class="timer-field">
         {{ t('timer.startedField') }}

@@ -18,15 +18,15 @@ useFocusTrap({ onEscape: () => emit('close') })
 </script>
 
 <template>
-  <div class="new-goal-modal" @click.self="emit('close')">
+  <div ref="trapRef" class="new-goal-modal" @click.self="emit('close')">
     <div class="modal-overlay" @click="emit('close')"></div>
     <div
-      ref="trapRef"
       class="modal-card project-rates"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="project-rates-title"
     >
-      <h3>{{ t('analytics.ratesTitle') }}</h3>
+      <h3 id="project-rates-title">{{ t('analytics.ratesTitle') }}</h3>
       <p class="settings-group-hint">{{ t('analytics.ratesHint') }}</p>
 
       <div v-for="goal in goals" :key="goal.id" class="project-rates__row">

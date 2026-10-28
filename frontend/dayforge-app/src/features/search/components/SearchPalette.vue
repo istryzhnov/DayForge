@@ -110,13 +110,14 @@ watch(activeIndex, () => {
 <template>
   <Teleport to="body">
     <section
+      ref="trapRef"
       class="quick-add-modal search-palette"
       role="dialog"
       aria-modal="true"
       :aria-label="t('search.placeholder')"
     >
       <div class="modal-overlay" @click="emit('close')"></div>
-      <div ref="trapRef" class="search-palette__card">
+      <div class="search-palette__card">
         <div class="search-palette__field">
           <svg
             class="search-palette__icon"

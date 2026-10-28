@@ -42,10 +42,9 @@ const {
 </script>
 
 <template>
-  <section class="profile-modal">
+  <section ref="trapRef" class="profile-modal">
     <div class="modal-overlay" @click="emit('close')"></div>
     <div
-      ref="trapRef"
       class="modal-card profile-card"
       role="dialog"
       aria-modal="true"

@@ -74,6 +74,7 @@ const emit = defineEmits<{
   (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
   (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'move-task-to', payload: TaskDropPayload): void
+  (e: 'nudge-task', templateId: ID, step: -1 | 1): void
   (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
   (e: 'clear-board-done', templateIds: ID[]): void
   (e: 'toggle-planned', templateId: ID, date: ISODate): void
@@ -255,6 +256,7 @@ const projectColor = computed(() =>
       @set-as-project="(templateId) => setAsProject(templateId)"
       @move-task="openMoveDialog"
       @move-task-to="(payload) => emit('move-task-to', payload)"
+      @nudge-task="(templateId, step) => emit('nudge-task', templateId, step)"
     />
 
     <TaskMoveDialog

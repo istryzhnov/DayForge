@@ -2,6 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import type { DailyTask } from '../entities/TaskEntity'
 import { useFormat } from '../composables/useFormat'
+import { useFocusTrap } from '../composables/useFocusTrap'
 
 defineProps<{
   task: DailyTask
@@ -14,16 +15,24 @@ const emit = defineEmits<{
 
 const { formatTime } = useFormat()
 const { t } = useI18n()
+
+/** Escape acknowledges the reminder; the OK button is the first control. */
+useFocusTrap({ onEscape: () => emit('acknowledge') })
 </script>
 
 <template>
-  <div class="new-goal-modal task-reminder-modal">
+  <div ref="trapRef" class="new-goal-modal task-reminder-modal">
     <div class="modal-overlay"></div>
-    <div class="modal-card task-reminder-card">
+    <div
+      class="modal-card task-reminder-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="task-reminder-title"
+    >
       <p class="task-reminder-card__eyebrow">
         {{ t('tasks.reminderEyebrow') }}
       </p>
-      <h3>{{ task.title }}</h3>
+      <h3 id="task-reminder-title">{{ task.title }}</h3>
       <p class="task-reminder-card__time">
         {{ t('tasks.reminderStart', { time: formatTime(task.startTime) }) }}
       </p>
