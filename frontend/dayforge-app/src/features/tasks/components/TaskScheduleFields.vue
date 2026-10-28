@@ -32,6 +32,7 @@ const {
   isAnnual,
   error,
   isValid,
+  isNextDay,
   toggleWeekday,
   buildSchedule,
   load,
@@ -73,6 +74,9 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             :min="MIN_TIME"
             :max="MAX_TIME"
           />
+          <span v-if="isNextDay" class="task-schedule__next-day">
+            {{ t('tasks.nextDay') }}
+          </span>
         </label>
       </div>
 

@@ -74,7 +74,7 @@ const {
   isCoarsePointer,
   openDay,
   dateLabel,
-  scheduledTasks,
+  scheduledBlocks,
   unscheduledTasks,
   incomingPreview,
   selectedProjectTemplateId,
@@ -338,15 +338,16 @@ function iconFor(goalId: ID | undefined) {
             </template>
 
             <CalendarEventBlock
-              v-for="task in scheduledTasks"
-              :key="task.id"
-              :task="task"
-              :top-px="topPxFor(task)"
-              :height-px="heightPxFor(task)"
-              :is-dragging="draggingTaskId === task.id"
-              :theme-vars="themeVarsFor(task.goalId)"
-              :icon="iconFor(task.goalId)"
-              :column-style="columnStyleFor(task)"
+              v-for="block in scheduledBlocks"
+              :key="block.key"
+              :task="block.task"
+              :is-tail="block.isTail"
+              :top-px="topPxFor(block)"
+              :height-px="heightPxFor(block)"
+              :is-dragging="draggingTaskId === block.task.id"
+              :theme-vars="themeVarsFor(block.task.goalId)"
+              :icon="iconFor(block.task.goalId)"
+              :column-style="columnStyleFor(block)"
               @select="openDetails"
               @drag-start="onBlockDragStart"
               @resize="onResize"

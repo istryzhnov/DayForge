@@ -24,6 +24,7 @@ import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useTimer } from '../../../composables/useTimer'
 import { useLogPlanned } from '../../../composables/useLogPlanned'
 import { blockFromTask } from '../../../composables/timer/plannedBlocks'
+import { isOvernight } from '../../../composables/goalSpace/overnight'
 
 const props = defineProps<{
   node: TaskNode
@@ -82,7 +83,10 @@ const timeLabel = computed(() => {
   const start = props.node.task.startTime ?? props.node.template?.startTime
   if (!start) return ''
   const end = props.node.task.endTime ?? props.node.template?.endTime
-  return end ? `${formatTime(start)} – ${formatTime(end)}` : formatTime(start)
+  if (!end) return formatTime(start)
+  if (props.node.spilled) return t('tasks.untilTime', { time: formatTime(end) })
+  const range = `${formatTime(start)} – ${formatTime(end)}`
+  return isOvernight(start, end) ? `${range} ${t('tasks.nextDay')}` : range
 })
 
 /** Repeat and time on one muted line under the title. */
