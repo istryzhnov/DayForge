@@ -587,3 +587,13 @@
     font-size: 16px;
   }
 }
+
+/* The toolbar (List / Board, notes, settings) keeps its size and one row; a
+   long project name gives way and is cut instead, since it is data. */
+.goal-panel-header__aside {
+  flex: 0 0 auto;
+}
+
+.goal-panel-header__aside .project-toolbar {
+  flex-wrap: nowrap;
+}
