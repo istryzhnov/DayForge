@@ -38,5 +38,6 @@
   "moveUp": "Move up",
   "moveDown": "Move down",
   "deleteProject": "Delete project",
-  "deleteProjectConfirm": "Delete project \"{title}\"? This cannot be undone."
+  "deleteProjectConfirm": "Delete project \"{title}\"? This cannot be undone.",
+  "navigation": "Navigation"
 }

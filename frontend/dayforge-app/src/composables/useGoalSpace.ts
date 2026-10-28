@@ -32,6 +32,7 @@ import { normalizeNotes } from './goalSpace/notes'
 import {
   nextTopOrder,
   orderFromStoredPosition,
+  planTaskNudge,
   planTaskReorder,
 } from './goalSpace/taskOrder'
 import { rowsShownOn } from './goalSpace/overnight'
@@ -775,6 +776,12 @@ export function useGoalSpace() {
     })
   }
 
+  /** Keyboard counterpart of dragging: one place up (-1) or down (1) among the siblings. */
+  function nudgeTask(templateId: ID, step: -1 | 1) {
+    const plan = planTaskNudge(taskTemplates.value, templateId, step)
+    if (plan) reorderTask(templateId, plan.targetId, plan.placeAbove)
+  }
+
   function convertTaskToProject(templateId: ID) {
     const template = taskTemplates.value.find((item) => item.id === templateId)
     if (!template) return
@@ -831,6 +838,7 @@ export function useGoalSpace() {
     convertTaskToProject,
     attachTaskToProject,
     reorderTask,
+    nudgeTask,
     assignTaskToGoal,
     activeMajorTemplates,
     addMinorInAllMode,

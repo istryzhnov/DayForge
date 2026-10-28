@@ -394,6 +394,7 @@ function iconFor(goalId: ID | undefined) {
                 <input
                   v-model="draftTitle"
                   type="text"
+                  :aria-label="t('calendar.taskTitlePlaceholder')"
                   :placeholder="t('calendar.taskTitlePlaceholder')"
                   autofocus
                   @keydown.esc="cancelDraft"

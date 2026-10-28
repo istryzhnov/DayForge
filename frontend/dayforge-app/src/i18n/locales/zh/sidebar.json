@@ -38,5 +38,6 @@
   "moveUp": "上移",
   "moveDown": "下移",
   "deleteProject": "删除项目",
-  "deleteProjectConfirm": "删除项目「{title}」？此操作无法撤销。"
+  "deleteProjectConfirm": "删除项目「{title}」？此操作无法撤销。",
+  "navigation": "导航"
 }

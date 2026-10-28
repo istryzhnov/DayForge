@@ -38,5 +38,6 @@
   "moveUp": "Przesuń w górę",
   "moveDown": "Przesuń w dół",
   "deleteProject": "Usuń projekt",
-  "deleteProjectConfirm": "Usunąć projekt „{title}”? Tej operacji nie można cofnąć."
+  "deleteProjectConfirm": "Usunąć projekt „{title}”? Tej operacji nie można cofnąć.",
+  "navigation": "Nawigacja"
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useNewGoalFormState } from '../composables/useNewGoalFormState'
+import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
 
 const { t } = useI18n()
@@ -26,6 +27,9 @@ const { title, description, color, submit, cancel } = useNewGoalFormState({
   onCancel: () => emit('cancel'),
 })
 
+/** Escape cancels; the name field is the first control, so it takes focus. */
+useFocusTrap({ onEscape: () => cancel() })
+
 const swatches = GOAL_COLOR_PRESETS.map((value, index) => ({
   value,
   nameKey: COLOR_NAME_KEYS[index],
@@ -33,18 +37,26 @@ const swatches = GOAL_COLOR_PRESETS.map((value, index) => ({
 </script>
 <template>
   <Teleport to="body">
-    <section class="new-goal-modal">
+    <section
+      ref="trapRef"
+      class="new-goal-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="new-goal-title"
+    >
       <div class="modal-overlay" @click="$emit('cancel')"></div>
       <div class="modal-card">
-        <h3>{{ t('sidebar.newProject') }}</h3>
+        <h3 id="new-goal-title">{{ t('sidebar.newProject') }}</h3>
         <input
           v-model="title"
           type="text"
+          :aria-label="t('sidebar.projectName')"
           :placeholder="t('sidebar.projectName')"
           @keydown.enter="submit"
         />
         <textarea
           v-model="description"
+          :aria-label="t('sidebar.projectDescription')"
           :placeholder="t('sidebar.projectDescription')"
           @keydown.enter="submit"
         ></textarea>

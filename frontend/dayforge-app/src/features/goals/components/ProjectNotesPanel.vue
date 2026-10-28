@@ -44,10 +44,9 @@ onMounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="project-notes-layer">
+    <div ref="trapRef" class="project-notes-layer">
       <div class="project-notes-layer__scrim" @click="emit('close')" />
       <aside
-        ref="trapRef"
         class="project-notes"
         role="dialog"
         aria-modal="true"

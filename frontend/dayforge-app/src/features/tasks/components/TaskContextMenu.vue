@@ -29,6 +29,7 @@ const emit = defineEmits<{
   (e: 'schedule'): void
   (e: 'set-rate'): void
   (e: 'move'): void
+  (e: 'nudge', step: -1 | 1): void
   (e: 'delete'): void
   (e: 'add-to-this'): void
   (e: 'toggle-check'): void
@@ -49,8 +50,15 @@ const { menuPositionStyle } = useContextMenu({
 </script>
 
 <template>
-  <div ref="menuRef" class="task-context-menu" :style="menuPositionStyle">
+  <div
+    ref="menuRef"
+    class="task-context-menu"
+    role="menu"
+    :aria-label="t('common.actions')"
+    :style="menuPositionStyle"
+  >
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -63,6 +71,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ t('tasks.edit') }}
     </button>
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -75,6 +84,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ isDone ? t('tasks.markNotDone') : t('tasks.checkIt') }}
     </button>
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -87,6 +97,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ isScheduled ? t('tasks.changeTime') : t('tasks.addToCalendar') }}
     </button>
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -99,6 +110,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
     </button>
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -112,6 +124,7 @@ const { menuPositionStyle } = useContextMenu({
     </button>
     <button
       v-if="canLogPlanned"
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -123,9 +136,14 @@ const { menuPositionStyle } = useContextMenu({
     >
       {{ t('tasks.logAsPlanned') }}
     </button>
-    <DisclosureSection :label="t('tasks.more')" class="task-context-menu__more">
+    <DisclosureSection
+      :label="t('tasks.more')"
+      class="task-context-menu__more"
+      summary-role="menuitem"
+    >
       <button
         v-if="canMove"
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -138,7 +156,34 @@ const { menuPositionStyle } = useContextMenu({
         {{ t('tasks.moveTo') }}
       </button>
       <button
+        role="menuitem"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('nudge', -1)
+            emit('close')
+          }
+        "
+      >
+        {{ t('sidebar.moveUp') }}
+      </button>
+      <button
+        role="menuitem"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('nudge', 1)
+            emit('close')
+          }
+        "
+      >
+        {{ t('sidebar.moveDown') }}
+      </button>
+      <button
         v-if="canSetAsProject"
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -152,6 +197,7 @@ const { menuPositionStyle } = useContextMenu({
       </button>
       <button
         v-if="canAddChild"
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -165,6 +211,7 @@ const { menuPositionStyle } = useContextMenu({
       </button>
       <button
         v-if="isProject"
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -177,6 +224,7 @@ const { menuPositionStyle } = useContextMenu({
         {{ t('tasks.showHabit') }}
       </button>
       <button
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -189,8 +237,9 @@ const { menuPositionStyle } = useContextMenu({
         {{ hasOwnRate ? t('tasks.changeRate') : t('tasks.setRate') }}
       </button>
     </DisclosureSection>
-    <div class="task-context-menu__divider"></div>
+    <div class="task-context-menu__divider" role="separator"></div>
     <button
+      role="menuitem"
       class="task-context-menu__item task-context-menu__item--danger"
       type="button"
       @click="

@@ -27,6 +27,7 @@ const emit = defineEmits<{
   (e: 'delete-task', templateId: ID): void
   (e: 'set-as-project', templateId: ID): void
   (e: 'move-task', templateId: ID): void
+  (e: 'nudge-task', templateId: ID, step: -1 | 1): void
   (e: 'move-task-to', payload: TaskDropPayload): void
 }>()
 </script>
@@ -62,6 +63,9 @@ const emit = defineEmits<{
     @delete-task="(templateId: ID) => emit('delete-task', templateId)"
     @set-as-project="(templateId: ID) => emit('set-as-project', templateId)"
     @move-task="(templateId: ID) => emit('move-task', templateId)"
+    @nudge-task="
+      (templateId: ID, step: -1 | 1) => emit('nudge-task', templateId, step)
+    "
     @move-task-to="(payload: TaskDropPayload) => emit('move-task-to', payload)"
   />
 </template>

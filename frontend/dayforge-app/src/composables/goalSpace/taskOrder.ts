@@ -52,6 +52,31 @@ export function orderFromStoredPosition<T extends TaskOrderRow>(
   })
 }
 
+/**
+ * The row a keyboard "move up" or "move down" lands next to: the neighbour
+ * among the task's visible siblings, in the order they are drawn. Null at
+ * either end, or for a task that is not listed.
+ */
+export function planTaskNudge<T extends TaskOrderRow & { deletedAt?: string }>(
+  templates: readonly T[],
+  movedId: string,
+  step: -1 | 1,
+): { targetId: string; placeAbove: boolean } | null {
+  const moved = templates.find((item) => item.id === movedId)
+  if (!moved || moved.deletedAt) return null
+  const parent = moved.parentTemplateId ?? null
+  const siblings = sortTasks(
+    templates.filter(
+      (item) => !item.deletedAt && (item.parentTemplateId ?? null) === parent,
+    ),
+  )
+  const index = siblings.indexOf(moved)
+  const neighbour = index < 0 ? undefined : siblings[index + step]
+  if (!neighbour) return null
+  // Up: the moved task goes above the row over it. Down: below the row under it.
+  return { targetId: neighbour.id, placeAbove: step < 0 }
+}
+
 /** A new task goes on top: one number above the highest in its list. */
 export function nextTopOrder(siblings: readonly { order?: number }[]): number {
   let highest = -1

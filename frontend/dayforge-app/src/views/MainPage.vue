@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted } from 'vue'
+import { defineAsyncComponent, onMounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
@@ -32,6 +32,7 @@ import { showAccountDeletedNotice } from '../features/profile/composables/useAcc
 import { useGoalSpace } from '../composables/useGoalSpace'
 import { useMainPageState } from '../pages/composables/useMainPageState'
 import { useSettingsPanel } from '../features/settings/composables/useSettingsPanel'
+import { useOpenFocusTrap } from '../composables/useFocusTrap'
 import { useHotkeys, useHotkeyOverlay } from '../composables/useHotkeys'
 import type { SearchResult } from '../features/search/composables/useGlobalSearch'
 import { flashTaskRow } from '../features/search/composables/flashTaskRow'
@@ -187,6 +188,21 @@ const {
 } = useMobileNav()
 
 /**
+ * The phone drawer is an overlay while open: Tab stays in it and Escape closes
+ * it, and focus goes back to the menu button. It is not made inert: the
+ * backdrop beside it has to stay tappable to close the drawer.
+ */
+const drawerRef = useTemplateRef<HTMLElement>('drawerRef')
+useOpenFocusTrap(
+  () => drawerRef.value,
+  () => isMobileNavOpen.value,
+  {
+    modal: false,
+    onEscape: () => closeMobileNav(),
+  },
+)
+
+/**
  * After mount, once the browser is idle, fetch the chunks of the two views
  * people switch to most, so the first switch does not wait on the network,
  * and the rest so they also open offline once the app has been loaded.
@@ -274,8 +290,11 @@ function handleSearchSelect(result: SearchResult) {
 
     <aside
       id="app-sidebar"
+      ref="drawerRef"
       class="app-sidebar"
       :class="{ 'is-mobile-open': isMobileNavOpen }"
+      :role="isMobileNavOpen ? 'dialog' : undefined"
+      :aria-label="isMobileNavOpen ? t('sidebar.navigation') : undefined"
     >
       <SidebarComponent
         :goals="goals"
@@ -334,6 +353,7 @@ function handleSearchSelect(result: SearchResult) {
           @assign-goal="handleAssignTaskToGoal"
           @attach-to-project="handleAttachToProject"
           @move-task-to="handleMoveTaskTo"
+          @nudge-task="goalSpace.nudgeTask"
           @set-board-stage="handleSetBoardStage"
           @clear-board-done="handleClearBoardDone"
           @change-goal-board="handleChangeGoalBoard"

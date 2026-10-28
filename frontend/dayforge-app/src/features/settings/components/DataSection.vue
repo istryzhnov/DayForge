@@ -118,6 +118,7 @@ function clearEverything() {
     <input
       ref="fileInput"
       class="settings-file"
+      :aria-label="t('settings.dataImport')"
       type="file"
       accept="application/json,.json"
       @change="onFileChosen"

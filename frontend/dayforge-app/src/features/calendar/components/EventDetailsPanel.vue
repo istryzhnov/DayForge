@@ -95,10 +95,16 @@ function onNotesKeydown(event: KeyboardEvent) {
 
 <template>
   <div class="event-details-overlay" @click.self="emit('close')">
-    <div ref="trapRef" class="event-details" role="dialog" aria-modal="true">
+    <div
+      ref="trapRef"
+      class="event-details"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="event-details-title"
+    >
       <header class="event-details__head">
         <span class="dot" :class="task.priority"></span>
-        <strong>{{ task.title }}</strong>
+        <strong id="event-details-title">{{ task.title }}</strong>
         <button
           class="event-details__close"
           type="button"

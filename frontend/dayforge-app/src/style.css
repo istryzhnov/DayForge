@@ -23,3 +23,10 @@
 @import './styles/welcome.css';
 /* After the panels, so one set of control styles wins everywhere. */
 @import './styles/controls.css';
+
+/* Fallback for any focusable control without its own ring. Panels that
+   draw their own ring use box-shadow instead of removing the outline. */
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 2px;
+}

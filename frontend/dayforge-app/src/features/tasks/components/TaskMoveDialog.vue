@@ -45,15 +45,17 @@ function submit() {
 </script>
 
 <template>
-  <div class="new-goal-modal" @click.self="emit('close')">
+  <div ref="trapRef" class="new-goal-modal" @click.self="emit('close')">
     <div class="modal-overlay" @click="emit('close')"></div>
     <div
-      ref="trapRef"
       class="modal-card task-move"
       role="dialog"
       aria-modal="true"
+      aria-labelledby="task-move-title"
     >
-      <h3>{{ t('tasks.moveTitle', { title: template.title }) }}</h3>
+      <h3 id="task-move-title">
+        {{ t('tasks.moveTitle', { title: template.title }) }}
+      </h3>
 
       <label class="timer-field">
         {{ t('tasks.goal') }}

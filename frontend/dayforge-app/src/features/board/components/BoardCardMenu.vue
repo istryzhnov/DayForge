@@ -26,8 +26,15 @@ const { menuPositionStyle } = useContextMenu({
 
 <template>
   <Teleport to="body">
-    <div ref="menuRef" class="task-context-menu" :style="menuPositionStyle">
+    <div
+      ref="menuRef"
+      class="task-context-menu"
+      role="menu"
+      :aria-label="t('common.actions')"
+      :style="menuPositionStyle"
+    >
       <button
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -40,6 +47,7 @@ const { menuPositionStyle } = useContextMenu({
         {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
       </button>
       <button
+        role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
@@ -52,6 +60,7 @@ const { menuPositionStyle } = useContextMenu({
         {{ isTimerActive ? t('tasks.stopTimer') : t('tasks.startTimer') }}
       </button>
       <button
+        role="menuitem"
         class="task-context-menu__item task-context-menu__item--danger"
         type="button"
         @click="

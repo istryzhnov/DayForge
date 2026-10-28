@@ -31,8 +31,15 @@ const { menuPositionStyle } = useContextMenu({
 </script>
 
 <template>
-  <div ref="menuRef" class="task-context-menu" :style="menuPositionStyle">
+  <div
+    ref="menuRef"
+    class="task-context-menu"
+    role="menu"
+    :aria-label="t('common.actions')"
+    :style="menuPositionStyle"
+  >
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -45,6 +52,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ isDone ? t('calendar.markNotDone') : t('calendar.markDone') }}
     </button>
     <button
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -58,6 +66,7 @@ const { menuPositionStyle } = useContextMenu({
     </button>
     <button
       v-if="canLogPlanned"
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="
@@ -71,6 +80,7 @@ const { menuPositionStyle } = useContextMenu({
     </button>
     <button
       v-if="canUnschedule"
+      role="menuitem"
       class="task-context-menu__item"
       type="button"
       @click="

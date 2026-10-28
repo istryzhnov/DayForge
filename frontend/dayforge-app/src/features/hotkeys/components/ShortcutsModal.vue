@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import AppIcon from '../../../components/AppIcon.vue'
-import { onMounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   QUICK_ADD_SYNTAX,
   SHORTCUT_GROUPS,
   useHotkeyOverlay,
 } from '../../../composables/useHotkeys'
+import { useFocusTrap } from '../../../composables/useFocusTrap'
 import { useMediaQuery } from '../../../composables/useMediaQuery'
 import { useSettings } from '../../../composables/useSettings'
 import TourChapterList from '../../onboarding/components/TourChapterList.vue'
@@ -32,33 +32,21 @@ function chapterStarted() {
   closeOverlay()
 }
 
-const cardRef = useTemplateRef<HTMLElement>('cardRef')
-
-function onKeydown(event: KeyboardEvent) {
-  if (event.key !== 'Escape') return
-  event.preventDefault()
-  event.stopPropagation()
-  closeOverlay()
-}
-
-onMounted(() => cardRef.value?.focus())
+// The close button is the first control, so it takes focus on open.
+useFocusTrap({ onEscape: () => closeOverlay() })
 </script>
 
 <template>
   <Teleport to="body">
     <section
+      ref="trapRef"
       class="quick-add-modal"
       role="dialog"
       aria-modal="true"
       :aria-label="t('hotkeys.help')"
     >
       <div class="modal-overlay" @click="closeOverlay"></div>
-      <div
-        ref="cardRef"
-        class="shortcuts-card"
-        tabindex="-1"
-        @keydown="onKeydown"
-      >
+      <div class="shortcuts-card">
         <header class="shortcuts-card__head">
           <h3>{{ t('hotkeys.help') }}</h3>
           <button
