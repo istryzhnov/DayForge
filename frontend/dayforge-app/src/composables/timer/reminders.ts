@@ -64,6 +64,80 @@ export function isAwayLongEnough(awayMs: number, idleMinutes: number): boolean {
   return idleMinutes > 0 && awayMs >= idleMinutes * MINUTE_MS
 }
 
+/** One running stretch, identified the same way on every check. */
+export interface StretchKey {
+  sessionId: ID
+  startedAt: number
+}
+
+/** One away spell: from the moment the app went quiet to the moment it was back. */
+export interface AwayWindow {
+  hiddenAt: number
+  returnedAt: number
+}
+
+/** The stretch that was running the last time the app was seen, and when. */
+export interface AwayRecord extends StretchKey {
+  seenAt: number
+}
+
+/** Null-safe: a missing stretch never matches. */
+export function sameStretch(
+  left: StretchKey | null,
+  right: StretchKey | null,
+): boolean {
+  return (
+    left !== null &&
+    right !== null &&
+    left.sessionId === right.sessionId &&
+    left.startedAt === right.startedAt
+  )
+}
+
+/**
+ * After a reload or a browser restart, the stored record tells how long the app
+ * was gone. Only the same stretch still running counts, and only past the threshold.
+ */
+export function awayWindowFromStorage(
+  stored: AwayRecord | null,
+  now: number,
+  running: StretchKey | null,
+  idleMinutes: number,
+): AwayWindow | null {
+  if (!stored || !sameStretch(stored, running)) return null
+  if (!isAwayLongEnough(now - stored.seenAt, idleMinutes)) return null
+  return { hiddenAt: stored.seenAt, returnedAt: now }
+}
+
+/**
+ * Sleep or a locked screen fires no visibility change, but the clock still jumps
+ * between two ticks. A jump past the threshold on the same stretch is away time.
+ */
+export function awayWindowFromTickGap(
+  previous: { at: number; running: StretchKey | null } | null,
+  now: number,
+  running: StretchKey | null,
+  idleMinutes: number,
+): AwayWindow | null {
+  if (!previous || !sameStretch(previous.running, running)) return null
+  if (!isAwayLongEnough(now - previous.at, idleMinutes)) return null
+  return { hiddenAt: previous.at, returnedAt: now }
+}
+
+/**
+ * Two windows that overlap are one away spell: the earlier start wins. The
+ * open prompt keeps its return time, so it does not stretch while on screen.
+ */
+export function mergeAwayWindows(
+  current: AwayWindow,
+  next: AwayWindow,
+): AwayWindow {
+  return {
+    hiddenAt: Math.min(current.hiddenAt, next.hiddenAt),
+    returnedAt: current.returnedAt,
+  }
+}
+
 export interface AwaySplit {
   /** Where the stretch that was running keeps its time; null if none of it is kept. */
   keptEndsAt: number | null
