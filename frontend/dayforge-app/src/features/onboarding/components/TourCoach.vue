@@ -19,6 +19,7 @@ import {
 } from '../composables/useCoachLayout'
 import type { TourOffscreen } from '../composables/tourSteps'
 import { useTour, tourEvent } from '../composables/useTour'
+import { TOUCH_LAYOUT_QUERY } from '../composables/touchLayout'
 import CoachBubble from './CoachBubble.vue'
 
 const emit = defineEmits<{
@@ -35,13 +36,15 @@ const {
   stepCount,
   bubbleOpen,
   running,
+  nextChapter,
   skip,
   finish,
+  finishAndNext,
   close,
 } = useTour()
 /** Touch or a phone-width screen: the same cut the phone layout uses. */
-const isMobile = useMediaQuery('(pointer: coarse), (max-width: 720px)')
-const { open: openNav } = useMobileNav()
+const isMobile = useMediaQuery(TOUCH_LAYOUT_QUERY)
+const { open: openNav, isOpen: navOpen } = useMobileNav()
 const bubble = useTemplateRef<InstanceType<typeof CoachBubble>>('bubble')
 
 /** A dialog covers the page, so the bubble waits underneath it. */
@@ -57,7 +60,9 @@ function resolve(): CoachTarget | null {
   const tourState = state.value
   if (!step || !tourState || !bubbleOpen.value || covered.value) return null
   if (!step.anchor) return null
-  const el = findOnScreen(step.anchor(tourState))
+  const selector =
+    typeof step.anchor === 'string' ? step.anchor : step.anchor(tourState)
+  const el = findOnScreen(selector)
   return el ? { el, placement: step.placement ?? 'bottom' } : null
 }
 
@@ -112,6 +117,11 @@ function skipStep() {
   if (event) tourEvent(event)
 }
 
+/** An informational step has no action to wait for: its Next button moves on. */
+function nextStepClicked() {
+  tourEvent('next')
+}
+
 // On a phone the sidebar holds the step's control, so the drawer opens for it.
 watch(
   () =>
@@ -127,6 +137,13 @@ watch(
 )
 
 watch([state, bubbleOpen], () => schedule())
+
+// The phone drawer slides in, so its controls are measured again once it has
+// settled; measuring at once would find them still off screen.
+watch(navOpen, () => {
+  schedule()
+  window.setTimeout(schedule, 350)
+})
 
 /** Esc closes the bubble, not the tour; the progress pill brings it back. */
 function onKeydown(event: KeyboardEvent) {
@@ -192,6 +209,22 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           @click="skipStep"
         >
           {{ t('onboarding.tourSkip') }}
+        </button>
+        <button
+          v-if="visibleStep.doneOn === 'next'"
+          class="coach-mark__action"
+          type="button"
+          @click="nextStepClicked"
+        >
+          {{ t('onboarding.tourNext') }}
+        </button>
+        <button
+          v-if="isFinish && nextChapter"
+          class="coach-mark__action"
+          type="button"
+          @click="finishAndNext"
+        >
+          {{ t('onboarding.tourNextChapter') }}
         </button>
         <button
           v-if="isFinish"

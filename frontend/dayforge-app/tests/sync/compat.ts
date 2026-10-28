@@ -41,6 +41,7 @@ import {
 import { verifyCalendarTitles } from './compat/calendar'
 import { verifyGoalReorder } from './compat/reorder'
 import {
+  verifyTourChapters,
   verifyTourDeletions,
   verifyTourGuards,
   verifyTourLifecycle,
@@ -55,8 +56,10 @@ import { verifyQueuedDeletes } from './compat/queuedDeletes'
 import { verifyDayBoundaries } from './compat/dayBoundaries'
 import { verifyRecurrenceEdges } from './compat/recurrenceEdges'
 import { verifyTranslations } from './compat/i18n'
+import { verifyAboutPage } from './compat/aboutPage'
 import { verifyProjectDropTargets } from './compat/dropTargets'
 import { verifyTaskOrder } from './compat/taskOrder'
+import { verifyOvernightTasks } from './compat/overnight'
 import {
   verifyPrimaryButtonContrast,
   verifyPresetReset,
@@ -106,7 +109,10 @@ function main() {
   verifyTourLifecycle()
   verifyTourDeletions()
   verifyTourStorage()
+  verifyOvernightTasks()
+  verifyTourChapters()
   verifyTranslations()
+  verifyAboutPage()
   verifyFieldGroupMerge()
 
   console.log(

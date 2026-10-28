@@ -6,6 +6,7 @@ import { sortGoals } from './goalSpace/goalOrder'
 import type { ActiveView } from '../pages/composables/useMainPageState'
 import { useSettings } from './useSettings'
 import { useTimer } from './useTimer'
+import { tourEvent } from '../features/onboarding/composables/useTour'
 
 export type HotkeyOverlay = 'none' | 'quick-add' | 'shortcuts' | 'search'
 
@@ -16,12 +17,15 @@ export function useHotkeyOverlay() {
     overlay,
     openQuickAdd: () => {
       overlay.value = 'quick-add'
+      tourEvent('quick-add-opened')
     },
     openShortcuts: () => {
       overlay.value = 'shortcuts'
+      tourEvent('help-opened')
     },
     openSearch: () => {
       overlay.value = 'search'
+      tourEvent('search-opened')
     },
     closeOverlay: () => {
       overlay.value = 'none'

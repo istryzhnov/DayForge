@@ -7,9 +7,16 @@ import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
 import { useMobileNav } from '../features/sidebar/composables/useMobileNav'
 import TaskReminderPopup from '../components/TaskReminderPopup.vue'
 import CoachMark from '../features/onboarding/components/CoachMark.vue'
+import { COACH_TIPS_ENABLED } from '../features/onboarding/composables/tips'
 import TourCoach from '../features/onboarding/components/TourCoach.vue'
 import type { TourOffscreen } from '../features/onboarding/composables/tourSteps'
 import type { ID } from '../entities/types'
+import type { ActiveView } from '../pages/composables/useMainPageState'
+import type { SettingsSection } from '../features/settings/composables/useSettingsPanel'
+import {
+  setAnalyticsTab,
+  type AnalyticsTab,
+} from '../features/analytics/composables/useAnalyticsTab'
 import WelcomeFlow from '../features/onboarding/components/WelcomeFlow.vue'
 import {
   useWelcomeStart,
@@ -166,9 +173,13 @@ useHotkeys({
 
 const { overlay, closeOverlay } = useHotkeyOverlay()
 
-const { isOpen: isSettingsOpen } = useSettingsPanel()
+const { isOpen: isSettingsOpen, open: openSettings } = useSettingsPanel()
 const { editRequest, closeEntryEdit } = useEntryEditRequest()
-const { isOpen: isProfileOpen, close: closeProfile } = useProfilePanel()
+const {
+  isOpen: isProfileOpen,
+  open: openProfile,
+  close: closeProfile,
+} = useProfilePanel()
 const {
   isOpen: isMobileNavOpen,
   open: openMobileNav,
@@ -221,6 +232,23 @@ function handleTourNavigate(target: TourOffscreen, projectId: ID | undefined) {
     return
   }
   closeMobileNav()
+  if (target.startsWith('view:')) {
+    selectView(target.slice('view:'.length) as ActiveView)
+    return
+  }
+  if (target.startsWith('settings:')) {
+    openSettings(target.slice('settings:'.length) as SettingsSection)
+    return
+  }
+  if (target.startsWith('analytics:')) {
+    selectView('analytics')
+    setAnalyticsTab(target.slice('analytics:'.length) as AnalyticsTab)
+    return
+  }
+  if (target === 'profile') {
+    openProfile()
+    return
+  }
   if (!projectId) return
   selectGoal(projectId)
   if (target === 'board') handleChangeGoalBoard(projectId, true)
@@ -447,7 +475,11 @@ function handleSearchSelect(result: SearchResult) {
 
     <ShortcutTipToast />
 
-    <CoachMark :view="activeView" @action="openStarter" />
+    <CoachMark
+      v-if="COACH_TIPS_ENABLED"
+      :view="activeView"
+      @action="openStarter"
+    />
     <TourCoach @navigate="handleTourNavigate" />
 
     <WelcomeFlow

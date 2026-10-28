@@ -168,3 +168,11 @@
     display: none;
   }
 }
+
+/* The top bar has its own search button at this width, so the sidebar's
+   would be a second one in the open drawer. */
+@media (max-width: 960px) {
+  .sidebar-brand .sidebar-search-trigger {
+    display: none;
+  }
+}

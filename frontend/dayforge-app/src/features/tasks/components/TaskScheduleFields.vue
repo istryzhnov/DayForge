@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { tourEvent } from '../../onboarding/composables/useTour'
 import ComposerToggleSection from './ComposerToggleSection.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
 import {
@@ -32,6 +33,7 @@ const {
   isAnnual,
   error,
   isValid,
+  isNextDay,
   toggleWeekday,
   buildSchedule,
   load,
@@ -49,10 +51,15 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
     :hide-toggle="hideToggle"
   >
     <div class="task-schedule__fields">
-      <div class="task-schedule__row">
+      <div class="task-schedule__row" data-tip-anchor="composer-times">
         <label class="task-schedule__field">
           <span class="task-schedule__label">{{ t('tasks.date') }}</span>
-          <input v-model="date" type="date" :min="minDate" />
+          <input
+            v-model="date"
+            type="date"
+            :min="minDate"
+            @change="tourEvent('schedule-edited')"
+          />
         </label>
 
         <label class="task-schedule__field">
@@ -62,6 +69,7 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             type="time"
             :min="MIN_TIME"
             :max="MAX_TIME"
+            @change="tourEvent('schedule-edited')"
           />
         </label>
 
@@ -72,11 +80,19 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             type="time"
             :min="MIN_TIME"
             :max="MAX_TIME"
+            @change="tourEvent('schedule-edited')"
           />
+          <span v-if="isNextDay" class="task-schedule__next-day">
+            {{ t('tasks.nextDay') }}
+          </span>
         </label>
       </div>
 
-      <DisclosureSection :label="t('tasks.repeat')" :open="isRepeating">
+      <DisclosureSection
+        :label="t('tasks.repeat')"
+        :open="isRepeating"
+        data-tip-anchor="composer-repeat"
+      >
         <div class="task-schedule__row">
           <label class="task-schedule__field">
             <span class="task-schedule__label">{{ t('tasks.repeat') }}</span>

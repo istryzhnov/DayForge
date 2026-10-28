@@ -6,8 +6,10 @@ import {
   finishTourState,
   freshTourState,
   isTourActive,
+  pathSteps,
   reduceTour,
   sanitizeTourState,
+  sanitizeTourStore,
   skipTourState,
   startTourState,
   tourProgress,
@@ -17,6 +19,8 @@ import {
 } from '../../../src/features/onboarding/composables/tourMachine'
 import {
   BOARD_PATH,
+  CHAPTER_IDS,
+  TOUR_CHAPTERS,
   TOUR_STEPS,
   WIDGET_PATH,
 } from '../../../src/features/onboarding/composables/tourSteps'
@@ -362,5 +366,207 @@ export function verifyTourStorage() {
         read.skipped === true
       )
     })(),
+  )
+}
+
+/** The chapters after Basics: their shape, their events, touch filtering and the saved shape. */
+export function verifyTourChapters() {
+  section('Getting-started tour: chapters')
+
+  check(
+    'the eight chapters are listed in order, Basics first',
+    TOUR_CHAPTERS.map((chapter) => chapter.id).join() === CHAPTER_IDS.join() &&
+      CHAPTER_IDS[0] === 'basics' &&
+      CHAPTER_IDS.length === 8,
+  )
+  check(
+    'every step id is unique across all chapters',
+    new Set(TOUR_STEPS.map((step) => step.id)).size === TOUR_STEPS.length,
+  )
+  check(
+    'every chapter path names only steps that exist',
+    TOUR_CHAPTERS.every((chapter) =>
+      Object.values(chapter.paths).every((ids) =>
+        (ids ?? []).every((id) => TOUR_STEPS.some((step) => step.id === id)),
+      ),
+    ),
+  )
+  check(
+    'each chapter ends on a finish step with no action',
+    TOUR_CHAPTERS.every((chapter) => {
+      const ids = chapter.paths[chapter.defaultPath] ?? []
+      const last = TOUR_STEPS.find((step) => step.id === ids.at(-1))
+      return last?.doneOn === null && last.anchor === null
+    }),
+  )
+  check(
+    'every chapter after Basics has three to seven steps on either device',
+    TOUR_CHAPTERS.slice(1).every((chapter) =>
+      [false, true].every((touch) => {
+        const count = pathSteps(chapter.id, 'main', touch).length - 1
+        return count >= 3 && count <= 7
+      }),
+    ),
+  )
+
+  const fresh = freshTourState('scheduling')
+  check(
+    'a chapter starts at its first step',
+    fresh.chapter === 'scheduling' && fresh.step === 'sched-open',
+  )
+
+  check(
+    'opening the schedule moves to setting the time',
+    reduceTour(fresh, 'schedule-opened', {}).step === 'sched-when',
+  )
+  check(
+    'a task added without a schedule does not advance the add step',
+    (() => {
+      const atAdd = play(fresh, [
+        ['schedule-opened', {}],
+        ['schedule-edited', {}],
+        ['next', {}],
+      ])
+      return (
+        atAdd.step === 'sched-add' &&
+        reduceTour(atAdd, 'task-added', { scheduled: false }) === atAdd
+      )
+    })(),
+  )
+  check(
+    'a scheduled task advances the add step',
+    reduceTour(
+      play(fresh, [
+        ['schedule-opened', {}],
+        ['schedule-edited', {}],
+        ['next', {}],
+      ]),
+      'task-added',
+      { scheduled: true },
+    ).step === 'sched-end',
+  )
+
+  const atDrag = play(freshTourState('calendar'), [
+    ['view-opened', { view: 'calendar' }],
+    ['calendar-view-changed', { mode: 'week' }],
+  ])
+  check(
+    'moving a block does not count as dragging a task from Unscheduled',
+    reduceTour(atDrag, 'task-timed', { taskId: 'x', fromList: false }) ===
+      atDrag,
+  )
+  check(
+    'dragging a task from Unscheduled advances the drag step',
+    reduceTour(atDrag, 'task-timed', { taskId: 'x', fromList: true }).step ===
+      'cal-block',
+  )
+  check(
+    'an empty Unscheduled list can be skipped',
+    reduceTour(atDrag, 'step-skipped', {}).step === 'cal-block',
+  )
+
+  check(
+    'a timer mode change advances the mode step',
+    reduceTour(freshTourState('timer'), 'view-opened', {
+      view: 'timer',
+    }).step === 'timer-mode',
+  )
+  check(
+    'the Money tab is needed, not the Habits tab',
+    (() => {
+      const atMoney = play(freshTourState('money'), [
+        ['next', {}],
+        ['next', {}],
+        ['next', {}],
+      ])
+      return (
+        atMoney.step === 'money-tab' &&
+        reduceTour(atMoney, 'analytics-tab', { tab: 'habits' }) === atMoney
+      )
+    })(),
+  )
+
+  const desktopShortcuts = freshTourState('shortcuts', false)
+  const touchShortcuts = freshTourState('shortcuts', true)
+  check(
+    'keyboard steps are left out on touch, touch steps on a keyboard',
+    desktopShortcuts.step === 'short-quick-key' &&
+      touchShortcuts.step === 'short-quick-touch' &&
+      !pathSteps('shortcuts', 'main', true).includes('short-quick-key') &&
+      !pathSteps('shortcuts', 'main', false).includes('short-quick-touch'),
+  )
+  check(
+    'a touch run reads its total without keyboard steps',
+    // Six steps and the finish, on either device.
+    tourProgress(touchShortcuts).total === 7 &&
+      tourProgress(desktopShortcuts).total === 7,
+  )
+  check(
+    'a touch run moves from the dates step to the touch search step',
+    reduceTour(
+      play(touchShortcuts, [['quick-add-opened', {}]]),
+      'quick-add-used',
+      { dated: true },
+    ).step === 'short-search-touch',
+  )
+
+  // Saved shape: { run, completed }. Data from before chapters is Basics only.
+  const legacyDone = {
+    step: 'finish',
+    path: 'board',
+    projectId: 'p1',
+    done: true,
+  }
+  const legacy = sanitizeTourStore(legacyDone)
+  check(
+    'data saved before chapters reads as a finished Basics',
+    legacy.run?.chapter === 'basics' &&
+      legacy.run.done === true &&
+      legacy.completed.join() === 'basics',
+    legacy,
+  )
+  const legacyOpen = sanitizeTourStore({
+    step: 'add-task',
+    path: 'board',
+    done: false,
+  })
+  check(
+    'an unfinished legacy Basics run keeps its step and completes nothing',
+    legacyOpen.run?.step === 'add-task' && legacyOpen.completed.length === 0,
+  )
+  check(
+    'a damaged stored value loads as nothing',
+    sanitizeTourStore('nonsense').run === null &&
+      sanitizeTourStore('nonsense').completed.length === 0 &&
+      sanitizeTourStore(null).run === null,
+  )
+  const stored = sanitizeTourStore({
+    run: { chapter: 'timer', step: 'timer-stop', path: 'main', done: false },
+    completed: ['basics', 'timer', 'timer', 'nope'],
+  })
+  check(
+    'the finished chapters are kept once each and unknown ids dropped',
+    stored.run?.chapter === 'timer' &&
+      stored.completed.join() === 'basics,timer',
+    stored,
+  )
+  check(
+    'an unknown chapter in a saved run starts nothing',
+    sanitizeTourState({ chapter: 'nope', step: 'timer-open', path: 'main' }) ===
+      null,
+  )
+  check(
+    'a keyboard step saved on touch moves to its touch twin',
+    sanitizeTourState({
+      chapter: 'shortcuts',
+      step: 'short-quick-key',
+      path: 'main',
+      touch: true,
+      done: false,
+    })?.step === 'short-quick-touch',
+  )
+  check(
+    'an unfinished chapter counts as not completed',
+    finishTourState(fresh).done && !skipTourState(fresh).done,
   )
 }

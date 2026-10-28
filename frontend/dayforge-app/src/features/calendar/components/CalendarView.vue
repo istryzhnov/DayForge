@@ -14,6 +14,7 @@ import CalendarMonthView from './CalendarMonthView.vue'
 import CalendarWeekView from './CalendarWeekView.vue'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
+import { tourEvent } from '../../onboarding/composables/useTour'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
 import CalendarFilterPopover from './CalendarFilterPopover.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
@@ -74,7 +75,7 @@ const {
   isCoarsePointer,
   openDay,
   dateLabel,
-  scheduledTasks,
+  scheduledBlocks,
   unscheduledTasks,
   incomingPreview,
   selectedProjectTemplateId,
@@ -123,6 +124,12 @@ const {
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
 
 const { t } = useI18n()
+
+/** A view the user picks; the tour hears about it here, not from a watcher. */
+function chooseMode(mode: CalendarViewMode) {
+  viewMode.value = mode
+  tourEvent('calendar-view-changed', { mode })
+}
 
 /** `labelKey` is rendered with t() so a language switch updates the tabs. */
 const VIEW_MODES: { id: CalendarViewMode; labelKey: string }[] = [
@@ -263,6 +270,7 @@ function iconFor(goalId: ID | undefined) {
           class="ui-tabs"
           role="tablist"
           :aria-label="t('calendar.calendarView')"
+          data-tip-anchor="calendar-views"
         >
           <button
             v-for="mode in VIEW_MODES"
@@ -272,7 +280,7 @@ function iconFor(goalId: ID | undefined) {
             type="button"
             role="tab"
             :aria-selected="viewMode === mode.id"
-            @click="viewMode = mode.id"
+            @click="chooseMode(mode.id)"
           >
             {{ t(mode.labelKey) }}
           </button>
@@ -315,6 +323,7 @@ function iconFor(goalId: ID | undefined) {
           <div
             ref="gridRef"
             class="calendar-view__grid"
+            data-tip-anchor="calendar-grid"
             :class="{ 'is-dragging': touchDrag }"
             :style="gridStyle(gridHeightPx)"
             @pointerdown="onGridPointerDown"
@@ -338,15 +347,16 @@ function iconFor(goalId: ID | undefined) {
             </template>
 
             <CalendarEventBlock
-              v-for="task in scheduledTasks"
-              :key="task.id"
-              :task="task"
-              :top-px="topPxFor(task)"
-              :height-px="heightPxFor(task)"
-              :is-dragging="draggingTaskId === task.id"
-              :theme-vars="themeVarsFor(task.goalId)"
-              :icon="iconFor(task.goalId)"
-              :column-style="columnStyleFor(task)"
+              v-for="block in scheduledBlocks"
+              :key="block.key"
+              :task="block.task"
+              :is-tail="block.isTail"
+              :top-px="topPxFor(block)"
+              :height-px="heightPxFor(block)"
+              :is-dragging="draggingTaskId === block.task.id"
+              :theme-vars="themeVarsFor(block.task.goalId)"
+              :icon="iconFor(block.task.goalId)"
+              :column-style="columnStyleFor(block)"
               @select="openDetails"
               @drag-start="onBlockDragStart"
               @resize="onResize"
@@ -405,7 +415,11 @@ function iconFor(goalId: ID | undefined) {
           </div>
         </div>
 
-        <aside ref="unscheduledRef" class="ui-card calendar-view__unscheduled">
+        <aside
+          ref="unscheduledRef"
+          class="ui-card calendar-view__unscheduled"
+          data-tip-anchor="calendar-unscheduled"
+        >
           <div class="calendar-view__unscheduled-head">
             <p class="ui-section-label">{{ t('calendar.unscheduled') }}</p>
             <span class="calendar-view__unscheduled-count">

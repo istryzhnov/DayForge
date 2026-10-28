@@ -1,21 +1,29 @@
 import { computed, ref, watch } from 'vue'
 import { readJson, writeJson } from '../../../lib/storage'
-import { TOUR_STEP_BY_ID } from './tourSteps'
+import {
+  TOUR_CHAPTERS,
+  TOUR_CHAPTER_BY_ID,
+  TOUR_STEP_BY_ID,
+  type ChapterId,
+} from './tourSteps'
 import {
   finishTourState,
   freshTourState,
   isTourActive,
   reduceTour,
-  sanitizeTourState,
+  sanitizeTourStore,
   skipTourState,
   startTourState,
   tourProgress,
   type TourEvent,
   type TourEventPayload,
   type TourState,
+  type TourStore,
 } from './tourMachine'
+import { isTouchLayout } from './touchLayout'
 import { useTips } from './useTips'
 
+/** The same key as before chapters; the value now holds the run and the finished chapters. */
 const TOUR_STORAGE_KEY = 'dayforge-tour-v1'
 
 /**
@@ -30,10 +38,11 @@ const REPLACED_TIP_IDS = [
   'analytics-tabs',
 ]
 
+const saved = sanitizeTourStore(readJson<unknown>(TOUR_STORAGE_KEY, null))
+
 // Module state, so every part of the app reads the same tour.
-const state = ref<TourState | null>(
-  sanitizeTourState(readJson<unknown>(TOUR_STORAGE_KEY, null)),
-)
+const state = ref<TourState | null>(saved.run)
+const completed = ref<ChapterId[]>(saved.completed)
 
 /**
  * Whether the bubble is on screen. Closing it with × leaves the tour running;
@@ -42,9 +51,10 @@ const state = ref<TourState | null>(
 const bubbleOpen = ref(true)
 
 watch(
-  state,
-  (value) => {
-    writeJson(TOUR_STORAGE_KEY, value)
+  [state, completed],
+  ([run, done]) => {
+    const store: TourStore = { run, completed: done }
+    writeJson(TOUR_STORAGE_KEY, store)
   },
   { deep: true },
 )
@@ -57,9 +67,21 @@ const currentStep = computed(() => {
   return TOUR_STEP_BY_ID[value.step]
 })
 
+const chapter = computed<ChapterId | null>(() =>
+  isTourActive(state.value) ? state.value.chapter : null,
+)
+
 const progress = computed(() => {
   const value = state.value
   return isTourActive(value) ? tourProgress(value) : { number: 0, total: 0 }
+})
+
+/** The chapter after the running one, in list order; null after the last. */
+const nextChapter = computed<ChapterId | null>(() => {
+  const current = chapter.value
+  if (!current) return null
+  const index = TOUR_CHAPTERS.findIndex((item) => item.id === current)
+  return TOUR_CHAPTERS[index + 1]?.id ?? null
 })
 
 function retireReplacedTips() {
@@ -80,7 +102,7 @@ export function tourEvent(event: TourEvent, payload: TourEventPayload = {}) {
   state.value = next
 }
 
-/** Begins the tour at the first step. Does nothing while one is already running. */
+/** Begins Basics at the first step. Does nothing while a tour is already running. */
 export function startTour() {
   const next = startTourState(state.value)
   if (next === state.value) return
@@ -88,9 +110,9 @@ export function startTour() {
   bubbleOpen.value = true
 }
 
-/** Begins again from the first step, whatever was done before. */
-function restartTour() {
-  state.value = freshTourState()
+/** Begins a chapter at its first step, whatever was done before. */
+function startChapter(id: ChapterId) {
+  state.value = freshTourState(id, isTouchLayout())
   bubbleOpen.value = true
 }
 
@@ -101,25 +123,46 @@ function skipTour() {
   retireReplacedTips()
 }
 
+/** Ends the running chapter and records it as completed. */
 function finishTour() {
-  if (!isTourActive(state.value)) return
-  state.value = finishTourState(state.value)
+  const value = state.value
+  if (!isTourActive(value)) return
+  state.value = finishTourState(value)
+  if (!completed.value.includes(value.chapter)) {
+    completed.value = [...completed.value, value.chapter]
+  }
   bubbleOpen.value = false
   retireReplacedTips()
+}
+
+/** "Next chapter": completes this one and starts the following one. */
+function finishAndNext() {
+  const following = nextChapter.value
+  finishTour()
+  if (following) startChapter(following)
 }
 
 export function useTour() {
   return {
     state: computed<TourState | null>(() => state.value),
     running,
+    chapter,
     currentStep,
+    chapterTitleKey: computed(() =>
+      chapter.value ? TOUR_CHAPTER_BY_ID[chapter.value].titleKey : '',
+    ),
     stepNumber: computed(() => progress.value.number),
     stepCount: computed(() => progress.value.total),
+    nextChapter,
+    completed,
     bubbleOpen,
     start: startTour,
-    restart: restartTour,
+    startChapter,
+    /** Starts Basics again, whatever was done before. */
+    restart: () => startChapter('basics'),
     skip: skipTour,
     finish: finishTour,
+    finishAndNext,
     close: () => {
       bubbleOpen.value = false
     },

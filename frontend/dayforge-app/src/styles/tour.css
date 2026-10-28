@@ -1,11 +1,12 @@
 /* Getting-started tour: the bubble reuses the coach mark look, and the pill
    sits in the sidebar footer. Theme tokens only, so every palette works. */
 
-/* No arrow and no anchor: the bubble sits centred near the bottom edge. The
+/* No arrow and no anchor: the bubble sits centred near the bottom edge, high
+   enough to clear the toasts that sit there (timer and undo notices). The
    bubble's own animation sets a transform, so the centring uses margins. */
 .coach-mark.is-docked {
   top: auto;
-  bottom: 16px;
+  bottom: 128px;
   left: 50%;
   margin-left: calc(-1 * min(140px, (100vw - 24px) / 2));
 }

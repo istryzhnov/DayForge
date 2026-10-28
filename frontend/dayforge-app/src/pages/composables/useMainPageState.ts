@@ -290,10 +290,22 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       tourEvent('task-added', {
         goalId: created.goalId,
         templateId: created.id,
+        scheduled: schedule !== undefined,
       })
+      if (repeats(schedule)) tourEvent('task-repeats')
     }
     announceScheduled(schedule)
     noteManualTaskAdded()
+  }
+
+  /** A schedule that repeats makes the task a habit. */
+  function repeats(schedule: TaskSchedule | null | undefined): boolean {
+    return (
+      schedule !== undefined &&
+      schedule !== null &&
+      schedule.recurrence !== undefined &&
+      schedule.recurrence.type !== RECURRENCE_TYPE.NONE
+    )
   }
 
   function handleQuickAdd(result: QuickAddResult) {
@@ -320,7 +332,9 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       tourEvent('task-added', {
         goalId: created.goalId,
         templateId: created.id,
+        scheduled: schedule !== undefined,
       })
+      tourEvent('quick-add-used', { dated: Boolean(result.date) })
     }
     announceScheduled(schedule)
   }
@@ -501,6 +515,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   // recording against it, so it is closed out first.
   function handleScheduleTask(templateId: ID, schedule: TaskSchedule | null) {
     goalSpace.updateTaskSchedule(templateId, schedule)
+    if (repeats(schedule)) tourEvent('task-repeats')
   }
 
   function handleDeleteTask(templateId: ID) {
@@ -591,6 +606,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     startTime: string
     endTime: string
   }) {
+    tourEvent('block-created')
     goalSpace.addTask(
       goalSpace.activeGoalId.value ?? undefined,
       payload.title,

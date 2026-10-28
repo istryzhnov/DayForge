@@ -4,7 +4,8 @@
 
 .coach-mark {
   position: fixed;
-  z-index: 1090;
+  /* Above the phone drawer (1150), which tour steps point into; below dialogs. */
+  z-index: 1160;
   box-sizing: border-box;
   width: min(280px, calc(100vw - 24px));
   display: grid;

@@ -699,6 +699,13 @@ body.is-dragging-task {
   color: var(--muted);
 }
 
+/* Shown under the end time when the block runs into the next day. */
+.task-schedule__next-day {
+  display: block;
+  font-size: calc(11px * var(--text-scale));
+  color: var(--muted);
+}
+
 .task-schedule__error {
   margin: 0;
   font-size: calc(12px * var(--text-scale));
@@ -1807,4 +1814,12 @@ body.is-dragging-task {
 /* In the All view a project's colour tints the row's check icon only. */
 .task-row.is-project-tinted .task-dot-check__icon {
   color: var(--project-color);
+}
+
+/* On a phone the toast spans the screen between its 12px margins; the
+   desktop width would otherwise pin it to the left edge. */
+@media (max-width: 720px) {
+  .undo-toast {
+    width: auto;
+  }
 }

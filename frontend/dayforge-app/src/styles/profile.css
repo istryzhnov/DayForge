@@ -204,3 +204,13 @@
   display: grid;
   gap: 8px;
 }
+
+/* Content scrolls under the pinned footer on a short screen, so the footer
+   needs a solid face and an edge; see-through, a button under it read as if
+   it sat on top of "Sign in". */
+@media (min-width: 961px) {
+  .sidebar-footer {
+    background: var(--panel);
+    border-top: 1px solid var(--line);
+  }
+}

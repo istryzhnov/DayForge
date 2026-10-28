@@ -24,6 +24,7 @@ import { usePlanVsActual } from '../composables/usePlanVsActual'
 import { mergeProjectProgress } from '../composables/projectProgress'
 import { sanitizeMonthlyIncome } from '../composables/incomeGoal'
 import { ANALYTICS_TAB, useAnalyticsTab } from '../composables/useAnalyticsTab'
+import { tourEvent } from '../../onboarding/composables/useTour'
 import type { ProjectBilling } from '../composables/projectBilling'
 import {
   ALL_CLIENTS_FILTER_ID,
@@ -126,6 +127,12 @@ const topTasks = computed(() =>
 
 const tab = useAnalyticsTab()
 
+/** A tab the user picks; the tour hears about it here, not from a watcher. */
+function chooseTab(next: (typeof ANALYTICS_TAB)[keyof typeof ANALYTICS_TAB]) {
+  tab.value = next
+  tourEvent('analytics-tab', { tab: next })
+}
+
 const TAB_CHOICES = [
   { id: ANALYTICS_TAB.TIME, labelKey: 'analytics.tabTime' },
   { id: ANALYTICS_TAB.MONEY, labelKey: 'analytics.tabMoney' },
@@ -200,6 +207,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         class="ui-icon-btn ui-icon-btn--outlined"
         type="button"
         :aria-label="t('analytics.exportReport')"
+        data-tip-anchor="analytics-export"
         :disabled="periodEntries.length === 0"
         @click="isExportOpen = true"
       >
@@ -293,7 +301,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
         role="tab"
         :aria-selected="tab === choice.id"
         :aria-controls="`analytics-panel-${choice.id}`"
-        @click="tab = choice.id"
+        @click="chooseTab(choice.id)"
       >
         {{ t(choice.labelKey) }}
       </button>

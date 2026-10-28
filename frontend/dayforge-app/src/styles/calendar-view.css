@@ -1175,3 +1175,25 @@
     padding: 2px 4px;
   }
 }
+
+/* Grid items grow to their content by default, so a long project name
+   stretched its row past the panel and the name never got its "…". */
+.calendar-filter__list {
+  overflow-x: hidden;
+}
+
+.calendar-filter__list > li,
+.calendar-filter__row {
+  min-width: 0;
+}
+
+/* Beside the grid the unscheduled list stays in view while the day scrolls,
+   so a task can be dragged onto any hour. A long list scrolls on its own. */
+@media (min-width: 721px) {
+  .calendar-view__unscheduled {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+  }
+}

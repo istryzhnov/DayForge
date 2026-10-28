@@ -222,6 +222,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       <button
         class="sidebar-shortcuts-trigger"
         type="button"
+        data-tip-anchor="help-button"
         :aria-label="t('sidebar.helpAndKeyboardShortcuts')"
         :title="
           keyboardShortcuts
@@ -311,6 +312,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
+      data-tip-anchor="nav-calendar"
       :title="shortcutTitle(t('sidebar.calendar'), 'G then C')"
       @click="chooseView('calendar')"
     >
@@ -324,6 +326,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'timer' }"
+      data-tip-anchor="nav-timer"
       :title="shortcutTitle(t('sidebar.timer'), 'G then T')"
       @click="chooseView('timer')"
     >
@@ -351,6 +354,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <button
       class="nav-goal-btn"
       :class="{ active: activeView === 'planned' }"
+      data-tip-anchor="nav-planned"
       @click="chooseView('planned')"
     >
       <span class="nav-goal-btn__main">

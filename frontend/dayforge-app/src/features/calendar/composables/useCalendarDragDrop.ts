@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import type { GesturePoint } from '../../../composables/usePressGesture'
+import { tourEvent } from '../../onboarding/composables/useTour'
 import {
   clampMinutes,
   durationMinutes,
@@ -9,6 +10,7 @@ import {
   minutesFromDayStart,
   timeFromMinutes,
 } from './useCalendarGrid'
+import { MINUTES_PER_DAY } from '../../../composables/goalSpace/overnight'
 
 export type SchedulePayload = {
   taskId: ID
@@ -43,13 +45,16 @@ export function useCalendarDragDrop(options: DragDropOptions) {
 
   function scheduleAt(task: DailyTask, startMin: number) {
     const duration = durationMinutes(task.startTime, task.endTime)
-    const endMin = clampMinutes(startMin + duration)
+    // A block dragged past midnight wraps, so its end lands on the next day.
+    const endMin = (startMin + duration) % MINUTES_PER_DAY
 
     options.onSchedule({
       taskId: task.id,
       startTime: timeFromMinutes(startMin),
       endTime: timeFromMinutes(endMin),
     })
+    // A task with no time yet came from Unscheduled; a block being moved already had one.
+    tourEvent('task-timed', { taskId: task.id, fromList: !task.startTime })
   }
 
   // --- desktop: native HTML5 drag and drop -------------------------------

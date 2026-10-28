@@ -4,6 +4,7 @@ import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimer } from '../../../composables/useTimer'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
+import { tourEvent } from '../../onboarding/composables/useTour'
 import {
   formatDuration,
   formatShortDuration,
@@ -71,6 +72,7 @@ export function useTimerView() {
   function selectMode(next: TimerMode) {
     if (next === mode.value) return
     timer.setMode(next)
+    tourEvent('timer-mode-changed', { mode: next })
   }
 
   /** An idle countdown starts on the length picked here, not the stored one. */

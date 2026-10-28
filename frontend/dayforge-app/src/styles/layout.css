@@ -239,3 +239,17 @@ body {
     max-width: 100%;
   }
 }
+
+/* On a wide screen the sidebar stays put while the task list scrolls: it is
+   as tall as the window and scrolls on its own if it is longer. */
+@media (min-width: 961px) {
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}

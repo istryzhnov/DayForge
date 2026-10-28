@@ -8,6 +8,7 @@ import { readJson, writeJson } from '../../../lib/storage'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useFormat } from '../../../composables/useFormat'
 import { panelDateLabel } from '../../../composables/panelDateLabel'
+import { isOvernight } from '../../../composables/goalSpace/overnight'
 import type { UpcomingDay, UpcomingItem } from '../composables/useUpcomingTasks'
 
 const props = defineProps<{
@@ -50,7 +51,10 @@ function dayLabel(date: ISODate) {
 function timeRange(item: UpcomingItem) {
   if (!item.startTime) return ''
   if (!item.endTime) return formatTime(item.startTime)
-  return `${formatTime(item.startTime)} – ${formatTime(item.endTime)}`
+  const range = `${formatTime(item.startTime)} – ${formatTime(item.endTime)}`
+  return isOvernight(item.startTime, item.endTime)
+    ? `${range} ${t('tasks.nextDay')}`
+    : range
 }
 </script>
 

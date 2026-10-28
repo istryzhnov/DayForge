@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../../../components/AppIcon.vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ISODate } from '../../../entities/types'
@@ -146,6 +147,15 @@ watch(activeIndex, () => {
             :aria-activedescendant="activeDescendant"
             @keydown="onKeydown"
           />
+          <!-- A phone has no Esc key, and the card fills the screen there. -->
+          <button
+            class="ui-icon-btn search-palette__close"
+            type="button"
+            :aria-label="t('common.close')"
+            @click="emit('close')"
+          >
+            <AppIcon name="close" :size="16" />
+          </button>
         </div>
 
         <div

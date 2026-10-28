@@ -10,7 +10,10 @@ import {
 } from '../../../composables/useSettings'
 import { useHotkeyOverlay } from '../../../composables/useHotkeys'
 import { useTips } from '../../onboarding/composables/useTips'
-import { useTour } from '../../onboarding/composables/useTour'
+import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
+import TourChapterList from '../../onboarding/components/TourChapterList.vue'
+import { TOUCH_LAYOUT_QUERY } from '../../onboarding/composables/touchLayout'
+import { useMediaQuery } from '../../../composables/useMediaQuery'
 import { sortGoals } from '../../../composables/goalSpace/goalOrder'
 import {
   PRIORITY_OPTIONS,
@@ -31,7 +34,8 @@ const props = defineProps<{
 const { settings, update, resetSection } = useSettings()
 const { openShortcuts } = useHotkeyOverlay()
 const { tipsOff, turnOn, turnOff, resetTips } = useTips()
-const { restart: restartTour } = useTour()
+/** Touch or a phone-width screen: keyboard-only controls are left out. */
+const isTouch = useMediaQuery(TOUCH_LAYOUT_QUERY)
 
 const startProjects = computed(() =>
   sortGoals(props.goals.filter((goal) => goal.status !== GOAL_STATUS.ARCHIVED)),
@@ -148,25 +152,28 @@ function startOnView(view: StartView) {
       </span>
     </label>
 
-    <label class="settings-toggle ui-card">
-      <input
-        type="checkbox"
-        :checked="settings.behavior.keyboardShortcuts"
-        @change="
-          update('behavior', { keyboardShortcuts: checkedValue($event) })
-        "
-      />
-      <span>
-        <strong>{{ t('settings.keyboardShortcuts') }}</strong>
-        <em>{{ t('settings.keyboardShortcutsHint') }}</em>
-      </span>
-    </label>
+    <!-- Keyboard shortcuts have no meaning on a touch screen, so the switch and its list are desktop only. -->
+    <template v-if="!isTouch">
+      <label class="settings-toggle ui-card">
+        <input
+          type="checkbox"
+          :checked="settings.behavior.keyboardShortcuts"
+          @change="
+            update('behavior', { keyboardShortcuts: checkedValue($event) })
+          "
+        />
+        <span>
+          <strong>{{ t('settings.keyboardShortcuts') }}</strong>
+          <em>{{ t('settings.keyboardShortcutsHint') }}</em>
+        </span>
+      </label>
 
-    <button class="btn btn-ghost" type="button" @click="openShortcuts">
-      {{ t('settings.showShortcuts') }}
-    </button>
+      <button class="btn btn-ghost" type="button" @click="openShortcuts">
+        {{ t('settings.showShortcuts') }}
+      </button>
+    </template>
 
-    <label class="settings-toggle ui-card">
+    <label v-if="COACH_TIPS_ENABLED" class="settings-toggle ui-card">
       <input
         type="checkbox"
         :checked="!tipsOff"
@@ -178,13 +185,19 @@ function startOnView(view: StartView) {
       </span>
     </label>
 
-    <button class="btn btn-ghost" type="button" @click="resetTips">
+    <button
+      v-if="COACH_TIPS_ENABLED"
+      class="btn btn-ghost"
+      type="button"
+      @click="resetTips"
+    >
       {{ t('settings.showTipsAgain') }}
     </button>
 
-    <button class="btn btn-ghost" type="button" @click="restartTour">
-      {{ t('settings.takeTourAgain') }}
-    </button>
+    <div class="settings-tour ui-card">
+      <p class="settings-tour__caption">{{ t('settings.takeTourAgain') }}</p>
+      <TourChapterList />
+    </div>
 
     <label class="settings-slider ui-card">
       <span>

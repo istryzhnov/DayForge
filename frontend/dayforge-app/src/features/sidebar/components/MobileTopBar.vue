@@ -86,6 +86,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
         type="button"
         :aria-label="t('sidebar.searchProjectsAndTasks')"
         :title="t('sidebar.search')"
+        data-tip-anchor="top-search"
         @click="openSearch"
       >
         <svg
@@ -109,6 +110,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
         type="button"
         :aria-label="t('sidebar.quickAddTask')"
         :title="t('sidebar.quickAddTask')"
+        data-tip-anchor="top-quick-add"
         @click="openQuickAdd"
       >
         <AppIcon name="plus" :size="20" />

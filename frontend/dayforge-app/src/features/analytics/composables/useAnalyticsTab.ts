@@ -29,9 +29,16 @@ function storeTab(tab: AnalyticsTab) {
   }
 }
 
+// One ref for the whole app, so the tour can open a tab the screen is not showing.
+const tab = ref<AnalyticsTab>(readStoredTab())
+watch(tab, storeTab)
+
 /** The tab this viewer last opened, kept in this browser only. */
 export function useAnalyticsTab() {
-  const tab = ref<AnalyticsTab>(readStoredTab())
-  watch(tab, storeTab)
   return tab
+}
+
+/** Switches the tab without the user clicking it; the tour uses this to show a tab. */
+export function setAnalyticsTab(next: AnalyticsTab) {
+  tab.value = next
 }

@@ -137,7 +137,9 @@ defineExpose({ commitAndClose })
         @blur="commit"
       ></textarea>
 
-      <p class="notes-pop__hint">{{ t('tasks.notesHint') }}</p>
+      <p class="notes-pop__hint">
+        {{ isSheet ? t('tasks.notesHintTouch') : t('tasks.notesHint') }}
+      </p>
     </div>
   </Teleport>
 </template>

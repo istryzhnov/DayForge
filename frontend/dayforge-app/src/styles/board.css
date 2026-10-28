@@ -365,3 +365,31 @@
   display: flex;
   gap: 8px;
 }
+
+/* A narrow column (a tablet, a small window) cannot fit "Move to" and the
+   select side by side, so the select drops under the label and never pokes
+   out of the card. */
+.board-card__move {
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.board-card__move select {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* The chevron follows the select, which is always the bottom line. */
+.board-card__move::after {
+  top: auto;
+  bottom: 11px;
+  margin-top: 0;
+}
+
+@media (max-width: 600px), (pointer: coarse) {
+  .board-card__move::after {
+    bottom: 15px;
+  }
+}

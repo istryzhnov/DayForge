@@ -28,6 +28,19 @@ const emit = defineEmits<{
 
 const { groups: taskGroups } = useTaskPicker(() => props.taskOptions)
 
+const OPTION_MAX_CHARS = 48
+
+/**
+ * A native list is as wide as its longest line, so one very long project or
+ * task name would stretch it far past the field. Names are data, so the list
+ * shows a shortened one; the full text stays in the option's tooltip.
+ */
+function shortLabel(text: string): string {
+  return text.length > OPTION_MAX_CHARS
+    ? `${text.slice(0, OPTION_MAX_CHARS - 1)}…`
+    : text
+}
+
 const {
   timer,
   dialLabel,
@@ -175,14 +188,15 @@ function closeEditor() {
             <optgroup
               v-for="group in taskGroups"
               :key="group.label"
-              :label="group.label"
+              :label="shortLabel(group.label)"
             >
               <option
                 v-for="option in group.tasks"
                 :key="option.id"
                 :value="option.id"
+                :title="option.title"
               >
-                {{ option.title }}
+                {{ shortLabel(option.title) }}
               </option>
             </optgroup>
           </select>
@@ -224,6 +238,7 @@ function closeEditor() {
       <p v-if="hint" class="timer-view__hint ui-oneline">{{ hint }}</p>
 
       <TimerControls
+        data-tip-anchor="timer-controls"
         :primary-label="primaryLabel"
         :primary-icon="timer.status === TIMER_STATUS.RUNNING ? 'pause' : 'play'"
         :can-stop="canStop"
@@ -255,7 +270,7 @@ function closeEditor() {
       </button>
     </header>
 
-    <TimeEntryList @edit="openEditor" />
+    <TimeEntryList data-tip-anchor="timer-history" @edit="openEditor" />
 
     <TimeEntryEditor
       v-if="isEditorOpen"
