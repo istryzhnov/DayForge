@@ -63,18 +63,21 @@ export function removeTombstone(
  * the next merge would read the deletion as the later word and bury it again.
  * Per-field stamps fall back to that fresh one, except group stamps this build
  * does not know: those mean a newer build wrote the row, so every group is
- * stamped with the same moment and the restore wins each of them.
+ * stamped with the same moment and the restore wins each of them. `groups` is
+ * the table's own group names; day rows are the default.
  */
-export function restampForRestore(row: SyncedRow): SyncedRow {
+export function restampForRestore(
+  row: SyncedRow,
+  groups: readonly string[] = Object.values(DAILY_FIELD_GROUPS),
+): SyncedRow {
   const now = new Date().toISOString()
   const restored: SyncedRow = { ...row, updatedAt: now }
   delete restored.deletedAt
 
-  const known = Object.values(DAILY_FIELD_GROUPS) as string[]
   const stamps = row.fieldsAt
   const unknown =
     typeof stamps === 'object' && stamps !== null
-      ? Object.keys(stamps).filter((group) => !known.includes(group))
+      ? Object.keys(stamps).filter((group) => !groups.includes(group))
       : []
 
   if (unknown.length === 0) {
@@ -83,7 +86,7 @@ export function restampForRestore(row: SyncedRow): SyncedRow {
   }
 
   const fresh: Record<string, string> = {}
-  known.forEach((group) => {
+  groups.forEach((group) => {
     fresh[group] = now
   })
   unknown.forEach((group) => {

@@ -46,12 +46,11 @@ export function useEventDetailsForm(
     )
   })
 
-  // An end earlier than the start means the next day; only equal times fail.
   const isTimeValid = computed(
     () =>
       Boolean(startTime.value) &&
       Boolean(endTime.value) &&
-      startTime.value !== endTime.value,
+      startTime.value < endTime.value,
   )
 
   watch(

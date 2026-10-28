@@ -4,7 +4,13 @@ import type { GoalStatus, ID } from '../entities/types'
 import { migrateGoals } from './goalSpace/goalMigration'
 import { normalizeNotes } from './goalSpace/notes'
 import { GOALS_STORAGE_KEY } from './goalSpace/storage'
-import { readJson, writeJson } from '../lib/storage'
+import {
+  onExternalWrite,
+  parseStored,
+  readJson,
+  writeJsonIfChanged,
+} from '../lib/storage'
+import { stableStringify } from '../sync/diff'
 import { START_VIEW, useSettings } from './useSettings'
 import { useTombstones } from './useTombstones'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
@@ -26,7 +32,7 @@ export function useGoals() {
         goals: goals.value,
         activeGoalId: activeGoalId.value,
       }
-      writeJson(GOALS_STORAGE_KEY, payload)
+      writeJsonIfChanged(GOALS_STORAGE_KEY, payload)
     },
     { deep: true },
   )
@@ -189,6 +195,30 @@ export function useGoals() {
     migrateGoals(goals.value)
     selectInitialGoal()
   }
+
+  /**
+   * Takes the projects another tab saved. Only the list is read: the stored
+   * data was migrated when that tab loaded it, and migrating again is not
+   * needed. The project open here stays open unless it was removed elsewhere.
+   */
+  function reloadFromStorage(raw: string) {
+    const parsed = parseStored(raw)
+    if (parsed === undefined || parsed === null) return
+    const stored = parsed as GoalsStoragePayload | Goal[]
+    const list = Array.isArray(stored) ? stored : (stored.goals ?? [])
+
+    const next = liveOnly(list)
+    if (stableStringify(next) === stableStringify(goals.value)) return
+    goals.value = next
+    if (!goals.value.some((goal) => goal.id === activeGoalId.value)) {
+      selectInitialGoal()
+    }
+  }
+
+  // The stored payload also names each tab's open project, so the two tabs
+  // differ on it. A reload that finds the same projects changes nothing, which
+  // is what stops the tabs from saving back and forth.
+  onExternalWrite(GOALS_STORAGE_KEY, reloadFromStorage)
 
   /**
    * Puts the given projects first, in that order, and numbers them. Only the

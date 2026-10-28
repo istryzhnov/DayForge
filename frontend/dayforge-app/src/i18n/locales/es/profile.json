@@ -24,6 +24,7 @@
   "signOut": "Cerrar sesión",
   "signingOut": "Cerrando sesión…",
   "signOutNote": "Al cerrar sesión, primero se envían los cambios pendientes y luego se eliminan de este navegador los proyectos, tareas y tiempo de esta cuenta. Siguen en el servidor y vuelven al iniciar sesión de nuevo.",
+  "signOutOffline": "Estás sin conexión. Este navegador cerrará sesión y se borrarán sus datos; la sesión del servidor caducará por sí sola.",
   "unsyncedChanges": "{count} cambio aún no se ha sincronizado. Cerrar sesión ahora lo borrará de este navegador. | {count} cambios aún no se han sincronizado. Cerrar sesión ahora los borrará de este navegador.",
   "signOutAnyway": "Cerrar sesión de todos modos",
   "deleteAccount": "Eliminar cuenta",

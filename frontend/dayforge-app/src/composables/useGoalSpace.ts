@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useGoals } from './useGoals'
 import {
   type CreateTaskInput,
@@ -25,6 +25,7 @@ import { useUndoToast } from './useUndoToast'
 /** How long a freshly created task keeps its "just added" highlight. */
 const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
+import { dayToShowAfterChange, useToday } from './goalSpace/today'
 import { isRepeating } from './goalSpace/recurrence'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
@@ -33,8 +34,14 @@ import {
   orderFromStoredPosition,
   planTaskReorder,
 } from './goalSpace/taskOrder'
-import { rowsShownOn } from './goalSpace/overnight'
-import { bindStorage, readJson, writeJson } from '../lib/storage'
+import {
+  bindStorage,
+  onExternalWrite,
+  parseStored,
+  readJson,
+  writeJson,
+} from '../lib/storage'
+import { stableStringify } from '../sync/diff'
 import {
   ensureDailyTaskForTemplate,
   ensureTodaySnapshot,
@@ -90,7 +97,16 @@ export function useGoalSpace() {
 
   const taskTemplates = ref<TaskTemplate[]>([])
   const dailyTasks = ref<DailyTask[]>([])
-  const currentDate = ref<ISODate>(getTodayISODate())
+  const today = useToday()
+  const currentDate = ref<ISODate>(today.value)
+
+  // When midnight passes, a view on the old today moves on, so new tasks are
+  // filed under today and today's repeats get created. Going through goToDate
+  // runs the same snapshot step as any other day change.
+  watch(today, (next, previous) => {
+    const shown = dayToShowAfterChange(currentDate.value, previous, next)
+    if (shown !== currentDate.value) goToDate(shown)
+  })
 
   const lastCreatedTemplateId = ref<ID | null>(null)
   let highlightTimerId: number | undefined
@@ -135,6 +151,30 @@ export function useGoalSpace() {
     )
   }
 
+  /**
+   * Takes the templates or day rows another tab saved, so this tab does not
+   * save its older copy over them. Only the rows are read: the stored copy was
+   * migrated when that tab loaded it. Identical content changes nothing, which
+   * is what keeps two tabs from saving back and forth.
+   */
+  function reloadTasksFromStorage(raw: string) {
+    const parsed = parseStored(raw)
+    if (!Array.isArray(parsed)) return
+    const next = keepLive(SYNC_TABLE.TASK_TEMPLATES, parsed as TaskTemplate[])
+    if (stableStringify(next) !== stableStringify(taskTemplates.value)) {
+      taskTemplates.value = next
+    }
+  }
+
+  function reloadDailyTasksFromStorage(raw: string) {
+    const parsed = parseStored(raw)
+    if (!Array.isArray(parsed)) return
+    const next = keepLive(SYNC_TABLE.DAILY_TASKS, parsed as DailyTask[])
+    if (stableStringify(next) !== stableStringify(dailyTasks.value)) {
+      dailyTasks.value = next
+    }
+  }
+
   function initializeStorage() {
     loadFromStorage()
     loadFromStorageTasks()
@@ -145,14 +185,18 @@ export function useGoalSpace() {
       currentDate.value,
       pausedGoalIds.value,
     )
+
+    onExternalWrite(TASKS_STORAGE_KEY, reloadTasksFromStorage)
+    onExternalWrite(DAILY_TASKS_STORAGE_KEY, reloadDailyTasksFromStorage)
   }
 
   bindStorage(taskTemplates, TASKS_STORAGE_KEY)
   bindStorage(dailyTasks, DAILY_TASKS_STORAGE_KEY)
 
-  // A task that runs past midnight is listed on the day after too, as one row.
   const tasksForActiveGoal = computed(() => {
-    const todayTasks = rowsShownOn(dailyTasks.value, currentDate.value)
+    const todayTasks = dailyTasks.value.filter(
+      (task) => task.date === currentDate.value,
+    )
 
     return activeGoalId.value
       ? todayTasks.filter((task) => task.goalId === activeGoalId.value)

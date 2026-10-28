@@ -12,7 +12,8 @@ export const SYNCED_SECTIONS = [
 
 export type SyncedSection = (typeof SYNCED_SECTIONS)[number]
 
-const NOT_SETTINGS_KEYS = new Set(['id', 'updatedAt', 'createdAt'])
+// The stamps are sync's own, so they are never kept as held settings.
+const NOT_SETTINGS_KEYS = new Set(['id', 'updatedAt', 'createdAt', 'fieldsAt'])
 
 export function isPlainObject(
   value: unknown,

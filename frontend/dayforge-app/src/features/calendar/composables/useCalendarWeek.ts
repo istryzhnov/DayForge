@@ -12,11 +12,7 @@ import {
   scheduledMinutesOf,
   type DayEvent,
 } from './useCalendarOccurrences'
-import {
-  defaultDurationMinutes,
-  pxPerMinute,
-  minutesFromDayStart,
-} from './useCalendarGrid'
+import { pxPerMinute, minutesFromDayStart } from './useCalendarGrid'
 import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
 import { useSettings } from '../../../composables/useSettings'
 import { useCalendarFilter } from './useCalendarFilter'
@@ -120,7 +116,7 @@ export function useCalendarWeek(options: WeekOptions) {
         unscheduledCount: events.length - scheduled.length,
         doneCount: events.filter((event) => event.isDone).length,
         totalCount: events.length,
-        scheduledMinutes: scheduledMinutesOf(events, defaultDurationMinutes()),
+        scheduledMinutes: scheduledMinutesOf(events),
       }
     })
   })

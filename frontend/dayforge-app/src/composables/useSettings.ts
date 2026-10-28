@@ -3,7 +3,12 @@ import type { ID, Priority, TimeOfDay } from '../entities/types'
 import type { TimerSettings } from '../entities/TimerEntity'
 import type { BillingSettings } from '../entities/BillingEntity'
 import { PRIORITY } from '../entities/constants'
-import { readJson, writeJson } from '../lib/storage'
+import {
+  onExternalWrite,
+  parseStored,
+  readJson,
+  writeJsonIfChanged,
+} from '../lib/storage'
 import {
   IDLE_RETURN_MINUTE_OPTIONS,
   LONG_RUN_HOUR_OPTIONS,
@@ -543,20 +548,27 @@ const KNOWN_SECTIONS: ReadonlyArray<string> = [
 /** Sections a newer version stored, kept so this one does not erase them. */
 let unknownSections: Record<string, unknown> = {}
 
+/**
+ * Applies a stored or imported set of settings. Every section it leaves out
+ * takes its default, and sections a newer build wrote are kept, so neither a
+ * load nor an import can erase them.
+ */
+function applyStoredSettings(raw: unknown) {
+  assign(sanitize(raw))
+  unknownSections = Object.fromEntries(
+    Object.entries(asSection<Record<string, unknown>>(raw)).filter(
+      ([key]) => !KNOWN_SECTIONS.includes(key),
+    ),
+  )
+}
+
 function initialize() {
   if (initialized) return
   initialized = true
 
   try {
     const stored = readJson<unknown>(SETTINGS_STORAGE_KEY, null)
-    if (stored) {
-      assign(sanitize(stored))
-      unknownSections = Object.fromEntries(
-        Object.entries(asSection<Record<string, unknown>>(stored)).filter(
-          ([key]) => !KNOWN_SECTIONS.includes(key),
-        ),
-      )
-    }
+    if (stored) applyStoredSettings(stored)
   } catch {
     // Malformed settings fall back to the defaults already in place.
   }
@@ -565,10 +577,20 @@ function initialize() {
     settings,
     () => {
       applyToDocument()
-      writeJson(SETTINGS_STORAGE_KEY, { ...unknownSections, ...settings })
+      writeJsonIfChanged(SETTINGS_STORAGE_KEY, {
+        ...unknownSections,
+        ...settings,
+      })
     },
     { deep: true, immediate: true },
   )
+
+  // A setting changed in another tab is taken here too, so this tab does not
+  // save the old value over it.
+  onExternalWrite(SETTINGS_STORAGE_KEY, (raw) => {
+    const parsed = parseStored(raw)
+    if (parsed !== undefined) applyStoredSettings(parsed)
+  })
 }
 
 /** Minutes since midnight, for comparing a `HH:mm` against the clock. */
@@ -609,5 +631,26 @@ export function useSettings() {
     assign(clone(DEFAULT_SETTINGS))
   }
 
-  return { settings, update, resetSection, resetAll }
+  /**
+   * Replaces every setting with a stored or imported set, through the same
+   * store the screens edit, so it takes effect at once and the sync sees an
+   * ordinary edit. Sections a newer build wrote are kept, as they are on load.
+   */
+  function replaceSettings(raw: unknown) {
+    applyStoredSettings(raw)
+  }
+
+  /** The settings as they are persisted, unknown sections included, as a copy. */
+  function exportSettings(): unknown {
+    return JSON.parse(JSON.stringify({ ...unknownSections, ...settings }))
+  }
+
+  return {
+    settings,
+    update,
+    resetSection,
+    resetAll,
+    replaceSettings,
+    exportSettings,
+  }
 }

@@ -9,12 +9,25 @@ export type BackupFileMessage = {
 
 type BackupFileActions = {
   onImport: (payload: unknown) => void
+  onRestoreSnapshot: (payload: unknown) => void
+}
+
+/**
+ * A replacement of all the data, held until the user confirms it. Nothing is
+ * replaced by choosing a file or a snapshot alone.
+ */
+export type PendingReplace = {
+  kind: 'import' | 'snapshot'
+  payload: unknown
+  /** Shown once the replacement has happened. */
+  notice: BackupFileMessage | null
 }
 
 export function useBackupFile(actions: BackupFileActions) {
   // Bound by name to `ref="fileInput"` in the template.
   const fileInput = useTemplateRef<HTMLInputElement>('fileInput')
   const message = ref<BackupFileMessage | null>(null)
+  const pending = ref<PendingReplace | null>(null)
 
   function clearMessage() {
     message.value = null
@@ -22,6 +35,7 @@ export function useBackupFile(actions: BackupFileActions) {
 
   function pickFile() {
     clearMessage()
+    pending.value = null
     fileInput.value?.click()
   }
 
@@ -52,20 +66,53 @@ export function useBackupFile(actions: BackupFileActions) {
       return
     }
 
-    actions.onImport(parsed)
-    // A notice is written once, in the language in force at the time of import.
-    message.value = backup.newerVersion
-      ? {
-          text: i18n.global.t('settings.backupImportedNewer', {
-            name: file.name,
-          }),
-          tone: 'warning',
-        }
-      : {
-          text: i18n.global.t('settings.backupImported', { name: file.name }),
-          tone: 'ok',
-        }
+    // The notice is written now, in the language in force at the time of choosing.
+    pending.value = {
+      kind: 'import',
+      payload: parsed,
+      notice: backup.newerVersion
+        ? {
+            text: i18n.global.t('settings.backupImportedNewer', {
+              name: file.name,
+            }),
+            tone: 'warning',
+          }
+        : {
+            text: i18n.global.t('settings.backupImported', {
+              name: file.name,
+            }),
+            tone: 'ok',
+          },
+    }
   }
 
-  return { message, clearMessage, pickFile, onFileChosen }
+  function askRestoreSnapshot(payload: unknown) {
+    clearMessage()
+    pending.value = { kind: 'snapshot', payload, notice: null }
+  }
+
+  function confirmReplace() {
+    const next = pending.value
+    pending.value = null
+    if (!next) return
+
+    if (next.kind === 'import') actions.onImport(next.payload)
+    else actions.onRestoreSnapshot(next.payload)
+    message.value = next.notice
+  }
+
+  function cancelReplace() {
+    pending.value = null
+  }
+
+  return {
+    message,
+    clearMessage,
+    pickFile,
+    onFileChosen,
+    pending,
+    askRestoreSnapshot,
+    confirmReplace,
+    cancelReplace,
+  }
 }

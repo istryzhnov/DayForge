@@ -24,6 +24,7 @@
   "signOut": "退出登录",
   "signingOut": "正在退出…",
   "signOutNote": "退出时会先发送尚未发送的更改，然后从此浏览器中移除此账户的项目、任务和时间。这些数据仍保存在服务器上，再次登录时会恢复。",
+  "signOutOffline": "当前处于离线状态。此浏览器将退出登录并清除其数据；服务器上的会话会自行过期。",
   "unsyncedChanges": "{count} 项更改尚未同步。现在退出会将其从此浏览器中删除。",
   "signOutAnyway": "仍然退出",
   "deleteAccount": "删除账户",

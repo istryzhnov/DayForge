@@ -10,6 +10,20 @@ import { daysBetweenISODates, weekdayOfISODate } from './date'
 export type ScheduleKind =
   (typeof TASK_KIND_BY_SCHEDULE)[keyof typeof TASK_KIND_BY_SCHEDULE]
 
+/**
+ * Whether `date` is the day a month-based rule asks for. A rule day that the
+ * month does not have (the 31st in April, the 29th in February of a common
+ * year) falls on that month's last day, so the rule still fires every month
+ * instead of being skipped in the short ones.
+ */
+export function fallsOnRuleDay(ruleDay: number, date: ISODate): boolean {
+  const [year, month, day] = date.split('-').map(Number)
+  if (day === ruleDay) return true
+  // Day 0 of the next month is the last day of this one.
+  const lastDay = new Date(year, month, 0).getDate()
+  return day === lastDay && ruleDay > lastDay
+}
+
 export function matchesRecurrence(
   rule: RecurrenceRule,
   date: ISODate,
@@ -35,12 +49,16 @@ export function matchesRecurrence(
     case RECURRENCE_TYPE.MONTHLY: {
       const daysOfMonth = rule.daysOfMonth ?? []
       if (!daysOfMonth.length) return false
-      return daysOfMonth.includes(Number(date.split('-')[2]))
+      return daysOfMonth.some((ruleDay) => fallsOnRuleDay(ruleDay, date))
     }
 
-    // Same month and day every year — birthdays and anniversaries.
+    // Same month and day every year — birthdays and anniversaries. A 29 Feb
+    // start falls on 28 Feb in a common year.
     case RECURRENCE_TYPE.YEARLY:
-      return date.slice(5) === rule.startDate.slice(5)
+      return (
+        date.slice(5, 7) === rule.startDate.slice(5, 7) &&
+        fallsOnRuleDay(Number(rule.startDate.slice(8, 10)), date)
+      )
 
     default:
       return false
@@ -65,6 +83,18 @@ export function isAnnual(template: TaskTemplate): boolean {
   return template.recurrence?.type === RECURRENCE_TYPE.YEARLY
 }
 
+/**
+ * The date a yearly rule lands on in `year`. A 29 February start falls on the
+ * last day of February in a common year, the same fallback fallsOnRuleDay uses.
+ */
+function yearlyDateIn(startDate: ISODate, year: number): ISODate {
+  const month = Number(startDate.slice(5, 7))
+  const ruleDay = Number(startDate.slice(8, 10))
+  const lastDay = new Date(year, month, 0).getDate()
+  const day = String(Math.min(ruleDay, lastDay)).padStart(2, '0')
+  return `${year}-${startDate.slice(5, 7)}-${day}` as ISODate
+}
+
 export function nextPlannedDateOf(
   template: TaskTemplate,
   today: ISODate,
@@ -75,13 +105,12 @@ export function nextPlannedDateOf(
   if (!startDate) return null
   if (!isAnnual(template)) return startDate
 
-  const monthDay = startDate.slice(5)
-  const thisYear = today.slice(0, 4)
-  const dueThisYear = `${thisYear}-${monthDay}` as ISODate
+  const thisYear = Number(today.slice(0, 4))
+  const dueThisYear = yearlyDateIn(startDate, thisYear)
 
   return dueThisYear >= today
     ? dueThisYear
-    : (`${Number(thisYear) + 1}-${monthDay}` as ISODate)
+    : yearlyDateIn(startDate, thisYear + 1)
 }
 
 export function occursOn(template: TaskTemplate, date: ISODate): boolean {

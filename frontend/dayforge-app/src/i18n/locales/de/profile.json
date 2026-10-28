@@ -24,6 +24,7 @@
   "signOut": "Abmelden",
   "signingOut": "Abmeldung läuft…",
   "signOutNote": "Beim Abmelden werden zuerst nicht gesendete Änderungen übertragen. Danach werden Projekte, Aufgaben und Zeit dieses Kontos aus diesem Browser entfernt. Sie bleiben auf dem Server und kommen bei der nächsten Anmeldung zurück.",
+  "signOutOffline": "Du bist offline. Dieser Browser wird abgemeldet und seine Daten werden gelöscht; die Sitzung auf dem Server läuft von selbst ab.",
   "unsyncedChanges": "{count} Änderung ist noch nicht synchronisiert. Abmelden löscht sie jetzt aus diesem Browser. | {count} Änderungen sind noch nicht synchronisiert. Abmelden löscht sie jetzt aus diesem Browser.",
   "signOutAnyway": "Trotzdem abmelden",
   "deleteAccount": "Konto löschen",

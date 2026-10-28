@@ -699,13 +699,6 @@ body.is-dragging-task {
   color: var(--muted);
 }
 
-/* Shown under the end time when the block runs into the next day. */
-.task-schedule__next-day {
-  display: block;
-  font-size: calc(11px * var(--text-scale));
-  color: var(--muted);
-}
-
 .task-schedule__error {
   margin: 0;
   font-size: calc(12px * var(--text-scale));

@@ -23,6 +23,23 @@ export function toLocalISODate(date: Date): ISODate {
   return `${year}-${month}-${day}` as ISODate
 }
 
+/**
+ * The local calendar date an ISO instant falls on. A UTC stamp read by its
+ * first ten characters is the date in London, not on this device, so a tick
+ * made just after local midnight would read as yesterday. `utcOffsetMinutes`
+ * is for tests that need a fixed zone; without it the device's own zone is used.
+ */
+export function instantToLocalISODate(
+  instant: string,
+  utcOffsetMinutes?: number,
+): ISODate {
+  const time = Date.parse(instant)
+  if (utcOffsetMinutes === undefined) return toLocalISODate(new Date(time))
+  return new Date(time + utcOffsetMinutes * 60_000)
+    .toISOString()
+    .slice(0, 10) as ISODate
+}
+
 export function getTodayISODate(): ISODate {
   return toLocalISODate(new Date())
 }

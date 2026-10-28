@@ -1186,6 +1186,75 @@ async function verifyTwoDevices() {
   )
 }
 
+/**
+ * A rename on one device and a recolour on the other, both made offline, must
+ * both survive. The engine stamps only the groups each edit changed.
+ */
+async function verifyFieldGroupsAcrossDevices() {
+  section('Two devices edit different fields of one project')
+
+  const server = createFakeServer()
+  const userId = 'user-groups'
+  const laptop = createDevice('laptop', server, userId)
+  laptop.goals.value = [
+    {
+      id: 'goal-field',
+      title: 'Work',
+      status: 'active',
+      accentColor: '#111111',
+      createdAt: iso(900),
+      updatedAt: iso(1000),
+    },
+  ]
+  await settle()
+  await laptop.engine.onSignedIn()
+  await laptop.engine.flush()
+
+  const phone = createDevice('phone', server, userId)
+  await settle()
+  await phone.engine.onSignedIn()
+  await phone.engine.flush()
+  await phone.engine.pull()
+  check('the phone receives the project', phone.goals.value.length === 1)
+
+  laptop.online.value = false
+  phone.online.value = false
+  laptop.goals.value[0].title = 'Client work'
+  phone.goals.value[0].accentColor = '#ff7a2f'
+  await settle()
+
+  // Each device syncs the way the app does: pull first, then push what it
+  // holds merged. A push from a device that has not pulled can overwrite a
+  // group on the server; the other device re-pushes its copy on its next sync.
+  laptop.online.value = true
+  await laptop.engine.sync()
+  phone.online.value = true
+  await phone.engine.sync()
+  await laptop.engine.sync()
+
+  const onLaptop = laptop.goals.value.find((goal) => goal.id === 'goal-field')
+  const onPhone = phone.goals.value.find((goal) => goal.id === 'goal-field')
+  check(
+    'the laptop keeps the rename and gets the recolour',
+    onLaptop?.title === 'Client work' && onLaptop?.accentColor === '#ff7a2f',
+    onLaptop,
+  )
+  check(
+    'the phone keeps the recolour and gets the rename',
+    onPhone?.title === 'Client work' && onPhone?.accentColor === '#ff7a2f',
+    onPhone,
+  )
+  const stored = serverRow(server, SYNC_TABLE.GOALS, 'goal-field')
+  check(
+    'the server holds both edits, each in its own group',
+    stored?.title === 'Client work' &&
+      stored?.accentColor === '#ff7a2f' &&
+      (stored?.fieldsAt as Record<string, string> | undefined)?.details !==
+        undefined,
+    stored,
+  )
+}
+
 function findRow(list: SyncedRow[], id: string): SyncedRow | undefined {
   return list.find((row) => row.id === id)
 }
@@ -1821,6 +1890,7 @@ async function main() {
   verifyLateArrivalAfterDelete()
   verifyCarryForward()
   await verifyTwoDevices()
+  await verifyFieldGroupsAcrossDevices()
   await verifyEverydayRoutine()
   await verifyAccountSwitch()
   await verifyActiveTimer()

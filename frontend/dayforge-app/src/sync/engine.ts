@@ -1,18 +1,21 @@
 import { computed, ref, watch, type ComputedRef } from 'vue'
-import type { ID } from '../entities/types'
+import type { ID, ISODateTime } from '../entities/types'
 import { diffRows, snapshotRows, stableStringify, type Shadow } from './diff'
 import {
   indexTombstones,
   mergeCollection,
   mergeIncoming,
+  resolveQueuedDeletes,
   type CollectionMerge,
 } from './merge'
+import { ROW_FIELD_GROUPS, stampChangedGroups } from './fieldGroups'
 import { partitionLive } from './tombstoneRules'
 import { createOutbox, type Outbox, type OutboxPersistence } from './outbox'
 import { createRingLog, type RingLog, type RingLogPersistence } from './ringLog'
 import type { SnapshotStore } from './snapshots'
 import {
   SYNC_STATE,
+  SYNC_TABLE,
   SYNC_TABLES,
   type AppliedRecord,
   type SyncState,
@@ -184,6 +187,7 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
 
     claimQueue(deps.userId() as string)
     restampUnstamped(shadow, result.changes, result.shadow)
+    stampEditedGroups(collection.table, shadow, result.changes, result.shadow)
     shadows.set(collection.table, result.shadow)
 
     result.changes.forEach((change) => {
@@ -246,6 +250,35 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     })
   }
 
+  /**
+   * Stamps only the field groups an edit actually changed, so the other
+   * device's edit to a different group still wins that group on merge. Settings
+   * stamp their own sections when they are read, so they are left alone here.
+   */
+  function stampEditedGroups(
+    table: TableName,
+    previous: Shadow,
+    changes: ReturnType<typeof diffRows>['changes'],
+    next: Shadow,
+  ) {
+    const groups =
+      table === SYNC_TABLE.SETTINGS ? undefined : ROW_FIELD_GROUPS[table]
+    if (groups === undefined) return
+
+    const stamp = new Date(deps.now()).toISOString()
+    changes.forEach((change) => {
+      const row = change.row
+      if (change.op !== 'upsert' || !row) return
+      const before = previous.get(change.rowId)
+      // No earlier copy means the row is new, and stampChangedGroups stamps all of it.
+      const prior =
+        before === undefined ? undefined : (JSON.parse(before) as SyncedRow)
+      if (stampChangedGroups(prior, row, groups, stamp)) {
+        next.set(change.rowId, stableStringify(row))
+      }
+    })
+  }
+
   function resyncShadow(collection: SyncCollection) {
     shadows.set(collection.table, snapshotRows(collection.read()))
   }
@@ -266,15 +299,19 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
     })
   }
 
-  /** Rows the queue is about to delete must not be brought back by a pull. */
-  function pendingDeletes(table: TableName): Set<ID> {
-    const ids = new Set<ID>()
+  /**
+   * Deletes still queued for this table, with the stamp each was made at. A
+   * pull compares incoming rows against it: a row no newer than the delete must
+   * not come back, but a later edit made elsewhere should.
+   */
+  function pendingDeletes(table: TableName): Map<ID, ISODateTime> {
+    const deletes = new Map<ID, ISODateTime>()
     outbox.pending.forEach((mutation) => {
       if (mutation.table === table && mutation.op === 'delete') {
-        ids.add(mutation.rowId)
+        deletes.set(mutation.rowId, mutation.updatedAt)
       }
     })
-    return ids
+    return deletes
   }
 
   function applyRows(collection: SyncCollection, rows: SyncedRow[]) {
@@ -392,10 +429,14 @@ export function createSyncEngine(deps: SyncEngineDeps): SyncEngine {
         const collection = collectionFor(table)
         if (!collection) return
 
-        const queuedDeletes = pendingDeletes(table)
-        const incoming = (result.rows[table] ?? []).filter(
-          (row) => !queuedDeletes.has(row.id),
+        const { keep, revived } = resolveQueuedDeletes(
+          result.rows[table] ?? [],
+          pendingDeletes(table),
         )
+        // The edit came after the delete, so the delete is withdrawn: sending
+        // it would remove a row the other device has just changed.
+        revived.forEach((rowId) => outbox.drop(table, rowId))
+        const incoming = keep
 
         const local = collection.read()
         const merged = full

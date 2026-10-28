@@ -30,7 +30,6 @@ const emit = defineEmits<{
   (e: 'open'): void
   (e: 'move', column: BoardColumn): void
   (e: 'save-notes', notes: string): void
-  (e: 'delete'): void
 }>()
 
 const { formatDate, formatTime } = useFormat()
@@ -254,7 +253,6 @@ function onMoveChange(event: Event) {
       :is-timer-active="isTiming"
       @add-note="addNote"
       @toggle-timer="toggleTimer"
-      @delete="emit('delete')"
       @close="menuPos = null"
     />
   </article>
