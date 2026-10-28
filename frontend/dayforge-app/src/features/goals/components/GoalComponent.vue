@@ -226,6 +226,7 @@ const projectColor = computed(() =>
       @add-task="(title, priority) => emit('add-task', title, priority)"
       @edit-task="(templateId, title) => emit('edit-task', templateId, title)"
       @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
+      @delete-task="(templateId) => deleteTask(templateId)"
       @schedule-task="
         (templateId, schedule) => emit('schedule-task', templateId, schedule)
       "
