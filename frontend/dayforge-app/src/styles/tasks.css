@@ -1723,6 +1723,17 @@ body.is-dragging-task {
   cursor: pointer;
 }
 
+/* Choices like "Stop at …" are read before they are tapped, so they keep
+   their full text and move to the next line instead of being cut short. */
+.undo-toast .ui-chip {
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 36px;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 /* Drains to show how long is left to change your mind. */
 .undo-toast__timer {
   position: absolute;

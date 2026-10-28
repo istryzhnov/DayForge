@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatHoursMinutes } from '../../../composables/timer/format'
+import { durationWords } from '../../../composables/timer/text'
 
 const { t } = useI18n()
 
@@ -29,7 +30,7 @@ const barWidth = computed(() => `${Math.min(percent.value, 100)}%`)
 
 const averageLabel = computed(() =>
   props.dayCount > 0
-    ? formatHoursMinutes(props.trackedMs / props.dayCount)
+    ? formatHoursMinutes(props.trackedMs / props.dayCount, durationWords())
     : '—',
 )
 </script>
@@ -40,10 +41,10 @@ const averageLabel = computed(() =>
       <div class="analytics-hero__head">
         <p class="analytics-hero__figure">
           <span class="analytics-hero__tracked ui-oneline">
-            {{ formatHoursMinutes(trackedMs) }}
+            {{ formatHoursMinutes(trackedMs, durationWords()) }}
           </span>
           <span v-if="hasPlan" class="analytics-hero__plan ui-oneline">
-            / {{ formatHoursMinutes(plannedMs) }}
+            / {{ formatHoursMinutes(plannedMs, durationWords()) }}
           </span>
         </p>
         <span v-if="hasPlan" class="analytics-hero__percent"

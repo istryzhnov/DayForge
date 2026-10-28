@@ -21,7 +21,7 @@ function timerStyle(durationMs: number) {
     role="status"
     aria-live="polite"
   >
-    <span class="undo-toast__label ui-oneline">{{ pending.label }}</span>
+    <span class="undo-toast__label">{{ pending.label }}</span>
     <button
       class="undo-toast__action"
       type="button"

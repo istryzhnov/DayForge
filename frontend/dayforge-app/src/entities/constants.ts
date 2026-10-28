@@ -83,9 +83,10 @@ export const DAY_WINDOW = {
 } as const
 
 // Curated swatches offered in the per-goal color picker.
+/** The first is the default for a new project: the brand orange, which suits Sunset. */
 export const GOAL_COLOR_PRESETS = [
-  '#73ff44',
   '#ff7a2f',
+  '#73ff44',
   '#23c7eb',
   '#f2c94c',
   '#ff5d8f',
