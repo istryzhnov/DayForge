@@ -161,34 +161,34 @@ const averageLabel = computed(() =>
 <style scoped>
 .analytics-hero {
   display: grid;
-  gap: 12px;
-  padding: 18px;
+  gap: 0.75rem;
+  padding: 1.125rem;
 }
 
 .analytics-hero__main {
   display: grid;
-  gap: 12px;
+  gap: 0.75rem;
   min-width: 0;
 }
 
 .analytics-hero__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .analytics-hero__figure {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 0.5rem;
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
 }
 
 .analytics-hero__tracked {
-  font-size: calc(28px * var(--text-scale));
+  font-size: calc(1.75rem * var(--text-scale));
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -197,13 +197,13 @@ const averageLabel = computed(() =>
 }
 
 .analytics-hero__plan {
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   color: var(--muted);
 }
 
 .analytics-hero__percent {
   flex: 0 0 auto;
-  font-size: calc(18px * var(--text-scale));
+  font-size: calc(1.125rem * var(--text-scale));
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
@@ -211,7 +211,7 @@ const averageLabel = computed(() =>
 
 .analytics-hero__info {
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   color: var(--muted);
 }
 
@@ -219,7 +219,7 @@ const averageLabel = computed(() =>
 .analytics-hero__stats {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 1rem;
   color: var(--muted);
 }
 
@@ -227,23 +227,23 @@ const averageLabel = computed(() =>
   position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .analytics-hero__label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .analytics-hero__icon {
   flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .analytics-hero__stat .ui-stat__value {
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
 }
 
 .analytics-hero__name {
@@ -260,27 +260,27 @@ const averageLabel = computed(() =>
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 24px;
-    padding: 22px 24px;
+    gap: 1.5rem;
+    padding: 1.375rem 1.5rem;
   }
 
   .analytics-hero__main {
-    flex: 1 1 420px;
+    flex: 1 1 26.25rem;
   }
 
   .analytics-hero__stats {
     flex: 0 0 auto;
-    gap: 28px;
+    gap: 1.75rem;
   }
 
   .analytics-hero__stat {
     display: grid;
     align-items: start;
-    gap: 4px;
+    gap: 0.25rem;
   }
 
   .analytics-hero__stat .ui-stat__value {
-    font-size: calc(18px * var(--text-scale));
+    font-size: calc(1.125rem * var(--text-scale));
   }
 
   .analytics-hero__name {

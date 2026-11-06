@@ -2,17 +2,17 @@
    come from theme variables only, so every theme and project accent works. */
 
 .habit-card {
-  flex: 1 1 360px;
+  flex: 1 1 22.5rem;
   min-width: 0;
   display: grid;
-  gap: 14px;
-  padding: 16px;
+  gap: 0.875rem;
+  padding: 1rem;
 }
 
 .habit-card__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
@@ -21,7 +21,7 @@
 }
 
 .habit-card__summary {
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -29,20 +29,20 @@
 
 .habit-row {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .habit-row__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .habit-row__name {
   flex: 1 1 auto;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
@@ -50,21 +50,21 @@
 .habit-row__streak {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
   flex: none;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
 
 .habit-row__grid {
   display: grid;
-  gap: 3px;
+  gap: 0.1875rem;
 }
 
 .habit-cell {
   display: block;
-  height: 14px;
+  height: 0.875rem;
   border-radius: calc(4px * var(--radius-scale));
   border: 1px solid transparent;
 }
@@ -89,7 +89,7 @@
 
 .habit-card__caption {
   margin: 0;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;

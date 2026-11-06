@@ -1,16 +1,16 @@
 .sidebar-shell {
   display: grid;
-  gap: 10px;
+  gap: 0.625rem;
   align-content: start;
 }
 
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 0.625rem;
+  margin-bottom: 0.375rem;
   color: var(--text);
-  font-size: calc(20px * var(--text-scale));
+  font-size: calc(1.25rem * var(--text-scale));
 }
 
 .sidebar-settings {
@@ -19,8 +19,8 @@
 }
 
 .sidebar-notify-trigger {
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   border-radius: 50px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
@@ -46,8 +46,8 @@
 }
 
 .sidebar-settings__trigger {
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   border-radius: 50px;
   border: 1px solid var(--line);
   background: var(--panel-soft);
@@ -78,8 +78,8 @@
 }
 
 .sidebar-caption {
-  margin: 8px 6px 4px;
-  font-size: calc(12px * var(--text-scale));
+  margin: 0.5rem 0.375rem 0.25rem;
+  font-size: calc(0.75rem * var(--text-scale));
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -90,8 +90,8 @@
   background: var(--panel-soft);
   color: var(--muted);
   border-radius: calc(10px * var(--radius-scale));
-  padding: 8px 10px;
-  font-size: calc(12px * var(--text-scale));
+  padding: 0.5rem 0.625rem;
+  font-size: calc(0.75rem * var(--text-scale));
   font-weight: 600;
   cursor: pointer;
 }
@@ -106,17 +106,17 @@
    row is a fixed height so the list stays even whatever the names are. */
 .nav-goal-btn {
   width: 100%;
-  height: 38px;
+  height: 2.375rem;
   box-sizing: border-box;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   border: 0;
   background: transparent;
   color: var(--text);
   border-radius: calc(10px * var(--radius-scale));
-  padding: 0 10px;
+  padding: 0 0.625rem;
   font-weight: 500;
   cursor: pointer;
   transition:
@@ -129,14 +129,14 @@
   flex: 1 1 auto;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   min-width: 0;
 }
 
 .nav-goal-btn__dot {
   flex: none;
-  width: 9px;
-  height: 9px;
+  width: 0.5625rem;
+  height: 0.5625rem;
   border-radius: 999px;
   background: var(--accent);
 }
@@ -165,7 +165,7 @@
 }
 
 .nav-goal-btn__icon {
-  width: calc(18px * var(--text-scale));
+  width: calc(1.125rem * var(--text-scale));
   display: grid;
   place-items: center;
   opacity: 0.85;
@@ -186,13 +186,13 @@
 
 .goal-count {
   flex: none;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   font-variant-numeric: tabular-nums;
   color: var(--muted);
 }
 
 .sidebar-actions {
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 
 .sidebar-actions .btn {
@@ -201,7 +201,7 @@
 
 .goal-panel {
   display: grid;
-  gap: calc(16px * var(--density-scale));
+  gap: calc(1rem * var(--density-scale));
 }
 
 /* Upcoming and Habits side by side; each wraps to a full row when it runs out of room. */
@@ -209,27 +209,27 @@
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  gap: 18px;
+  gap: 1.125rem;
 }
 
 .goal-panel-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .goal-panel-header__aside {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .goal-panel-header__main {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
   flex: 1 1 auto;
   min-width: 0;
 }
@@ -237,7 +237,7 @@
 .goal-panel-header__title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   min-width: 0;
 }
 
@@ -250,44 +250,44 @@
 
 .goal-panel-header__dot {
   flex: none;
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 999px;
 }
 
 /* Stands in for the dot when the project has an icon; takes the project colour. */
 .goal-panel-header__project-icon {
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: 1.375rem;
+  height: 1.375rem;
 }
 
 /* One muted line of icon + value items under the title. */
 /* The day picked in Upcoming; the chip itself is the way back to today. */
 .goal-panel-header__day {
   justify-self: start;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
+  gap: 0.5rem;
+  height: 2rem;
+  padding: 0 0.75rem;
 }
 
 .goal-panel-stats {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 16px;
+  gap: 0.375rem 1rem;
   margin: 0;
   padding: 0;
   list-style: none;
   color: var(--muted);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   font-variant-numeric: tabular-nums;
 }
 
 .goal-panel-stats__item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   min-width: 0;
   max-width: 100%;
 }
@@ -299,9 +299,9 @@
   background: transparent;
   color: var(--text);
   text-align: left;
-  padding: 8px 6px;
+  padding: 0.5rem 0.375rem;
   border-radius: calc(8px * var(--radius-scale));
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   cursor: pointer;
 }
 
@@ -327,21 +327,21 @@
 .goal-context-menu {
   position: fixed;
   z-index: 1200;
-  min-width: 180px;
+  min-width: 11.25rem;
   border: 1px solid var(--line);
   border-radius: calc(14px * var(--radius-scale));
-  padding: 8px;
+  padding: 0.5rem;
   background: var(--panel);
   box-shadow: var(--shadow-lg);
   display: grid;
-  gap: 6px;
+  gap: 0.375rem;
   animation: task-context-menu-in 0.12s ease;
 }
 
 .goal-context-menu__title {
   margin: 0;
-  padding: 2px 6px;
-  font-size: calc(11px * var(--text-scale));
+  padding: 0.125rem 0.375rem;
+  font-size: calc(0.6875rem * var(--text-scale));
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
@@ -361,7 +361,7 @@
 
 .sidebar-archived-toggle {
   color: var(--muted);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 /* Held long enough on touch to open the menu. */
@@ -372,12 +372,12 @@
 .goal-panel-header h2 {
   margin: 0;
   color: var(--text);
-  font-size: calc(32px * var(--text-scale));
+  font-size: calc(2rem * var(--text-scale));
   letter-spacing: -0.02em;
 }
 
 .goal-panel-header p {
-  margin: 8px 0 0;
+  margin: 0.5rem 0 0;
   color: var(--muted);
 }
 
@@ -386,15 +386,15 @@
   background: var(--panel-soft);
   color: var(--muted);
   border-radius: 999px;
-  padding: 6px 10px;
+  padding: 0.375rem 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
 }
 
 @media (max-width: 960px) {
   .goal-panel-header h2 {
-    font-size: calc(28px * var(--text-scale));
+    font-size: calc(1.75rem * var(--text-scale));
   }
 }
 
@@ -403,13 +403,13 @@
    task list below the fold. */
 @media (max-width: 720px) {
   .goal-panel {
-    gap: 14px;
+    gap: 0.875rem;
   }
 
   .goal-panel-header {
     flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
   }
 
   .goal-panel-header__aside {
@@ -417,15 +417,15 @@
   }
 
   .goal-panel-header h2 {
-    font-size: calc(30px * var(--text-scale));
+    font-size: calc(1.875rem * var(--text-scale));
     font-weight: 800;
     letter-spacing: -0.03em;
     line-height: 1.1;
   }
 
   .goal-panel-header p {
-    margin-top: 4px;
-    font-size: calc(13px * var(--text-scale));
+    margin-top: 0.25rem;
+    font-size: calc(0.8125rem * var(--text-scale));
   }
 
   .goal-status {
@@ -433,13 +433,13 @@
   }
 
   .goal-settings__item {
-    padding: 11px 8px;
-    font-size: calc(14px * var(--text-scale));
+    padding: 0.6875rem 0.5rem;
+    font-size: calc(0.875rem * var(--text-scale));
   }
 
   .goal-context-menu {
-    min-width: 200px;
-    max-width: calc(100vw - 16px);
+    min-width: 12.5rem;
+    max-width: calc(100vw - 1rem);
   }
 }
 /* Project header toolbar: List / Board tabs, then the round Notes button. */
@@ -448,7 +448,7 @@
   align-items: center;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .project-toolbar__notes {
@@ -457,10 +457,10 @@
 
 .project-toolbar__dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 6px;
-  height: 6px;
+  top: 0.375rem;
+  right: 0.375rem;
+  width: 0.375rem;
+  height: 0.375rem;
   border-radius: 50%;
   background: var(--accent);
 }
@@ -492,14 +492,14 @@
 .project-notes {
   pointer-events: auto;
   position: fixed;
-  top: 12px;
-  right: 12px;
-  bottom: 12px;
-  width: min(400px, calc(100vw - 24px));
+  top: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  width: min(25rem, calc(100vw - 1.5rem));
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 18px;
+  gap: 0.75rem;
+  padding: 1.125rem;
   overflow-y: auto;
   border: 1px solid var(--line);
   border-radius: calc(18px * var(--radius-scale));
@@ -511,21 +511,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .project-notes__head h3 {
   min-width: 0;
   margin: 0;
   color: var(--text);
-  font-size: calc(16px * var(--text-scale));
+  font-size: calc(1rem * var(--text-scale));
   overflow-wrap: anywhere;
 }
 
 .project-notes__close {
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -542,7 +542,7 @@
 
 .project-notes__text {
   width: 100%;
-  min-height: 320px;
+  min-height: 20rem;
   box-sizing: border-box;
   resize: none;
   overflow: hidden;
@@ -550,9 +550,9 @@
   border-radius: calc(12px * var(--radius-scale));
   background: var(--panel-soft);
   color: var(--text);
-  padding: 12px 14px;
+  padding: 0.75rem 0.875rem;
   font-family: inherit;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   line-height: 1.55;
 }
 
@@ -563,7 +563,7 @@
 .project-notes__hint {
   margin: 0;
   color: var(--muted);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 @media (max-width: 720px), (pointer: coarse) and (max-width: 1024px) {
@@ -579,19 +579,19 @@
   }
 
   .project-notes {
-    top: calc(env(safe-area-inset-top, 0px) + 40px);
+    top: calc(env(safe-area-inset-top, 0) + 2.5rem);
     right: 0;
     bottom: 0;
     left: 0;
     width: auto;
     border-radius: calc(18px * var(--radius-scale))
       calc(18px * var(--radius-scale)) 0 0;
-    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(1.125rem + env(safe-area-inset-bottom, 0));
   }
 
   .project-notes__text {
     min-height: 50vh;
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 

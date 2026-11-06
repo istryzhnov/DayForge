@@ -8,7 +8,7 @@
   border-radius: calc(11px * var(--radius-scale));
   border: 1px solid transparent;
   font-weight: 600;
-  padding: 10px 13px;
+  padding: 0.625rem 0.8125rem;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition:
@@ -31,11 +31,13 @@
   );
   border-color: color-mix(in srgb, var(--accent) 65%, transparent);
   color: var(--ring-check);
-  box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: 0 0.5rem 1.25rem
+    color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .btn-primary:hover {
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 36%, transparent);
+  box-shadow: 0 0.625rem 1.5rem
+    color-mix(in srgb, var(--accent) 36%, transparent);
 }
 
 .btn-ghost {

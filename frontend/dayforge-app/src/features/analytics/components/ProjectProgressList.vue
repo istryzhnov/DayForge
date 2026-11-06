@@ -117,27 +117,27 @@ function fillStyle(row: ProjectProgress) {
 .project-progress__top {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .project-progress__dot {
   flex: 0 0 auto;
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 999px;
 }
 
 .project-progress__name {
   flex: 1 1 auto;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
 
 .project-progress__actual {
   flex: 0 0 auto;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -146,8 +146,8 @@ function fillStyle(row: ProjectProgress) {
 
 .project-progress__plan {
   flex: 0 0 auto;
-  min-width: 56px;
-  font-size: calc(12px * var(--text-scale));
+  min-width: 3.5rem;
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -159,18 +159,18 @@ function fillStyle(row: ProjectProgress) {
 .project-progress__detail {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 0.5rem;
   margin: 0;
 }
 
 .project-progress__detail > div {
   display: grid;
-  gap: 2px;
+  gap: 0.125rem;
   min-width: 0;
 }
 
 .project-progress__detail dt {
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
   color: var(--muted);
   white-space: normal;
   overflow-wrap: anywhere;
@@ -178,7 +178,7 @@ function fillStyle(row: ProjectProgress) {
 
 .project-progress__detail dd {
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   font-weight: 700;
   color: var(--text);
   font-variant-numeric: tabular-nums;

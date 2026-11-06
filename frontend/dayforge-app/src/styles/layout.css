@@ -20,9 +20,9 @@
   --ring-check: #0f190c;
   /* Text drawn on a `--minor`-tinted surface (calendar event blocks). */
   --on-minor: #0b1a20;
-  --shadow-lg: 0 26px 54px rgba(0, 0, 0, 0.34);
-  --shadow-md: 0 14px 34px rgba(0, 0, 0, 0.22);
-  --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 1.625rem 3.375rem rgba(0, 0, 0, 0.34);
+  --shadow-md: 0 0.875rem 2.125rem rgba(0, 0, 0, 0.22);
+  --shadow-sm: 0 0.5rem 1.375rem rgba(0, 0, 0, 0.15);
   --bg-blob-1: rgba(115, 255, 68, 0.12);
   --bg-blob-2: rgba(35, 199, 235, 0.1);
   --bg-base: linear-gradient(160deg, #0c111a 0%, #11192a 58%, #101827 100%);
@@ -36,7 +36,7 @@
   --radius-scale: 1;
   --density-scale: 1;
   --text-scale: 1;
-  --panel-blur: 8px;
+  --panel-blur: 0.5rem;
   --font-ui: 'Manrope', 'Segoe UI', sans-serif;
   /* Native scrollbars and form controls follow the theme mode. */
   color-scheme: dark;
@@ -64,9 +64,9 @@
   --ring-check: #071907;
   /* `--minor` is a saturated blue here — dark text on it is unreadable. */
   --on-minor: #ffffff;
-  --shadow-lg: 0 20px 46px rgba(22, 32, 51, 0.14);
-  --shadow-md: 0 12px 28px rgba(22, 32, 51, 0.12);
-  --shadow-sm: 0 6px 18px rgba(22, 32, 51, 0.09);
+  --shadow-lg: 0 1.25rem 2.875rem rgba(22, 32, 51, 0.14);
+  --shadow-md: 0 0.75rem 1.75rem rgba(22, 32, 51, 0.12);
+  --shadow-sm: 0 0.375rem 1.125rem rgba(22, 32, 51, 0.09);
   --bg-blob-1: rgba(52, 181, 49, 0.11);
   --bg-blob-2: rgba(30, 169, 203, 0.09);
   --bg-base: linear-gradient(165deg, #eff4fb 0%, #e9f0fa 55%, #eff6ff 100%);
@@ -89,9 +89,9 @@
   --ring-check: #1f120a;
   /* `--minor` is near-white here, so the text on it must stay dark. */
   --on-minor: #141415;
-  --shadow-lg: 0 22px 44px rgba(0, 0, 0, 0.32);
-  --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.26);
-  --shadow-sm: 0 6px 14px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 1.375rem 2.75rem rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.26);
+  --shadow-sm: 0 0.375rem 0.875rem rgba(0, 0, 0, 0.22);
   --bg-blob-1: rgba(219, 118, 53, 0.24);
   --bg-blob-2: rgba(255, 255, 255, 0.015);
   --bg-base: linear-gradient(165deg, #0a0a0b 0%, #0c0c0d 45%, #09090a 100%);
@@ -114,9 +114,9 @@
   --ring-check: #2a1709;
   /* `--minor` is near-black here, so the text on it must be white. */
   --on-minor: #ffffff;
-  --shadow-lg: 0 18px 38px rgba(20, 20, 20, 0.12);
-  --shadow-md: 0 10px 24px rgba(20, 20, 20, 0.09);
-  --shadow-sm: 0 5px 12px rgba(20, 20, 20, 0.08);
+  --shadow-lg: 0 1.125rem 2.375rem rgba(20, 20, 20, 0.12);
+  --shadow-md: 0 0.625rem 1.5rem rgba(20, 20, 20, 0.09);
+  --shadow-sm: 0 0.3125rem 0.75rem rgba(20, 20, 20, 0.08);
   --bg-blob-1: rgba(255, 122, 47, 0.08);
   --bg-blob-2: rgba(0, 0, 0, 0.03);
   --bg-base: linear-gradient(180deg, #f8f8f7, #fcfcfc 60%, #f8f8f7);
@@ -145,29 +145,29 @@ body {
 .app-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(260px, 320px) 1fr;
+  grid-template-columns: minmax(16.25rem, 20rem) 1fr;
   gap: 0;
 }
 
 .app-sidebar {
   border-right: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 92%, transparent);
-  padding: 22px 16px;
-  backdrop-filter: blur(var(--panel-blur, 8px));
+  padding: 1.375rem 1rem;
+  backdrop-filter: blur(var(--panel-blur, 0.5rem));
 }
 
 /* The settings drawer takes a column of its own so it pushes the workspace
    rather than covering it — until the viewport is too narrow to spare the
    width, where it turns into an overlay instead. */
 .app-shell.is-settings-open {
-  grid-template-columns: minmax(240px, 300px) 1fr minmax(320px, 360px);
+  grid-template-columns: minmax(15rem, 18.75rem) 1fr minmax(20rem, 22.5rem);
 }
 
 .app-settings {
   border-left: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 94%, transparent);
-  backdrop-filter: blur(var(--panel-blur, 8px));
-  padding: 18px 14px;
+  backdrop-filter: blur(var(--panel-blur, 0.5rem));
+  padding: 1.125rem 0.875rem;
   height: 100vh;
   position: sticky;
   top: 0;
@@ -181,43 +181,51 @@ body {
    edge with no visible seam; .app-content__inner carries the readable
    max-width instead, on top of that background. */
 .app-content {
-  padding: calc(24px * var(--density-scale));
+  padding: calc(1.5rem * var(--density-scale));
   background:
     radial-gradient(
-      1100px 650px at -10% -20%,
+      68.75rem 40.625rem at -10% -20%,
       var(--bg-blob-1),
       transparent 50%
     ),
-    radial-gradient(900px 700px at 110% 10%, var(--bg-blob-2), transparent 50%);
+    radial-gradient(
+      56.25rem 43.75rem at 110% 10%,
+      var(--bg-blob-2),
+      transparent 50%
+    );
 }
 
 .app-content__inner {
   margin: auto;
-  max-width: 1100px;
+  max-width: 68.75rem;
 }
 
 :root[data-theme-style='minimal'][data-theme-mode='dark'] .app-content {
   background:
     radial-gradient(
-      2000px 1500px at -10% -18%,
+      125rem 93.75rem at -10% -18%,
       var(--bg-blob-1),
       transparent 65%
     ),
-    radial-gradient(900px 900px at 105% 105%, var(--bg-blob-2), transparent 55%);
+    radial-gradient(
+      56.25rem 56.25rem at 105% 105%,
+      var(--bg-blob-2),
+      transparent 55%
+    );
 }
 
 /* Below this the third column would squeeze the workspace, so the drawer
    floats over the right edge instead. */
 @media (max-width: 1240px) {
   .app-shell.is-settings-open {
-    grid-template-columns: minmax(260px, 320px) 1fr;
+    grid-template-columns: minmax(16.25rem, 20rem) 1fr;
   }
 
   .app-settings {
     position: fixed;
     top: 0;
     right: 0;
-    width: min(360px, 92vw);
+    width: min(22.5rem, 92vw);
     z-index: 1200;
     box-shadow: var(--shadow-lg);
     background: var(--panel);
@@ -236,11 +244,11 @@ body {
   .app-sidebar {
     border-right: none;
     border-bottom: 1px solid var(--line);
-    padding: 12px;
+    padding: 0.75rem;
   }
 
   .app-content {
-    padding: calc(12px * var(--density-scale));
+    padding: calc(0.75rem * var(--density-scale));
   }
 
   .app-content__inner {
