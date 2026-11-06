@@ -69,7 +69,8 @@ body.is-reordering-goals .nav-goal-btn {
     box-shadow 0.15s ease;
 }
 
-/* The dot and the grip share one 9px box, so the name never moves on hover. */
+/* The dot (or the project's icon) and the grip share one box, so the name
+   never moves on hover. */
 .nav-goal-btn__lead {
   position: relative;
   flex: none;
@@ -77,11 +78,21 @@ body.is-reordering-goals .nav-goal-btn {
   height: 9px;
 }
 
-.nav-goal-btn__lead .nav-goal-btn__dot {
+.nav-goal-btn__lead--icon {
+  width: 16px;
+  height: 16px;
+}
+
+.nav-goal-btn__lead .nav-goal-btn__dot,
+.nav-goal-btn__lead .nav-goal-btn__project-icon {
   display: block;
   width: 100%;
   height: 100%;
   transition: opacity 0.15s ease;
+}
+
+.nav-goal-btn__project-icon {
+  color: var(--accent);
 }
 
 .nav-goal-btn__grip {
@@ -101,7 +112,8 @@ body.is-reordering-goals .nav-goal-btn {
 
 /* Hover only: a phone has no hover, and the grip there would just stick. */
 @media (hover: hover) and (pointer: fine) {
-  .nav-goal-btn.is-reorderable:hover .nav-goal-btn__dot {
+  .nav-goal-btn.is-reorderable:hover .nav-goal-btn__dot,
+  .nav-goal-btn.is-reorderable:hover .nav-goal-btn__project-icon {
     opacity: 0;
   }
 
@@ -112,6 +124,7 @@ body.is-reordering-goals .nav-goal-btn {
 
 :root[data-motion='reduced'] .nav-goal-btn.is-lifted,
 :root[data-motion='reduced'] .nav-goal-btn__lead .nav-goal-btn__dot,
+:root[data-motion='reduced'] .nav-goal-btn__lead .nav-goal-btn__project-icon,
 :root[data-motion='reduced'] .nav-goal-btn__grip {
   transition: none;
 }

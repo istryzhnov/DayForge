@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
+import ProjectIcon from './ProjectIcon.vue'
 import { formatHoursMinutes } from '../../../composables/timer/format'
 import { durationWords } from '../../../composables/timer/text'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
@@ -11,8 +12,10 @@ import type { BudgetStanding } from '../../analytics/composables/projectBudget'
 
 const props = defineProps<{
   title: string
-  /** Project colour for the dot; absent in All Projects mode. */
+  /** Project colour for the dot or icon; absent in All Projects mode. */
   color?: string
+  /** The project's icon, drawn in its colour in place of the dot. */
+  icon?: string
   status: string
   stats: PanelStats
   /** Label of a day other than today that the list is showing. */
@@ -40,8 +43,14 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
   <header class="goal-panel-header">
     <div class="goal-panel-header__main">
       <div class="goal-panel-header__title">
+        <ProjectIcon
+          v-if="color && icon"
+          class="goal-panel-header__project-icon"
+          :icon="icon"
+          :style="{ color }"
+        />
         <span
-          v-if="color"
+          v-else-if="color"
           class="goal-panel-header__dot"
           :style="{ background: color }"
           aria-hidden="true"

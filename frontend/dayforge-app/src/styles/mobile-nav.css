@@ -1,5 +1,6 @@
 .mobile-topbar,
-.mobile-nav-backdrop {
+.mobile-nav-backdrop,
+.sidebar-close-trigger {
   display: none;
 }
 
@@ -166,6 +167,28 @@
 
   .sidebar-footer .sidebar-profile {
     display: none;
+  }
+
+  /* 44px is the touch target; the glyph stays small in the header row. */
+  .sidebar-close-trigger {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .sidebar-close-trigger:hover,
+  .sidebar-close-trigger:focus-visible {
+    color: var(--text);
+    border-color: var(--line);
+    background: color-mix(in srgb, var(--panel-soft) 70%, transparent);
   }
 }
 

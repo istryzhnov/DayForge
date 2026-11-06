@@ -2,7 +2,6 @@
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
-import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import {
   usePressGesture,
   type GesturePoint,
@@ -12,8 +11,6 @@ const props = defineProps<{
   task: DailyTask
   /** Its project's colours, when the project has its own. */
   themeVars?: Record<string, string>
-  /** The project's icon id, drawn before the title. */
-  icon?: string
 }>()
 
 const emit = defineEmits<{
@@ -66,11 +63,6 @@ const { isLifted, onPointerDown } = usePressGesture({
     "
   >
     <span class="calendar-view__unscheduled-dot" aria-hidden="true"></span>
-    <ProjectIcon
-      v-if="icon"
-      class="calendar-view__unscheduled-icon"
-      :icon="icon"
-    />
     <span class="calendar-view__unscheduled-name">{{ task.title }}</span>
   </div>
 </template>

@@ -233,6 +233,15 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       >
         ?
       </button>
+      <!-- Phone drawer only; hidden on desktop by mobile-nav.css. -->
+      <button
+        class="sidebar-close-trigger"
+        type="button"
+        :aria-label="t('common.close')"
+        @click="closeMobileNav()"
+      >
+        <AppIcon name="close" :size="18" />
+      </button>
     </div>
 
     <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>

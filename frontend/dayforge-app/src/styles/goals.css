@@ -255,6 +255,13 @@
   border-radius: 999px;
 }
 
+/* Stands in for the dot when the project has an icon; takes the project colour. */
+.goal-panel-header__project-icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
 /* One muted line of icon + value items under the title. */
 /* The day picked in Upcoming; the chip itself is the way back to today. */
 .goal-panel-header__day {

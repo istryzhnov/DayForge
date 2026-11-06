@@ -183,6 +183,7 @@ const projectColor = computed(() =>
     <GoalPanelHeader
       :title="panelTitle"
       :color="projectColor"
+      :icon="goal?.icon"
       :status="isAllMode ? 'overview' : (goal?.status ?? GOAL_STATUS.ACTIVE)"
       :stats="panelStats"
       :viewed-day="viewedDayLabel"

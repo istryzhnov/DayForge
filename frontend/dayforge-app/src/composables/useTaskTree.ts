@@ -24,8 +24,6 @@ export type TaskNode = {
   completedCount?: number
   /** The project's hourly rate, which a task without its own one bills at. */
   goalRate?: number
-  /** The project's icon id, drawn in the completion circle. */
-  goalIcon?: string
   /** The project's colour, marking its rows in the All view. */
   goalColor?: string
 }
@@ -73,15 +71,6 @@ export function useTaskTree(props: TaskTreeProps) {
     function goalRateOf(task: DailyTask) {
       if (!task.goalId) return undefined
       return goalRateById.get(task.goalId)
-    }
-
-    const goalIconById = new Map(
-      props.goals.map((goal) => [goal.id, goal.icon]),
-    )
-
-    function goalIconOf(task: DailyTask) {
-      if (!task.goalId) return undefined
-      return goalIconById.get(task.goalId)
     }
 
     const goalColorById = projectColors(props.goals)
@@ -146,7 +135,6 @@ export function useTaskTree(props: TaskTreeProps) {
         template: templateById.get(project.templateId),
         goalTitle: goalTitleOf(project),
         goalRate: goalRateOf(project),
-        goalIcon: goalIconOf(project),
         goalColor: goalColorOf(project),
         isNew: isRecentlyCreated(project),
         spilled: spilledOf(project),
@@ -166,7 +154,6 @@ export function useTaskTree(props: TaskTreeProps) {
           template: templateById.get(child.templateId),
           goalTitle: goalTitleOf(child),
           goalRate: goalRateOf(child),
-          goalIcon: goalIconOf(child),
           goalColor: goalColorOf(child),
           projectTitle: project.title,
           isNew: isRecentlyCreated(child),
@@ -192,7 +179,6 @@ export function useTaskTree(props: TaskTreeProps) {
             template: templateById.get(task.templateId),
             goalTitle: goalTitleOf(task),
             goalRate: goalRateOf(task),
-            goalIcon: goalIconOf(task),
             goalColor: goalColorOf(task),
             isNew: isRecentlyCreated(task),
             spilled: spilledOf(task),

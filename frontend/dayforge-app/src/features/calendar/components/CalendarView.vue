@@ -237,18 +237,6 @@ const selectedTaskNotes = computed(
       (template) => template.id === selectedTask.value?.templateId,
     )?.notes ?? '',
 )
-
-const goalIconById = computed(() => {
-  const result: Record<ID, string> = {}
-  props.goals.forEach((goal) => {
-    if (goal.icon) result[goal.id] = goal.icon
-  })
-  return result
-})
-
-function iconFor(goalId: ID | undefined) {
-  return goalId ? goalIconById.value[goalId] : undefined
-}
 </script>
 
 <template>
@@ -311,7 +299,6 @@ function iconFor(goalId: ID | undefined) {
       :week="week"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
-      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -320,7 +307,6 @@ function iconFor(goalId: ID | undefined) {
       :month="month"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
-      :goal-icon-by-id="goalIconById"
       @open-day="openDay"
     />
 
@@ -372,7 +358,6 @@ function iconFor(goalId: ID | undefined) {
               :height-px="heightPxFor(block)"
               :is-dragging="draggingTaskId === block.task.id"
               :theme-vars="themeVarsFor(block.task.goalId)"
-              :icon="iconFor(block.task.goalId)"
               :column-style="columnStyleFor(block)"
               @select="openDetails"
               @drag-start="onBlockDragStart"
@@ -433,7 +418,6 @@ function iconFor(goalId: ID | undefined) {
             :key="task.id"
             :task="task"
             :theme-vars="themeVarsFor(task.goalId)"
-            :icon="iconFor(task.goalId)"
             @drag-start="onDragStartFromList"
             @touch-lift="onUnscheduledTouchLift"
             @touch-move="onTouchMove"
