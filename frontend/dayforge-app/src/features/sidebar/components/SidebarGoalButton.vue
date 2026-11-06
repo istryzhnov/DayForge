@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import AppIcon from '../../../components/AppIcon.vue'
+import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import {
   usePressGesture,
@@ -95,8 +96,17 @@ function onContextMenu(event: MouseEvent) {
   >
     <span class="nav-goal-btn__main">
       <!-- Its colour comes from the row's own theme vars, or the app accent. -->
-      <span class="nav-goal-btn__lead" aria-hidden="true">
-        <span class="nav-goal-btn__dot"></span>
+      <span
+        class="nav-goal-btn__lead"
+        :class="{ 'nav-goal-btn__lead--icon': goal.icon }"
+        aria-hidden="true"
+      >
+        <ProjectIcon
+          v-if="goal.icon"
+          class="nav-goal-btn__project-icon"
+          :icon="goal.icon"
+        />
+        <span v-else class="nav-goal-btn__dot"></span>
         <!-- Shows on hover in place of the dot; see drag-to-project.css. -->
         <AppIcon
           v-if="!isArchived"

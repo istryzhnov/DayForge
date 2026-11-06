@@ -6,6 +6,7 @@ import type { PanelStats } from '../composables/projectPanelStats'
 defineProps<{
   title: string
   color?: string
+  icon?: string
   status: string
   stats: PanelStats
   viewedDay: string | null
@@ -28,6 +29,7 @@ const emit = defineEmits<{
   <GoalHeader
     :title="title"
     :color="color"
+    :icon="icon"
     :status="status"
     :stats="stats"
     :viewed-day="viewedDay"

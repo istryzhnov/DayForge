@@ -38,6 +38,12 @@
   --text-scale: 1;
   --panel-blur: 8px;
   --font-ui: 'Manrope', 'Segoe UI', sans-serif;
+  /* Native scrollbars and form controls follow the theme mode. */
+  color-scheme: dark;
+}
+
+:root[data-theme-mode='light'] {
+  color-scheme: light;
 }
 
 :root[data-theme-style='vivid'][data-theme-mode='light'] {
@@ -118,6 +124,8 @@
 
 * {
   box-sizing: border-box;
+  /* Thumb and track sit on the surface, so the bar reads as part of it. */
+  scrollbar-color: var(--line-soft) transparent;
 }
 
 html,

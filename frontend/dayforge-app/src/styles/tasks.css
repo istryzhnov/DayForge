@@ -406,20 +406,6 @@ body.is-dragging-task {
   border-color: var(--major);
 }
 
-.task-dot-check__icon {
-  width: 14px;
-  height: 14px;
-  color: color-mix(in srgb, var(--minor) 75%, var(--muted));
-}
-
-.task-dot-check--project .task-dot-check__icon {
-  color: color-mix(in srgb, var(--major) 75%, var(--muted));
-}
-
-.task-dot-check:hover .task-dot-check__icon {
-  color: var(--minor);
-}
-
 .task-dot-check__mark {
   color: var(--ring-check);
 }
@@ -1808,11 +1794,6 @@ body.is-dragging-task {
   .day-row {
     padding: 12px;
   }
-}
-
-/* In the All view a project's colour tints the row's check icon only. */
-.task-row.is-project-tinted .task-dot-check__icon {
-  color: var(--project-color);
 }
 
 /* On a phone the toast spans the screen between its 12px margins; the

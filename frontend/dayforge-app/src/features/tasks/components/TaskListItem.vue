@@ -15,7 +15,6 @@ import TaskComposer from './TaskComposer.vue'
 import TaskInlineEditor from './TaskInlineEditor.vue'
 import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
-import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
 import TaskNotesButton from './TaskNotesButton.vue'
 import { useTaskRow } from '../composables/useTaskRow'
@@ -175,13 +174,7 @@ const {
       'is-dragging': isDragging,
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
-      'is-project-tinted': isAllMode && node.goalColor,
     }"
-    :style="
-      isAllMode && node.goalColor
-        ? { '--project-color': node.goalColor }
-        : undefined
-    "
     :data-drop-row="drag ? node.task.templateId : undefined"
     :data-drop-major="isProject ? 'true' : undefined"
     :data-task-id="node.task.id"
@@ -206,11 +199,6 @@ const {
           class="task-dot-check__mark"
           name="check"
           :size="14"
-        />
-        <ProjectIcon
-          v-else-if="node.goalIcon"
-          class="task-dot-check__icon"
-          :icon="node.goalIcon"
         />
       </button>
 
