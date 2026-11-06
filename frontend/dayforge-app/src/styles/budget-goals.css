@@ -2,13 +2,13 @@
 
 .budget-chip {
   display: inline-grid;
-  gap: 4px;
+  gap: 0.25rem;
   min-width: 0;
-  max-width: 220px;
-  padding: 5px 10px;
+  max-width: 13.75rem;
+  padding: 0.3125rem 0.625rem;
   border: 1px solid var(--line);
   border-radius: 999px;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   line-height: 1.2;
   color: var(--muted);
   background: color-mix(in srgb, var(--panel-soft) 50%, transparent);
@@ -27,7 +27,7 @@
 
 .budget-chip__bar {
   display: block;
-  height: 4px;
+  height: 0.25rem;
   overflow: hidden;
   border-radius: 999px;
   background: var(--line-soft);
@@ -57,28 +57,28 @@
 .budget-editor__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: center;
 }
 
 .budget-period {
-  margin-top: 4px;
+  margin-top: 0.25rem;
 }
 
 /* --- analytics: monthly income goal -------------------------------------- */
 
 .income-goal {
-  margin: 12px 0;
+  margin: 0.75rem 0;
 }
 
 .income-goal__empty,
 .income-goal__body,
 .income-goal__form {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
   width: 100%;
   min-width: 0;
-  padding: 14px;
+  padding: 0.875rem;
   border: 1px solid var(--line);
   border-radius: calc(16px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
@@ -93,7 +93,7 @@
 }
 
 .income-goal__empty strong {
-  font-size: calc(15px * var(--text-scale));
+  font-size: calc(0.9375rem * var(--text-scale));
   color: var(--accent);
 }
 
@@ -105,7 +105,7 @@
 
 .income-goal__head {
   display: flex;
-  gap: 8px;
+  gap: 0.5rem;
   align-items: flex-start;
   justify-content: space-between;
   min-width: 0;
@@ -114,14 +114,14 @@
 .income-goal__figure {
   display: grid;
   flex: 1 1 auto;
-  gap: 4px;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .income-goal__amount {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -129,28 +129,28 @@
 }
 
 .income-goal__earned {
-  font-size: calc(28px * var(--text-scale));
+  font-size: calc(1.75rem * var(--text-scale));
   font-weight: 700;
   line-height: 1.1;
   color: var(--text);
 }
 
 .income-goal__goal {
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   color: var(--muted);
 }
 
 .income-goal__percent {
   flex: 0 0 auto;
-  font-size: calc(18px * var(--text-scale));
+  font-size: calc(1.125rem * var(--text-scale));
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 
 .income-goal__edit {
-  padding: 4px 10px;
-  font-size: calc(12px * var(--text-scale));
+  padding: 0.25rem 0.625rem;
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 /* The track carries a thin marker for where the month's pace stands. */
@@ -161,9 +161,9 @@
 
 .income-goal__pace {
   position: absolute;
-  top: -5px;
-  bottom: -5px;
-  width: 2px;
+  top: -0.3125rem;
+  bottom: -0.3125rem;
+  width: 0.125rem;
   margin-left: -1px;
   border-radius: 2px;
   background: var(--text);
@@ -174,9 +174,9 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 0.375rem;
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   font-weight: 600;
   color: var(--muted);
   white-space: nowrap;
@@ -185,30 +185,30 @@
 
 .income-goal__need svg {
   flex: 0 0 auto;
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .income-goal__field {
   display: grid;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .income-goal__field input {
   /* 16px stops iOS from zooming the page when the field is focused. */
-  font-size: 16px;
+  font-size: 1rem;
   min-width: 0;
 }
 
 .income-goal__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .income-goal__actions .btn,
 .income-goal__edit {
-  min-height: 36px;
+  min-height: 2.25rem;
 }
 
 @media (max-width: 420px) {

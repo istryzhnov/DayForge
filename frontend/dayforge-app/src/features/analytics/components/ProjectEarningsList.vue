@@ -123,26 +123,26 @@ function rateLabel(
   flex: 1 1 auto;
   flex-direction: column;
   align-items: stretch;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .earnings-row__main {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
 }
 
 .earnings-row__dot {
   flex: 0 0 auto;
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 999px;
 }
 
 .earnings-row__name {
   flex: 1 1 auto;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
@@ -151,21 +151,21 @@ function rateLabel(
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  width: 1.375rem;
+  height: 1.375rem;
   border-radius: 6px;
   background: var(--accent-soft);
   color: var(--accent);
 }
 
 .earnings-row__lock svg {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .earnings-row__amount {
   flex: 0 0 auto;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -175,7 +175,7 @@ function rateLabel(
 /* Phone: the rate sits under the name and only shows once the row is open. */
 .earnings-row__rate {
   display: none;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   white-space: normal;
@@ -188,7 +188,7 @@ function rateLabel(
 .earnings-row__actions {
   display: none;
   flex: 0 0 auto;
-  padding-right: 12px;
+  padding-right: 0.75rem;
 }
 
 .earnings-row.is-open .earnings-row__actions {
@@ -206,7 +206,7 @@ function rateLabel(
 .earnings-row.is-open .earnings-row__actions {
   flex: 1 1 100%;
   justify-content: flex-end;
-  padding: 0 12px 12px;
+  padding: 0 0.75rem 0.75rem;
 }
 
 @container analytics (min-width: 900px) {
@@ -217,7 +217,7 @@ function rateLabel(
   .earnings-row__rate {
     display: block;
     flex: 0 0 auto;
-    min-width: 96px;
+    min-width: 6rem;
     text-align: right;
   }
 
@@ -225,7 +225,7 @@ function rateLabel(
   .earnings-row.is-open .earnings-row__actions {
     display: flex;
     flex: 0 0 auto;
-    padding: 0 12px 0 0;
+    padding: 0 0.75rem 0 0;
   }
 
   .earnings-row.is-open .earnings-row__head {
@@ -235,7 +235,7 @@ function rateLabel(
   .earnings-row__head {
     flex-direction: row;
     align-items: center;
-    gap: 12px;
+    gap: 0.75rem;
   }
 
   .earnings-row__main {

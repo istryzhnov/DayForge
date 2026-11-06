@@ -10,12 +10,12 @@
 .analytics-project__badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
 }
 
 .analytics-badge {
-  padding: 1px 7px;
+  padding: 1px 0.4375rem;
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 600;
@@ -32,29 +32,29 @@
 
 .project-billing__note {
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   line-height: 1.5;
   color: var(--muted);
 }
 
 .project-billing__field {
   display: grid;
-  gap: 4px;
-  font-size: calc(13px * var(--text-scale));
+  gap: 0.25rem;
+  font-size: calc(0.8125rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
 
 .project-billing__field input {
   /* 16px stops iOS from zooming the page when the field is focused. */
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 400;
   min-width: 0;
 }
 
 .project-billing__field em {
   font-style: normal;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   font-weight: 400;
   line-height: 1.45;
   color: var(--muted);
@@ -62,7 +62,7 @@
 
 .project-billing__error {
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   color: var(--danger);
 }
 
@@ -72,7 +72,7 @@
 }
 
 .project-billing__actions .btn {
-  min-height: 40px;
+  min-height: 2.5rem;
 }
 
 .project-billing__actions .btn-ghost:first-child {

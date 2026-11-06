@@ -55,33 +55,33 @@ withDefaults(
   pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 0.5625rem;
   box-sizing: border-box;
   width: max-content;
-  max-width: 240px;
-  padding: 9px 12px 9px 0;
+  max-width: 15rem;
+  padding: 0.5625rem 0.75rem 0.5625rem 0;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
   border-radius: calc(12px * var(--radius-scale));
   background: var(--panel);
   color: var(--text);
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   box-shadow: var(--shadow-lg);
   /* Pointer side: sits just below and to the right of the cursor. */
-  transform: translate(14px, 12px) rotate(2deg) scale(1.02);
+  transform: translate(0.875rem, 0.75rem) rotate(2deg) scale(1.02);
   transform-origin: 0 0;
   animation: drag-ghost-in 0.14s ease-out both;
 }
 
 /* Finger side: centred above the touch point, clear of the thumb. */
 .drag-ghost.is-touch {
-  transform: translate(-50%, calc(-100% - 40px)) rotate(2deg) scale(1.02);
+  transform: translate(-50%, calc(-100% - 2.5rem)) rotate(2deg) scale(1.02);
   transform-origin: 50% 100%;
 }
 
 .drag-ghost__bar {
   align-self: stretch;
-  width: 4px;
-  margin: -9px 0 -9px 0;
+  width: 0.25rem;
+  margin: -0.5625rem 0 -0.5625rem 0;
   border-radius: 0 3px 3px 0;
   background: var(--drag-ghost-color);
 }
@@ -97,8 +97,8 @@ withDefaults(
 
 .drag-ghost__priority {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
   background: var(--major);
 }
@@ -118,12 +118,12 @@ withDefaults(
 @media (prefers-reduced-motion: reduce) {
   .drag-ghost,
   .drag-ghost.is-touch {
-    transform: translate(14px, 12px);
+    transform: translate(0.875rem, 0.75rem);
     animation: none;
   }
 
   .drag-ghost.is-touch {
-    transform: translate(-50%, calc(-100% - 40px));
+    transform: translate(-50%, calc(-100% - 2.5rem));
   }
 }
 
@@ -133,10 +133,10 @@ withDefaults(
 }
 
 :root[data-motion='reduced'] .drag-ghost {
-  transform: translate(14px, 12px);
+  transform: translate(0.875rem, 0.75rem);
 }
 
 :root[data-motion='reduced'] .drag-ghost.is-touch {
-  transform: translate(-50%, calc(-100% - 40px));
+  transform: translate(-50%, calc(-100% - 2.5rem));
 }
 </style>

@@ -47,7 +47,7 @@ function start(chapter: ChapterId) {
 <style scoped>
 .tour-chapters {
   display: grid;
-  gap: 6px;
+  gap: 0.375rem;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -57,7 +57,7 @@ function start(chapter: ChapterId) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .tour-chapters__name {
@@ -65,7 +65,7 @@ function start(chapter: ChapterId) {
 }
 
 .tour-chapters__done {
-  margin-left: 6px;
+  margin-left: 0.375rem;
   color: var(--accent, #ff7a2f);
 }
 </style>

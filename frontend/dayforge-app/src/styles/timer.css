@@ -1,8 +1,8 @@
 .timer-widget {
   display: grid;
-  gap: 8px;
-  margin-top: 14px;
-  padding: 12px;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  padding: 0.75rem;
   border: 1px solid var(--line);
   border-radius: calc(14px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel-soft) 70%, transparent);
@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .timer-widget__status {
@@ -29,7 +29,7 @@
   cursor: pointer;
   display: grid;
   place-items: center;
-  padding: 2px 4px;
+  padding: 0.125rem 0.25rem;
 }
 
 .timer-widget__expand:hover {
@@ -50,14 +50,14 @@
 
 .timer-display {
   display: grid;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .timer-display--large {
   position: relative;
   place-items: center;
-  width: 220px;
-  height: 220px;
+  width: 13.75rem;
+  height: 13.75rem;
 }
 
 .timer-display__ring {
@@ -88,7 +88,7 @@
   display: grid;
   place-content: center;
   justify-items: center;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .timer-display__value {
@@ -112,7 +112,7 @@
 }
 
 .timer-display__bar {
-  height: 3px;
+  height: 0.1875rem;
   border-radius: 999px;
   background: var(--line);
   overflow: hidden;
@@ -130,18 +130,18 @@
 .timer-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .timer-controls--compact .btn {
   flex: 1 1 auto;
-  padding: 7px 10px;
+  padding: 0.4375rem 0.625rem;
   font-size: 0.8rem;
 }
 
 .timer-controls--large {
   justify-content: center;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 /* --- task row button ---------------------------------------------------- */
@@ -151,16 +151,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-width: 35px;
-  height: 35px;
-  padding: 0 11px;
+  gap: 0.375rem;
+  min-width: 2.1875rem;
+  height: 2.1875rem;
+  padding: 0 0.6875rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--panel-soft) 74%, transparent);
   color: var(--muted);
   cursor: pointer;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   font-weight: 600;
   transition:
     background 0.15s ease,
@@ -207,7 +207,7 @@
 /* A nested task has no "add" button after it, so it takes over that button's
    right margin and ends on the same edge as the row above. */
 .actions > .task-timer-btn:last-child {
-  margin-right: 10px;
+  margin-right: 0.625rem;
 }
 
 @media (max-width: 720px) {
@@ -217,7 +217,7 @@
 
   .timer-view__save input,
   .timer-field input {
-    font-size: max(16px, calc(16px * var(--text-scale)));
+    font-size: max(1rem, calc(1rem * var(--text-scale)));
   }
 }
 
@@ -226,7 +226,7 @@
 .timer-view {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
+  gap: 0.75rem;
   align-content: start;
 }
 
@@ -234,7 +234,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .timer-view__title {
@@ -245,7 +245,7 @@
 .timer-view__info {
   margin: 0;
   color: var(--muted);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 /* The mode tabs, dial and controls share one card. */
@@ -253,8 +253,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
-  gap: 14px;
-  padding: 16px;
+  gap: 0.875rem;
+  padding: 1rem;
 }
 
 .timer-mode {
@@ -265,15 +265,15 @@
   width: 100%;
   display: grid;
   justify-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .timer-view__pick {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   width: 100%;
-  max-width: 320px;
+  max-width: 20rem;
 }
 
 .timer-view__picker {
@@ -285,8 +285,8 @@
   background: var(--panel-soft);
   color: var(--text);
   font-family: inherit;
-  font-size: calc(13px * var(--text-scale));
-  padding: 8px 11px;
+  font-size: calc(0.8125rem * var(--text-scale));
+  padding: 0.5rem 0.6875rem;
 }
 
 .timer-view__picker:focus {
@@ -302,7 +302,7 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .timer-view__save input {
@@ -311,9 +311,9 @@
   background: var(--panel-soft);
   color: var(--text);
   font-family: inherit;
-  font-size: calc(13px * var(--text-scale));
-  padding: 8px 11px;
-  min-width: min(220px, 100%);
+  font-size: calc(0.8125rem * var(--text-scale));
+  padding: 0.5rem 0.6875rem;
+  min-width: min(13.75rem, 100%);
 }
 
 .timer-view__save input:focus {
@@ -329,7 +329,7 @@
   max-width: 100%;
   margin: 0;
   color: var(--muted);
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 /* Start/stop: the one solid accent control on the page. */
@@ -337,16 +337,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 160px;
-  height: 44px;
-  padding: 0 20px;
+  gap: 0.5rem;
+  min-width: 10rem;
+  height: 2.75rem;
+  padding: 0 1.25rem;
   border: 0;
   border-radius: calc(12px * var(--radius-scale));
   background: var(--accent);
   color: var(--ring-check);
   font: inherit;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 700;
   cursor: pointer;
 }
@@ -356,16 +356,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  min-width: 120px;
-  height: 44px;
-  padding: 0 18px;
+  gap: 0.5rem;
+  min-width: 7.5rem;
+  height: 2.75rem;
+  padding: 0 1.125rem;
   border: 1px solid var(--line);
   border-radius: calc(12px * var(--radius-scale));
   background: transparent;
   color: var(--text);
   font: inherit;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 700;
   cursor: pointer;
 }
@@ -387,8 +387,8 @@
 
 /* A chip holding a short number field for any other length. */
 .timer-view__custom {
-  gap: 4px;
-  padding: 0 12px;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
   cursor: text;
 }
 
@@ -418,14 +418,14 @@
 @media (max-width: 720px) {
   /* iOS zooms the page when a focused field is under 16px. */
   .timer-view__custom input {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 
 .timer-view__today {
   margin: 0;
   color: var(--muted);
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   font-variant-numeric: tabular-nums;
 }
 
@@ -433,11 +433,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .timer-view__add {
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 /* --- history ------------------------------------------------------------ */
@@ -445,7 +445,7 @@
 .timer-history {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
+  gap: 0.875rem;
 }
 
 .timer-history__empty {
@@ -457,17 +457,17 @@
 .timer-history__day {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .timer-history__day-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  gap: 0.625rem;
   min-width: 0;
   color: var(--text);
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
 }
 
 .timer-history__day-total {
@@ -485,9 +485,9 @@
 .timer-entry {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   min-width: 0;
-  padding: 10px 8px 10px 14px;
+  padding: 0.625rem 0.5rem 0.625rem 0.875rem;
 }
 
 .timer-entry + .timer-entry {
@@ -497,24 +497,24 @@
 .timer-entry__main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 2px;
+  gap: 0.125rem;
   min-width: 0;
   flex: 1 1 auto;
 }
 
 .timer-entry__title {
   color: var(--text);
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
 }
 
 .timer-entry__meta {
   color: var(--muted);
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
 }
 
 .timer-entry__duration {
   color: var(--text);
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -522,7 +522,7 @@
 .timer-entry__actions {
   display: flex;
   flex: 0 0 auto;
-  gap: 2px;
+  gap: 0.125rem;
 }
 
 /* --- per-task rows (Analytics uses these too) --------------------------- */
@@ -530,14 +530,14 @@
 .time-total {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .time-total__row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .time-total__title {
@@ -558,11 +558,11 @@
   color: var(--muted);
   font-style: normal;
   font-size: 0.78rem;
-  margin-left: 6px;
+  margin-left: 0.375rem;
 }
 
 .time-total__bar {
-  height: 6px;
+  height: 0.375rem;
   border-radius: 999px;
   background: var(--line);
   overflow: hidden;
@@ -579,7 +579,7 @@
 
 .timer-field {
   display: grid;
-  gap: 4px;
+  gap: 0.25rem;
   color: var(--muted);
   font-size: 0.8rem;
 }
@@ -601,7 +601,7 @@
 
 .analytics {
   display: grid;
-  gap: 14px;
+  gap: 0.875rem;
   align-content: start;
   container: analytics / inline-size;
 }
@@ -610,7 +610,7 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.75rem;
   flex-wrap: wrap;
 }
 
@@ -622,7 +622,7 @@
 /* One tab's content; the tab bar above it keeps its own spacing. */
 .analytics__panel {
   display: grid;
-  gap: 14px;
+  gap: 0.875rem;
   align-content: start;
   min-width: 0;
 }
@@ -643,16 +643,16 @@
 .money-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .money-stat {
   display: grid;
   align-content: start;
-  gap: 4px;
+  gap: 0.25rem;
   min-width: 0;
   margin: 0;
-  padding: 14px;
+  padding: 0.875rem;
   font: inherit;
   color: inherit;
   text-align: left;
@@ -678,11 +678,11 @@
 }
 
 .money-stat--action .ui-stat__label {
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
 }
 
 .money-stat__action {
-  font-size: calc(15px * var(--text-scale));
+  font-size: calc(0.9375rem * var(--text-scale));
   font-weight: 700;
   color: var(--accent);
 }
@@ -698,20 +698,20 @@
 .analytics-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   font-variant-numeric: tabular-nums;
 }
 
 .analytics-table th,
 .analytics-table td {
-  padding: 9px 10px;
+  padding: 0.5625rem 0.625rem;
   vertical-align: middle;
   text-align: left;
 }
 
 .analytics-table th {
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -731,7 +731,7 @@
 
 .analytics-table__name {
   width: 100%;
-  min-width: 120px;
+  min-width: 7.5rem;
   max-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -746,7 +746,7 @@
 .analytics-table__num em {
   display: inline-block;
   min-width: 3.4em;
-  margin-left: 6px;
+  margin-left: 0.375rem;
   color: var(--muted);
   font-style: normal;
   font-size: 0.75rem;
@@ -755,27 +755,27 @@
 
 @container analytics (max-width: 540px) {
   .analytics-table {
-    font-size: calc(12px * var(--text-scale));
+    font-size: calc(0.75rem * var(--text-scale));
   }
 
   .analytics-table th,
   .analytics-table td {
-    padding: 8px 4px;
+    padding: 0.5rem 0.25rem;
   }
 
   .analytics-table__name {
-    min-width: 96px;
+    min-width: 6rem;
   }
 
   .analytics-table__num em {
     min-width: 0;
-    margin-left: 2px;
+    margin-left: 0.125rem;
   }
 }
 
 .analytics__tasks {
   display: grid;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .analytics-table__muted {
@@ -788,7 +788,7 @@
    is only as tall as its content, so the calendar never stretches. */
 .habits {
   display: grid;
-  gap: 14px;
+  gap: 0.875rem;
   align-items: start;
   min-width: 0;
 }
@@ -796,13 +796,13 @@
 .habits__main,
 .habits__side {
   display: grid;
-  gap: 12px;
+  gap: 0.75rem;
   align-content: start;
   min-width: 0;
 }
 
 .habits__card {
-  padding: 4px 16px;
+  padding: 0.25rem 1rem;
 }
 
 .habits__rows {
@@ -815,9 +815,9 @@
 
 .habits__row {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
-  padding: 12px 0;
+  padding: 0.75rem 0;
   border-top: 1px solid var(--line-soft);
 }
 
@@ -829,25 +829,25 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 0.625rem;
   min-width: 0;
 }
 
 .habits__name {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   min-width: 0;
   margin: 0;
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(0.875rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
 }
 
 .habits__dot {
   flex: none;
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 50%;
 }
 
@@ -861,10 +861,10 @@
 .habits__score {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.625rem;
   flex: none;
   margin: 0;
-  font-size: calc(13px * var(--text-scale));
+  font-size: calc(0.8125rem * var(--text-scale));
   color: var(--text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -873,21 +873,21 @@
 .habits__streak {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
   color: var(--muted);
 }
 
 /* One square per day shown; the columns are set inline so rows line up. */
 .habits__strip {
   display: grid;
-  gap: 4px;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .habits__cell {
   display: block;
   box-sizing: border-box;
-  height: 14px;
+  height: 0.875rem;
   min-width: 0;
   border-radius: calc(4px * var(--radius-scale));
   border: 1px solid transparent;
@@ -914,12 +914,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .habits__month {
   min-width: 0;
-  font-size: calc(15px * var(--text-scale));
+  font-size: calc(0.9375rem * var(--text-scale));
   font-weight: 600;
   color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -929,10 +929,10 @@
 
 .habits__calendar {
   display: grid;
-  gap: 10px;
+  gap: 0.625rem;
   align-content: start;
   margin: 0;
-  padding: 14px 16px;
+  padding: 0.875rem 1rem;
   min-width: 0;
 }
 
@@ -940,7 +940,7 @@
 .habits__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .habits__weekdays span {
@@ -1003,18 +1003,18 @@
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 4px;
+  gap: 0.25rem;
   font-size: 0.6875rem;
   color: var(--muted);
 }
 
 .habits__legend span {
-  padding: 0 2px;
+  padding: 0 0.125rem;
 }
 
 .habits__legend .habits__day {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   aspect-ratio: auto;
   border-radius: 3px;
 }
@@ -1022,11 +1022,11 @@
 .habits__stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .habits__note {
-  font-size: calc(11px * var(--text-scale));
+  font-size: calc(0.6875rem * var(--text-scale));
   color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1036,7 +1036,7 @@
 @container analytics (min-width: 900px) {
   .habits {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    column-gap: 20px;
+    column-gap: 1.25rem;
   }
 }
 
@@ -1048,20 +1048,20 @@
 .analytics__split,
 .analytics__area--lead {
   display: grid;
-  gap: 14px;
+  gap: 0.875rem;
   align-content: start;
   min-width: 0;
 }
 
 /* The project list and top tasks sit on cards, like the chart beside them. */
 .analytics__area--list {
-  padding: 6px;
+  padding: 0.375rem;
 }
 
 .analytics__area--tasks {
   display: grid;
-  gap: 12px;
-  padding: 16px;
+  gap: 0.75rem;
+  padding: 1rem;
 }
 
 .analytics__area--tasks .ui-section-label {
@@ -1071,7 +1071,7 @@
 @container analytics (min-width: 900px) {
   .analytics__split {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    column-gap: 20px;
+    column-gap: 1.25rem;
     align-items: start;
   }
 
@@ -1110,17 +1110,17 @@
 
 .analytics__charts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18.75rem), 1fr));
+  gap: 0.625rem;
 }
 
 .analytics-chart {
   display: grid;
-  gap: 8px;
+  gap: 0.5rem;
   align-content: start;
   margin: 0;
   min-width: 0;
-  padding: 12px;
+  padding: 0.75rem;
   border: 1px solid var(--line);
   border-radius: calc(16px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel-soft) 45%, transparent);
@@ -1150,7 +1150,7 @@
 
 .analytics-chart__axis text {
   fill: var(--muted);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
 }
@@ -1180,6 +1180,6 @@
 
 .analytics-chart__empty {
   margin: 0;
-  font-size: calc(12px * var(--text-scale));
+  font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
 }
