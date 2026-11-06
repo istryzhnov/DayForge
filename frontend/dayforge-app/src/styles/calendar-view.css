@@ -536,6 +536,15 @@
   flex-direction: column;
   gap: 6px;
   padding: 12px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+/* A block dragged over the panel: it takes the block back to Unscheduled. */
+.calendar-view__unscheduled.is-drop-target {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .calendar-view__unscheduled-head {
@@ -1024,6 +1033,12 @@
 
 .calendar-week__grid {
   position: relative;
+}
+
+/* A week column is narrow, so its draft keeps the same inset the events do. */
+.calendar-week__draft {
+  left: 2px;
+  right: 2px;
 }
 
 .cal-past-shade {

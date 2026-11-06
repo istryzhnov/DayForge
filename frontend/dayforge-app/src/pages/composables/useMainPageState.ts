@@ -29,6 +29,7 @@ import {
   startTour,
   tourEvent,
 } from '../../features/onboarding/composables/useTour'
+import { useToday } from '../../composables/goalSpace/today'
 import { useTimer } from '../../composables/useTimer'
 import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
@@ -213,6 +214,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.dailyTasks.value.filter(
       (task) => task.date === goalSpace.currentDate.value,
     ),
+  )
+
+  /** Today's rows: the calendar's Unscheduled list shows them while a later day is on screen. */
+  const today = useToday()
+  const todayTasks = computed(() =>
+    goalSpace.dailyTasks.value.filter((task) => task.date === today.value),
   )
 
   // --- reminders, colours and backups ------------------------------------
@@ -601,25 +608,43 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.updateTaskRate(templateId, hourlyRate)
   }
 
+  /** A block drawn on the calendar belongs to no project, on the day it was drawn. */
   function handleCreateScheduledTask(payload: {
     title: string
     startTime: string
     endTime: string
+    date?: ISODate
   }) {
     tourEvent('block-created')
+    const date = payload.date ?? goalSpace.currentDate.value
     goalSpace.addTask(
-      goalSpace.activeGoalId.value ?? undefined,
+      undefined,
       payload.title,
       settings.behavior.defaultPriority,
       {
-        date: goalSpace.currentDate.value,
+        date,
         startTime: payload.startTime,
         endTime: payload.endTime,
         recurrence: {
           type: RECURRENCE_TYPE.NONE,
-          startDate: goalSpace.currentDate.value,
+          startDate: date,
         },
       },
+    )
+  }
+
+  /** A block moved to another hour, or dropped onto a later day's grid. */
+  function handleScheduleCalendarBlock(payload: {
+    taskId: ID
+    startTime: string
+    endTime: string
+    date?: ISODate
+  }) {
+    goalSpace.scheduleDailyTaskOn(
+      payload.taskId,
+      payload.date ?? goalSpace.currentDate.value,
+      payload.startTime,
+      payload.endTime,
     )
   }
 
@@ -640,6 +665,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     isFirstRun,
     createFirstProject,
     tasksForCurrentDate,
+    todayTasks,
     goalVarsById,
     plannedTasks: plannedView.plannedTasks,
     plannedCount: plannedView.plannedCount,
@@ -698,5 +724,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     handleSetBoardStage,
     handleClearBoardDone,
     handleSetTaskRate,
+    handleScheduleCalendarBlock,
   }
 }

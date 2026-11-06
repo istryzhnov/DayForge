@@ -48,6 +48,7 @@ import {
   ensureDailyTaskForTemplate,
   ensureTodaySnapshot,
   migrateDailyTasks,
+  moveRowToDay,
   touchRow,
 } from './goalSpace/dailyTasks'
 import { useTombstones } from './useTombstones'
@@ -629,6 +630,30 @@ export function useGoalSpace() {
     touchRow(task, DAILY_FIELD_GROUPS.TIME)
   }
 
+  /**
+   * A block dropped on another day: the row moves there with the new time. On
+   * the same day it is just a retime. Refused when the task cannot change day.
+   */
+  function scheduleDailyTaskOn(
+    dailyTaskId: ID,
+    date: ISODate,
+    startTime: string,
+    endTime: string,
+  ) {
+    const row = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    if (!row) return
+    if (row.date === date) {
+      scheduleDailyTask(dailyTaskId, startTime, endTime)
+      return
+    }
+
+    const template = taskTemplates.value.find(
+      (item) => item.id === row.templateId,
+    )
+    if (!template) return
+    moveRowToDay(template, row, dailyTasks.value, date, startTime, endTime)
+  }
+
   function unscheduleDailyTask(dailyTaskId: ID) {
     const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
     if (!task) return
@@ -843,6 +868,7 @@ export function useGoalSpace() {
     activeMajorTemplates,
     addMinorInAllMode,
     scheduleDailyTask,
+    scheduleDailyTaskOn,
     unscheduleDailyTask,
     updateTaskSchedule,
     goToPreviousDay,

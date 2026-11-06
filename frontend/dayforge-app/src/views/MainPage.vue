@@ -87,7 +87,6 @@ const {
   taskCountByGoal,
   dailyTasks,
   currentDate,
-  scheduleDailyTask,
   unscheduleDailyTask,
   goToPreviousDay,
   goToNextDay,
@@ -104,6 +103,7 @@ const {
   closeStarter,
   handleApplyStarter,
   tasksForCurrentDate,
+  todayTasks,
   goalVarsById,
   plannedTasks,
   plannedCount,
@@ -139,6 +139,7 @@ const {
   handleAssignTaskToGoal,
   handleCreateAllModeMinor,
   handleCreateScheduledTask,
+  handleScheduleCalendarBlock,
   handleEditTask,
   handleEditNotes,
   handleScheduleTask,
@@ -395,6 +396,7 @@ function handleSearchSelect(result: SearchResult) {
         <CalendarView
           v-else
           :tasks="tasksForCurrentDate"
+          :today-tasks="todayTasks"
           :current-date="currentDate"
           :project-options="majorTaskOptions"
           :daily-tasks="dailyTasks"
@@ -405,14 +407,7 @@ function handleSearchSelect(result: SearchResult) {
           @next-day="goToNextDay"
           @today="goToToday"
           @select-date="goToDate"
-          @schedule-task="
-            (payload) =>
-              scheduleDailyTask(
-                payload.taskId,
-                payload.startTime,
-                payload.endTime,
-              )
-          "
+          @schedule-task="handleScheduleCalendarBlock"
           @unschedule-task="unscheduleDailyTask"
           @create-task="handleCreateScheduledTask"
           @toggle-task-done="handleToggleDone"

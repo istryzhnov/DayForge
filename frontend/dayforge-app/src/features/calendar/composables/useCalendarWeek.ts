@@ -19,7 +19,9 @@ import {
 } from './useCalendarGrid'
 import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
 import { useSettings } from '../../../composables/useSettings'
+import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { useCalendarFilter } from './useCalendarFilter'
+import { useCalendarDraft, type CreateTaskPayload } from './useCalendarDraft'
 import {
   formatCalendarWeekday,
   formatCalendarWeekTitle,
@@ -52,6 +54,7 @@ type WeekOptions = {
   getTemplates: () => TaskTemplate[]
   getDailyTasks: () => DailyTask[]
   getCurrentDate: () => ISODate
+  onCreate: (payload: CreateTaskPayload) => void
 }
 
 export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
@@ -62,6 +65,21 @@ export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
 export function useCalendarWeek(options: WeekOptions) {
   const { settings } = useSettings()
   const { isGoalVisible } = useCalendarFilter()
+  const isCoarsePointer = useIsCoarsePointer()
+
+  // Each day column is its own grid, so a draft names the column it is drawn in.
+  const draft = useCalendarDraft({
+    isCoarsePointer: () => isCoarsePointer.value,
+    onCreate: options.onCreate,
+  })
+
+  function onColumnPointerDown(event: PointerEvent, date: ISODate) {
+    draft.onGridPointerDown(event, event.currentTarget as HTMLElement, date)
+  }
+
+  function onColumnTap(event: MouseEvent, date: ISODate) {
+    draft.onGridTap(event, event.currentTarget as HTMLElement, date)
+  }
 
   // Follows `currentDate` until the user pages to another week.
   const weekAnchor = ref<ISODate | null>(null)
@@ -160,5 +178,8 @@ export function useCalendarWeek(options: WeekOptions) {
     goToPreviousWeek,
     goToNextWeek,
     goToThisWeek,
+    draft,
+    onColumnPointerDown,
+    onColumnTap,
   }
 }
