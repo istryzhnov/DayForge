@@ -443,7 +443,7 @@ export function verifyTourChapters() {
       ]),
       'task-added',
       { scheduled: true },
-    ).step === 'sched-end',
+    ).step === 'sched-planned',
   )
 
   const atDrag = play(freshTourState('calendar'), [
@@ -466,10 +466,24 @@ export function verifyTourChapters() {
   )
 
   check(
-    'a timer mode change advances the mode step',
+    'the timer chapter starts with starting the timer, not the modes',
     reduceTour(freshTourState('timer'), 'view-opened', {
       view: 'timer',
-    }).step === 'timer-mode',
+    }).step === 'timer-start',
+  )
+  check(
+    'the mode step comes after starting and stopping the timer',
+    play(freshTourState('timer'), [
+      ['view-opened', { view: 'timer' }],
+      ['timer-started', {}],
+      ['timer-stopped', {}],
+    ]).step === 'timer-mode',
+  )
+  check(
+    'the drawing and dragging steps need the day view',
+    TOUR_STEPS.filter(
+      (step) => step.id === 'cal-drag' || step.id === 'cal-block',
+    ).every((step) => step.calendarView === 'day'),
   )
   check(
     'the Money tab is needed, not the Habits tab',

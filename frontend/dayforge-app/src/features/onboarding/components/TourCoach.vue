@@ -55,9 +55,13 @@ const resolved = ref(false)
 /** The step's control, when it can be seen. Null docks the bubble instead. */
 function resolve(): CoachTarget | null {
   resolved.value = true
-  covered.value = dialogOpen()
   const step = currentStep.value
   const tourState = state.value
+  // A bubble waits under an open dialog, and out of the way of a panel its control opens.
+  covered.value =
+    dialogOpen() ||
+    (step?.hideWhileOpen !== undefined &&
+      document.querySelector(step.hideWhileOpen) !== null)
   if (!step || !tourState || !bubbleOpen.value || covered.value) return null
   if (!step.anchor) return null
   const selector =
