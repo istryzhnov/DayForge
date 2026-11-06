@@ -14,9 +14,15 @@ import {
   isOvernight,
   segmentForDay,
 } from '../../../composables/goalSpace/overnight'
-import { addDaysToISODate } from '../../../composables/goalSpace/date'
+import {
+  addDaysToISODate,
+  getTodayISODate,
+} from '../../../composables/goalSpace/date'
 import { layoutOverlaps } from './overlapLayout'
-import { useCalendarDragDrop } from './useCalendarDragDrop'
+import {
+  useCalendarDragDrop,
+  type SchedulePayload,
+} from './useCalendarDragDrop'
 import { useCalendarDraft } from './useCalendarDraft'
 import { useCalendarSelection } from './useCalendarSelection'
 import { useCalendarFilter } from './useCalendarFilter'
@@ -37,6 +43,8 @@ export type DayBlock = {
 
 type DayViewProps = {
   tasks: DailyTask[]
+  /** Today's rows. A later day's Unscheduled list offers the open ones. */
+  todayTasks: DailyTask[]
   /** Whole-history rows, so yesterday's overnight tasks can be drawn past midnight. */
   dailyTasks: DailyTask[]
   currentDate: ISODate
@@ -44,11 +52,7 @@ type DayViewProps = {
 }
 
 type DayViewActions = {
-  onSchedule: (payload: {
-    taskId: ID
-    startTime: string
-    endTime: string
-  }) => void
+  onSchedule: (payload: SchedulePayload) => void
   onUnschedule: (taskId: ID) => void
   onCreate: (payload: {
     title: string
@@ -127,22 +131,48 @@ export function useCalendarDayView(
     )
   })
 
-  const unscheduledTasks = computed(() =>
-    props.tasks.filter(
+  /** A later day has no list of its own for today's open work, so it borrows today's. */
+  const isLaterDay = computed(() => props.currentDate > getTodayISODate())
+
+  const unscheduledTasks = computed(() => {
+    const pool = [...props.tasks]
+    if (isLaterDay.value) {
+      // A habit has a row on each day it repeats; this day's own row wins.
+      props.todayTasks.forEach((task) => {
+        if (!props.tasks.some((item) => item.templateId === task.templateId)) {
+          pool.push(task)
+        }
+      })
+    }
+
+    return pool.filter(
       (task) =>
         !task.startTime &&
         task.priority !== PRIORITY.MAJOR &&
         task.status !== TASK_STATUS.DONE &&
         isGoalVisible(task.goalId),
-    ),
-  )
+    )
+  })
+
+  /** A row on this day, or one of today's rows that a later day borrows. */
+  function findTask(taskId: ID) {
+    return (
+      props.tasks.find((task) => task.id === taskId) ??
+      (isLaterDay.value
+        ? props.todayTasks.find((task) => task.id === taskId)
+        : undefined)
+    )
+  }
 
   const selection = useCalendarSelection({ getTasks: () => props.tasks })
 
   const dragDrop = useCalendarDragDrop({
     getGridElement: () => gridRef.value,
-    findTask: (taskId) => props.tasks.find((task) => task.id === taskId),
+    getUnscheduledElement: () => unscheduledRef.value,
+    getCurrentDate: () => props.currentDate,
+    findTask,
     onSchedule: actions.onSchedule,
+    onUnschedule: actions.onUnschedule,
     getBottomInset: bottomInset,
   })
 
@@ -198,7 +228,7 @@ export function useCalendarDayView(
     const preview = dragDrop.touchDrag.value
     if (!preview?.isNewlyScheduled) return null
 
-    const task = props.tasks.find((item) => item.id === preview.taskId)
+    const task = findTask(preview.taskId)
     if (!task) return null
 
     return {

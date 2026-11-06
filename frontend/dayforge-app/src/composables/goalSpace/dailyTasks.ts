@@ -1,5 +1,5 @@
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
-import type { ID, ISODate } from '../../entities/types'
+import type { ID, ISODate, TimeOfDay } from '../../entities/types'
 import { TASK_KIND_BY_SCHEDULE, TASK_STATUS } from '../../entities/constants'
 import {
   addDaysToISODate,
@@ -7,7 +7,7 @@ import {
   getTodayISODate,
   instantToLocalISODate,
 } from './date'
-import { occursOn, scheduleKindOf } from './recurrence'
+import { isAnnual, occursOn, scheduleKindOf } from './recurrence'
 import { isOvernight } from './overnight'
 import { useSettings } from '../useSettings'
 import { DAILY_FIELD_GROUPS, type DailyFieldGroup } from '../../sync/merge'
@@ -36,6 +36,47 @@ export function moveRowToDate(row: DailyTask, date: ISODate) {
   row.date = date
   row.id = dailyTaskId(row.templateId, date)
   touchRow(row, DAILY_FIELD_GROUPS.DATE)
+}
+
+/**
+ * Puts a row on another day with its own time. Only an open task (no rule) or a
+ * one-off planned task can change day: a repeating one would bring this
+ * occurrence back on its old day the next time that day is shown. A one-off
+ * task's date moves with the row. Returns false, changing nothing, when the
+ * task cannot move or the day already has a row for it.
+ */
+export function moveRowToDay(
+  template: TaskTemplate,
+  row: DailyTask,
+  dailyTasks: DailyTask[],
+  date: ISODate,
+  startTime: TimeOfDay,
+  endTime: TimeOfDay,
+): boolean {
+  const kind = scheduleKindOf(template)
+  if (kind === TASK_KIND_BY_SCHEDULE.RECURRING) return false
+  if (kind === TASK_KIND_BY_SCHEDULE.PLANNED && isAnnual(template)) return false
+  if (dailyTasks.some((item) => item.id === dailyTaskId(template.id, date))) {
+    return false
+  }
+
+  if (kind === TASK_KIND_BY_SCHEDULE.PLANNED) {
+    template.recurrence = { ...template.recurrence!, startDate: date }
+    template.updatedAt = new Date().toISOString()
+  }
+
+  moveRowToDate(row, date)
+  row.startTime = startTime
+  row.endTime = endTime
+  // Link to the parent row of the day it lands on, as reattachToParentsOfDay does.
+  row.parentDailyTaskId = template.parentTemplateId
+    ? dailyTasks.find(
+        (item) =>
+          item.templateId === template.parentTemplateId && item.date === date,
+      )?.id
+    : undefined
+  touchRow(row, DAILY_FIELD_GROUPS.TIME)
+  return true
 }
 
 /** Later wins; a finished day always beats an unfinished one. */

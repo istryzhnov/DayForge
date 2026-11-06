@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
-import type { ID } from '../../../entities/types'
+import type { ID, ISODate } from '../../../entities/types'
 import type { GesturePoint } from '../../../composables/usePressGesture'
 import { tourEvent } from '../../onboarding/composables/useTour'
 import {
@@ -16,6 +16,8 @@ export type SchedulePayload = {
   taskId: ID
   startTime: string
   endTime: string
+  /** The day on screen, which a task from another day is moved to. */
+  date?: ISODate
 }
 
 export type TouchDragPreview = {
@@ -28,8 +30,12 @@ export type TouchDragPreview = {
 
 type DragDropOptions = {
   getGridElement: () => HTMLElement | null
+  /** The unscheduled panel, which takes a block back when it is dropped there. */
+  getUnscheduledElement: () => HTMLElement | null
+  getCurrentDate: () => ISODate
   findTask: (taskId: ID) => DailyTask | undefined
   onSchedule: (payload: SchedulePayload) => void
+  onUnschedule: (taskId: ID) => void
   getBottomInset?: () => number
 }
 
@@ -37,9 +43,24 @@ type DragDropOptions = {
 const AUTO_SCROLL_EDGE_PX = 72
 const AUTO_SCROLL_STEP_PX = 12
 
+function pointIsOver(element: HTMLElement | null, point: GesturePoint) {
+  if (!element) return false
+  const rect = element.getBoundingClientRect()
+  return (
+    point.x >= rect.left &&
+    point.x <= rect.right &&
+    point.y >= rect.top &&
+    point.y <= rect.bottom
+  )
+}
+
 export function useCalendarDragDrop(options: DragDropOptions) {
   const grabOffsetMinutes = ref(0)
   const touchDrag = ref<TouchDragPreview | null>(null)
+  /** A block is hovering the unscheduled panel, which lights up to take it. */
+  const isOverUnscheduled = ref(false)
+  /** The native drag in progress is a block, not a row from the unscheduled list. */
+  let isBlockDrag = false
 
   let autoScrollTimerId: number | undefined
 
@@ -52,6 +73,7 @@ export function useCalendarDragDrop(options: DragDropOptions) {
       taskId: task.id,
       startTime: timeFromMinutes(startMin),
       endTime: timeFromMinutes(endMin),
+      date: options.getCurrentDate(),
     })
     // A task with no time yet came from Unscheduled; a block being moved already had one.
     tourEvent('task-timed', { taskId: task.id, fromList: !task.startTime })
@@ -62,6 +84,7 @@ export function useCalendarDragDrop(options: DragDropOptions) {
   function onDragStartFromList(event: DragEvent, taskId: ID) {
     event.dataTransfer?.setData('text/plain', taskId)
     grabOffsetMinutes.value = 0
+    isBlockDrag = false
   }
 
   function onBlockDragStart(payload: {
@@ -69,10 +92,39 @@ export function useCalendarDragDrop(options: DragDropOptions) {
     grabOffsetMinutes: number
   }) {
     grabOffsetMinutes.value = payload.grabOffsetMinutes
+    isBlockDrag = true
   }
 
   function onGridDragOver(event: DragEvent) {
     event.preventDefault()
+  }
+
+  /** Only a block can be dropped back on Unscheduled; a list row is refused. */
+  function onUnscheduledDragOver(event: DragEvent) {
+    if (!isBlockDrag) return
+    event.preventDefault()
+    isOverUnscheduled.value = true
+  }
+
+  function onUnscheduledDragLeave(event: DragEvent) {
+    const panel = event.currentTarget as HTMLElement
+    // Moving between the panel's own children is not leaving it.
+    if (
+      event.relatedTarget instanceof Node &&
+      panel.contains(event.relatedTarget)
+    ) {
+      return
+    }
+    isOverUnscheduled.value = false
+  }
+
+  function onUnscheduledDrop(event: DragEvent) {
+    event.preventDefault()
+    isOverUnscheduled.value = false
+    if (!isBlockDrag) return
+
+    const taskId = event.dataTransfer?.getData('text/plain') as ID | undefined
+    if (taskId) options.onUnschedule(taskId)
   }
 
   function onGridDrop(event: DragEvent) {
@@ -151,12 +203,23 @@ export function useCalendarDragDrop(options: DragDropOptions) {
     if (!touchDrag.value) return
     applyPreview(point)
     updateAutoScroll(point)
+    isOverUnscheduled.value =
+      !touchDrag.value.isNewlyScheduled &&
+      pointIsOver(options.getUnscheduledElement(), point)
   }
 
   function endTouchDrag(point: GesturePoint) {
     const current = touchDrag.value
     stopAutoScroll()
+    isOverUnscheduled.value = false
     if (!current) return
+
+    // Released over Unscheduled: a block goes back there, a list row stays put.
+    if (pointIsOver(options.getUnscheduledElement(), point)) {
+      touchDrag.value = null
+      if (!current.isNewlyScheduled) options.onUnschedule(current.taskId)
+      return
+    }
 
     applyPreview(point)
     const startMin = touchDrag.value?.startMin ?? current.startMin
@@ -176,10 +239,14 @@ export function useCalendarDragDrop(options: DragDropOptions) {
   return {
     touchDrag,
     draggingTaskId,
+    isOverUnscheduled,
     onDragStartFromList,
     onBlockDragStart,
     onGridDragOver,
     onGridDrop,
+    onUnscheduledDragOver,
+    onUnscheduledDragLeave,
+    onUnscheduledDrop,
     beginTouchDrag,
     updateTouchDrag,
     endTouchDrag,

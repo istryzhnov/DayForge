@@ -17,6 +17,7 @@ import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
 import { tourEvent } from '../../onboarding/composables/useTour'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
 import CalendarFilterPopover from './CalendarFilterPopover.vue'
+import CalendarDraftForm from './CalendarDraftForm.vue'
 import EventDetailsPanel from './EventDetailsPanel.vue'
 import {
   gridHeightPx,
@@ -31,6 +32,7 @@ import {
 } from '../composables/useCalendarDayView'
 import { useCalendarWeek } from '../composables/useCalendarWeek'
 import { useCalendarMonth } from '../composables/useCalendarMonth'
+import type { CreateTaskPayload } from '../composables/useCalendarDraft'
 import { useTimer } from '../../../composables/useTimer'
 import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 import { useCalendarNow } from '../composables/useCalendarNow'
@@ -39,6 +41,8 @@ import { blockFromTask } from '../../../composables/timer/plannedBlocks'
 
 const props = defineProps<{
   tasks: DailyTask[]
+  /** Today's rows; a later day's Unscheduled list offers their open ones. */
+  todayTasks: DailyTask[]
   currentDate: ISODate
   projectOptions: MajorTaskOption[]
   /** Whole-history rows and rules — the month view projects from both. */
@@ -55,13 +59,10 @@ const emit = defineEmits<{
   (e: 'today'): void
   (
     e: 'schedule-task',
-    payload: { taskId: ID; startTime: string; endTime: string },
+    payload: { taskId: ID; startTime: string; endTime: string; date?: ISODate },
   ): void
   (e: 'unschedule-task', taskId: ID): void
-  (
-    e: 'create-task',
-    payload: { title: string; startTime: string; endTime: string },
-  ): void
+  (e: 'create-task', payload: CreateTaskPayload): void
   (e: 'toggle-task-done', taskId: ID): void
   (e: 'edit-task', templateId: ID, title: string): void
   (e: 'edit-notes', templateId: ID, notes: string): void
@@ -93,6 +94,10 @@ const {
   onGridDragOver,
   onGridDrop,
   cancelTouchDrag,
+  isOverUnscheduled,
+  onUnscheduledDragOver,
+  onUnscheduledDragLeave,
+  onUnscheduledDrop,
   draftRange,
   showDraftForm,
   draftTitle,
@@ -154,6 +159,7 @@ const week = useCalendarWeek({
   getTemplates: () => props.templates,
   getDailyTasks: () => props.dailyTasks,
   getCurrentDate: () => props.currentDate,
+  onCreate: (payload) => emit('create-task', payload),
 })
 
 const month = useCalendarMonth({
@@ -386,32 +392,12 @@ function iconFor(goalId: ID | undefined) {
                 )
               "
             >
-              <form
+              <CalendarDraftForm
                 v-if="showDraftForm"
-                class="calendar-view__draft-form"
-                @submit.prevent="submitDraft"
-              >
-                <input
-                  v-model="draftTitle"
-                  type="text"
-                  :aria-label="t('calendar.taskTitlePlaceholder')"
-                  :placeholder="t('calendar.taskTitlePlaceholder')"
-                  autofocus
-                  @keydown.esc="cancelDraft"
-                />
-                <div class="calendar-view__draft-actions">
-                  <button type="submit" class="btn btn-primary">
-                    {{ t('calendar.add') }}
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-ghost"
-                    @click="cancelDraft"
-                  >
-                    {{ t('calendar.cancel') }}
-                  </button>
-                </div>
-              </form>
+                v-model="draftTitle"
+                @submit="submitDraft"
+                @cancel="cancelDraft"
+              />
             </div>
           </div>
         </div>
@@ -419,7 +405,11 @@ function iconFor(goalId: ID | undefined) {
         <aside
           ref="unscheduledRef"
           class="ui-card calendar-view__unscheduled"
+          :class="{ 'is-drop-target': isOverUnscheduled }"
           data-tip-anchor="calendar-unscheduled"
+          @dragover="onUnscheduledDragOver"
+          @dragleave="onUnscheduledDragLeave"
+          @drop="onUnscheduledDrop"
         >
           <div class="calendar-view__unscheduled-head">
             <p class="ui-section-label">{{ t('calendar.unscheduled') }}</p>

@@ -11,10 +11,13 @@ import {
   gridStyle,
   hourLineStyle,
   HOURS,
+  pxPerMinute,
 } from '../composables/useCalendarGrid'
+import type { DraftRange } from '../composables/useCalendarDraft'
 import { useFormat } from '../../../composables/useFormat'
 import { useCalendarNow } from '../composables/useCalendarNow'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
+import CalendarDraftForm from './CalendarDraftForm.vue'
 
 const { formatTime } = useFormat()
 
@@ -35,7 +38,15 @@ const emit = defineEmits<{
   (e: 'open-day', date: ISODate): void
 }>()
 
-const { days, weekSummary } = props.week
+const { days, weekSummary, onColumnPointerDown, onColumnTap } = props.week
+const {
+  draftRange,
+  draftDate,
+  showDraftForm,
+  draftTitle,
+  submitDraft,
+  cancelDraft,
+} = props.week.draft
 
 const { t } = useI18n()
 
@@ -43,6 +54,14 @@ const { nowTopPx } = useCalendarNow(() => props.currentDate)
 
 function iconFor(goalId: ID | undefined) {
   return goalId ? props.goalIconById[goalId] : undefined
+}
+
+/** Same minimum height as the day view's draft, so the form always fits. */
+function draftStyle(range: DraftRange) {
+  return {
+    top: `${range.startMin * pxPerMinute()}px`,
+    height: `${Math.max((range.endMin - range.startMin) * pxPerMinute(), 20)}px`,
+  }
 }
 
 /** A block carries its project's colours first, then its position. */
@@ -108,7 +127,12 @@ function eventStyle(event: PositionedEvent) {
             </span>
           </button>
 
-          <div class="calendar-week__grid" :style="gridStyle(gridHeightPx)">
+          <div
+            class="calendar-week__grid"
+            :style="gridStyle(gridHeightPx)"
+            @pointerdown="onColumnPointerDown($event, day.date)"
+            @click="onColumnTap($event, day.date)"
+          >
             <div
               v-for="hour in HOURS"
               :key="hour"
@@ -151,6 +175,19 @@ function eventStyle(event: PositionedEvent) {
                 />{{ event.title }}
               </span>
             </button>
+
+            <div
+              v-if="draftRange && draftDate === day.date"
+              class="calendar-view__draft calendar-week__draft"
+              :style="draftStyle(draftRange)"
+            >
+              <CalendarDraftForm
+                v-if="showDraftForm"
+                v-model="draftTitle"
+                @submit="submitDraft"
+                @cancel="cancelDraft"
+              />
+            </div>
           </div>
 
           <!-- Untimed work would have nowhere to sit on the grid. -->

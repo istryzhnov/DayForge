@@ -38,7 +38,7 @@ import {
   verifyTimerReminders,
   verifyTimerHistoryLabels,
 } from './compat/timer'
-import { verifyCalendarTitles } from './compat/calendar'
+import { verifyCalendarTitles, verifyMoveRowToDay } from './compat/calendar'
 import { verifyGoalReorder } from './compat/reorder'
 import {
   verifyTourChapters,
@@ -96,6 +96,7 @@ function main() {
   verifyMoneyTab()
   verifyTimerHistoryLabels()
   verifyCalendarTitles()
+  verifyMoveRowToDay()
   verifyDayLists()
   verifyHabitStrip()
   verifyPrimaryButtonContrast()
