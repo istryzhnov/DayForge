@@ -52,7 +52,6 @@ export type TourStepId =
   | 'sched-when'
   | 'sched-repeat'
   | 'sched-add'
-  | 'sched-end'
   | 'sched-planned'
   | 'scheduling-finish'
   // Calendar
@@ -119,6 +118,10 @@ export interface TourStep {
   anchor: ((state: TourState) => string) | string | null
   /** What "Show me" does when the control is off screen. */
   offscreen?: TourOffscreen
+  /** The calendar view the step needs; the calendar switches to it when the step starts. */
+  calendarView?: 'day' | 'week' | 'month'
+  /** A panel the control opens: the bubble waits while it is open, so it never covers it. */
+  hideWhileOpen?: string
   doneOn: TourEvent | null
   /** Only this event counts, e.g. the right project or the tracked card. */
   check?: (payload: TourEventPayload, state: TourState) => boolean
@@ -392,15 +395,6 @@ const SCHEDULING_STEPS: readonly TourStep[] = [
     doneOn: 'task-added',
     check: (payload) => payload.scheduled === true,
   },
-  info(
-    'sched-end',
-    {
-      titleKey: 'onboarding.tourSchedEndTitle',
-      bodyKey: 'onboarding.tourSchedEndBody',
-    },
-    anchorTo('composer-times'),
-    'view:goals',
-  ),
   {
     id: 'sched-planned',
     sidebar: true,
@@ -441,6 +435,7 @@ const CALENDAR_STEPS: readonly TourStep[] = [
     touchBodyKey: 'onboarding.tourCalDragTouchBody',
     anchor: anchorTo('calendar-unscheduled'),
     offscreen: 'view:calendar',
+    calendarView: 'day',
     doneOn: 'task-timed',
     // Only a task taken from Unscheduled counts, not a block being moved.
     check: (payload) => payload.fromList === true,
@@ -453,17 +448,21 @@ const CALENDAR_STEPS: readonly TourStep[] = [
     bodyKey: 'onboarding.tourCalBlockBody',
     anchor: anchorTo('calendar-grid'),
     offscreen: 'view:calendar',
+    // Blocks are drawn on the day grid only.
+    calendarView: 'day',
     doneOn: 'block-created',
   },
-  info(
-    'cal-filter',
-    {
-      titleKey: 'onboarding.tourCalFilterTitle',
-      bodyKey: 'onboarding.tourCalFilterBody',
-    },
-    anchorTo('calendar-filter'),
-    'view:calendar',
-  ),
+  {
+    id: 'cal-filter',
+    // Above the filter, so the popover that opens below it stays uncovered.
+    placement: 'top',
+    titleKey: 'onboarding.tourCalFilterTitle',
+    bodyKey: 'onboarding.tourCalFilterBody',
+    anchor: anchorTo('calendar-filter'),
+    offscreen: 'view:calendar',
+    hideWhileOpen: '.calendar-filter__panel',
+    doneOn: 'next',
+  },
   chapterFinish('calendar-finish'),
 ]
 
@@ -480,14 +479,6 @@ const TIMER_STEPS: readonly TourStep[] = [
     check: (payload) => payload.view === 'timer',
   },
   {
-    id: 'timer-mode',
-    titleKey: 'onboarding.tourTimerModeTitle',
-    bodyKey: 'onboarding.tourTimerModeBody',
-    anchor: anchorTo('timer-mode'),
-    offscreen: 'view:timer',
-    doneOn: 'timer-mode-changed',
-  },
-  {
     id: 'timer-start',
     titleKey: 'onboarding.tourTimerStartTitle',
     bodyKey: 'onboarding.tourTimerStartBody',
@@ -502,6 +493,14 @@ const TIMER_STEPS: readonly TourStep[] = [
     anchor: anchorTo('timer-controls'),
     offscreen: 'view:timer',
     doneOn: 'timer-stopped',
+  },
+  {
+    id: 'timer-mode',
+    titleKey: 'onboarding.tourTimerModeTitle',
+    bodyKey: 'onboarding.tourTimerModeBody',
+    anchor: anchorTo('timer-mode'),
+    offscreen: 'view:timer',
+    doneOn: 'timer-mode-changed',
   },
   info(
     'timer-history',
