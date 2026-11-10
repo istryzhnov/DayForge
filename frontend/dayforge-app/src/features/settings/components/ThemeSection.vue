@@ -7,13 +7,11 @@ const { t } = useI18n()
 
 const {
   presets,
-  themeStyle,
   themeMode,
   accent,
   modeAdvice,
   presetDots,
   isPresetActive,
-  setThemeStyle,
   setThemeMode,
   applyPreset,
   resetAll,
@@ -22,30 +20,6 @@ const {
 
 <template>
   <div class="settings-section">
-    <p class="ui-section-label ui-section-label--wrap">
-      {{ t('settings.themeStyle') }}
-    </p>
-    <div class="ui-tabs" role="group" :aria-label="t('settings.themeStyle')">
-      <button
-        class="ui-tab"
-        :class="{ 'is-active': themeStyle === 'vivid' }"
-        type="button"
-        :aria-pressed="themeStyle === 'vivid'"
-        @click="setThemeStyle('vivid')"
-      >
-        {{ t('settings.themeStyleFresh') }}
-      </button>
-      <button
-        class="ui-tab"
-        :class="{ 'is-active': themeStyle === 'minimal' }"
-        type="button"
-        :aria-pressed="themeStyle === 'minimal'"
-        @click="setThemeStyle('minimal')"
-      >
-        {{ t('settings.themeStyleMinimal') }}
-      </button>
-    </div>
-
     <p class="ui-section-label ui-section-label--wrap">
       {{ t('settings.themeMode') }}
     </p>
