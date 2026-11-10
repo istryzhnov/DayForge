@@ -2,7 +2,13 @@ import { computed, ref, watch, type Ref } from 'vue'
 import { useAuth } from '../../../composables/useAuth'
 import { useSettings, type StartView } from '../../../composables/useSettings'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
+import { i18n } from '../../../i18n'
 import { startTour } from './useTour'
+import {
+  findTemplate,
+  templatesFor,
+  type WelcomeTemplateId,
+} from './welcomeTemplates'
 
 /**
  * Sign-in leaves the app for Google and comes back to it, so the choice made
@@ -14,6 +20,7 @@ const PENDING_KEY = 'dayforge-welcome-pending'
 export type WelcomeStep = 1 | 2 | 3
 export type AccountChoice = 'signin' | 'signup' | 'local'
 export type UseChoice = 'plan' | 'track' | 'freelance'
+export type StartMode = 'blank' | 'template'
 
 /** Whether the card is on screen. */
 export const welcomeOpen = ref(false)
@@ -163,8 +170,12 @@ export function useWelcomeStart(
 
 interface WelcomeCallbacks {
   selectView: (view: StartView) => void
-  createProject: (title: string, color: string, select: boolean) => void
-  useTemplate: () => void
+  createProject: (
+    title: string,
+    color: string,
+    select: boolean,
+    templateId: WelcomeTemplateId | null,
+  ) => void
 }
 
 /** Step state and actions of the card. Created each time the card opens. */
@@ -177,12 +188,20 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
   const useChoice = ref<UseChoice | null>(null)
   const projectName = ref('')
   const projectColor = ref<string>(GOAL_COLOR_PRESETS[0])
+  const startMode = ref<StartMode>('blank')
+  const templateId = ref<WelcomeTemplateId>('rhythm')
+  const templates = computed(() => templatesFor(useChoice.value))
+  const template = computed(() => findTemplate(templateId.value))
+  /** What an empty name field becomes: the template's own name. */
+  const templateName = computed(() => i18n.global.t(template.value.nameKey))
 
   const canContinue = computed(() =>
     step.value === 1 ? account.value !== null : useChoice.value !== null,
   )
 
-  const canCreate = computed(() => projectName.value.trim() !== '')
+  const canCreate = computed(
+    () => startMode.value === 'template' || projectName.value.trim() !== '',
+  )
 
   function back() {
     if (step.value > 1) step.value = (step.value - 1) as WelcomeStep
@@ -217,24 +236,24 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
     if (step.value === 2) {
       if (!useChoice.value) return
       applyUse(useChoice.value)
+      templateId.value = templates.value[0].id
       step.value = 3
     }
   }
 
   function createProject() {
-    const title = projectName.value.trim()
+    const fromTemplate = startMode.value === 'template'
+    const title =
+      projectName.value.trim() || (fromTemplate ? templateName.value : '')
     if (!title) return
     callbacks.createProject(
       title,
       projectColor.value,
-      useChoice.value === 'plan',
+      // A template's tasks are worth seeing straight away.
+      fromTemplate || useChoice.value === 'plan',
+      fromTemplate ? templateId.value : null,
     )
     markDone(true)
-  }
-
-  function useTemplate() {
-    markDone(true)
-    callbacks.useTemplate()
   }
 
   return {
@@ -243,6 +262,11 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
     useChoice,
     projectName,
     projectColor,
+    startMode,
+    templateId,
+    templates,
+    template,
+    templateName,
     canContinue,
     canCreate,
     error: auth.error,
@@ -251,7 +275,6 @@ export function useWelcome(callbacks: WelcomeCallbacks) {
     back,
     skip: () => markDone(true),
     createProject,
-    useTemplate,
     dismissError: auth.dismissError,
   }
 }

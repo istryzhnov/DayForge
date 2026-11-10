@@ -501,7 +501,6 @@ function handleSearchSelect(result: SearchResult) {
       v-if="welcomeOpen"
       @select-view="selectView"
       @create-project="createFirstProject"
-      @use-template="openStarter"
     />
 
     <TaskReminderPopup

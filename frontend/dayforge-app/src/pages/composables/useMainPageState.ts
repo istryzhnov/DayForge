@@ -19,6 +19,11 @@ import {
 } from '../../entities/constants'
 import type { QuickAddResult } from '../../composables/quickAdd/parse'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
+import {
+  findTemplate,
+  type WelcomeTemplateId,
+} from '../../features/onboarding/composables/welcomeTemplates'
+import { addMinutesToTime } from '../../composables/goalSpace/date'
 import { useTheme } from '../../composables/useTheme'
 import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
 import { useTaskNotifications } from '../../composables/useTaskNotifications'
@@ -386,11 +391,53 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   )
 
   /** The welcome card's project. It opens only when the user plans their day. */
-  function createFirstProject(title: string, color: string, select: boolean) {
+  function createFirstProject(
+    title: string,
+    color: string,
+    select: boolean,
+    templateId: WelcomeTemplateId | null = null,
+  ) {
     // The tour starts first, so the project it creates counts as its first step.
     startTour()
     const id = handleCreateGoal(title, '', color)
+    if (templateId) fillFromTemplate(id, templateId)
     if (select) selectGoal(id)
+  }
+
+  /** The welcome card's template: its tasks, times, repeats and rate. */
+  function fillFromTemplate(goalId: ID, templateId: WelcomeTemplateId) {
+    const template = findTemplate(templateId)
+    const date = goalSpace.currentDate.value
+    const t = i18n.global.t
+
+    if (template.hourlyRate) {
+      goalSpace.updateGoalRate(goalId, template.hourlyRate)
+    }
+
+    // A new task lands on top of the list, so add them last first.
+    const lastFirst = [...template.tasks].reverse()
+    lastFirst.forEach((task) => {
+      const endTime =
+        task.start && task.minutes
+          ? addMinutesToTime(task.start, task.minutes)
+          : undefined
+      goalSpace.addTask(
+        goalId,
+        t(task.titleKey),
+        PRIORITY.MINOR,
+        endTime || task.daily
+          ? {
+              date,
+              startTime: endTime ? task.start : undefined,
+              endTime,
+              recurrence: {
+                type: task.daily ? RECURRENCE_TYPE.DAILY : RECURRENCE_TYPE.NONE,
+                startDate: date,
+              },
+            }
+          : undefined,
+      )
+    })
   }
 
   function handleCreateGoal(
