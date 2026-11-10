@@ -34,7 +34,7 @@ function whenLabel(task: ArchivedTask): string {
     <header class="goal-panel-header" data-tip-anchor="archive-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
-          <h2>{{ t('tasks.archiveTitle') }}</h2>
+          <h1>{{ t('tasks.archiveTitle') }}</h1>
         </div>
 
         <ul class="goal-panel-stats">

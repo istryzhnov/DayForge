@@ -55,7 +55,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
           :style="{ background: color }"
           aria-hidden="true"
         />
-        <h2>{{ title }}</h2>
+        <h1>{{ title }}</h1>
         <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
       </div>
 

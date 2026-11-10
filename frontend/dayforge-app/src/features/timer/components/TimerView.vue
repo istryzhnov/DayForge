@@ -106,7 +106,7 @@ function closeEditor() {
 <template>
   <section class="timer-view">
     <header class="timer-view__head">
-      <h2 class="timer-view__title">{{ t('timer.title') }}</h2>
+      <h1 class="timer-view__title">{{ t('timer.title') }}</h1>
       <button
         class="ui-icon-btn"
         type="button"

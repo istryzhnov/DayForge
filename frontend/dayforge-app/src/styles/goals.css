@@ -241,7 +241,7 @@
   min-width: 0;
 }
 
-.goal-panel-header__title h2 {
+.goal-panel-header__title h1 {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -369,7 +369,7 @@
   background: color-mix(in srgb, var(--accent) 10%, var(--panel-soft));
 }
 
-.goal-panel-header h2 {
+.goal-panel-header h1 {
   margin: 0;
   color: var(--text);
   font-size: calc(2rem * var(--text-scale));
@@ -393,7 +393,7 @@
 }
 
 @media (max-width: 960px) {
-  .goal-panel-header h2 {
+  .goal-panel-header h1 {
     font-size: calc(1.75rem * var(--text-scale));
   }
 }
@@ -416,7 +416,7 @@
     justify-content: flex-start;
   }
 
-  .goal-panel-header h2 {
+  .goal-panel-header h1 {
     font-size: calc(1.875rem * var(--text-scale));
     font-weight: 800;
     letter-spacing: -0.03em;

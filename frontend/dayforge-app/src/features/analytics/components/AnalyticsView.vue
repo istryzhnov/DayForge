@@ -202,7 +202,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
 <template>
   <section class="analytics">
     <header class="analytics__head">
-      <h2 class="analytics__title">{{ t('analytics.title') }}</h2>
+      <h1 class="analytics__title">{{ t('analytics.title') }}</h1>
       <button
         class="ui-icon-btn ui-icon-btn--outlined"
         type="button"

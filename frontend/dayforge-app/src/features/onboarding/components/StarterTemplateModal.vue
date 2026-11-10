@@ -23,7 +23,7 @@ const { focus, start, load, plan } = useStarterTemplate()
 </script>
 
 <template>
-  <div class="starter-overlay" @click.self="emit('close')">
+  <div class="starter-overlay">
     <div
       ref="trapRef"
       class="starter"

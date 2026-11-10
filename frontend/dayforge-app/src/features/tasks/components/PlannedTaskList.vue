@@ -44,7 +44,7 @@ function whenLine(task: PlannedTask): string {
     <header class="goal-panel-header" data-tip-anchor="planned-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
-          <h2>{{ t('tasks.plannedTitle') }}</h2>
+          <h1>{{ t('tasks.plannedTitle') }}</h1>
         </div>
 
         <ul class="goal-panel-stats">
