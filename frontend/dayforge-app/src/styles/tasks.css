@@ -1494,7 +1494,9 @@ body.is-dragging-task {
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  background: rgba(0, 0, 0, 0.45);
+  /* As dark as the welcome card's, so the dialog reads as modal on the dark theme. */
+  background: rgba(0, 0, 0, 0.6);
+  animation: welcome-fade 0.18s ease both;
 }
 
 .starter {

@@ -267,7 +267,7 @@ const selectedTaskNotes = computed(
         >
           <AppIcon name="chevron-right" :size="16" />
         </button>
-        <h2 class="calendar-view__title ui-oneline">{{ periodTitle }}</h2>
+        <h1 class="calendar-view__title ui-oneline">{{ periodTitle }}</h1>
       </div>
 
       <div class="calendar-view__views">

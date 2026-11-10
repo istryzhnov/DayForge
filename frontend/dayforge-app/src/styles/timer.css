@@ -239,6 +239,8 @@
 
 .timer-view__title {
   margin: 0;
+  /* An h1 now; keep the size it had as an h2. */
+  font-size: 1.5em;
   color: var(--text);
 }
 
@@ -616,6 +618,8 @@
 
 .analytics__title {
   margin: 0;
+  /* An h1 now; keep the size it had as an h2. */
+  font-size: 1.5em;
   color: var(--text);
 }
 
@@ -1182,4 +1186,23 @@
   margin: 0;
   font-size: calc(0.75rem * var(--text-scale));
   color: var(--muted);
+}
+
+/* On a phone the top bar already names the view, so the page's own title
+   would repeat it right below. Keep it for screen readers and search only. */
+@media (max-width: 960px) {
+  .analytics__title,
+  .timer-view__title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .analytics__head,
+  .timer-view__head {
+    justify-content: flex-end;
+  }
 }
