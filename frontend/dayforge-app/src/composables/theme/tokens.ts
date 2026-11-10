@@ -285,9 +285,15 @@ export interface PalettePreset {
   /** Message keys: the names are translated where the gallery shows them. */
   nameKey: string
   hintKey: string
+  /** The mode the palette was designed for first. */
   mode: ThemeMode
   style: ThemeStyle
   colors: ThemePalette
+  /**
+   * The same palette for the other mode, so Day / Night never leaves a dark
+   * canvas in day mode (or the reverse). {} means the stylesheet's own values.
+   */
+  twin: ThemePalette
 }
 
 export const PALETTE_PRESETS: PalettePreset[] = [
@@ -298,14 +304,7 @@ export const PALETTE_PRESETS: PalettePreset[] = [
     mode: 'dark',
     style: 'vivid',
     colors: {},
-  },
-  {
-    id: 'daylight',
-    nameKey: 'settings.paletteDaylight',
-    hintKey: 'settings.paletteDaylightHint',
-    mode: 'light',
-    style: 'vivid',
-    colors: {},
+    twin: {},
   },
   {
     id: 'evergreen',
@@ -322,6 +321,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       line: '#22322c',
       text: '#e9f5ef',
       muted: '#8fa79c',
+    },
+    twin: {
+      accent: '#18773f',
+      major: '#d9480f',
+      minor: '#18773f',
+      bg: '#f3f8f5',
+      panel: '#ffffff',
+      line: '#d6e5dc',
+      text: '#11211a',
+      muted: '#5a7266',
     },
   },
   {
@@ -340,6 +349,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       text: '#e8f1ff',
       muted: '#8ea5c2',
     },
+    twin: {
+      accent: '#0272b0',
+      major: '#c2255c',
+      minor: '#0272b0',
+      bg: '#f1f6fc',
+      panel: '#ffffff',
+      line: '#d5e1ef',
+      text: '#0f1b2d',
+      muted: '#5b6f8a',
+    },
   },
   {
     id: 'sunset',
@@ -356,6 +375,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       line: '#33263f',
       text: '#f8eef6',
       muted: '#b39cb6',
+    },
+    twin: {
+      accent: '#b35c06',
+      major: '#d6336c',
+      minor: '#b35c06',
+      bg: '#fbf6f3',
+      panel: '#ffffff',
+      line: '#ecdfe5',
+      text: '#2a1b2e',
+      muted: '#7d6a80',
     },
   },
   {
@@ -374,6 +403,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       text: '#f0ecff',
       muted: '#a096c2',
     },
+    twin: {
+      accent: '#6d3fe6',
+      major: '#d6336c',
+      minor: '#6d3fe6',
+      bg: '#f6f4fc',
+      panel: '#ffffff',
+      line: '#e1dbf2',
+      text: '#1c1530',
+      muted: '#6c6488',
+    },
   },
   {
     id: 'slate',
@@ -390,6 +429,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       line: '#2a2a2d',
       text: '#f2f2f2',
       muted: '#9a9a9f',
+    },
+    twin: {
+      accent: '#3f3f46',
+      major: '#18181b',
+      minor: '#71717a',
+      bg: '#f7f7f7',
+      panel: '#ffffff',
+      line: '#e2e2e2',
+      text: '#171717',
+      muted: '#6b6b6b',
     },
   },
   {
@@ -408,6 +457,16 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       text: '#1c1917',
       muted: '#6b6259',
     },
+    twin: {
+      accent: '#f97316',
+      major: '#f97316',
+      minor: '#d4d4d8',
+      bg: '#14110f',
+      panel: '#1c1815',
+      line: '#332d27',
+      text: '#f5efe6',
+      muted: '#a89c8f',
+    },
   },
   {
     id: 'meadow',
@@ -425,8 +484,30 @@ export const PALETTE_PRESETS: PalettePreset[] = [
       text: '#132218',
       muted: '#5c7364',
     },
+    twin: {
+      accent: '#51cf66',
+      major: '#ff922b',
+      minor: '#4dabf7',
+      bg: '#0c140f',
+      panel: '#131d16',
+      line: '#24352a',
+      text: '#e8f5ec',
+      muted: '#8ea898',
+    },
   },
 ]
+
+export function findPreset(id: string | null | undefined) {
+  return PALETTE_PRESETS.find((preset) => preset.id === id)
+}
+
+/** A palette's colours in the given mode: its own, or its twin's. */
+export function presetColorsFor(
+  preset: PalettePreset,
+  mode: ThemeMode,
+): ThemePalette {
+  return mode === preset.mode ? preset.colors : preset.twin
+}
 
 /** Same colours on the same keys, whatever order they were picked in. */
 export function samePalette(a: ThemePalette, b: ThemePalette): boolean {
@@ -459,25 +540,22 @@ export function presetIdFor(
     PALETTE_PRESETS.find(
       (preset) =>
         preset.style === style &&
-        preset.mode === mode &&
-        samePalette(preset.colors, colors),
+        samePalette(presetColorsFor(preset, mode), colors),
     )?.id ?? null
   )
 }
 
 /**
- * The colours a reset goes back to. While the theme still has the style and
- * mode of its remembered preset, that is the preset's own colours. Once the
- * user has switched style or mode away from it, those colours no longer fit
- * the theme, so the reset falls back to {}: the stylesheet's designed values
- * for the style and mode now in force.
+ * The colours a reset goes back to: the remembered palette in the mode now in
+ * force. A theme whose style no longer matches its palette (an old stored one)
+ * falls back to {}, the stylesheet's designed values.
  */
 export function presetBaseColors(
   presetId: string | null,
   style: ThemeStyle,
   mode: ThemeMode,
 ): ThemePalette {
-  const preset = PALETTE_PRESETS.find((candidate) => candidate.id === presetId)
-  if (!preset || preset.style !== style || preset.mode !== mode) return {}
-  return preset.colors
+  const preset = findPreset(presetId)
+  if (!preset || preset.style !== style) return {}
+  return presetColorsFor(preset, mode)
 }

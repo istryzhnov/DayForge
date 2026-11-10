@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../composables/useTheme'
+import { findPreset } from '../../../composables/theme/tokens'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { START_VIEW, useSettings } from '../../../composables/useSettings'
 import { FONT_LABEL_KEYS } from './settingsOptions'
@@ -43,7 +44,7 @@ type MenuProps = {
 
 export function useSettingsMenu(props: MenuProps) {
   const { t } = useI18n()
-  const { themeStyle, themeMode, palette, workspace } = useTheme()
+  const { presetId, themeMode, palette, workspace } = useTheme()
   const { settings } = useSettings()
 
   /** Translated label of an option, or of a fallback key when none matches. */
@@ -64,11 +65,7 @@ export function useSettingsMenu(props: MenuProps) {
 
     return {
       theme: [
-        t(
-          themeStyle.value === 'vivid'
-            ? 'settings.summaryThemeFresh'
-            : 'settings.summaryThemeMinimal',
-        ),
+        t(findPreset(presetId.value)?.nameKey ?? 'settings.summaryThemeCustom'),
         t(
           themeMode.value === 'dark'
             ? 'settings.summaryThemeNight'

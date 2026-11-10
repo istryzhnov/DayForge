@@ -10,7 +10,9 @@ import {
   PALETTE_PRESETS,
   buildPaletteVars,
   buildWorkspaceVars,
+  findPreset,
   presetBaseColors,
+  presetColorsFor,
   presetIdFor,
   type PalettePreset,
   type ResolvedPalette,
@@ -26,6 +28,15 @@ import { readJson, writeJson } from '../lib/storage'
 export type { ThemeMode, ThemeStyle } from './theme/tokens'
 
 const THEME_STORAGE_KEY = 'dayforge-theme-v1'
+
+/** Colours that make a theme light or dark; they follow the Day / Night switch. */
+const SURFACE_KEYS: readonly ThemeColorKey[] = [
+  'bg',
+  'panel',
+  'line',
+  'text',
+  'muted',
+]
 
 /**
  * Bumped when the default theme changed. A stored theme from before it that
@@ -299,11 +310,34 @@ export function useTheme() {
     }
   }
 
-  function applyPreset(preset: PalettePreset) {
+  /** A palette is applied in the mode now in force; every palette has both. */
+  function applyPreset(
+    preset: PalettePreset,
+    mode: ThemeMode = themeMode.value,
+  ) {
     themeStyle.value = preset.style
-    themeMode.value = preset.mode
-    palette.value = { ...preset.colors }
+    themeMode.value = mode
+    palette.value = { ...presetColorsFor(preset, mode) }
     presetId.value = preset.id
+  }
+
+  /**
+   * Day / Night swaps the canvas colours for the palette's other variant, so a
+   * dark palette never stays dark in day mode. Colours the user picked by hand
+   * for accent, projects, tasks or danger come along.
+   */
+  function setThemeMode(nextMode: ThemeMode) {
+    if (nextMode === themeMode.value) return
+    const preset = findPreset(presetId.value)
+    const from = preset ? presetColorsFor(preset, themeMode.value) : {}
+    const to = preset ? presetColorsFor(preset, nextMode) : {}
+    const own: ThemePalette = {}
+    for (const key of Object.keys(palette.value) as ThemeColorKey[]) {
+      if (SURFACE_KEYS.includes(key)) continue
+      if (palette.value[key] !== from[key]) own[key] = palette.value[key]
+    }
+    palette.value = { ...to, ...own }
+    themeMode.value = nextMode
   }
 
   function setWorkspace(patch: Partial<WorkspaceSettings>) {
@@ -315,7 +349,7 @@ export function useTheme() {
   }
 
   function resetAll() {
-    applyPreset(DEFAULT_PRESET)
+    applyPreset(DEFAULT_PRESET, DEFAULT_PRESET.mode)
     resetWorkspace()
   }
 
@@ -326,13 +360,14 @@ export function useTheme() {
    */
   function replaceTheme(raw: unknown) {
     if (typeof raw !== 'object' || raw === null) return
-    applyPreset(DEFAULT_PRESET)
+    applyPreset(DEFAULT_PRESET, DEFAULT_PRESET.mode)
     resetWorkspace()
     applyStoredTheme(raw as StoredTheme)
   }
 
   return {
     replaceTheme,
+    presetId,
     themeStyle,
     themeMode,
     palette,
@@ -345,9 +380,7 @@ export function useTheme() {
     setThemeStyle: (nextStyle: ThemeStyle) => {
       themeStyle.value = nextStyle
     },
-    setThemeMode: (nextMode: ThemeMode) => {
-      themeMode.value = nextMode
-    },
+    setThemeMode,
     setColor,
     resetColor,
     resetPalette,
