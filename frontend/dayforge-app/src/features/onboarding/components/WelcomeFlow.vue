@@ -12,12 +12,21 @@ import {
   type UseChoice,
   type WelcomeStep,
 } from '../composables/useWelcome'
+import {
+  taskTimeRange,
+  type WelcomeTemplateId,
+} from '../composables/welcomeTemplates'
 import WelcomeOption from './WelcomeOption.vue'
 
 const emit = defineEmits<{
   (e: 'select-view', view: StartView): void
-  (e: 'create-project', title: string, color: string, select: boolean): void
-  (e: 'use-template'): void
+  (
+    e: 'create-project',
+    title: string,
+    color: string,
+    select: boolean,
+    templateId: WelcomeTemplateId | null,
+  ): void
 }>()
 
 const { t } = useI18n()
@@ -25,9 +34,8 @@ const { t } = useI18n()
 /** Mounted only while the card is open, so the trap is live exactly then. */
 const flow = useWelcome({
   selectView: (view) => emit('select-view', view),
-  createProject: (title, color, select) =>
-    emit('create-project', title, color, select),
-  useTemplate: () => emit('use-template'),
+  createProject: (title, color, select, templateId) =>
+    emit('create-project', title, color, select, templateId),
 })
 
 const {
@@ -36,6 +44,11 @@ const {
   useChoice,
   projectName,
   projectColor,
+  startMode,
+  templateId,
+  templates,
+  template,
+  templateName,
   canContinue,
   canCreate,
   error,
@@ -44,7 +57,6 @@ const {
   back,
   skip,
   createProject,
-  useTemplate,
   dismissError,
 } = flow
 
@@ -202,6 +214,86 @@ function pickUse(value: UseChoice) {
             :class="{ 'is-current': step === 3 }"
             @submit.prevent="createProject"
           >
+            <div
+              class="ui-tabs"
+              role="group"
+              :aria-label="t('onboarding.welcomeModeGroup')"
+            >
+              <button
+                class="ui-tab"
+                :class="{ 'is-active': startMode === 'blank' }"
+                type="button"
+                :aria-pressed="startMode === 'blank'"
+                @click="startMode = 'blank'"
+              >
+                {{ t('onboarding.welcomeModeBlank') }}
+              </button>
+              <button
+                class="ui-tab"
+                :class="{ 'is-active': startMode === 'template' }"
+                type="button"
+                :aria-pressed="startMode === 'template'"
+                @click="startMode = 'template'"
+              >
+                {{ t('onboarding.welcomeModeTemplate') }}
+              </button>
+            </div>
+
+            <template v-if="startMode === 'template'">
+              <div
+                class="welcome-templates"
+                role="group"
+                :aria-label="t('onboarding.welcomeTemplateGroup')"
+              >
+                <button
+                  v-for="item in templates"
+                  :key="item.id"
+                  class="welcome-template"
+                  type="button"
+                  :aria-pressed="templateId === item.id"
+                  @click="templateId = item.id"
+                >
+                  <span class="welcome-template__icon" aria-hidden="true">
+                    <AppIcon :name="item.icon" :size="16" />
+                  </span>
+                  <span class="welcome-template__name">{{
+                    t(item.nameKey)
+                  }}</span>
+                  <span class="welcome-template__hint">{{
+                    t(item.hintKey)
+                  }}</span>
+                </button>
+              </div>
+
+              <ul
+                class="welcome-template-preview"
+                :aria-label="t('onboarding.welcomeTemplatePreview')"
+              >
+                <li v-for="task in template.tasks" :key="task.titleKey">
+                  <span class="welcome-template-preview__dot"></span>
+                  <span class="welcome-template-preview__title">{{
+                    t(task.titleKey)
+                  }}</span>
+                  <span
+                    v-if="taskTimeRange(task) || task.daily"
+                    class="welcome-template-preview__meta"
+                  >
+                    {{ taskTimeRange(task) ?? t('onboarding.templateDaily') }}
+                  </span>
+                </li>
+                <li
+                  v-if="template.hourlyRate"
+                  class="welcome-template-preview__note"
+                >
+                  {{
+                    t('onboarding.templateRateNote', {
+                      rate: template.hourlyRate,
+                    })
+                  }}
+                </li>
+              </ul>
+            </template>
+
             <label class="welcome__label" for="welcome-project-name">{{
               t('onboarding.welcomeProjectName')
             }}</label>
@@ -210,7 +302,11 @@ function pickUse(value: UseChoice) {
               v-model="projectName"
               class="welcome__input"
               type="text"
-              :placeholder="t('onboarding.welcomeProjectPlaceholder')"
+              :placeholder="
+                startMode === 'template'
+                  ? templateName
+                  : t('onboarding.welcomeProjectPlaceholder')
+              "
               autocomplete="off"
             />
             <div
@@ -247,14 +343,6 @@ function pickUse(value: UseChoice) {
           </button>
 
           <div class="welcome__actions">
-            <button
-              v-if="step === 3"
-              class="btn btn-ghost"
-              type="button"
-              @click="useTemplate"
-            >
-              {{ t('onboarding.welcomeUseTemplate') }}
-            </button>
             <button
               v-if="step === 3"
               class="btn btn-primary"
