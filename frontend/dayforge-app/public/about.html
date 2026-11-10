@@ -265,13 +265,6 @@
       .shot img { width: 100%; height: auto; }
 
       /* Why */
-      .why-grid {
-        display: grid;
-        gap: 16px;
-      }
-      @media (min-width: 760px) {
-        .why-grid { grid-template-columns: 1fr 1fr; }
-      }
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -280,8 +273,6 @@
         box-shadow: var(--shadow-sm);
       }
       .card p { margin: 10px 0 0; color: var(--muted); }
-      .card--compare h3 { font-size: 0.85rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
-      .card--compare .verdict { margin-top: 8px; color: var(--text); font-size: 1.12rem; font-weight: 700; line-height: 1.35; }
       .pillars {
         display: grid;
         gap: 12px;
@@ -473,6 +464,387 @@
         font-weight: 700;
       }
 
+      /* Reveal on scroll. Only hidden once about-motion.js has marked the page,
+         so without JavaScript everything is simply there. */
+      .motion .reveal {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .motion .reveal.is-in { opacity: 1; transform: none; }
+      .motion .features .reveal:nth-child(4n + 2),
+      .motion .steps .reveal:nth-child(2) { transition-delay: 0.08s; }
+      .motion .features .reveal:nth-child(4n + 3),
+      .motion .steps .reveal:nth-child(3) { transition-delay: 0.16s; }
+      .motion .features .reveal:nth-child(4n + 4) { transition-delay: 0.24s; }
+
+      /* Builder: modules on the left, a sketch of the app that grows on the right. */
+      /* Top-aligned, so the sketch grows downwards instead of shifting. */
+      .builder {
+        display: grid;
+        gap: 36px;
+        align-items: start;
+      }
+      @media (min-width: 900px) {
+        .builder { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; }
+        .builder .mock { margin-top: 28px; }
+      }
+      .builder + .pillars { margin-top: 64px; }
+      .builder__lead { margin: 14px 0 0; color: var(--muted); font-size: 1.05rem; }
+      .modules {
+        display: grid;
+        gap: 8px;
+        margin: 26px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .module--base,
+      .module__btn {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        width: 100%;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel);
+        color: var(--text);
+        font: inherit;
+        text-align: left;
+      }
+      .module__btn {
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+      }
+      .module__btn:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+      .module__btn[aria-pressed='true'] {
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 9%, var(--panel));
+      }
+      .module__text { display: grid; gap: 2px; min-width: 0; flex: 1; }
+      .module__text strong { font-size: 0.98rem; }
+      .module__text span { color: var(--muted); font-size: 0.88rem; line-height: 1.4; }
+      .module__badge {
+        flex: none;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: var(--panel-soft);
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+      .module__switch {
+        position: relative;
+        flex: none;
+        width: 38px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--line);
+        transition: background-color 0.25s ease;
+      }
+      .module__switch::after {
+        content: '';
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        transition: transform 0.25s cubic-bezier(0.3, 0.7, 0.3, 1.3);
+      }
+      .module__switch.is-on,
+      .module__btn[aria-pressed='true'] .module__switch { background: var(--accent); }
+      .module__switch.is-on::after,
+      .module__btn[aria-pressed='true'] .module__switch::after { transform: translateX(16px); }
+
+      /* The sketch. Text-free on purpose, so it needs no translation. */
+      .mock {
+        --mock-line: color-mix(in srgb, var(--text) 12%, transparent);
+        --mock-ink: color-mix(in srgb, var(--text) 22%, transparent);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .mock__bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 38px;
+        padding: 0 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .mock__dots { display: flex; gap: 6px; }
+      .mock__dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--mock-ink); }
+      .mock__timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--accent) 16%, transparent);
+        color: var(--text);
+        font-family: var(--font-mono);
+        font-size: 0.8rem;
+        font-weight: 700;
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 0.35s ease, transform 0.35s ease;
+      }
+      .mock__timer i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+      .mock.has-timer .mock__timer { opacity: 1; transform: none; }
+      .mock.has-timer .mock__timer i { animation: mock-pulse 1.2s ease-in-out infinite; }
+      .mock__body { display: grid; grid-template-columns: 22% 1fr; min-height: 300px; }
+      .mock__side {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        padding: 16px 12px;
+        border-right: 1px solid var(--line);
+        background: var(--panel-soft);
+      }
+      .mock__nav { height: 10px; border-radius: 5px; background: var(--mock-line); }
+      .mock__nav.is-active { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+      .mock__nav--mod {
+        width: 0;
+        opacity: 0;
+        transition: width 0.4s ease, opacity 0.4s ease;
+      }
+      .mock.has-board .mock__nav--mod[data-for='board'],
+      .mock.has-timer .mock__nav--mod[data-for='timer'],
+      .mock.has-money .mock__nav--mod[data-for='money'],
+      .mock.has-habits .mock__nav--mod[data-for='habits'] { width: 80%; opacity: 1; }
+      .mock__main { display: grid; align-content: start; padding: 12px; }
+      .mock__row { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+      .mock__card {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--bg);
+        padding: 10px;
+      }
+      .mock__list { display: grid; gap: 8px; }
+      .mock__task { display: flex; align-items: center; gap: 8px; }
+      .mock__task i {
+        flex: none;
+        width: 11px;
+        height: 11px;
+        border: 2px solid var(--c);
+        border-radius: 50%;
+      }
+      .mock__task b { height: 8px; width: var(--w); border-radius: 4px; background: var(--mock-ink); }
+      .mock__task--done i { animation: mock-check 5s ease-in-out infinite; }
+      .mock__task--done b { animation: mock-strike 5s ease-in-out infinite; }
+      .mock__cal {
+        position: relative;
+        min-height: 130px;
+        background-image: repeating-linear-gradient(to bottom, transparent 0 21px, var(--mock-line) 21px 22px);
+      }
+      .mock__block {
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        top: var(--top);
+        height: var(--h);
+        border-left: 3px solid var(--c);
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--c) 22%, transparent);
+      }
+      /* Collapsed panels open with a grid-row transition, so nothing jumps. */
+      .mock__fold {
+        display: grid;
+        grid-template-rows: 0fr;
+        opacity: 0;
+        transition: grid-template-rows 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.4s ease;
+      }
+      .mock__inner { min-height: 0; overflow: hidden; }
+      .mock__inner > .mock__card { margin-top: 10px; }
+      .mock.has-board [data-fold='board'],
+      .mock.has-money [data-fold='money'],
+      .mock.has-habits [data-fold='habits'] { grid-template-rows: 1fr; opacity: 1; }
+      .mock__board {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .mock__col { display: grid; gap: 6px; align-content: start; min-height: 64px; }
+      .mock__col i { width: 30%; height: 6px; border-radius: 3px; background: var(--c); }
+      .mock__col b {
+        height: 18px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+      }
+      .mock__moving {
+        position: absolute;
+        top: 22px;
+        left: 10px;
+        width: calc((100% - 36px) / 3);
+        height: 18px;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+        box-shadow: var(--shadow-sm);
+      }
+      .mock.has-board .mock__moving { animation: mock-move 4.5s cubic-bezier(0.5, 0, 0.3, 1) infinite; }
+      .mock__money { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; }
+      .mock__sum { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+      .mock__bars { display: flex; align-items: flex-end; gap: 5px; height: 48px; flex: 1; max-width: 60%; }
+      .mock__bars i {
+        flex: 1;
+        height: var(--h);
+        border-radius: 3px 3px 0 0;
+        background: linear-gradient(to top, color-mix(in srgb, var(--accent) 55%, transparent), var(--accent));
+        transform-origin: bottom;
+        transform: scaleY(0);
+        transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transition-delay: calc(var(--i) * 60ms + 0.15s);
+      }
+      .mock.has-money .mock__bars i { transform: scaleY(1); }
+      .mock__habits { display: grid; gap: 6px; }
+      .mock__habit { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+      .mock__habit i { height: 12px; border-radius: 3px; background: var(--mock-line); }
+      .mock__habit i.on {
+        background: var(--mock-line);
+        transition: background-color 0.3s ease;
+        transition-delay: calc(var(--d) * 70ms + 0.2s);
+      }
+      .mock.has-habits .mock__habit i.on { background: color-mix(in srgb, #73ff44 65%, var(--panel)); }
+      @media (max-width: 520px) {
+        .mock__body { grid-template-columns: 1fr; }
+        .mock__side { display: none; }
+      }
+
+      @keyframes mock-pulse { 50% { opacity: 0.35; } }
+      @keyframes mock-check {
+        0%, 30% { background: transparent; }
+        40%, 85% { background: var(--c); }
+        95%, 100% { background: transparent; }
+      }
+      @keyframes mock-strike {
+        0%, 30% { opacity: 1; }
+        40%, 85% { opacity: 0.35; }
+        95%, 100% { opacity: 1; }
+      }
+      @keyframes mock-move {
+        0%, 12% { transform: translate(0, 0); }
+        35%, 50% { transform: translate(calc(100% + 8px), 0); }
+        73%, 88% { transform: translate(calc(200% + 16px), 0); }
+        100% { transform: translate(calc(200% + 16px), 0); opacity: 0; }
+      }
+
+      /* How it works: a small looping scene above each step. */
+      .scene {
+        position: relative;
+        height: 110px;
+        margin-bottom: 18px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--bg);
+        overflow: hidden;
+      }
+      .steps li::before { position: absolute; margin: 0; top: 10px; left: 10px; z-index: 1; width: 26px; height: 26px; font-size: 0.85rem; }
+      .steps li { position: relative; }
+      .scene__pick {
+        position: absolute;
+        top: 16px;
+        left: 50px;
+        right: 16px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+      }
+      .scene__pick i { height: 26px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); }
+      .scene__pick i:nth-child(2) { animation: scene-pick 6s ease infinite; }
+      .scene__rows { position: absolute; left: 16px; right: 16px; top: 54px; display: grid; gap: 6px; }
+      .scene__rows b {
+        height: 9px;
+        border-radius: 5px;
+        background: color-mix(in srgb, var(--text) 18%, transparent);
+        transform-origin: left;
+        animation: scene-row 6s ease infinite;
+      }
+      .scene__rows b:nth-child(1) { width: 78%; animation-delay: 0.15s; }
+      .scene__rows b:nth-child(2) { width: 58%; animation-delay: 0.3s; }
+      .scene__rows b:nth-child(3) { width: 68%; animation-delay: 0.45s; }
+      .scene__cal {
+        position: absolute;
+        inset: 14px 96px 14px 50px;
+        background-image: repeating-linear-gradient(to bottom, transparent 0 15px, color-mix(in srgb, var(--text) 10%, transparent) 15px 16px);
+      }
+      .scene__cal b {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 20px;
+        border-left: 3px solid var(--c);
+        border-radius: 4px;
+        background: color-mix(in srgb, var(--c) 24%, transparent);
+        animation: scene-drop 6s cubic-bezier(0.3, 0.8, 0.3, 1.2) infinite;
+      }
+      .scene__cal b:nth-child(1) { top: 2px; }
+      .scene__cal b:nth-child(2) { top: 32px; animation-delay: 0.4s; }
+      .scene__cal b:nth-child(3) { top: 58px; animation-delay: 0.8s; }
+      .scene__ring { position: absolute; right: 22px; top: 50%; width: 58px; height: 58px; transform: translateY(-50%); }
+      .scene__ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+      .scene__ring circle { fill: none; stroke: var(--line); stroke-width: 3.5; }
+      .scene__ring .scene__arc {
+        stroke: var(--accent);
+        stroke-linecap: round;
+        stroke-dasharray: 94.25;
+        stroke-dashoffset: 94.25;
+        animation: scene-ring 6s linear infinite;
+      }
+      .scene__chart {
+        position: absolute;
+        inset: 18px 18px 14px 50px;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        border-bottom: 1px solid var(--line);
+      }
+      .scene__chart i {
+        flex: 1;
+        height: var(--h);
+        border-radius: 4px 4px 0 0;
+        background: linear-gradient(to top, color-mix(in srgb, var(--accent) 50%, transparent), var(--accent));
+        transform-origin: bottom;
+        animation: scene-bar 6s cubic-bezier(0.2, 0.7, 0.2, 1) infinite;
+        animation-delay: calc(var(--i) * 0.12s);
+      }
+      @keyframes scene-pick {
+        0%, 15% { border-color: var(--line); background: var(--panel); }
+        25%, 90% { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 18%, var(--panel)); }
+        100% { border-color: var(--line); background: var(--panel); }
+      }
+      @keyframes scene-row {
+        0%, 28% { transform: scaleX(0); opacity: 0; }
+        40%, 90% { transform: scaleX(1); opacity: 1; }
+        100% { transform: scaleX(1); opacity: 0; }
+      }
+      @keyframes scene-drop {
+        0%, 8% { transform: translateY(-60px); opacity: 0; }
+        22%, 88% { transform: none; opacity: 1; }
+        100% { transform: none; opacity: 0; }
+      }
+      @keyframes scene-ring {
+        0%, 20% { stroke-dashoffset: 94.25; }
+        85%, 100% { stroke-dashoffset: 0; }
+      }
+      @keyframes scene-bar {
+        0%, 10% { transform: scaleY(0); }
+        35%, 88% { transform: scaleY(1); }
+        100% { transform: scaleY(0); }
+      }
+
+      .gallery img { transition: transform 0.4s ease, box-shadow 0.4s ease; }
+      @media (hover: hover) {
+        .gallery img:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+      }
+
       @media (prefers-reduced-motion: reduce) {
         *, *::before, *::after {
           animation-duration: 0.01ms !important;
@@ -480,9 +852,13 @@
           transition-duration: 0.01ms !important;
           scroll-behavior: auto !important;
         }
+        .scene *, .mock * { animation: none !important; }
+        .scene__ring .scene__arc { stroke-dashoffset: 30; }
+        .motion .reveal { opacity: 1; transform: none; }
       }
     </style>
     <script src="/about-i18n.js" defer></script>
+    <script src="/about-motion.js" defer></script>
   </head>
   <body>
     <a class="skip" href="#main" data-i18n="skipLink">Skip to content</a>
@@ -519,7 +895,7 @@
             <span aria-hidden="true">ayForge</span>
             <span class="sr-only">DayForge</span>
           </h1>
-          <p class="lead" data-i18n="heroLead">Plan your day, track your time, keep your habits — in one place that works offline.</p>
+          <p class="lead" data-i18n="heroLead">Start with a task list and a calendar. Add a board, a timer and earnings when your work needs them.</p>
           <div class="cta">
             <a class="btn btn--primary" href="/" data-i18n="openApp">Open DayForge</a>
             <a class="btn btn--ghost" href="#how" data-i18n="seeHow">See how it works</a>
@@ -532,27 +908,125 @@
 
       <section id="why" aria-labelledby="why-title">
         <div class="wrap">
-          <div class="section-head">
-            <p class="eyebrow" data-i18n="navWhy">Why DayForge</p>
-            <h2 id="why-title" data-i18n="whyTitle">One place for the plan, the hours and the habits</h2>
-            <p data-i18n="whyLead">Most tools cover one part of the job. DayForge keeps them together, so the time you log is tied to the work it was for.</p>
-          </div>
-          <div class="why-grid">
-            <div class="card card--compare">
-              <h3 data-i18n="compareToggl">Compared with Toggl</h3>
-              <p class="verdict" data-i18n="togglVerdict">Toggl tracks time. DayForge also shows what the time was for.</p>
-              <p data-i18n="togglBody">Your tasks, projects, calendar and habits sit next to the timer, and earnings come from the hourly rates and fixed prices you set per project.</p>
+          <div class="builder">
+            <div class="builder__text reveal">
+              <p class="eyebrow" data-i18n="navWhy">Why DayForge</p>
+              <h2 id="why-title" data-i18n="whyTitle">Starts simple. Grows with your work.</h2>
+              <p class="builder__lead" data-i18n="whyLead">On day one you get tasks and a calendar, nothing more. Switch on a kanban board, a timer with hourly rates or analytics of what you earn only when you need them. Nothing to build, nothing in the way.</p>
+
+              <ul class="modules" data-i18n-attr="aria-label:modulesLabel" aria-label="Modules">
+                <li class="module module--base">
+                  <span class="module__switch is-on" aria-hidden="true"></span>
+                  <span class="module__text">
+                    <strong data-i18n="modBaseTitle">Tasks and calendar</strong>
+                    <span data-i18n="modBaseHint">Always there: plan the day and give tasks a time.</span>
+                  </span>
+                  <span class="module__badge" data-i18n="modAlwaysOn">Always on</span>
+                </li>
+                <li class="module">
+                  <button class="module__btn" type="button" data-module="board" aria-pressed="false">
+                    <span class="module__switch" aria-hidden="true"></span>
+                    <span class="module__text">
+                      <strong data-i18n="modBoardTitle">Kanban board</strong>
+                      <span data-i18n="modBoardHint">Move a project's tasks through To do, In progress and Done.</span>
+                    </span>
+                  </button>
+                </li>
+                <li class="module">
+                  <button class="module__btn" type="button" data-module="timer" aria-pressed="false">
+                    <span class="module__switch" aria-hidden="true"></span>
+                    <span class="module__text">
+                      <strong data-i18n="modTimerTitle">Timer and rates</strong>
+                      <span data-i18n="modTimerHint">Track time on any task, with an hourly rate per project.</span>
+                    </span>
+                  </button>
+                </li>
+                <li class="module">
+                  <button class="module__btn" type="button" data-module="money" aria-pressed="false">
+                    <span class="module__switch" aria-hidden="true"></span>
+                    <span class="module__text">
+                      <strong data-i18n="modMoneyTitle">Earnings analytics</strong>
+                      <span data-i18n="modMoneyHint">See where the hours went and what they earned.</span>
+                    </span>
+                  </button>
+                </li>
+                <li class="module">
+                  <button class="module__btn" type="button" data-module="habits" aria-pressed="false">
+                    <span class="module__switch" aria-hidden="true"></span>
+                    <span class="module__text">
+                      <strong data-i18n="modHabitsTitle">Habits</strong>
+                      <span data-i18n="modHabitsHint">Daily repeats with streaks you can see.</span>
+                    </span>
+                  </button>
+                </li>
+              </ul>
             </div>
-            <div class="card card--compare">
-              <h3 data-i18n="compareNotion">Compared with Notion</h3>
-              <p class="verdict" data-i18n="notionVerdict">Notion is a blank canvas. DayForge is ready on the first day.</p>
-              <p data-i18n="notionBody">You do not have to build the system yourself. The planner, timer and analytics work out of the box, and they keep working offline, without a connection.</p>
+
+            <div class="mock reveal" role="img" data-i18n-attr="aria-label:mockLabel" aria-label="A sketch of the DayForge window that gains panels as modules are switched on">
+              <div class="mock__bar">
+                <span class="mock__dots"><i></i><i></i><i></i></span>
+                <span class="mock__timer"><i></i><span class="mock__clock">00:42:17</span></span>
+              </div>
+              <div class="mock__body">
+                <div class="mock__side">
+                  <span class="mock__nav is-active"></span>
+                  <span class="mock__nav"></span>
+                  <span class="mock__nav mock__nav--mod" data-for="board"></span>
+                  <span class="mock__nav mock__nav--mod" data-for="timer"></span>
+                  <span class="mock__nav mock__nav--mod" data-for="money"></span>
+                  <span class="mock__nav mock__nav--mod" data-for="habits"></span>
+                </div>
+                <div class="mock__main">
+                  <div class="mock__row">
+                    <div class="mock__card mock__list">
+                      <span class="mock__task" style="--c:#ff7a2f;--w:72%"><i></i><b></b></span>
+                      <span class="mock__task mock__task--done" style="--c:#23c7eb;--w:54%"><i></i><b></b></span>
+                      <span class="mock__task" style="--c:#ff7a2f;--w:80%"><i></i><b></b></span>
+                      <span class="mock__task" style="--c:#9b6bff;--w:46%"><i></i><b></b></span>
+                      <span class="mock__task" style="--c:#f2c94c;--w:62%"><i></i><b></b></span>
+                    </div>
+                    <div class="mock__card mock__cal">
+                      <span class="mock__block" style="--c:#ff7a2f;--top:8%;--h:26%"></span>
+                      <span class="mock__block" style="--c:#23c7eb;--top:42%;--h:16%"></span>
+                      <span class="mock__block" style="--c:#9b6bff;--top:66%;--h:22%"></span>
+                    </div>
+                  </div>
+                  <div class="mock__fold" data-fold="board">
+                    <div class="mock__inner">
+                      <div class="mock__card mock__board">
+                        <span class="mock__col"><i style="--c:#a6a6ae"></i><b></b><b></b></span>
+                        <span class="mock__col"><i style="--c:#ff7a2f"></i><b></b></span>
+                        <span class="mock__col"><i style="--c:#73ff44"></i><b></b><b></b></span>
+                        <span class="mock__moving"></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mock__fold" data-fold="money">
+                    <div class="mock__inner">
+                      <div class="mock__card mock__money">
+                        <span class="mock__sum">$<span class="mock__amount">1,240</span></span>
+                        <span class="mock__bars"><i style="--h:38%;--i:0"></i><i style="--h:62%;--i:1"></i><i style="--h:48%;--i:2"></i><i style="--h:84%;--i:3"></i><i style="--h:56%;--i:4"></i><i style="--h:72%;--i:5"></i><i style="--h:90%;--i:6"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mock__fold" data-fold="habits">
+                    <div class="mock__inner">
+                      <div class="mock__card mock__habits">
+                      <span class="mock__habit"><i class="on" style="--d:0"></i><i class="on" style="--d:1"></i><i class="on" style="--d:2"></i><i style="--d:3"></i><i class="on" style="--d:4"></i><i class="on" style="--d:5"></i><i class="on" style="--d:6"></i></span>
+                      <span class="mock__habit"><i style="--d:0"></i><i class="on" style="--d:1"></i><i class="on" style="--d:2"></i><i class="on" style="--d:3"></i><i style="--d:4"></i><i class="on" style="--d:5"></i><i class="on" style="--d:6"></i></span>
+                      <span class="mock__habit"><i class="on" style="--d:0"></i><i style="--d:1"></i><i class="on" style="--d:2"></i><i class="on" style="--d:3"></i><i class="on" style="--d:4"></i><i style="--d:5"></i><i class="on" style="--d:6"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="pillars">
+
+          <div class="pillars reveal">
             <div class="pillar">
-              <h3 data-i18n="pillarPlanTitle">Plan + habits + time + earnings</h3>
-              <p data-i18n="pillarPlanBody">Everything about your day, in one app, with the numbers next to the plan.</p>
+              <h3 data-i18n="pillarPlanTitle">Simple on day one</h3>
+              <p data-i18n="pillarPlanBody">No system to set up. Add a task and you are planning, or start from a template.</p>
             </div>
             <div class="pillar">
               <h3 data-i18n="pillarOfflineTitle">Offline first</h3>
@@ -577,56 +1051,56 @@
             <h2 id="features-title" data-i18n="featuresTitle">Everything a working day needs</h2>
           </div>
           <div class="features">
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9h8M8 13h5"/><circle cx="6.5" cy="9" r="0.6" fill="currentColor"/></svg>
               </span>
               <h3 data-i18n="featTasksTitle">Tasks and projects</h3>
               <p data-i18n="featTasksBody">Group work into projects with their own colours. Add tasks with a date, a time and a repeat, and see what is next.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14h3M13 14h3M8 17h3" /></svg>
               </span>
               <h3 data-i18n="featCalendarTitle">Calendar</h3>
               <p data-i18n="featCalendarBody">Day, week and month views. Filter by project to see one part of your work at a time.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
               </span>
               <h3 data-i18n="featTimerTitle">Timer, rates and analytics</h3>
               <p data-i18n="featTimerBody">Start a timer on any task. Set an hourly rate or a fixed price per project and see what your hours are worth.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l4.5 4.5L20 6.5"/><path d="M4 4.5h2M4 19.5h2"/></svg>
               </span>
               <h3 data-i18n="featHabitsTitle">Habits and streaks</h3>
               <p data-i18n="featHabitsBody">Track the habits you want to keep. Each day you complete one adds to your streak, and a monthly view shows the pattern.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>
               </span>
               <h3 data-i18n="featBoardTitle">Optional kanban board</h3>
               <p data-i18n="featBoardBody">Turn on a board for any project and move tasks between columns. Drag tasks between them.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>
               </span>
               <h3 data-i18n="featNotesTitle">Notes</h3>
               <p data-i18n="featNotesBody">Write notes on tasks and on projects, so the context stays next to the work it belongs to.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
               </span>
               <h3 data-i18n="featSearchTitle">Search with Ctrl+K</h3>
               <p data-i18n="featSearchBody">Find any task, project or note from anywhere in the app. One shortcut, no menus to dig through.</p>
             </article>
-            <article class="card feature">
+            <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="2.5"/><path d="M11 17.5h2"/><path d="M12 8v5m-2.5-2.5L12 13l2.5-2.5"/></svg>
               </span>
@@ -644,31 +1118,42 @@
             <h2 id="how-title" data-i18n="howTitle">From an empty page to a planned day</h2>
           </div>
           <ol class="steps">
-            <li>
-              <h3 data-i18n="step1Title">Set up your day</h3>
-              <p data-i18n="step1Body">The first-day setup asks a few questions and adds starter tasks, so you begin with a plan instead of a blank list.</p>
+            <li class="reveal">
+              <div class="scene scene--start" aria-hidden="true">
+                <span class="scene__pick"><i></i><i></i><i></i><i></i></span>
+                <span class="scene__rows"><b></b><b></b><b></b></span>
+              </div>
+              <h3 data-i18n="step1Title">Start in a minute</h3>
+              <p data-i18n="step1Body">Name a project or pick a template: client work, daily rhythm, study or habits. Its first tasks are ready to try.</p>
             </li>
-            <li>
+            <li class="reveal">
+              <div class="scene scene--track" aria-hidden="true">
+                <span class="scene__cal"><b style="--c:#ff7a2f"></b><b style="--c:#23c7eb"></b><b style="--c:#9b6bff"></b></span>
+                <span class="scene__ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" /><circle class="scene__arc" cx="18" cy="18" r="15" /></svg></span>
+              </div>
               <h3 data-i18n="step2Title">Plan and track</h3>
               <p data-i18n="step2Body">Schedule tasks on the calendar, start the timer when you begin, and keep your habits ticking off each day.</p>
             </li>
-            <li>
+            <li class="reveal">
+              <div class="scene scene--review" aria-hidden="true">
+                <span class="scene__chart"><i style="--h:40%;--i:0"></i><i style="--h:70%;--i:1"></i><i style="--h:52%;--i:2"></i><i style="--h:88%;--i:3"></i><i style="--h:64%;--i:4"></i><i style="--h:96%;--i:5"></i></span>
+              </div>
               <h3 data-i18n="step3Title">Review the results</h3>
               <p data-i18n="step3Body">Check your week in the calendar and your hours and earnings in analytics. Adjust the plan from what you see.</p>
             </li>
           </ol>
 
           <div class="gallery">
-            <figure>
-              <img src="/landing/calendar-week.webp" width="1440" height="900" data-i18n-attr="alt:calendarAlt" alt="DayForge week calendar with timed tasks colour-coded by project" />
+            <figure class="reveal">
+              <img src="/landing/calendar-week.webp" loading="lazy" width="1440" height="900" data-i18n-attr="alt:calendarAlt" alt="DayForge week calendar with timed tasks colour-coded by project" />
               <figcaption><strong data-i18n="calendarTitle">Week calendar</strong><span data-i18n="calendarCaption">Timed tasks by project, from one week at a glance.</span></figcaption>
             </figure>
-            <figure>
-              <img src="/landing/analytics.webp" width="1440" height="900" data-i18n-attr="alt:analyticsAlt" alt="DayForge analytics showing tracked hours, earnings at an hourly rate and time share by project" />
+            <figure class="reveal">
+              <img src="/landing/analytics.webp" loading="lazy" width="1440" height="900" data-i18n-attr="alt:analyticsAlt" alt="DayForge analytics showing tracked hours, earnings at an hourly rate and time share by project" />
               <figcaption><strong data-i18n="analyticsTitle">Analytics</strong><span data-i18n="analyticsCaption">Tracked hours and earnings per project, with fixed prices next to hourly rates.</span></figcaption>
             </figure>
-            <figure>
-              <img src="/landing/board.webp" width="1440" height="900" data-i18n-attr="alt:boardAlt" alt="DayForge kanban board for a project with tasks in To do, In progress and Done columns" />
+            <figure class="reveal">
+              <img src="/landing/board.webp" loading="lazy" width="1440" height="900" data-i18n-attr="alt:boardAlt" alt="DayForge kanban board for a project with tasks in To do, In progress and Done columns" />
               <figcaption><strong data-i18n="boardTitle">Project board</strong><span data-i18n="boardCaption">An optional kanban view for any project.</span></figcaption>
             </figure>
           </div>
