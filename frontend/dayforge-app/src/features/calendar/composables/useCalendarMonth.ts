@@ -4,7 +4,6 @@ import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   addMonthsToISODate,
-  getTodayISODate,
   startOfMonthISODate,
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
@@ -21,6 +20,7 @@ import {
   formatCalendarWeekday,
 } from './calendarTitles'
 import { useCalendarFilter } from './useCalendarFilter'
+import { useToday } from '../../../composables/goalSpace/today'
 
 /** Six weeks always fit a month, so the grid never changes height. */
 const GRID_WEEKS = 6
@@ -62,6 +62,8 @@ function loadLevelFor(
 }
 
 export function useCalendarMonth(options: MonthOptions) {
+  // The real day; it moves on at midnight while the view stays open.
+  const realToday = useToday()
   const { settings } = useSettings()
   const { isGoalVisible } = useCalendarFilter()
 
@@ -87,7 +89,7 @@ export function useCalendarMonth(options: MonthOptions) {
   const days = computed<MonthDayCell[]>(() => {
     const templates = options.getTemplates()
     const dailyTasks = options.getDailyTasks()
-    const today = getTodayISODate()
+    const today = realToday.value
     const monthStart = startOfMonthISODate(anchor.value)
     const monthNumber = Number(monthStart.split('-')[1])
 
@@ -159,7 +161,7 @@ export function useCalendarMonth(options: MonthOptions) {
   }
 
   function goToTodayMonth() {
-    monthAnchor.value = startOfMonthISODate(getTodayISODate())
+    monthAnchor.value = startOfMonthISODate(realToday.value)
   }
 
   return {

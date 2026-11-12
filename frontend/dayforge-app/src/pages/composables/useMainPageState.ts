@@ -1,48 +1,29 @@
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import type { useGoalSpace } from '../../composables/useGoalSpace'
-import type { Goal, GoalTheme } from '../../entities/GoalEntity'
-import type { GoalStatus, ID, ISODate, Priority } from '../../entities/types'
-import type {
-  DailyTask,
-  MajorTaskOption,
-  TaskSchedule,
-  TaskTemplate,
-} from '../../entities/TaskEntity'
-import type { TimeEntry } from '../../entities/TimerEntity'
+import type { ID, ISODate, Priority } from '../../entities/types'
+import type { TaskSchedule, TaskTemplate } from '../../entities/TaskEntity'
 import {
-  GOAL_COLOR_PRESETS,
-  GOAL_STATUS,
-  PRIORITY,
   RECURRENCE_TYPE,
   TASK_STATUS,
   type BoardStage,
 } from '../../entities/constants'
 import type { QuickAddResult } from '../../composables/quickAdd/parse'
-import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
-import {
-  findTemplate,
-  type WelcomeTemplateId,
-} from '../../features/onboarding/composables/welcomeTemplates'
-import { addMinutesToTime } from '../../composables/goalSpace/date'
 import { useTheme } from '../../composables/useTheme'
 import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
 import { useTaskNotifications } from '../../composables/useTaskNotifications'
 import { useSettings } from '../../composables/useSettings'
 import { noteManualTaskAdded } from '../../composables/useShortcutTip'
 import { setTipFacts } from '../../features/onboarding/composables/useTips'
-import {
-  startTour,
-  tourEvent,
-} from '../../features/onboarding/composables/useTour'
+import { tourEvent } from '../../features/onboarding/composables/useTour'
 import { useToday } from '../../composables/goalSpace/today'
 import { useTimer } from '../../composables/useTimer'
 import { initTimerReminders } from '../../composables/useTimerReminders'
 import { useTimeEntries } from '../../composables/useTimeEntries'
 import { useSync } from '../../composables/useSync'
-import { useAuth } from '../../composables/useAuth'
-import { SYNC_TABLE, type SyncedRow } from '../../sync/types'
 import { useDataTransfer } from '../../features/settings/composables/useDataTransfer'
 import type { TaskDropPayload } from '../../features/tasks/composables/useTaskDrag'
+import { provideGoalActions } from '../../features/goals/composables/useGoalActions'
+import { provideTaskActions } from '../../features/tasks/composables/useTaskActions'
 import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTasks'
 import { useArchive } from '../../features/tasks/composables/useArchive'
 import { useTaskGoalDrop } from '../../features/tasks/composables/useTaskGoalDrop'
@@ -51,9 +32,11 @@ import { useFormat } from '../../composables/useFormat'
 import { useUndoToast } from '../../composables/useUndoToast'
 import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
 import { useProjectBudget } from '../../features/analytics/composables/useProjectBudget'
-import type { ProjectBudget } from '../../features/analytics/composables/projectBudget'
 import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
 import { i18n } from '../../i18n'
+import { registerWorkspaceSync } from './registerWorkspaceSync'
+import { useProjectSeeding } from './useProjectSeeding'
+import { useTaskOptions } from './useTaskOptions'
 
 export type ActiveView =
   'goals' | 'calendar' | 'planned' | 'archive' | 'timer' | 'analytics'
@@ -62,40 +45,8 @@ type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 
 export function useMainPageState(goalSpace: GoalSpaceApi) {
   const timeEntries = useTimeEntries()
-  const auth = useAuth()
 
-  const majorTaskOptions = computed<MajorTaskOption[]>(() =>
-    goalSpace.activeMajorTemplates.value.map((template) => ({
-      id: template.id,
-      title: template.title,
-      goalId: template.goalId,
-      goalTitle:
-        (template.goalId
-          ? goalSpace.goals.value.find(
-              (goal: Goal) => goal.id === template.goalId,
-            )?.title
-          : i18n.global.t('tasks.allTasks')) ??
-        i18n.global.t('tasks.unknownGoal'),
-    })),
-  )
-
-  /** Everything the timer can book time against, projects and tasks alike. */
-  const timerTaskOptions = computed<MajorTaskOption[]>(() =>
-    goalSpace.taskTemplates.value
-      .filter((template: TaskTemplate) => template.isActive)
-      .map((template: TaskTemplate) => ({
-        id: template.id,
-        title: template.title,
-        goalId: template.goalId,
-        goalTitle:
-          (template.goalId
-            ? goalSpace.goals.value.find(
-                (goal: Goal) => goal.id === template.goalId,
-              )?.title
-            : i18n.global.t('goals.noProject')) ??
-          i18n.global.t('goals.noProject'),
-      })),
-  )
+  const { majorTaskOptions, timerTaskOptions } = useTaskOptions(goalSpace)
 
   const sync = useSync()
 
@@ -106,41 +57,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     goalSpace.initializeStorage()
     dataReady.value = true
 
-    // Registering the arrays is the whole of it: from here the engine watches
-    // them, queues what actually changed and sends it when it can.
-    sync.register(
-      [
-        {
-          table: SYNC_TABLE.GOALS,
-          track: () => goalSpace.goals.value,
-          read: () => goalSpace.goals.value as unknown as SyncedRow[],
-          write: (rows) => goalSpace.setGoals(rows as unknown as Goal[]),
-        },
-        {
-          table: SYNC_TABLE.TASK_TEMPLATES,
-          track: () => goalSpace.taskTemplates.value,
-          read: () => goalSpace.taskTemplates.value as unknown as SyncedRow[],
-          write: (rows) => {
-            goalSpace.taskTemplates.value = rows as unknown as TaskTemplate[]
-          },
-        },
-        {
-          table: SYNC_TABLE.DAILY_TASKS,
-          track: () => goalSpace.dailyTasks.value,
-          read: () => goalSpace.dailyTasks.value as unknown as SyncedRow[],
-          write: (rows) => {
-            goalSpace.dailyTasks.value = rows as unknown as DailyTask[]
-          },
-        },
-        {
-          table: SYNC_TABLE.TIME_ENTRIES,
-          track: () => timeEntries.entries.value,
-          read: () => timeEntries.entries.value as unknown as SyncedRow[],
-          write: (rows) => {
-            timeEntries.entries.value = rows as unknown as TimeEntry[]
-          },
-        },
-      ],
+    registerWorkspaceSync(
+      sync,
+      goalSpace,
+      timeEntries,
       dataTransfer.buildBackup,
     )
   })
@@ -171,15 +91,15 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     })
   })
 
-  const showStarter = ref(false)
-
-  function openStarter() {
-    showStarter.value = true
-  }
-
-  function closeStarter() {
-    showStarter.value = false
-  }
+  const {
+    showStarter,
+    openStarter,
+    closeStarter,
+    handleApplyStarter,
+    handleCreateGoal,
+    createFirstProject,
+    unusedProjectColor,
+  } = useProjectSeeding(goalSpace, selectGoal)
 
   const plannedView = usePlannedTasks({
     getTemplates: () => goalSpace.taskTemplates.value,
@@ -372,93 +292,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     announceScheduled(schedule)
   }
 
-  /** The first preset no project is wearing yet, so a new one stands out. */
-  function unusedProjectColor(): string {
-    const used = new Set(
-      goalSpace.goals.value.map((goal) => goal.theme?.accent?.toLowerCase()),
-    )
-    return (
-      GOAL_COLOR_PRESETS.find((color) => !used.has(color.toLowerCase())) ??
-      GOAL_COLOR_PRESETS[0]
-    )
-  }
-
   /** No projects and no task templates: nothing to lose by showing the welcome card. */
   const isFirstRun = computed(
     () =>
       goalSpace.goals.value.length === 0 &&
       goalSpace.taskTemplates.value.length === 0,
   )
-
-  /** The welcome card's project. It opens only when the user plans their day. */
-  function createFirstProject(
-    title: string,
-    color: string,
-    select: boolean,
-    templateId: WelcomeTemplateId | null = null,
-  ) {
-    // The tour starts first, so the project it creates counts as its first step.
-    startTour()
-    const id = handleCreateGoal(title, '', color)
-    if (templateId) fillFromTemplate(id, templateId)
-    if (select) selectGoal(id)
-  }
-
-  /** The welcome card's template: its tasks, times, repeats and rate. */
-  function fillFromTemplate(goalId: ID, templateId: WelcomeTemplateId) {
-    const template = findTemplate(templateId)
-    const date = goalSpace.currentDate.value
-    const t = i18n.global.t
-
-    if (template.hourlyRate) {
-      goalSpace.updateGoalRate(goalId, template.hourlyRate)
-    }
-
-    // A new task lands on top of the list, so add them last first.
-    const lastFirst = [...template.tasks].reverse()
-    lastFirst.forEach((task) => {
-      const endTime =
-        task.start && task.minutes
-          ? addMinutesToTime(task.start, task.minutes)
-          : undefined
-      goalSpace.addTask(
-        goalId,
-        t(task.titleKey),
-        PRIORITY.MINOR,
-        endTime || task.daily
-          ? {
-              date,
-              startTime: endTime ? task.start : undefined,
-              endTime,
-              recurrence: {
-                type: task.daily ? RECURRENCE_TYPE.DAILY : RECURRENCE_TYPE.NONE,
-                startDate: date,
-              },
-            }
-          : undefined,
-      )
-    })
-  }
-
-  function handleCreateGoal(
-    title: string,
-    description: string,
-    color: string,
-  ): ID {
-    const now = new Date().toISOString()
-    const id = `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-    goalSpace.createGoal({
-      id,
-      title,
-      description,
-      status: GOAL_STATUS.ACTIVE,
-      createdAt: now,
-      updatedAt: now,
-      theme: { accent: color },
-    })
-    tourEvent('project-created', { goalId: id })
-    return id
-  }
 
   function handleToggleDone(dailyTaskId: ID) {
     goalSpace.toggleTaskDone(dailyTaskId)
@@ -468,55 +307,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     if (row?.status === TASK_STATUS.DONE) {
       tourEvent('task-done', { templateId: row.templateId })
     }
-  }
-
-  function applyStarterPlan(plan: StarterPlan) {
-    const now = new Date().toISOString()
-    const goalId = `goal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-
-    goalSpace.createGoal({
-      id: goalId,
-      title: plan.goalTitle,
-      description: plan.goalDescription,
-      status: GOAL_STATUS.ACTIVE,
-      createdAt: now,
-      updatedAt: now,
-    })
-    tourEvent('project-created', { goalId })
-    goalSpace.selectGoal(goalId)
-
-    const project = goalSpace.addTask(goalId, plan.projectTitle, PRIORITY.MINOR)
-    if (!project) return
-
-    plan.tasks.forEach((task) => {
-      const created = goalSpace.addSubTask(
-        project.id,
-        task.title,
-        PRIORITY.MINOR,
-      )
-      if (!created) return
-
-      const row = goalSpace.dailyTasks.value.find(
-        (item) =>
-          item.templateId === created.id &&
-          item.date === goalSpace.currentDate.value,
-      )
-      if (row) {
-        goalSpace.scheduleDailyTask(row.id, task.startTime, task.endTime)
-      }
-    })
-  }
-
-  function handleTogglePlanned(templateId: ID, date: ISODate) {
-    goalSpace.togglePlannedTask(templateId, date)
-  }
-
-  function handleSetAsProject(templateId: ID) {
-    goalSpace.convertTaskToProject(templateId)
-  }
-
-  function handleAttachToProject(templateId: ID, projectTemplateId: ID | null) {
-    goalSpace.attachTaskToProject(templateId, projectTemplateId)
   }
 
   /** A dropped task changes project and position in one go. */
@@ -542,10 +332,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     }
   }
 
-  function handleAssignTaskToGoal(templateId: ID, goalId: ID | undefined) {
-    goalSpace.assignTaskToGoal(templateId, goalId)
-  }
-
   function handleCreateAllModeMinor(
     title: string,
     goalId?: ID,
@@ -557,21 +343,13 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     noteManualTaskAdded()
   }
 
-  function handleEditTask(templateId: ID, title: string) {
-    goalSpace.editTaskTitle(templateId, title)
-  }
-
-  function handleEditNotes(templateId: ID, notes: string) {
-    goalSpace.updateTaskNotes(templateId, notes)
-  }
-
-  // A timer left running on something that no longer exists would keep
-  // recording against it, so it is closed out first.
   function handleScheduleTask(templateId: ID, schedule: TaskSchedule | null) {
     goalSpace.updateTaskSchedule(templateId, schedule)
     if (repeats(schedule)) tourEvent('task-repeats')
   }
 
+  // A timer left running on something that no longer exists would keep
+  // recording against it, so it is closed out first.
   function handleDeleteTask(templateId: ID) {
     timer.handleTaskRemoved(templateId)
     goalSpace.deleteTask(templateId)
@@ -582,27 +360,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     timer.handleGoalRemoved(goalId)
     goalSpace.deleteGoal(goalId)
     tourEvent('project-removed', { goalId })
-  }
-
-  function handleChangeGoalDetails(
-    goalId: ID,
-    title: string,
-    description: string,
-  ) {
-    goalSpace.updateGoalDetails(goalId, title, description)
-  }
-
-  /** Archiving the open project keeps it selected, so it can be brought back. */
-  function handleChangeGoalStatus(goalId: ID, status: GoalStatus) {
-    goalSpace.updateGoalStatus(goalId, status)
-  }
-
-  function handleChangeGoalRate(goalId: ID, hourlyRate: number | undefined) {
-    goalSpace.updateGoalRate(goalId, hourlyRate)
-  }
-
-  function handleChangeGoalClient(goalId: ID, clientId: ID | undefined) {
-    goalSpace.updateGoalClient(goalId, clientId)
   }
 
   const projectBilling = useProjectBilling(goalSpace.goals)
@@ -618,41 +375,14 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   // Watches tracked time and posts the 80% / 100% notices; no UI of its own.
   useBudgetAlerts(goalSpace.goals, goalSpace.taskTemplates)
 
-  function handleChangeGoalBudget(
-    goalId: ID,
-    budget: ProjectBudget | undefined,
-  ) {
-    projectBudget.updateGoalBudget(goalId, budget)
-  }
-
-  function handleChangeGoalIcon(goalId: ID, icon: string | undefined) {
-    goalSpace.updateGoalIcon(goalId, icon)
-  }
-
   function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
     goalSpace.updateGoalBoard(goalId, enabled)
     tourEvent(enabled ? 'board-shown' : 'list-shown', { goalId })
   }
 
-  function handleChangeGoalNotes(goalId: ID, notes: string) {
-    goalSpace.updateGoalNotes(goalId, notes)
-  }
-
   function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
     goalSpace.setTaskBoardStage(templateId, stage)
     tourEvent('card-moved', { templateId, stage })
-  }
-
-  function handleClearBoardDone(templateIds: ID[]) {
-    goalSpace.clearBoardDone(templateIds)
-  }
-
-  function handleChangeGoalTheme(goalId: ID, theme: GoalTheme | undefined) {
-    goalSpace.updateGoalTheme(goalId, theme)
-  }
-
-  function handleSetTaskRate(templateId: ID, hourlyRate: number | undefined) {
-    goalSpace.updateTaskRate(templateId, hourlyRate)
   }
 
   /** A block drawn on the calendar belongs to no project, on the day it was drawn. */
@@ -695,10 +425,39 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     )
   }
 
-  function handleApplyStarter(plan: StarterPlan) {
-    applyStarterPlan(plan)
-    closeStarter()
-  }
+  // One object for everything the rows, cards and dialogs do to a task, so
+  // none of the components between the page and them has to pass it along.
+  provideTaskActions({
+    addTask: handleAddTask,
+    addSubtask: handleAddSubTask,
+    addInAllMode: handleCreateAllModeMinor,
+    toggleDone: handleToggleDone,
+    togglePlanned: goalSpace.togglePlannedTask,
+    editTitle: goalSpace.editTaskTitle,
+    editNotes: goalSpace.updateTaskNotes,
+    schedule: handleScheduleTask,
+    setRate: goalSpace.updateTaskRate,
+    remove: handleDeleteTask,
+    setAsProject: goalSpace.convertTaskToProject,
+    assignGoal: goalSpace.assignTaskToGoal,
+    attachToProject: goalSpace.attachTaskToProject,
+    moveTo: handleMoveTaskTo,
+    nudge: goalSpace.nudgeTask,
+    setBoardStage: handleSetBoardStage,
+    clearBoardDone: goalSpace.clearBoardDone,
+  })
+
+  provideGoalActions({
+    updateDetails: goalSpace.updateGoalDetails,
+    updateStatus: goalSpace.updateGoalStatus,
+    updateTheme: goalSpace.updateGoalTheme,
+    updateIcon: goalSpace.updateGoalIcon,
+    updateRate: goalSpace.updateGoalRate,
+    updateBudget: projectBudget.updateGoalBudget,
+    updateClient: goalSpace.updateGoalClient,
+    setBoard: handleChangeGoalBoard,
+    remove: handleDeleteGoal,
+  })
 
   return {
     activeView,
@@ -735,42 +494,14 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     restoreSnapshot: dataTransfer.restoreSnapshot,
     clearData: dataTransfer.clearEverything,
     syncStatus: sync.status,
-    syncSnapshots: sync.snapshots,
-    retrySync: sync.retryDead,
-    discardSyncFailures: sync.discardDead,
-    auth,
     handleCreateScheduledTask,
     majorTaskOptions,
-    handleAddTask,
     handleQuickAdd,
-    handleAddSubTask,
     handleCreateGoal,
     handleToggleDone,
-    handleTogglePlanned,
-    applyStarterPlan,
-    handleSetAsProject,
-    handleAttachToProject,
-    handleMoveTaskTo,
-    handleAssignTaskToGoal,
-    handleCreateAllModeMinor,
-    handleEditTask,
-    handleEditNotes,
-    handleScheduleTask,
-    handleDeleteTask,
     handleDeleteGoal,
-    handleChangeGoalDetails,
-    handleChangeGoalStatus,
-    handleChangeGoalRate,
-    handleChangeGoalClient,
     handleChangeGoalBilling,
-    handleChangeGoalTheme,
-    handleChangeGoalIcon,
-    handleChangeGoalBudget,
     handleChangeGoalBoard,
-    handleChangeGoalNotes,
-    handleSetBoardStage,
-    handleClearBoardDone,
-    handleSetTaskRate,
     handleScheduleCalendarBlock,
   }
 }

@@ -22,7 +22,12 @@ const isOpen = computed(
 
 <template>
   <div v-if="isOpen" class="shortcut-tip" role="status" aria-live="polite">
-    <I18nT keypath="hotkeys.tip" tag="p" class="shortcut-tip__text">
+    <I18nT
+      keypath="hotkeys.tip"
+      scope="global"
+      tag="p"
+      class="shortcut-tip__text"
+    >
       <template #add><kbd class="kbd-badge">N</kbd></template>
       <template #help><kbd class="kbd-badge">?</kbd></template>
     </I18nT>

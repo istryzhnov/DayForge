@@ -22,8 +22,6 @@ import {
 } from '../entities/constants'
 import { useUndoToast } from './useUndoToast'
 
-/** How long a freshly created task keeps its "just added" highlight. */
-const NEW_TASK_HIGHLIGHT_MS = 1500
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { dayToShowAfterChange, useToday } from './goalSpace/today'
 import { isRepeating } from './goalSpace/recurrence'
@@ -55,6 +53,9 @@ import { useTombstones } from './useTombstones'
 import { i18n } from '../i18n'
 import { SYNC_TABLE, type SyncedRow } from '../sync/types'
 import { DAILY_FIELD_GROUPS } from '../sync/merge'
+
+/** How long a freshly created task keeps its "just added" highlight. */
+const NEW_TASK_HIGHLIGHT_MS = 1500
 
 /** Set once this browser's task list was numbered from its stored position. */
 const TASK_ORDER_MIGRATED_KEY = 'dayforge-task-order-migrated-v1'
@@ -110,6 +111,14 @@ export function useGoalSpace() {
     const shown = dayToShowAfterChange(currentDate.value, previous, next)
     if (shown !== currentDate.value) goToDate(shown)
   })
+
+  function templateOf(templateId: ID | undefined): TaskTemplate | undefined {
+    return taskTemplates.value.find((item) => item.id === templateId)
+  }
+
+  function rowOf(dailyTaskId: ID): DailyTask | undefined {
+    return dailyTasks.value.find((item) => item.id === dailyTaskId)
+  }
 
   const lastCreatedTemplateId = ref<ID | null>(null)
   let highlightTimerId: number | undefined
@@ -232,9 +241,7 @@ export function useGoalSpace() {
     if (input.kind === TASK_KIND.TASK) {
       goalId = input.goalId
     } else {
-      const parent = taskTemplates.value.find(
-        (task) => task.id === input.parentTemplateId,
-      )
+      const parent = templateOf(input.parentTemplateId)
       if (!parent) return null
       goalId = parent.goalId
       parentTemplateId = parent.id
@@ -326,7 +333,7 @@ export function useGoalSpace() {
     const trimmedTitle = title.trim()
     if (!trimmedTitle) return
 
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
 
     template.title = trimmedTitle
@@ -342,7 +349,7 @@ export function useGoalSpace() {
 
   /** Blank notes remove the field, so a cleared note leaves no trace behind. */
   function updateTaskNotes(templateId: ID, notes: string) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
 
     const next = normalizeNotes(notes)
@@ -361,7 +368,7 @@ export function useGoalSpace() {
    * entirely, so a task that never used the board serialises exactly as before.
    */
   function setTaskBoardStage(templateId: ID, stage: BoardStage | undefined) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template || template.boardStage === stage) return
 
     if (stage === undefined) {
@@ -374,7 +381,7 @@ export function useGoalSpace() {
 
   /** An absent rate means "bill this task at its project's rate". */
   function updateTaskRate(templateId: ID, hourlyRate: number | undefined) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
 
     template.hourlyRate = hourlyRate && hourlyRate > 0 ? hourlyRate : undefined
@@ -394,38 +401,51 @@ export function useGoalSpace() {
     collectDescendants(templateId)
 
     const removedTitle =
-      taskTemplates.value.find((item) => item.id === templateId)?.title ??
-      i18n.global.t('tasks.taskLabel')
+      templateOf(templateId)?.title ?? i18n.global.t('tasks.taskLabel')
 
-    const removedTemplates = taskTemplates.value.filter((item) =>
-      idsToRemove.has(item.id),
-    )
-    const removedDailyTasks = dailyTasks.value.filter(
-      (item) =>
-        idsToRemove.has(item.templateId) && item.date >= currentDate.value,
-    )
+    removeWithUndo({
+      title: removedTitle,
+      templates: taskTemplates.value.filter((item) => idsToRemove.has(item.id)),
+      // Days already behind keep what they recorded.
+      rows: dailyTasks.value.filter(
+        (item) =>
+          idsToRemove.has(item.templateId) && item.date >= currentDate.value,
+      ),
+    })
+  }
 
-    bury(SYNC_TABLE.TASK_TEMPLATES, removedTemplates as unknown as SyncedRow[])
-    bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
+  /**
+   * Takes templates and day rows out and offers to put them back. They are
+   * buried with a copy, so undo brings back exactly what was removed, and
+   * exhuming lifts the burial: a sync afterwards carries a restoration rather
+   * than a deletion.
+   */
+  function removeWithUndo(removed: {
+    title: string
+    templates: TaskTemplate[]
+    rows: DailyTask[]
+    /** Runs with the removal, before undo is offered. */
+    alongside?: () => void
+    onRestore?: () => void
+  }) {
+    const templateIds = new Set(removed.templates.map((item) => item.id))
+    const rowIds = new Set(removed.rows.map((item) => item.id))
+
+    bury(SYNC_TABLE.TASK_TEMPLATES, removed.templates as unknown as SyncedRow[])
+    bury(SYNC_TABLE.DAILY_TASKS, removed.rows as unknown as SyncedRow[])
 
     taskTemplates.value = taskTemplates.value.filter(
-      (item) => !idsToRemove.has(item.id),
+      (item) => !templateIds.has(item.id),
     )
-    dailyTasks.value = dailyTasks.value.filter(
-      (item) =>
-        !idsToRemove.has(item.templateId) || item.date < currentDate.value,
-    )
-
-    const templateIds = removedTemplates.map((item) => item.id)
-    const rowIds = removedDailyTasks.map((item) => item.id)
+    dailyTasks.value = dailyTasks.value.filter((item) => !rowIds.has(item.id))
+    removed.alongside?.()
 
     offerUndo(
-      i18n.global.t('tasks.deletedTitle', { title: removedTitle }),
+      i18n.global.t('tasks.deletedTitle', { title: removed.title }),
       () => {
-        // The buried copies come back, which also lifts the burial — so a sync
-        // afterwards carries a restoration rather than a deletion.
-        const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
-        const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
+        removed.onRestore?.()
+        const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, [...templateIds])
+        const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, [...rowIds])
 
         taskTemplates.value = [
           ...taskTemplates.value,
@@ -458,13 +478,11 @@ export function useGoalSpace() {
   }
 
   function assignTaskToGoal(templateId: ID, goalId: ID | undefined) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template || template.goalId === goalId) return
 
     if (template.parentTemplateId) {
-      const parent = taskTemplates.value.find(
-        (item) => item.id === template.parentTemplateId,
-      )
+      const parent = templateOf(template.parentTemplateId)
       if (parent && parent.goalId !== goalId) {
         attachTaskToProject(templateId, null)
       }
@@ -474,12 +492,10 @@ export function useGoalSpace() {
   }
 
   function attachTaskToProject(templateId: ID, projectTemplateId: ID | null) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template || template.priority === PRIORITY.MAJOR) return
 
-    const project = projectTemplateId
-      ? taskTemplates.value.find((item) => item.id === projectTemplateId)
-      : null
+    const project = projectTemplateId ? templateOf(projectTemplateId) : null
     if (projectTemplateId && (!project || project.id === templateId)) return
 
     template.parentTemplateId = project?.id
@@ -534,45 +550,16 @@ export function useGoalSpace() {
   function removeGoal(goalId: ID) {
     const goalTitle = goals.value.find((item) => item.id === goalId)?.title
 
-    const removedTemplates = taskTemplates.value.filter(
-      (item) => item.goalId === goalId,
-    )
-    const removedDailyTasks = dailyTasks.value.filter(
-      (item) => item.goalId === goalId,
-    )
-
-    bury(SYNC_TABLE.TASK_TEMPLATES, removedTemplates as unknown as SyncedRow[])
-    bury(SYNC_TABLE.DAILY_TASKS, removedDailyTasks as unknown as SyncedRow[])
-
-    taskTemplates.value = taskTemplates.value.filter(
-      (item) => item.goalId !== goalId,
-    )
-    dailyTasks.value = dailyTasks.value.filter((item) => item.goalId !== goalId)
-    deleteGoal(goalId)
-
-    const templateIds = removedTemplates.map((item) => item.id)
-    const rowIds = removedDailyTasks.map((item) => item.id)
-
-    offerUndo(
-      i18n.global.t('tasks.deletedTitle', {
-        title: goalTitle ?? i18n.global.t('tasks.fallbackProject'),
-      }),
-      () => {
+    removeWithUndo({
+      title: goalTitle ?? i18n.global.t('tasks.fallbackProject'),
+      templates: taskTemplates.value.filter((item) => item.goalId === goalId),
+      rows: dailyTasks.value.filter((item) => item.goalId === goalId),
+      alongside: () => deleteGoal(goalId),
+      onRestore: () => {
         const restored = restoreGoal(goalId)
-        const templates = exhumeAll(SYNC_TABLE.TASK_TEMPLATES, templateIds)
-        const rows = exhumeAll(SYNC_TABLE.DAILY_TASKS, rowIds)
-
-        taskTemplates.value = [
-          ...taskTemplates.value,
-          ...(templates as unknown as TaskTemplate[]),
-        ]
-        dailyTasks.value = [
-          ...dailyTasks.value,
-          ...(rows as unknown as DailyTask[]),
-        ]
         if (restored) selectGoal(restored.id)
       },
-    )
+    })
   }
 
   /**
@@ -581,7 +568,7 @@ export function useGoalSpace() {
    * the new rule.
    */
   function updateTaskSchedule(templateId: ID, schedule: TaskSchedule | null) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
 
     template.recurrence = schedule?.recurrence
@@ -621,7 +608,7 @@ export function useGoalSpace() {
     startTime: string,
     endTime: string,
   ) {
-    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    const task = rowOf(dailyTaskId)
     if (!task) return
     if (task.startTime === startTime && task.endTime === endTime) return
 
@@ -640,22 +627,20 @@ export function useGoalSpace() {
     startTime: string,
     endTime: string,
   ) {
-    const row = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    const row = rowOf(dailyTaskId)
     if (!row) return
     if (row.date === date) {
       scheduleDailyTask(dailyTaskId, startTime, endTime)
       return
     }
 
-    const template = taskTemplates.value.find(
-      (item) => item.id === row.templateId,
-    )
+    const template = templateOf(row.templateId)
     if (!template) return
     moveRowToDay(template, row, dailyTasks.value, date, startTime, endTime)
   }
 
   function unscheduleDailyTask(dailyTaskId: ID) {
-    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    const task = rowOf(dailyTaskId)
     if (!task) return
     if (task.startTime === undefined && task.endTime === undefined) return
 
@@ -692,7 +677,7 @@ export function useGoalSpace() {
   )
 
   function toggleTaskDone(dailyTaskId: ID) {
-    const task = dailyTasks.value.find((item) => item.id === dailyTaskId)
+    const task = rowOf(dailyTaskId)
     if (!task) return
 
     if (task.status === TASK_STATUS.DONE) {
@@ -707,9 +692,7 @@ export function useGoalSpace() {
 
     // Finishing today's occurrence of a repeating task sends it back to To do
     // for tomorrow, rather than leaving it "In progress" from a finished day.
-    const template = taskTemplates.value.find(
-      (item) => item.id === task.templateId,
-    )
+    const template = templateOf(task.templateId)
     if (
       template?.boardStage !== undefined &&
       isRepeating(template) &&
@@ -729,9 +712,7 @@ export function useGoalSpace() {
     const previous = new Map<ID, ISODateTime | undefined>()
 
     templateIds.forEach((templateId) => {
-      const template = taskTemplates.value.find(
-        (item) => item.id === templateId,
-      )
+      const template = templateOf(templateId)
       if (!template || previous.has(templateId)) return
       previous.set(templateId, template.boardClearedAt)
       template.boardClearedAt = now
@@ -743,9 +724,7 @@ export function useGoalSpace() {
     offerUndo(i18n.global.t('board.clearedDone', previous.size), () => {
       const restoredAt = new Date().toISOString()
       previous.forEach((value, templateId) => {
-        const template = taskTemplates.value.find(
-          (item) => item.id === templateId,
-        )
+        const template = templateOf(templateId)
         if (!template) return
         if (value === undefined) {
           delete template.boardClearedAt
@@ -758,7 +737,7 @@ export function useGoalSpace() {
   }
 
   function togglePlannedTask(templateId: ID, date: ISODate) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
 
     ensureDailyTaskForTemplate({
@@ -794,7 +773,7 @@ export function useGoalSpace() {
 
     const now = new Date().toISOString()
     changes.forEach(({ id, order }) => {
-      const row = taskTemplates.value.find((item) => item.id === id)
+      const row = templateOf(id)
       if (!row) return
       row.order = order
       row.updatedAt = now
@@ -808,7 +787,7 @@ export function useGoalSpace() {
   }
 
   function convertTaskToProject(templateId: ID) {
-    const template = taskTemplates.value.find((item) => item.id === templateId)
+    const template = templateOf(templateId)
     if (!template) return
     if (template.priority === PRIORITY.MAJOR) return
     if (template.parentTemplateId) return

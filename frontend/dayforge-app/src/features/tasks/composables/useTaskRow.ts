@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
-import type { ID } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../composables/useTaskTree'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import type { TaskActions } from './useTaskActions'
 import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import {
   usePressGesture,
@@ -14,21 +14,19 @@ type TaskRowProps = {
   isNested?: boolean
 }
 
-type TaskRowActions = {
-  onEditTask: (templateId: ID, title: string) => void
-  onEditNotes: (templateId: ID, notes: string) => void
-  onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
-  onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
-  /** Touch drag hooks; absent for rows that cannot be moved. */
-  drag?: {
-    begin: (point: GesturePoint) => void
-    move: (point: GesturePoint) => void
-    drop: () => void
-    cancel: () => void
-  }
+/** Touch drag hooks; absent for rows that cannot be moved. */
+type TaskRowTouchDrag = {
+  begin: (point: GesturePoint) => void
+  move: (point: GesturePoint) => void
+  drop: () => void
+  cancel: () => void
 }
 
-export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
+export function useTaskRow(
+  props: TaskRowProps,
+  actions: TaskActions,
+  drag?: TaskRowTouchDrag,
+) {
   const contextMenuPos = ref<{ x: number; y: number } | null>(null)
   const isEditing = ref(false)
   /** The panel opens with the calendar fields already on. */
@@ -47,19 +45,19 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
   const { isLifted, onPointerDown } = usePressGesture({
     isEnabled: () => isCoarsePointer.value,
     onLift: (point) => {
-      if (!actions.drag) {
+      if (!drag) {
         contextMenuPos.value = { x: point.x, y: point.y }
         return
       }
-      actions.drag.begin(point)
+      drag.begin(point)
     },
-    onDragMove: (point) => actions.drag?.move(point),
-    onDrop: () => actions.drag?.drop(),
+    onDragMove: (point) => drag?.move(point),
+    onDrop: () => drag?.drop(),
     onLongPress: (point) => {
-      actions.drag?.cancel()
+      drag?.cancel()
       contextMenuPos.value = { x: point.x, y: point.y }
     },
-    onCancel: () => actions.drag?.cancel(),
+    onCancel: () => drag?.cancel(),
   })
 
   function openContextMenu(event: MouseEvent) {
@@ -90,19 +88,19 @@ export function useTaskRow(props: TaskRowProps, actions: TaskRowActions) {
   }
 
   function saveNotes(notes: string) {
-    actions.onEditNotes(props.node.task.templateId, notes)
+    actions.editNotes(props.node.task.templateId, notes)
   }
 
   function saveRate(hourlyRate: number | undefined) {
-    actions.onSetTaskRate(props.node.task.templateId, hourlyRate)
+    actions.setRate(props.node.task.templateId, hourlyRate)
   }
 
   /** A title that didn't actually change isn't worth an update. */
   function saveEdits(title: string, schedule: TaskSchedule | null) {
     if (title !== props.node.task.title) {
-      actions.onEditTask(props.node.task.templateId, title)
+      actions.editTitle(props.node.task.templateId, title)
     }
-    actions.onScheduleTask(props.node.task.templateId, schedule)
+    actions.schedule(props.node.task.templateId, schedule)
   }
 
   return {

@@ -6,18 +6,13 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import {
-  PRIORITY,
-  TASK_STATUS,
-  type BoardStage,
-} from '../../../entities/constants'
-import type { ID, ISODate, Priority } from '../../../entities/types'
+import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import type { TaskNode } from '../../../composables/useTaskTree'
-import {
-  dailyTaskId,
-  getTodayISODate,
-} from '../../../composables/goalSpace/date'
+import { dailyTaskId } from '../../../composables/goalSpace/date'
+import { useToday } from '../../../composables/goalSpace/today'
+import { useTaskActions } from '../../tasks/composables/useTaskActions'
 import TaskInlineEditor from '../../tasks/components/TaskInlineEditor.vue'
 import DragGhost from '../../../components/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
@@ -38,24 +33,14 @@ const props = defineProps<{
   templates: TaskTemplate[]
 }>()
 
-const emit = defineEmits<{
-  (e: 'toggle-done', dailyTaskId: ID): void
-  (e: 'toggle-planned', templateId: ID, date: ISODate): void
-  (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
-  (e: 'clear-done', templateIds: ID[]): void
-  (e: 'add-task', title: string, priority: Priority): void
-  (e: 'edit-task', templateId: ID, title: string): void
-  (e: 'edit-notes', templateId: ID, notes: string): void
-  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
-  (e: 'delete-task', templateId: ID): void
-}>()
-
+const actions = useTaskActions()
 const { settings } = useSettings()
 
-const today = getTodayISODate()
+// The real day, which moves on at midnight while the board stays open.
+const today = useToday()
 
 const cards = computed(() =>
-  buildBoardCards(props.rows, props.templates, today),
+  buildBoardCards(props.rows, props.templates, today.value),
 )
 
 const allCards = computed<BoardCardModel[]>(() => [
@@ -84,24 +69,24 @@ function moveCard(cardId: ID, column: BoardColumn) {
 
   if (plan.toggleDone) {
     if (card.row) {
-      emit('toggle-done', card.row.id)
+      actions.toggleDone(card.row.id)
     } else {
       // A repeating task finished for the first time today has no row yet.
-      emit('toggle-planned', card.templateId, today)
+      actions.togglePlanned(card.templateId, today.value)
     }
   }
 
   if (plan.stage !== undefined) {
     const next = plan.stage ?? undefined
     if ((card.template.boardStage ?? undefined) !== next) {
-      emit('set-board-stage', card.templateId, next)
+      actions.setBoardStage(card.templateId, next)
     }
   }
 }
 
 function clearDone() {
   const templateIds = cards.value.done.map((card) => card.templateId)
-  if (templateIds.length) emit('clear-done', templateIds)
+  if (templateIds.length) actions.clearBoardDone(templateIds)
 }
 
 const drag = useBoardDrag((cardId, column) => moveCard(cardId, column))
@@ -129,9 +114,10 @@ function openCard(card: BoardCardModel) {
  */
 function rowForEditing(card: BoardCardModel): DailyTask {
   if (card.row) return card.row
+  const date = card.date ?? today.value
   return {
-    id: dailyTaskId(card.templateId, card.date ?? today),
-    date: card.date ?? today,
+    id: dailyTaskId(card.templateId, date),
+    date,
     templateId: card.templateId,
     title: card.title,
     priority: card.priority,
@@ -158,9 +144,9 @@ function saveEdits(title: string, schedule: TaskSchedule | null) {
 
   // Same rules as the list: an unchanged title is not an edit.
   if (title !== card.title) {
-    emit('edit-task', card.templateId, title)
+    actions.editTitle(card.templateId, title)
   }
-  emit('schedule-task', card.templateId, schedule)
+  actions.schedule(card.templateId, schedule)
 }
 
 // --- adding: creates a task in this project, the same way the composer does
@@ -180,7 +166,7 @@ function stopAdd() {
 function submitAdd() {
   const title = draft.value.trim()
   if (!title) return
-  emit('add-task', title, settings.behavior.defaultPriority)
+  actions.addTask(title, settings.behavior.defaultPriority)
   // Stays open, so several tasks can be typed in a row.
   draft.value = ''
 }
@@ -223,10 +209,8 @@ function submitAdd() {
               :is-dragging="drag.draggingId.value === card.id"
               @open="openCard(card)"
               @move="(target) => moveCard(card.id, target)"
-              @save-notes="
-                (notes) => emit('edit-notes', card.templateId, notes)
-              "
-              @delete="emit('delete-task', card.templateId)"
+              @save-notes="(notes) => actions.editNotes(card.templateId, notes)"
+              @delete="actions.remove(card.templateId)"
             />
           </li>
         </ul>

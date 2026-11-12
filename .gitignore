@@ -10,3 +10,6 @@ docs/
 .agents/
 .scratch/
 skills-lock.json
+
+# Supabase CLI state (linked project, CLI version)
+supabase/.temp/

@@ -127,37 +127,14 @@ const {
   clearData,
   syncStatus,
   majorTaskOptions,
-  handleAddTask,
   handleQuickAdd,
-  handleAddSubTask,
   handleCreateGoal,
   handleToggleDone,
-  handleTogglePlanned,
-  handleSetAsProject,
-  handleAttachToProject,
-  handleMoveTaskTo,
-  handleAssignTaskToGoal,
-  handleCreateAllModeMinor,
   handleCreateScheduledTask,
   handleScheduleCalendarBlock,
-  handleEditTask,
-  handleEditNotes,
-  handleScheduleTask,
-  handleDeleteTask,
   handleDeleteGoal,
-  handleChangeGoalRate,
   handleChangeGoalBilling,
-  handleChangeGoalClient,
-  handleChangeGoalDetails,
-  handleChangeGoalStatus,
-  handleChangeGoalTheme,
-  handleChangeGoalIcon,
-  handleChangeGoalBudget,
   handleChangeGoalBoard,
-  handleChangeGoalNotes,
-  handleSetBoardStage,
-  handleClearBoardDone,
-  handleSetTaskRate,
   dataReady,
   isFirstRun,
   createFirstProject,
@@ -340,25 +317,8 @@ function handleSearchSelect(result: SearchResult) {
           :current-date="currentDate"
           :is-all-mode="activeGoalId === null"
           :major-task-options="majorTaskOptions"
-          @add-task="handleAddTask"
-          @add-subtask="handleAddSubTask"
-          @toggle-done="handleToggleDone"
-          @toggle-planned="handleTogglePlanned"
-          @set-as-project="handleSetAsProject"
-          @create-all-mode-minor="handleCreateAllModeMinor"
-          @edit-task="handleEditTask"
-          @edit-notes="handleEditNotes"
-          @schedule-task="handleScheduleTask"
-          @delete-task="handleDeleteTask"
-          @set-task-rate="handleSetTaskRate"
-          @assign-goal="handleAssignTaskToGoal"
-          @attach-to-project="handleAttachToProject"
-          @move-task-to="handleMoveTaskTo"
-          @nudge-task="goalSpace.nudgeTask"
-          @set-board-stage="handleSetBoardStage"
-          @clear-board-done="handleClearBoardDone"
           @change-goal-board="handleChangeGoalBoard"
-          @change-goal-notes="handleChangeGoalNotes"
+          @change-goal-notes="goalSpace.updateGoalNotes"
           @select-date="goToDate"
           @today="goToToday"
         />
@@ -366,7 +326,7 @@ function handleSearchSelect(result: SearchResult) {
         <PlannedTaskList
           v-else-if="activeView === 'planned'"
           :tasks="plannedTasks"
-          @toggle="handleTogglePlanned"
+          @toggle="goalSpace.togglePlannedTask"
         />
 
         <ArchiveView
@@ -382,7 +342,7 @@ function handleSearchSelect(result: SearchResult) {
           :goals="goals"
           :templates="taskTemplates"
           :daily-tasks="dailyTasks"
-          @change-goal-rate="handleChangeGoalRate"
+          @change-goal-rate="goalSpace.updateGoalRate"
           @change-goal-billing="handleChangeGoalBilling"
         />
 
@@ -411,10 +371,10 @@ function handleSearchSelect(result: SearchResult) {
           @unschedule-task="unscheduleDailyTask"
           @create-task="handleCreateScheduledTask"
           @toggle-task-done="handleToggleDone"
-          @edit-task="handleEditTask"
-          @edit-notes="handleEditNotes"
-          @attach-to-project="handleAttachToProject"
-          @assign-goal="handleAssignTaskToGoal"
+          @edit-task="goalSpace.editTaskTitle"
+          @edit-notes="goalSpace.updateTaskNotes"
+          @attach-to-project="goalSpace.attachTaskToProject"
+          @assign-goal="goalSpace.assignTaskToGoal"
         />
       </div>
     </main>
@@ -428,15 +388,6 @@ function handleSearchSelect(result: SearchResult) {
         :notifications-supported="notificationsSupported"
         :notifications-enabled="notificationsEnabled"
         :data-stats="dataStats"
-        @change-goal-theme="handleChangeGoalTheme"
-        @change-goal-rate="handleChangeGoalRate"
-        @change-goal-icon="handleChangeGoalIcon"
-        @change-goal-budget="handleChangeGoalBudget"
-        @change-goal-client="handleChangeGoalClient"
-        @change-goal-board="handleChangeGoalBoard"
-        @change-goal-details="handleChangeGoalDetails"
-        @change-goal-status="handleChangeGoalStatus"
-        @delete-goal="handleDeleteGoal"
         @toggle-notifications="toggleNotifications"
         @export-data="exportData"
         @import-data="importData"

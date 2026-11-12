@@ -4,10 +4,10 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate, ISODateTime } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { useSettings } from '../../../composables/useSettings'
 import { doneCountsOf, groupByDay, type DayGroup } from './dayGroups'
+import { useToday } from '../../../composables/goalSpace/today'
 
 export type ArchivedTask = {
   id: ID
@@ -27,6 +27,8 @@ type ArchiveOptions = {
 }
 
 export function useArchive(options: ArchiveOptions) {
+  // The real day; it moves on at midnight while the view stays open.
+  const today = useToday()
   const { settings } = useSettings()
 
   /** Newest day first, and within a day the latest completion first. */
@@ -66,7 +68,7 @@ export function useArchive(options: ArchiveOptions) {
   const counts = computed(() =>
     doneCountsOf(
       days.value.flatMap((day) => day.items.map((task) => task.date)),
-      getTodayISODate(),
+      today.value,
       settings.calendar.weekStartsOn,
     ),
   )

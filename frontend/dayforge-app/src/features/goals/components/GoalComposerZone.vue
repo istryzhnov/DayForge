@@ -2,12 +2,13 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import type { ID, Priority } from '../../../entities/types'
+import type { Priority } from '../../../entities/types'
 import type {
   MajorTaskOption,
   TaskSchedule,
 } from '../../../entities/TaskEntity'
 import TaskComposer from '../../tasks/components/TaskComposer.vue'
+import { useTaskActions } from '../../tasks/composables/useTaskActions'
 import { useSettings } from '../../../composables/useSettings'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import ProjectPicker, { type PickerOption } from './ProjectPicker.vue'
@@ -22,21 +23,7 @@ const { settings } = useSettings()
 const { t } = useI18n()
 const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
-const emit = defineEmits<{
-  (
-    e: 'add-task',
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
-  (
-    e: 'create-all-mode-minor',
-    title: string,
-    goalId?: ID,
-    majorId?: ID,
-    schedule?: TaskSchedule,
-  ): void
-}>()
+const actions = useTaskActions()
 
 /**
  * All Tasks target: '' keeps the task unassigned, 'goal:<id>' files it under a
@@ -66,21 +53,21 @@ const targetOptions = computed<PickerOption[]>(() => [
 
 function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
   if (!props.isAllMode) {
-    emit('add-task', title, priority, schedule)
+    actions.addTask(title, priority, schedule)
     return
   }
 
   const [kind, id] = target.value.split(/:(.*)/)
   if (kind === 'goal') {
-    emit('create-all-mode-minor', title, id, undefined, schedule)
+    actions.addInAllMode(title, id, undefined, schedule)
     return
   }
   if (kind === 'major') {
     const option = props.majorTaskOptions.find((item) => item.id === id)
-    emit('create-all-mode-minor', title, option?.goalId, id, schedule)
+    actions.addInAllMode(title, option?.goalId, id, schedule)
     return
   }
-  emit('create-all-mode-minor', title, undefined, undefined, schedule)
+  actions.addInAllMode(title, undefined, undefined, schedule)
 }
 </script>
 
