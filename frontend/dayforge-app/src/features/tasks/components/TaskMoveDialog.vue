@@ -5,8 +5,8 @@ import type {
   MajorTaskOption,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import type { ID } from '../../../entities/types'
 import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useTaskActions } from '../composables/useTaskActions'
 import { useTaskMove } from '../composables/useTaskMove'
 
 const props = defineProps<{
@@ -16,12 +16,11 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
-  (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
   (e: 'close'): void
 }>()
 
 const { t } = useI18n()
+const actions = useTaskActions()
 
 useFocusTrap({ onEscape: () => emit('close') })
 
@@ -33,9 +32,8 @@ const {
   syncProjectToGoal,
   save,
 } = useTaskMove(props, {
-  onAssignGoal: (templateId, value) => emit('assign-goal', templateId, value),
-  onAttachToProject: (templateId, value) =>
-    emit('attach-to-project', templateId, value),
+  onAssignGoal: actions.assignGoal,
+  onAttachToProject: actions.attachToProject,
 })
 
 function submit() {

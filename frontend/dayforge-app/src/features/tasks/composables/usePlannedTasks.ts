@@ -8,7 +8,6 @@ import {
   TASK_KIND_BY_SCHEDULE,
   TASK_STATUS,
 } from '../../../entities/constants'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import {
@@ -17,6 +16,7 @@ import {
   nextPlannedDateOf,
   scheduleKindOf,
 } from '../../../composables/goalSpace/recurrence'
+import { useToday } from '../../../composables/goalSpace/today'
 
 export type PlannedTask = {
   templateId: ID
@@ -56,8 +56,10 @@ function notYetStartedRepeatOf(
 }
 
 export function usePlannedTasks(options: PlannedOptions) {
+  // The real day; it moves on at midnight while the view stays open.
+  const realToday = useToday()
   const plannedTasks = computed<PlannedTask[]>(() => {
-    const today = getTodayISODate()
+    const today = realToday.value
     const goals = options.getGoals()
     const goalTitleById = new Map(goals.map((goal) => [goal.id, goal.title]))
     const goalColorById = projectColors(goals)

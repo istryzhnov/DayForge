@@ -3,7 +3,6 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
-  getTodayISODate,
   weekdayOfISODate,
 } from '../../../composables/goalSpace/date'
 import {
@@ -26,6 +25,7 @@ import {
   formatCalendarWeekday,
   formatCalendarWeekTitle,
 } from './calendarTitles'
+import { useToday } from '../../../composables/goalSpace/today'
 
 const DAYS_PER_WEEK = 7
 
@@ -63,6 +63,8 @@ export function startOfWeek(date: ISODate, weekStartsOn: 0 | 1 = 1): ISODate {
 }
 
 export function useCalendarWeek(options: WeekOptions) {
+  // The real day; it moves on at midnight while the view stays open.
+  const realToday = useToday()
   const { settings } = useSettings()
   const { isGoalVisible } = useCalendarFilter()
   const isCoarsePointer = useIsCoarsePointer()
@@ -93,7 +95,7 @@ export function useCalendarWeek(options: WeekOptions) {
   const days = computed<WeekDayColumn[]>(() => {
     const templates = options.getTemplates()
     const rowsByDate = groupRowsByDate(options.getDailyTasks())
-    const today = getTodayISODate()
+    const today = realToday.value
 
     return Array.from({ length: DAYS_PER_WEEK }, (_, index) => {
       const date = addDaysToISODate(anchor.value, index)
@@ -165,7 +167,7 @@ export function useCalendarWeek(options: WeekOptions) {
   /** Jump to the week containing the real today, not the selected day's week. */
   function goToThisWeek() {
     weekAnchor.value = startOfWeek(
-      getTodayISODate(),
+      realToday.value,
       settings.calendar.weekStartsOn,
     )
   }

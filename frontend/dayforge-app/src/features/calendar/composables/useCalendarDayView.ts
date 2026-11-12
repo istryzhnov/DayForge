@@ -14,10 +14,8 @@ import {
   isOvernight,
   segmentForDay,
 } from '../../../composables/goalSpace/overnight'
-import {
-  addDaysToISODate,
-  getTodayISODate,
-} from '../../../composables/goalSpace/date'
+import { addDaysToISODate } from '../../../composables/goalSpace/date'
+import { useToday } from '../../../composables/goalSpace/today'
 import { layoutOverlaps } from './overlapLayout'
 import {
   useCalendarDragDrop,
@@ -132,7 +130,8 @@ export function useCalendarDayView(
   })
 
   /** A later day has no list of its own for today's open work, so it borrows today's. */
-  const isLaterDay = computed(() => props.currentDate > getTodayISODate())
+  const today = useToday()
+  const isLaterDay = computed(() => props.currentDate > today.value)
 
   const unscheduledTasks = computed(() => {
     const pool = [...props.tasks]

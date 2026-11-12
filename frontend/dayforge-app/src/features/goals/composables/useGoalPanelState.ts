@@ -1,11 +1,7 @@
 import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
-import type {
-  DailyTask,
-  TaskSchedule,
-  TaskTemplate,
-} from '../../../entities/TaskEntity'
-import type { ID, ISODate, Priority } from '../../../entities/types'
+import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import type { ID, ISODate } from '../../../entities/types'
 import { useTaskTree } from '../../../composables/useTaskTree'
 import { useTheme } from '../../../composables/useTheme'
 import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
@@ -14,7 +10,7 @@ import {
   type ProgressScope,
 } from '../../../composables/useProgressMetrics'
 import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { useToday } from '../../../composables/goalSpace/today'
 import { panelDateLabel } from '../../../composables/panelDateLabel'
 import {
   fullDayStreak,
@@ -46,35 +42,7 @@ type GoalPanelProps = {
   currentDate: ISODate
 }
 
-type GoalPanelActions = {
-  onAddTask: (
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) => void
-  onAddSubtask: (
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) => void
-  onToggleDone: (dailyTaskId: ID) => void
-  onCreateAllModeMinor: (
-    title: string,
-    goalId?: ID,
-    majorId?: ID,
-    schedule?: TaskSchedule,
-  ) => void
-  onEditTask: (templateId: ID, title: string) => void
-  onEditNotes: (templateId: ID, notes: string) => void
-  onDeleteTask: (templateId: ID) => void
-  onSetAsProject: (templateId: ID) => void
-}
-
-export function useGoalPanelState(
-  props: GoalPanelProps,
-  actions: GoalPanelActions,
-) {
+export function useGoalPanelState(props: GoalPanelProps) {
   const taskTree = useTaskTree(props)
 
   // --- what the habit ring is measuring ---------------------------------
@@ -97,8 +65,9 @@ export function useGoalPanelState(
     return { type: PROGRESS_SCOPE_TYPE.ALL }
   })
 
-  // "Today" is the real date, not the day the app is viewing.
-  const today = computed(() => getTodayISODate())
+  // "Today" is the real date, not the day the app is viewing, and it moves on
+  // at midnight while the panel stays open.
+  const today = useToday()
 
   const { todayProgress } = useProgressMetrics(
     computed(() => props.dailyTasks),
@@ -128,6 +97,7 @@ export function useGoalPanelState(
   )
 
   const panelStats = computed<PanelStats>(() => ({
+    // `today` is read below, so "this month" starts over when the month does.
     todayDone: todayProgress.value.done,
     todayTotal: todayProgress.value.total,
     streakDays: hasHabits.value
@@ -200,52 +170,6 @@ export function useGoalPanelState(
     return Object.keys(vars).length > 0 ? vars : undefined
   })
 
-  function submitTask(
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) {
-    actions.onAddTask(title, priority, schedule)
-  }
-
-  function submitMinor(
-    title: string,
-    goalId?: ID,
-    majorId?: ID,
-    schedule?: TaskSchedule,
-  ) {
-    actions.onCreateAllModeMinor(title, goalId, majorId, schedule)
-  }
-
-  function submitSubtask(
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) {
-    actions.onAddSubtask(parentTemplateId, title, priority, schedule)
-  }
-
-  function toggleDone(dailyTaskId: ID) {
-    actions.onToggleDone(dailyTaskId)
-  }
-
-  function editTask(templateId: ID, title: string) {
-    actions.onEditTask(templateId, title)
-  }
-
-  function editNotes(templateId: ID, notes: string) {
-    actions.onEditNotes(templateId, notes)
-  }
-
-  function deleteTask(templateId: ID) {
-    actions.onDeleteTask(templateId)
-  }
-
-  function setAsProject(templateId: ID) {
-    actions.onSetAsProject(templateId)
-  }
-
   /** The day being looked at, when it is not today; null on today. */
   const viewedDayLabel = computed(() =>
     props.currentDate === today.value
@@ -267,13 +191,5 @@ export function useGoalPanelState(
     habitStreakByTemplate,
     focusProject,
     goalPanelStyle,
-    submitTask,
-    submitMinor,
-    submitSubtask,
-    toggleDone,
-    editTask,
-    editNotes,
-    deleteTask,
-    setAsProject,
   }
 }

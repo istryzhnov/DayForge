@@ -269,6 +269,7 @@ useFocusTrap({
           }}</span>
           <I18nT
             keypath="hotkeys.trySyntaxFull"
+            scope="global"
             tag="span"
             class="quick-add-card__syntax-full"
           >
@@ -279,7 +280,7 @@ useFocusTrap({
           </span>
         </p>
         <p v-else class="quick-add-card__hint">
-          <I18nT keypath="hotkeys.keysHint" tag="span">
+          <I18nT keypath="hotkeys.keysHint" scope="global" tag="span">
             <template #enter><kbd>Enter</kbd></template>
             <template #shiftEnter><kbd>Shift</kbd>+<kbd>Enter</kbd></template>
             <template #esc><kbd>Esc</kbd></template>

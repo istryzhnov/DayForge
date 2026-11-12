@@ -47,6 +47,7 @@ const {
   <div class="settings-section">
     <i18n-t
       keypath="settings.projectThemeIntro"
+      scope="global"
       tag="p"
       class="settings-section__intro"
     >

@@ -65,6 +65,7 @@ const {
       <template v-if="!auth.isConfigured">
         <i18n-t
           keypath="profile.noSyncKeysBody"
+          scope="global"
           tag="p"
           class="settings-group-hint"
         >
@@ -100,6 +101,7 @@ const {
 
         <i18n-t
           keypath="profile.legalAgree"
+          scope="global"
           tag="p"
           class="settings-group-hint legal-links"
         >

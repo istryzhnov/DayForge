@@ -5,7 +5,6 @@ import type { ID, ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   addMonthsToISODate,
-  getTodayISODate,
   parseISODate,
   startOfMonthISODate,
 } from '../../../composables/goalSpace/date'
@@ -22,6 +21,7 @@ import { isRepeating } from '../../../composables/goalSpace/recurrence'
 import { panelDateLabel } from '../../../composables/panelDateLabel'
 import { projectColors } from '../../../composables/theme/goalTheme'
 import { i18n } from '../../../i18n'
+import { useToday } from '../../../composables/goalSpace/today'
 
 /** Message keys for each day state, read at call time so the language follows. */
 const STATE_KEYS: Record<HabitDayState, string> = {
@@ -43,16 +43,18 @@ function weekIndexOf(date: ISODate): number {
 }
 
 export function useHabitMonth(sources: HabitMonthSources) {
-  const currentMonth = startOfMonthISODate(getTodayISODate())
-  const month = ref<ISODate>(currentMonth)
-  const canGoNext = computed(() => month.value < currentMonth)
+  // The real day; it moves on at midnight while the view stays open.
+  const today = useToday()
+  const currentMonth = computed(() => startOfMonthISODate(today.value))
+  const month = ref<ISODate>(currentMonth.value)
+  const canGoNext = computed(() => month.value < currentMonth.value)
   const monthLabel = computed(() =>
     panelDateLabel(month.value, { month: 'long', year: 'numeric' }),
   )
 
   function shiftMonth(delta: number) {
     const next = addMonthsToISODate(month.value, delta)
-    if (next > currentMonth) return
+    if (next > currentMonth.value) return
     month.value = next
   }
 
@@ -61,7 +63,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
       templates: sources.getTemplates(),
       dailyTasks: sources.getDailyTasks(),
       month: month.value,
-      today: getTodayISODate(),
+      today: today.value,
     }),
   )
 
@@ -72,7 +74,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
     habitStreaks({
       templates: sources.getTemplates(),
       dailyTasks: sources.getDailyTasks(),
-      today: getTodayISODate(),
+      today: today.value,
     }),
   )
 
@@ -82,7 +84,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
 
   /** Squares for one row, cut at today; every row has the same length. */
   function stripCellsOf(row: HabitMonthRow): HabitMonthCell[] {
-    return habitStripCells(row.cells, getTodayISODate())
+    return habitStripCells(row.cells, today.value)
   }
 
   // Monday first, narrow names: M T W T F S S.
@@ -143,7 +145,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
 
   function dayLabel(day: HabitMonthDayTotal): string {
     const date = dateText(day.date)
-    if (day.date > getTodayISODate()) {
+    if (day.date > today.value) {
       const state = day.total
         ? i18n.global.t('analytics.habitUpcoming')
         : i18n.global.t('analytics.habitNothing')
@@ -164,7 +166,7 @@ export function useHabitMonth(sources: HabitMonthSources) {
 
   function dayTone(day: HabitMonthDayTotal): string {
     if (day.total === 0) return 'off'
-    if (day.date > getTodayISODate()) return 'upcoming'
+    if (day.date > today.value) return 'upcoming'
     if (day.done === day.total) return 'full'
     if (day.done === 0) return 'missed'
     return 'partial'

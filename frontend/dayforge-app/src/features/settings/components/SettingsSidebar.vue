@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
-import type { GoalStatus, ID } from '../../../entities/types'
-import type { ProjectBudget } from '../../analytics/composables/projectBudget'
+import type { Goal } from '../../../entities/GoalEntity'
 import AppIcon from '../../../components/AppIcon.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import ClientsSection from './ClientsSection.vue'
@@ -23,7 +21,7 @@ import { useOpenFocusTrap } from '../../../composables/useFocusTrap'
 
 const { t } = useI18n()
 
-const props = defineProps<{
+defineProps<{
   goals: Goal[]
   activeGoal: Goal | null
   notificationsSupported: boolean
@@ -37,20 +35,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'change-goal-theme', goalId: ID, theme: GoalTheme | undefined): void
-  (e: 'change-goal-rate', goalId: ID, hourlyRate: number | undefined): void
-  (e: 'change-goal-icon', goalId: ID, icon: string | undefined): void
-  (e: 'change-goal-budget', goalId: ID, budget: ProjectBudget | undefined): void
-  (e: 'change-goal-client', goalId: ID, clientId: ID | undefined): void
-  (e: 'change-goal-board', goalId: ID, enabled: boolean): void
-  (
-    e: 'change-goal-details',
-    goalId: ID,
-    title: string,
-    description: string,
-  ): void
-  (e: 'change-goal-status', goalId: ID, status: GoalStatus): void
-  (e: 'delete-goal', goalId: ID): void
   (e: 'toggle-notifications'): void
   (e: 'export-data'): void
   (e: 'import-data', payload: unknown): void
@@ -72,51 +56,6 @@ const heading = computed(() => {
   const meta = sectionMeta(activeSection.value)
   return { title: t(meta.labelKey), description: t(meta.descriptionKey) }
 })
-
-function handleGoalTheme(theme: GoalTheme | undefined) {
-  if (!props.activeGoal) return
-  emit('change-goal-theme', props.activeGoal.id, theme)
-}
-
-function handleGoalRate(hourlyRate: number | undefined) {
-  if (!props.activeGoal) return
-  emit('change-goal-rate', props.activeGoal.id, hourlyRate)
-}
-
-function handleGoalIcon(icon: string | undefined) {
-  if (!props.activeGoal) return
-  emit('change-goal-icon', props.activeGoal.id, icon)
-}
-
-function handleGoalBudget(budget: ProjectBudget | undefined) {
-  if (!props.activeGoal) return
-  emit('change-goal-budget', props.activeGoal.id, budget)
-}
-
-function handleGoalClient(clientId: ID | undefined) {
-  if (!props.activeGoal) return
-  emit('change-goal-client', props.activeGoal.id, clientId)
-}
-
-function handleGoalBoard(enabled: boolean) {
-  if (!props.activeGoal) return
-  emit('change-goal-board', props.activeGoal.id, enabled)
-}
-
-function handleGoalDetails(title: string, description: string) {
-  if (!props.activeGoal) return
-  emit('change-goal-details', props.activeGoal.id, title, description)
-}
-
-function handleGoalStatus(status: GoalStatus) {
-  if (!props.activeGoal) return
-  emit('change-goal-status', props.activeGoal.id, status)
-}
-
-function handleGoalDelete() {
-  if (!props.activeGoal) return
-  emit('delete-goal', props.activeGoal.id)
-}
 
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') escape()
@@ -211,19 +150,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         @open-starter="emit('open-starter')"
       />
 
-      <ProjectSection
-        v-else-if="activeGoal"
-        :goal="activeGoal"
-        @update-details="handleGoalDetails"
-        @update-status="handleGoalStatus"
-        @update-theme="handleGoalTheme"
-        @update-rate="handleGoalRate"
-        @update-budget="handleGoalBudget"
-        @update-icon="handleGoalIcon"
-        @update-client="handleGoalClient"
-        @update-board="handleGoalBoard"
-        @delete="handleGoalDelete"
-      />
+      <ProjectSection v-else-if="activeGoal" :goal="activeGoal" />
 
       <p v-else class="settings-section__intro">
         {{ t('settings.panelProjectHint') }}

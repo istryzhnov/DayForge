@@ -6,7 +6,7 @@ import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
 import { usePressGesture } from '../../../composables/usePressGesture'
 import { useFormat } from '../../../composables/useFormat'
 import { useTimer } from '../../../composables/useTimer'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { useToday } from '../../../composables/goalSpace/today'
 import AppIcon from '../../../components/AppIcon.vue'
 import {
   BOARD_COLUMNS,
@@ -35,6 +35,7 @@ const emit = defineEmits<{
 
 const { formatDate, formatTime } = useFormat()
 const { t } = useI18n()
+const today = useToday()
 const isCoarsePointer = useIsCoarsePointer()
 const timer = useTimer()
 
@@ -110,7 +111,7 @@ function toggleTimer() {
 const scheduleLabel = computed(() => {
   const { card } = props
   const time = card.startTime ? formatTime(card.startTime) : ''
-  const isToday = card.date === getTodayISODate()
+  const isToday = card.date === today.value
 
   if (card.isRepeating) {
     if (!card.date) return t('tasks.repeats')

@@ -17,6 +17,7 @@ import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
 import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
 import TaskNotesButton from './TaskNotesButton.vue'
+import { useTaskActions } from '../composables/useTaskActions'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
 import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
@@ -37,30 +38,30 @@ const props = defineProps<{
   totalCount?: number
   /** A project header counts the time of everything inside it, too. */
   childTemplateIds?: ID[]
-  onToggleDone: (taskId: ID) => void
-  onToggleParent: (taskId: ID) => void
-  onSubmitSubtask: (
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) => void
-  onCancelSubtask: () => void
-  onFocusProject: (dailyTaskId: ID) => void
-  onEditTask: (templateId: ID, title: string) => void
-  onEditNotes: (templateId: ID, notes: string) => void
-  onScheduleTask: (templateId: ID, schedule: TaskSchedule | null) => void
-  onSetTaskRate: (templateId: ID, hourlyRate: number | undefined) => void
-  onDeleteTask: (templateId: ID) => void
-  onSetAsProject: (templateId: ID) => void
-  onMoveTask: (templateId: ID) => void
-  onNudgeTask: (templateId: ID, step: -1 | 1) => void
   /** Absent for rows that cannot change their project, like a project header. */
   drag?: TaskRowDrag
   isDragging?: boolean
   /** Where the dragged task would land relative to this row. */
   dropEdge?: 'above' | 'below' | null
 }>()
+
+// What the list reacts to: its one open composer, the panel's focus and the
+// move dialog. Changes to the task itself go through useTaskActions().
+const emit = defineEmits<{
+  (e: 'toggle-parent', dailyTaskId: ID): void
+  (
+    e: 'submit-subtask',
+    parentTemplateId: ID,
+    title: string,
+    priority: Priority,
+    schedule?: TaskSchedule,
+  ): void
+  (e: 'cancel-subtask'): void
+  (e: 'focus-project', dailyTaskId: ID): void
+  (e: 'move-task', templateId: ID): void
+}>()
+
+const actions = useTaskActions()
 
 function onRowPointerDown(event: PointerEvent) {
   onPointerDown(event)
@@ -154,13 +155,7 @@ const {
   saveRate,
   saveEdits,
   saveNotes,
-} = useTaskRow(props, {
-  onEditTask: props.onEditTask,
-  onEditNotes: props.onEditNotes,
-  onScheduleTask: props.onScheduleTask,
-  onSetTaskRate: props.onSetTaskRate,
-  drag: props.drag,
-})
+} = useTaskRow(props, actions, props.drag)
 </script>
 
 <template>
@@ -192,7 +187,7 @@ const {
           'task-dot-check--project': isProject,
         }"
         :aria-label="isDone ? t('tasks.markNotDone') : t('tasks.markDone')"
-        @click="onToggleDone(node.task.id)"
+        @click="actions.toggleDone(node.task.id)"
       >
         <AppIcon
           v-if="isDone"
@@ -275,7 +270,7 @@ const {
         data-tour-action="add-subtask"
         :aria-label="t('tasks.addTaskToThis')"
         :title="t('tasks.addTaskToThis')"
-        @click="onToggleParent(node.task.id)"
+        @click="emit('toggle-parent', node.task.id)"
       >
         <svg
           width="14"
@@ -314,13 +309,13 @@ const {
     @toggle-timer="toggleTimer"
     @schedule="openEditor(true)"
     @set-rate="openRateEditor"
-    @move="onMoveTask(node.task.templateId)"
-    @nudge="(step) => onNudgeTask(node.task.templateId, step)"
-    @delete="onDeleteTask(node.task.templateId)"
-    @add-to-this="onToggleParent(node.task.id)"
-    @toggle-check="onToggleDone(node.task.id)"
-    @set-as-project="onSetAsProject(node.task.templateId)"
-    @show-habit="onFocusProject(node.task.id)"
+    @move="emit('move-task', node.task.templateId)"
+    @nudge="(step) => actions.nudge(node.task.templateId, step)"
+    @delete="actions.remove(node.task.templateId)"
+    @add-to-this="emit('toggle-parent', node.task.id)"
+    @toggle-check="actions.toggleDone(node.task.id)"
+    @set-as-project="actions.setAsProject(node.task.templateId)"
+    @show-habit="emit('focus-project', node.task.id)"
     @close="closeContextMenu"
   />
 
@@ -344,8 +339,8 @@ const {
     :is-subtask="true"
     @submit="
       (title: string, priority: Priority, schedule?: TaskSchedule) =>
-        onSubmitSubtask(node.task.templateId, title, priority, schedule)
+        emit('submit-subtask', node.task.templateId, title, priority, schedule)
     "
-    @cancel="onCancelSubtask"
+    @cancel="emit('cancel-subtask')"
   />
 </template>

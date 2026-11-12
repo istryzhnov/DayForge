@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskGroup, TaskNode } from '../../../composables/useTaskTree'
 import { PRIORITY } from '../../../entities/constants'
-import { useTaskListState } from '../composables/useTaskListState'
+import { useTaskActions } from '../composables/useTaskActions'
 import { DROP_ZONE_ROOT } from '../composables/dropRules'
-import { useTaskDrag, type TaskDropPayload } from '../composables/useTaskDrag'
+import { useTaskDrag } from '../composables/useTaskDrag'
 import DragGhost from '../../../components/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
 
@@ -15,29 +16,16 @@ defineProps<{
   isAllMode: boolean
 }>()
 
+// Only what the panel above reacts to. Changes to a task go straight from the
+// row to useTaskActions().
 const emit = defineEmits<{
-  (
-    e: 'add-subtask',
-    parentId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
-  (e: 'toggle-done', dailyTaskId: ID): void
   (e: 'focus-project', dailyTaskId: ID): void
-  (e: 'edit-task', templateId: ID, title: string): void
-  (e: 'edit-notes', templateId: ID, notes: string): void
-  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
-  (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
-  (e: 'delete-task', templateId: ID): void
-  (e: 'set-as-project', templateId: ID): void
   (e: 'move-task', templateId: ID): void
-  (e: 'nudge-task', templateId: ID, step: -1 | 1): void
-  (e: 'move-task-to', payload: TaskDropPayload): void
 }>()
 
 const { t } = useI18n()
-const drag = useTaskDrag({ onMove: (payload) => emit('move-task-to', payload) })
+const actions = useTaskActions()
+const drag = useTaskDrag({ onMove: actions.moveTo })
 
 function dropEdge(node: TaskNode) {
   if (drag.dropRowId.value !== node.task.templateId) return null
@@ -57,50 +45,30 @@ function rowDrag(node: TaskNode, parentZone: string) {
   })
 }
 
-const {
-  activeParentId,
-  toggleParent,
-  handleSubtaskSubmit,
-  toggleDone,
-  editTask,
-  editNotes,
-  scheduleTask,
-  setTaskRate,
-  deleteTask,
-  setAsProject,
-  moveTask,
-  nudgeTask,
-} = useTaskListState({
-  onAddSubtask: (parentTemplateId, title, priority, schedule) =>
-    emit('add-subtask', parentTemplateId, title, priority, schedule),
-  onToggleDone: (taskId) => emit('toggle-done', taskId),
-  onEditTask: (templateId, title) => emit('edit-task', templateId, title),
-  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
-  onScheduleTask: (templateId, schedule) =>
-    emit('schedule-task', templateId, schedule),
-  onSetTaskRate: (templateId, hourlyRate) =>
-    emit('set-task-rate', templateId, hourlyRate),
-  onDeleteTask: (templateId) => emit('delete-task', templateId),
-  onSetAsProject: (templateId) => emit('set-as-project', templateId),
-  onMoveTask: (templateId) => emit('move-task', templateId),
-  onNudgeTask: (templateId, step) => emit('nudge-task', templateId, step),
-})
+/** The row whose "add a task to this" composer is open; one at a time. */
+const activeParentId = ref<ID | null>(null)
 
-function sharedHandlers() {
-  return {
-    onToggleDone: toggleDone,
-    onToggleParent: toggleParent,
-    onSubmitSubtask: handleSubtaskSubmit,
-    onCancelSubtask: () => (activeParentId.value = null),
-    onEditTask: editTask,
-    onEditNotes: editNotes,
-    onScheduleTask: scheduleTask,
-    onSetTaskRate: setTaskRate,
-    onDeleteTask: deleteTask,
-    onSetAsProject: setAsProject,
-    onMoveTask: moveTask,
-    onNudgeTask: nudgeTask,
-  }
+function toggleParent(nodeId: ID) {
+  activeParentId.value = activeParentId.value === nodeId ? null : nodeId
+}
+
+function submitSubtask(
+  parentTemplateId: ID,
+  title: string,
+  priority: Priority,
+  schedule?: TaskSchedule,
+) {
+  actions.addSubtask(parentTemplateId, title, priority, schedule)
+  activeParentId.value = null
+}
+
+/** The listeners every row gets, whichever of the three places it is drawn in. */
+const rowListeners = {
+  onToggleParent: toggleParent,
+  onSubmitSubtask: submitSubtask,
+  onCancelSubtask: () => (activeParentId.value = null),
+  onFocusProject: (dailyTaskId: ID) => emit('focus-project', dailyTaskId),
+  onMoveTask: (templateId: ID) => emit('move-task', templateId),
 }
 
 function groupKey(group: TaskGroup) {
@@ -143,9 +111,8 @@ function groupKey(group: TaskGroup) {
           :child-template-ids="
             group.children.map((child) => child.task.templateId)
           "
-          :on-focus-project="(id: ID) => emit('focus-project', id)"
           :drag="rowDrag(group.project, DROP_ZONE_ROOT)"
-          v-bind="sharedHandlers()"
+          v-bind="rowListeners"
         />
 
         <div class="task-project__children">
@@ -156,11 +123,10 @@ function groupKey(group: TaskGroup) {
             :is-all-mode="isAllMode"
             :is-active-parent="activeParentId === child.task.id"
             :is-nested="true"
-            :on-focus-project="(id: ID) => emit('focus-project', id)"
             :drag="rowDrag(child, group.project.task.templateId)"
             :is-dragging="drag.draggingId.value === child.task.templateId"
             :drop-edge="dropEdge(child)"
-            v-bind="sharedHandlers()"
+            v-bind="rowListeners"
           />
         </div>
       </div>
@@ -170,11 +136,10 @@ function groupKey(group: TaskGroup) {
         :node="group.node"
         :is-all-mode="isAllMode"
         :is-active-parent="activeParentId === group.node.task.id"
-        :on-focus-project="(id: ID) => emit('focus-project', id)"
         :drag="rowDrag(group.node, DROP_ZONE_ROOT)"
         :is-dragging="drag.draggingId.value === group.node.task.templateId"
         :drop-edge="dropEdge(group.node)"
-        v-bind="sharedHandlers()"
+        v-bind="rowListeners"
       />
     </template>
 

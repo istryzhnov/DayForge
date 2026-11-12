@@ -5,7 +5,6 @@ import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import { formatHoursMinutes } from '../../../composables/timer/format'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
@@ -47,6 +46,7 @@ import {
   clientSummaries,
   outstandingSummary,
 } from './clientBilling'
+import { useToday } from '../../../composables/goalSpace/today'
 
 /** `labelKey` is rendered with `t()` where it shows, so a language switch updates it. */
 export const PERIOD_OPTIONS: { id: AnalyticsPeriod; labelKey: string }[] = [
@@ -82,6 +82,8 @@ export interface AnalyticsSources {
 }
 
 export function useTimerAnalytics(sources: AnalyticsSources) {
+  // The real day; it moves on at midnight while the view stays open.
+  const realToday = useToday()
   const { entries } = useTimeEntries()
   const { settings } = useSettings()
 
@@ -140,7 +142,11 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
     )
   })
 
-  const range = computed(() => periodRange(period.value, new Date()))
+  const range = computed(() => {
+    // "This week" and "this month" move on with the day.
+    void realToday.value
+    return periodRange(period.value, new Date())
+  })
   const inRange = computed(() =>
     entriesInRange(filteredEntries.value, range.value),
   )
@@ -365,7 +371,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   // --- charts --------------------------------------------------------------
 
   const bounds = computed(() =>
-    periodDateBounds(range.value, entries.value, getTodayISODate()),
+    periodDateBounds(range.value, entries.value, realToday.value),
   )
 
   const daySeries = computed(() =>
@@ -374,7 +380,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
 
   /** The bar that holds today: its day, or the week it falls in. */
   const chartTodayKey = computed(() => {
-    const today = getTodayISODate()
+    const today = realToday.value
     return daySeries.value.granularity === SERIES_GRANULARITY.WEEK
       ? startOfWeek(today)
       : today
@@ -394,7 +400,7 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
       dailyTasks: sources.getDailyTasks(),
       from: bounds.value.from,
       to: bounds.value.to,
-      today: getTodayISODate(),
+      today: realToday.value,
     }),
   )
 

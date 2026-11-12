@@ -3,7 +3,7 @@ import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../components/AppIcon.vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { useToday } from '../../../composables/goalSpace/today'
 import { useHabitMonth } from '../composables/useHabitMonth'
 import HabitMonthRow from './HabitMonthRow.vue'
 
@@ -14,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const { t } = useI18n()
-const todayISO = getTodayISODate()
+const todayISO = useToday()
 
 const {
   monthLabel,

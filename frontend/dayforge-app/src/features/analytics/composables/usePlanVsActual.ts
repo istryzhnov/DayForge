@@ -5,7 +5,6 @@ import type {
   AnalyticsPeriod,
   ProjectTotal,
 } from '../../../composables/timer/analytics'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
 import { useSettings } from '../../../composables/useSettings'
 import { useTimeEntries } from '../../../composables/useTimeEntries'
 import { i18n } from '../../../i18n'
@@ -15,6 +14,7 @@ import {
   planVsActual,
   plannedMsByProject,
 } from './planVsActual'
+import { useToday } from '../../../composables/goalSpace/today'
 
 /**
  * Plan against actual for the period on screen. The hero and the plan table
@@ -27,13 +27,15 @@ export function usePlanVsActual(source: {
   getDailyTasks: () => DailyTask[]
   getActual: () => ProjectTotal[]
 }) {
+  // The real day; it moves on at midnight while the view stays open.
+  const today = useToday()
   const { settings } = useSettings()
   const { entries } = useTimeEntries()
 
   const bounds = computed(() =>
     planBounds(
       source.getPeriod(),
-      getTodayISODate(),
+      today.value,
       earliestPlanDate(
         entries.value,
         source.getDailyTasks(),

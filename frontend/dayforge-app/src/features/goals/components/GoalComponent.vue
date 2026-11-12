@@ -4,18 +4,16 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type {
   DailyTask,
   MajorTaskOption,
-  TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import type { ID, ISODate, Priority } from '../../../entities/types'
-import { GOAL_STATUS, type BoardStage } from '../../../entities/constants'
+import type { ID, ISODate } from '../../../entities/types'
+import { GOAL_STATUS } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
-import GoalTasksZone from './GoalTasksZone.vue'
 import HabitCalendar from './HabitCalendar.vue'
+import TaskList from '../../tasks/components/TaskList.vue'
 import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
 import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
-import type { TaskDropPayload } from '../../tasks/composables/useTaskDrag'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
 import { useProjectBudgetStatus } from '../../analytics/composables/useProjectBudgetStatus'
@@ -44,40 +42,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (
-    e: 'add-task',
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
-  (
-    e: 'add-subtask',
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
-  (e: 'toggle-done', dailyTaskId: ID): void
-  (e: 'set-as-project', templateId: ID): void
-  (
-    e: 'create-all-mode-minor',
-    title: string,
-    goalId?: ID,
-    majorId?: ID,
-    schedule?: TaskSchedule,
-  ): void
-  (e: 'edit-task', templateId: ID, title: string): void
-  (e: 'edit-notes', templateId: ID, notes: string): void
-  (e: 'schedule-task', templateId: ID, schedule: TaskSchedule | null): void
-  (e: 'delete-task', templateId: ID): void
-  (e: 'set-task-rate', templateId: ID, hourlyRate: number | undefined): void
-  (e: 'assign-goal', templateId: ID, goalId: ID | undefined): void
-  (e: 'attach-to-project', templateId: ID, projectTemplateId: ID | null): void
-  (e: 'move-task-to', payload: TaskDropPayload): void
-  (e: 'nudge-task', templateId: ID, step: -1 | 1): void
-  (e: 'set-board-stage', templateId: ID, stage: BoardStage | undefined): void
-  (e: 'clear-board-done', templateIds: ID[]): void
-  (e: 'toggle-planned', templateId: ID, date: ISODate): void
   (e: 'change-goal-board', goalId: ID, enabled: boolean): void
   (e: 'change-goal-notes', goalId: ID, notes: string): void
   (e: 'select-date', date: ISODate): void
@@ -143,27 +107,7 @@ const {
   habitStreakByTemplate,
   goalPanelStyle,
   focusProject,
-  submitTask,
-  submitMinor,
-  submitSubtask,
-  toggleDone,
-  editTask,
-  editNotes,
-  deleteTask,
-  setAsProject,
-} = useGoalPanelState(props, {
-  onAddTask: (title, priority, schedule) =>
-    emit('add-task', title, priority, schedule),
-  onAddSubtask: (parentTemplateId, title, priority, schedule) =>
-    emit('add-subtask', parentTemplateId, title, priority, schedule),
-  onToggleDone: (dailyTaskId) => emit('toggle-done', dailyTaskId),
-  onCreateAllModeMinor: (title, goalId, majorId, schedule) =>
-    emit('create-all-mode-minor', title, goalId, majorId, schedule),
-  onEditTask: (templateId, title) => emit('edit-task', templateId, title),
-  onEditNotes: (templateId, notes) => emit('edit-notes', templateId, notes),
-  onDeleteTask: (templateId) => emit('delete-task', templateId),
-  onSetAsProject: (templateId) => emit('set-as-project', templateId),
-})
+} = useGoalPanelState(props)
 
 // Upcoming is for a project or All Projects; with no goal selected it stays hidden.
 const showUpcoming = computed(
@@ -204,60 +148,22 @@ const projectColor = computed(() =>
       :is-all-mode="isAllMode"
       :goals="goals"
       :major-task-options="majorTaskOptions"
-      @add-task="
-        (title, priority, schedule) => submitTask(title, priority, schedule)
-      "
-      @create-all-mode-minor="
-        (title, goalId, majorId, schedule) =>
-          submitMinor(title, goalId, majorId, schedule)
-      "
     />
 
+    <!-- The board, the list and the move dialog change tasks through
+         useTaskActions(), so none of those changes passes through here. -->
     <ProjectBoard
       v-if="showBoard"
       :rows="dailyTasks"
       :templates="boardTemplates"
-      @toggle-done="(dailyTaskId) => emit('toggle-done', dailyTaskId)"
-      @toggle-planned="
-        (templateId, date) => emit('toggle-planned', templateId, date)
-      "
-      @clear-done="(templateIds) => emit('clear-board-done', templateIds)"
-      @set-board-stage="
-        (templateId, stage) => emit('set-board-stage', templateId, stage)
-      "
-      @add-task="(title, priority) => emit('add-task', title, priority)"
-      @edit-task="(templateId, title) => emit('edit-task', templateId, title)"
-      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
-      @delete-task="(templateId) => deleteTask(templateId)"
-      @schedule-task="
-        (templateId, schedule) => emit('schedule-task', templateId, schedule)
-      "
     />
 
-    <GoalTasksZone
+    <TaskList
       v-else
       :groups="taskGroups"
       :is-all-mode="isAllMode"
-      @add-subtask="
-        (parentId, title, priority, schedule) =>
-          submitSubtask(parentId, title, priority, schedule)
-      "
-      @toggle-done="(dailyTaskId) => toggleDone(dailyTaskId)"
       @focus-project="focusProject"
-      @edit-task="(templateId, title) => editTask(templateId, title)"
-      @edit-notes="(templateId, notes) => editNotes(templateId, notes)"
-      @schedule-task="
-        (templateId, schedule) => emit('schedule-task', templateId, schedule)
-      "
-      @set-task-rate="
-        (templateId, hourlyRate) =>
-          emit('set-task-rate', templateId, hourlyRate)
-      "
-      @delete-task="(templateId) => deleteTask(templateId)"
-      @set-as-project="(templateId) => setAsProject(templateId)"
       @move-task="openMoveDialog"
-      @move-task-to="(payload) => emit('move-task-to', payload)"
-      @nudge-task="(templateId, step) => emit('nudge-task', templateId, step)"
     />
 
     <TaskMoveDialog
@@ -265,13 +171,6 @@ const projectColor = computed(() =>
       :template="movingTemplate"
       :goals="goals"
       :project-options="majorTaskOptions"
-      @assign-goal="
-        (templateId, goalId) => emit('assign-goal', templateId, goalId)
-      "
-      @attach-to-project="
-        (templateId, projectId) =>
-          emit('attach-to-project', templateId, projectId)
-      "
       @close="closeMoveDialog"
     />
 

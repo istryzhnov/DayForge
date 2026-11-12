@@ -1,34 +1,23 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
-import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
-import type { GoalStatus, ID } from '../../../entities/types'
+import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../composables/useTheme'
 import { useSettings } from '../../../composables/useSettings'
 import { checkedValue } from '../../../composables/inputValue'
 import ProjectThemeEditor from './ProjectThemeEditor.vue'
 import ProjectBillingSection from './ProjectBillingSection.vue'
 import ProjectBudgetSection from './ProjectBudgetSection.vue'
-import type { ProjectBudget } from '../../analytics/composables/projectBudget'
 import ProjectIcon from '../../goals/components/ProjectIcon.vue'
 import DisclosureSection from '../../../components/DisclosureSection.vue'
+import { useGoalActions } from '../../goals/composables/useGoalActions'
 import { useProjectSection } from '../composables/useProjectSection'
 
 const { t } = useI18n()
 
 const props = defineProps<{ goal: Goal }>()
 
-const emit = defineEmits<{
-  (e: 'update-details', title: string, description: string): void
-  (e: 'update-status', status: GoalStatus): void
-  (e: 'update-theme', theme: GoalTheme | undefined): void
-  (e: 'update-rate', hourlyRate: number | undefined): void
-  (e: 'update-budget', budget: ProjectBudget | undefined): void
-  (e: 'update-icon', icon: string | undefined): void
-  (e: 'update-client', clientId: ID | undefined): void
-  (e: 'update-board', enabled: boolean): void
-  (e: 'delete'): void
-}>()
+const actions = useGoalActions()
 
 const { themeMode, surfaces, effectivePalette } = useTheme()
 const { settings } = useSettings()
@@ -42,7 +31,7 @@ const clientOptions = computed(() =>
 
 function handleClientChange(event: Event) {
   const value = (event.target as HTMLSelectElement).value
-  emit('update-client', value === '' ? undefined : value)
+  actions.updateClient(props.goal.id, value === '' ? undefined : value)
 }
 
 const {
@@ -60,10 +49,10 @@ const {
   confirmDelete,
 } = useProjectSection(props, {
   onUpdateDetails: (nextTitle, nextDescription) =>
-    emit('update-details', nextTitle, nextDescription),
-  onUpdateStatus: (next) => emit('update-status', next),
-  onUpdateIcon: (next) => emit('update-icon', next),
-  onDelete: () => emit('delete'),
+    actions.updateDetails(props.goal.id, nextTitle, nextDescription),
+  onUpdateStatus: (next) => actions.updateStatus(props.goal.id, next),
+  onUpdateIcon: (next) => actions.updateIcon(props.goal.id, next),
+  onDelete: () => actions.remove(props.goal.id),
 })
 </script>
 
@@ -182,7 +171,7 @@ const {
       <input
         type="checkbox"
         :checked="goal.boardEnabled === true"
-        @change="emit('update-board', checkedValue($event))"
+        @change="actions.setBoard(goal.id, checkedValue($event))"
       />
       <span>
         <strong>{{ t('settings.projectBoardView') }}</strong>
@@ -196,18 +185,18 @@ const {
         :mode="themeMode"
         :surfaces="surfaces"
         :palette="effectivePalette"
-        @update="(theme) => emit('update-theme', theme)"
+        @update="(theme) => actions.updateTheme(goal.id, theme)"
       />
     </DisclosureSection>
 
     <ProjectBillingSection
       :goal="goal"
-      @update-rate="(rate) => emit('update-rate', rate)"
+      @update-rate="(rate) => actions.updateRate(goal.id, rate)"
     />
 
     <ProjectBudgetSection
       :goal="goal"
-      @update-budget="(budget) => emit('update-budget', budget)"
+      @update-budget="(budget) => actions.updateBudget(goal.id, budget)"
     />
 
     <DisclosureSection :label="t('settings.projectDanger')">
