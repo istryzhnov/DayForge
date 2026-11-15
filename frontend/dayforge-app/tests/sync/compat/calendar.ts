@@ -9,8 +9,8 @@ import {
   formatCalendarWeekday,
   formatCalendarWeekTitle,
 } from '../../../src/features/calendar/composables/calendarTitles'
-import { moveRowToDay } from '../../../src/composables/goalSpace/dailyTasks'
-import { dailyTaskId } from '../../../src/composables/goalSpace/date'
+import { moveRowToDay } from '../../../src/shared/composables/goalSpace/dailyTasks'
+import { dailyTaskId } from '../../../src/shared/composables/goalSpace/date'
 import { check, section } from './harness'
 
 export function verifyCalendarTitles() {

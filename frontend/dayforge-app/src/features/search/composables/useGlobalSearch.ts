@@ -5,11 +5,11 @@ import type { RecurrenceType } from '../../../entities/RecurrenceEntity'
 import type { GoalStatus, ID, ISODate } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
-import { projectColors } from '../../../composables/theme/goalTheme'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import {
   isRepeating,
   nextPlannedDateOf,
-} from '../../../composables/goalSpace/recurrence'
+} from '../../../shared/composables/goalSpace/recurrence'
 import {
   foldQuery,
   foldText,

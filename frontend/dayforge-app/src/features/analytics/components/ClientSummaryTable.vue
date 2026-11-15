@@ -12,7 +12,7 @@ import {
   roundMoney,
   type ClientSummaryRow,
 } from '../composables/clientBilling'
-import { CLIENT_LIMITS } from '../../../composables/billing/clients'
+import { CLIENT_LIMITS } from '../../../shared/composables/billing/clients'
 
 const props = defineProps<{
   rows: ClientSummaryRow[]

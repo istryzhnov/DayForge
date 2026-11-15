@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 
 defineProps<{
   boardEnabled: boolean

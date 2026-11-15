@@ -3,7 +3,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import type { GoalStatus } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { GOAL_STATUS_HINTS, GOAL_STATUS_OPTIONS } from './settingsOptions'
-import { PROJECT_ICONS } from '../../goals/icons/projectIcons'
+import { PROJECT_ICONS } from '../../../shared/ui/projectIcons'
 import { i18n } from '../../../i18n'
 
 type ProjectSectionProps = {

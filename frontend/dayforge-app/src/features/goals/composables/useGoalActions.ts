@@ -1,7 +1,7 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { GoalTheme } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
-import type { ProjectBudget } from '../../analytics/composables/projectBudget'
+import type { ProjectBudget } from '../../../shared/composables/billing/projectBudget'
 
 /**
  * Everything the project settings can change about a project. Provided once by

@@ -3,10 +3,10 @@ import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import { NO_PROJECT_FILTER_ID } from '../../../composables/useSettings'
-import ProjectIcon from '../../goals/components/ProjectIcon.vue'
+import { NO_PROJECT_FILTER_ID } from '../../../shared/composables/useSettings'
+import ProjectIcon from '../../../shared/ui/ProjectIcon.vue'
 import { useCalendarFilter } from '../composables/useCalendarFilter'
-import { useOpenFocusTrap } from '../../../composables/useFocusTrap'
+import { useOpenFocusTrap } from '../../../shared/composables/useFocusTrap'
 
 const props = defineProps<{
   goals: Goal[]

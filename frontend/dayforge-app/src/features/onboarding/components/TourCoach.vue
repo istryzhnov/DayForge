@@ -9,8 +9,8 @@ import {
 } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ID } from '../../../entities/types'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { useMobileNav } from '../../sidebar/composables/useMobileNav'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
+import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import {
   dialogOpen,
   findOnScreen,

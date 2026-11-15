@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useSettingsMenu } from '../composables/useSettingsMenu'
-import type { SettingsSection } from '../composables/useSettingsPanel'
+import type { SettingsSection } from '../../../shared/composables/useSettingsPanel'
 
 const { t } = useI18n()
 

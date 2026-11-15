@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
 import {
   dialogOpen,
   findOnScreen,

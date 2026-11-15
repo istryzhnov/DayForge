@@ -5,10 +5,10 @@ import {
   LOCALE_OPTIONS,
   useSettings,
   type LocaleId,
-} from '../../../composables/useSettings'
+} from '../../../shared/composables/useSettings'
 import type { Language } from '../../../i18n/languages'
 import { CLOCK_OPTIONS, LANGUAGE_OPTIONS } from '../composables/settingsOptions'
-import { textValue } from '../../../composables/inputValue'
+import { textValue } from '../composables/inputValue'
 
 const { t } = useI18n()
 const { settings, update, resetSection } = useSettings()

@@ -1,6 +1,6 @@
 import type { PaymentStatus } from '../../../entities/BillingEntity'
 import type { ID } from '../../../entities/types'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import { withPaymentAmount, withPaymentStatus } from './clientBilling'
 
 /** Writes payment status into the synced settings row. */

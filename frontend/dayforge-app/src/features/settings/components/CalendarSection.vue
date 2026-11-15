@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import {
   MINUTE_STEPS,
   TASK_DURATIONS,
   WEEK_START_OPTIONS,
 } from '../composables/settingsOptions'
-import { rangeValue, textValue } from '../../../composables/inputValue'
+import { rangeValue, textValue } from '../composables/inputValue'
 
 const { t } = useI18n()
 

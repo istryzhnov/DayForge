@@ -11,17 +11,15 @@ import { GOAL_STATUS } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
 import HabitCalendar from './HabitCalendar.vue'
-import TaskList from '../../tasks/components/TaskList.vue'
-import TaskMoveDialog from '../../tasks/components/TaskMoveDialog.vue'
-import UpcomingTasks from '../../tasks/components/UpcomingTasks.vue'
+import { TaskList, TaskMoveDialog, UpcomingTasks } from '../../tasks'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
-import { useSettingsPanel } from '../../settings/composables/useSettingsPanel'
-import { useProjectBudgetStatus } from '../../analytics/composables/useProjectBudgetStatus'
-import { projectColors } from '../../../composables/theme/goalTheme'
+import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
+import { useProjectBudgetStatus } from '../../../shared/composables/billing/useProjectBudgetStatus'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 
 // Opened on demand (board toggle, notes button), so kept out of the first chunk.
-const ProjectBoard = defineAsyncComponent(
-  () => import('../../board/components/ProjectBoard.vue'),
+const ProjectBoard = defineAsyncComponent(() =>
+  import('../../board').then((board) => board.ProjectBoard),
 )
 const ProjectNotesPanel = defineAsyncComponent(
   () => import('./ProjectNotesPanel.vue'),

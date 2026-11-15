@@ -8,3 +8,7 @@ export type TimeOfDay = string // hh:mm
 export type Priority = (typeof PRIORITY)[keyof typeof PRIORITY]
 export type GoalStatus = (typeof GOAL_STATUS)[keyof typeof GOAL_STATUS]
 export type TaskStatus = (typeof TASK_STATUS)[keyof typeof TASK_STATUS]
+
+/** The main screens the app shell can show. */
+export type ActiveView =
+  'goals' | 'calendar' | 'planned' | 'archive' | 'timer' | 'analytics'

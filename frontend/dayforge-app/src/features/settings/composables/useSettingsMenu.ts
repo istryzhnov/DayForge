@@ -1,18 +1,21 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import { useTheme } from '../../../composables/useTheme'
-import { findPreset } from '../../../composables/theme/tokens'
+import { useTheme } from '../../../shared/composables/useTheme'
+import { findPreset } from '../../../shared/composables/theme/tokens'
 import { GOAL_STATUS } from '../../../entities/constants'
-import { START_VIEW, useSettings } from '../../../composables/useSettings'
+import {
+  START_VIEW,
+  useSettings,
+} from '../../../shared/composables/useSettings'
 import { FONT_LABEL_KEYS } from './settingsOptions'
-import type { AppIconName } from '../../../components/appIconPaths'
+import type { AppIconName } from '../../../shared/ui/appIconPaths'
 import {
   SETTINGS_GROUP_LABEL_KEYS,
   SETTINGS_SECTIONS,
   type SettingsGroup,
   type SettingsSection,
-} from './useSettingsPanel'
+} from '../../../shared/composables/useSettingsPanel'
 import {
   CLOCK_OPTIONS,
   DENSITY_OPTIONS,

@@ -1,19 +1,19 @@
 import { computed } from 'vue'
 import { i18n } from '../../../i18n'
-import type { useGoalSpace } from '../../../composables/useGoalSpace'
+import type { useGoalSpace } from '../../../shared/composables/useGoalSpace'
 import type { TimeEntry } from '../../../entities/TimerEntity'
-import { useUndoToast } from '../../../composables/useUndoToast'
+import { useUndoToast } from '../../../shared/composables/useUndoToast'
 import {
   TIME_ENTRIES_STORAGE_KEY,
   useTimeEntries,
-} from '../../../composables/useTimeEntries'
-import { TOMBSTONES_STORAGE_KEY } from '../../../composables/useTombstones'
+} from '../../../shared/composables/useTimeEntries'
+import { TOMBSTONES_STORAGE_KEY } from '../../../shared/composables/useTombstones'
 import { groupNamesOf } from '../../../sync/merge'
 import { restampForRestore } from '../../../sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow, type TableName } from '../../../sync/types'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
-import { useSettings } from '../../../composables/useSettings'
-import { useTheme } from '../../../composables/useTheme'
+import { getTodayISODate } from '../../../shared/composables/goalSpace/date'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTheme } from '../../../shared/composables/useTheme'
 import {
   BACKUP_FORMAT,
   BACKUP_VERSION,

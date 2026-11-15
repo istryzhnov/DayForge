@@ -2,16 +2,16 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import { useSettings } from '../../../composables/useSettings'
-import { formatHoursMinutes } from '../../../composables/timer/format'
-import { durationWords } from '../../../composables/timer/text'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import {
   draftFromBilling,
   parseBillingDraft,
   type Messages,
   type ProjectBilling,
-} from '../composables/projectBilling'
+} from '../../../shared/composables/billing/projectBilling'
 
 const props = defineProps<{
   goal: Goal

@@ -1,5 +1,8 @@
 import type { ID } from '../../../entities/types'
-import type { BoardStage } from '../../../entities/constants'
+import type {
+  UserAction,
+  UserActionPayload,
+} from '../../../shared/composables/userActions'
 import {
   CHAPTER_IDS,
   TOUR_CHAPTER_BY_ID,
@@ -15,58 +18,13 @@ import {
  * user did the thing; events that do not match the step are ignored.
  */
 
-export type TourEvent =
-  | 'project-created'
-  | 'project-removed'
-  | 'task-added'
-  | 'task-removed'
-  | 'subtask-added'
-  | 'subtask-skipped'
-  | 'board-shown'
-  | 'board-declined'
-  | 'list-shown'
-  | 'card-moved'
-  | 'task-done'
-  | 'timer-started'
-  | 'timer-stopped'
-  | 'view-opened'
-  // Chapters after Basics
-  | 'next'
-  | 'step-skipped'
-  | 'schedule-opened'
-  | 'schedule-edited'
-  | 'task-repeats'
-  | 'task-timed'
-  | 'block-created'
-  | 'calendar-view-changed'
-  | 'timer-mode-changed'
-  | 'analytics-tab'
-  | 'quick-add-opened'
-  | 'quick-add-used'
-  | 'search-opened'
-  | 'help-opened'
+/**
+ * What a step can wait for: an action the app reports (see `userActions`), or
+ * one of the tour bubble's own buttons ("Next", "Skip this step").
+ */
+export type TourEvent = UserAction | 'next' | 'step-skipped'
 
-export interface TourEventPayload {
-  goalId?: ID
-  templateId?: ID
-  /** The task a subtask was added under. */
-  parentTemplateId?: ID
-  taskId?: ID
-  /** Undefined means the card went back to To do. */
-  stage?: BoardStage
-  /** The view that was opened, e.g. analytics. */
-  view?: string
-  /** A task was added with a date and time. */
-  scheduled?: boolean
-  /** A task was given a time by dragging it from Unscheduled, not by moving a block. */
-  fromList?: boolean
-  /** Quick add read a date word such as "tomorrow". */
-  dated?: boolean
-  /** The analytics tab that was opened. */
-  tab?: string
-  /** The timer mode or calendar view that was picked. */
-  mode?: string
-}
+export type TourEventPayload = UserActionPayload
 
 export interface TourState {
   /** The chapter this run follows. Absent in data saved before chapters: Basics. */

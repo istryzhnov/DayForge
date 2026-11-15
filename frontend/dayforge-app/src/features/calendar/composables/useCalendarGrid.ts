@@ -1,8 +1,8 @@
 import { computed } from 'vue'
 import { DAY_WINDOW } from '../../../entities/constants'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import type { OverlapSlot } from './overlapLayout'
-import { durationMinutes as spanMinutes } from '../../../composables/goalSpace/overnight'
+import { durationMinutes as spanMinutes } from '../../../shared/composables/goalSpace/overnight'
 
 export const DAY_START_HOUR = DAY_WINDOW.START_HOUR
 export const DAY_END_HOUR = DAY_WINDOW.END_HOUR

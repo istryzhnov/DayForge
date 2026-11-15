@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import type { ColorSuggestion } from '../../../composables/theme/suggestions'
+import type { ColorSuggestion } from '../composables/themeSuggestions'
 import { useColorField } from '../composables/useColorField'
-import { swatchStyle, textValue } from '../../../composables/inputValue'
+import { swatchStyle, textValue } from '../composables/inputValue'
 
 const props = defineProps<{
   label: string

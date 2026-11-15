@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import GoalHeader from './GoalHeader.vue'
-import type { BudgetStanding } from '../../analytics/composables/projectBudget'
+import type { BudgetStanding } from '../../../shared/composables/billing/projectBudget'
 import type { PanelStats } from '../composables/projectPanelStats'
 
 defineProps<{

@@ -4,7 +4,7 @@ import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import { useTimerView } from '../composables/useTimerView'
 
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 
 const { t } = useI18n()
 

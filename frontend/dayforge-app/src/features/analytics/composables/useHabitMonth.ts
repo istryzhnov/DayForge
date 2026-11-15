@@ -7,7 +7,7 @@ import {
   addMonthsToISODate,
   parseISODate,
   startOfMonthISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import {
   habitMonthView,
   habitStreaks,
@@ -16,12 +16,12 @@ import {
   type HabitMonthCell,
   type HabitMonthDayTotal,
   type HabitMonthRow,
-} from '../../../composables/analytics/habits'
-import { isRepeating } from '../../../composables/goalSpace/recurrence'
-import { panelDateLabel } from '../../../composables/panelDateLabel'
-import { projectColors } from '../../../composables/theme/goalTheme'
+} from '../../../shared/composables/analytics/habits'
+import { isRepeating } from '../../../shared/composables/goalSpace/recurrence'
+import { panelDateLabel } from '../../../shared/composables/panelDateLabel'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { i18n } from '../../../i18n'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 /** Message keys for each day state, read at call time so the language follows. */
 const STATE_KEYS: Record<HabitDayState, string> = {

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import {
   usePressGesture,
   type GesturePoint,
-} from '../../../composables/usePressGesture'
+} from '../../../shared/composables/usePressGesture'
 
 const props = defineProps<{
   task: DailyTask

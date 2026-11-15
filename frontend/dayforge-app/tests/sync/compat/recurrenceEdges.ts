@@ -6,7 +6,7 @@ import { RECURRENCE_TYPE } from '../../../src/entities/constants'
 import {
   matchesRecurrence,
   nextPlannedDateOf,
-} from '../../../src/composables/goalSpace/recurrence'
+} from '../../../src/shared/composables/goalSpace/recurrence'
 import type { TaskTemplate } from '../../../src/entities/TaskEntity'
 import { check, section } from './harness'
 

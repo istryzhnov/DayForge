@@ -3,14 +3,14 @@ import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { I18nT, useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { GOAL_STATUS } from '../../../entities/constants'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { getTodayISODate } from '../../../shared/composables/goalSpace/date'
 import {
   parseQuickAdd,
   type QuickAddResult,
-} from '../../../composables/quickAdd/parse'
-import { projectColors } from '../../../composables/theme/goalTheme'
-import { useHotkeyOverlay } from '../../../composables/useHotkeys'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+} from '../composables/quickAdd/parse'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
+import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 
 const props = defineProps<{
   goals: Goal[]

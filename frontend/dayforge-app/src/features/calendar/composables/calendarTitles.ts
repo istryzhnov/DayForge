@@ -2,11 +2,11 @@ import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   parseISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import {
   capitalizeFirst,
   dateNameLocale,
-} from '../../../composables/panelDateLabel'
+} from '../../../shared/composables/panelDateLabel'
 
 const DAYS_PER_WEEK = 7
 

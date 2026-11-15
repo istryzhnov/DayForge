@@ -7,13 +7,13 @@ import {
   type Density,
   type FontOption,
   type Motion,
-} from '../../../composables/theme/tokens'
+} from '../../../shared/composables/theme/tokens'
 import {
   CLOCK_FORMAT,
   START_VIEW,
   type ClockFormat,
   type StartView,
-} from '../../../composables/useSettings'
+} from '../../../shared/composables/useSettings'
 import { GOAL_STATUS, PRIORITY } from '../../../entities/constants'
 import type { GoalStatus, Priority } from '../../../entities/types'
 import type { Language } from '../../../i18n/languages'

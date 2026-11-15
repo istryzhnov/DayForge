@@ -1,22 +1,21 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { CURRENCY_OPTIONS, useSettings } from '../../../composables/useSettings'
+import {
+  CURRENCY_OPTIONS,
+  useSettings,
+} from '../../../shared/composables/useSettings'
 import {
   COUNTDOWN_LENGTHS,
   FOCUS_LENGTHS,
   BREAK_LENGTHS,
   LONG_BREAK_EVERY,
 } from '../composables/settingsOptions'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
-import {
-  checkedValue,
-  rangeValue,
-  textValue,
-} from '../../../composables/inputValue'
+import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
+import { checkedValue, rangeValue, textValue } from '../composables/inputValue'
 import {
   IDLE_RETURN_MINUTE_OPTIONS,
   LONG_RUN_HOUR_OPTIONS,
-} from '../../../composables/timer/reminders'
+} from '../../../shared/composables/timer/reminders'
 
 const { t } = useI18n()
 

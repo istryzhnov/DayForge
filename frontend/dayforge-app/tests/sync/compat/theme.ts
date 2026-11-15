@@ -5,7 +5,7 @@ import {
   mix,
   PRIMARY_BUTTON_SHADE,
   readableButtonTextOn,
-} from '../../../src/composables/theme/color'
+} from '../../../src/shared/composables/theme/color'
 import {
   PALETTE_PRESETS,
   presetBaseColors,
@@ -13,7 +13,7 @@ import {
   presetIdFor,
   samePalette,
   type ThemeMode,
-} from '../../../src/composables/theme/tokens'
+} from '../../../src/shared/composables/theme/tokens'
 import { check, same, section } from './harness'
 
 /** Variants with no colours of their own use the stylesheet's values (layout.css). */

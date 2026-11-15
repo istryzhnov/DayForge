@@ -30,7 +30,7 @@ DayForge is a frontend application for modeling and tracking goals, task templat
 
 ## Patterns and architectural decisions
 
-- Composition API + Composables: component logic is extracted into `src/composables` for reuse and testability.
+- Composition API + Composables: component logic is extracted into composables (`src/features/*/composables`, shared ones in `src/shared/composables`) for reuse and testability.
 - Entity / Domain model: domain entities live in `src/entities` (GoalEntity, TaskEntity, RecurrenceEntity, UserTagEntity) as plain data models.
 - Snapshot pattern: daily tasks (`daily_tasks`) store a copy of the template state at creation time so history remains unchanged.
 - Feature-based folder structure: the UI is organized by feature under `src/features` (goals, sidebar, tasks) for clarity.
@@ -42,10 +42,11 @@ DayForge is a frontend application for modeling and tracking goals, task templat
 - `src/main.ts` — application entry point
 - `src/App.vue` — root Vue component
 - `src/assets/` — static assets
-- `src/composables/` — reusable logic (useGoals, useTaskTree, useTheme, etc.)
 - `src/entities/` — domain models
-- `src/features/` — feature modules and components (goals, sidebar, tasks)
-- `src/pages/` — top-level views (for example, `MainPage.vue`)
+- `src/features/` — feature modules, each with its own `components/` and `composables/`; other features use one only through its `index.ts`
+- `src/shared/ui/` — generic UI pieces used by several features (`AppIcon`, `DisclosureSection`, …)
+- `src/shared/composables/` — logic shared across features (useGoals, useTaskTree, useTheme, etc.)
+- `src/pages/` — the app shell `MainPage.vue` and its page-level composables
 - `src/styles/` — global styles
 
 Notable composables:
@@ -82,8 +83,8 @@ npm run preview
 
 ## Where to find key parts of the code
 
-- UI: `src/features/*/components` — feature components
-- State logic: `src/composables/*` — composables for state and operations
+- UI: `src/features/*/components` — feature components; `src/shared/ui` — shared UI pieces
+- State logic: `src/features/*/composables`, and `src/shared/composables` for what several features share
 - Models: `src/entities/*` — entity classes and types
 - Pages: `src/pages` — main views
 
@@ -95,7 +96,13 @@ npm run preview
 
 ## Testing
 
-This repository currently has no test configuration. Adding unit tests for composables and critical utilities (for example, daily task generation and recurrence rule handling) is recommended.
+Run from `frontend/dayforge-app`:
+
+- `npm test` — unit tests (Vitest): the goal space, the folder and import rules, the tour wiring, and a smoke test that mounts the app and opens every screen
+- `npm run verify:sync` — rules that must agree across devices (recurrence, merge, billing, …)
+- `npm run lint` — ESLint, including the import boundaries between layers and features
+
+See [frontend/dayforge-app/README-structure.md](frontend/dayforge-app/README-structure.md) for the folder rules.
 
 ## Contributing
 

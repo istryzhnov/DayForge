@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import { useTaskComposerState } from '../composables/useTaskComposerState'
-import { tourEvent } from '../../onboarding/composables/useTour'
+import { reportUserAction } from '../../../shared/composables/userActions'
 import TaskScheduleFields from './TaskScheduleFields.vue'
 
 const props = defineProps<{
@@ -31,7 +31,7 @@ const calendarOn = ref(false)
 
 // Turned on by the user only: the tour's scheduling steps wait for this.
 watch(calendarOn, (on) => {
-  if (on) tourEvent('schedule-opened')
+  if (on) reportUserAction('schedule-opened')
 })
 
 const scheduleFields =

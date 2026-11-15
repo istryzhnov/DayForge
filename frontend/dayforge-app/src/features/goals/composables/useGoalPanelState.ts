@@ -2,28 +2,22 @@ import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { useTaskTree } from '../../../composables/useTaskTree'
-import { useTheme } from '../../../composables/useTheme'
-import { buildGoalThemeVars } from '../../../composables/theme/goalTheme'
-import {
-  useProgressMetrics,
-  type ProgressScope,
-} from '../../../composables/useProgressMetrics'
+import { useTaskTree } from '../../../shared/composables/useTaskTree'
+import { useTheme } from '../../../shared/composables/useTheme'
+import { buildGoalThemeVars } from '../../../shared/composables/theme/goalTheme'
+import { useProgressMetrics, type ProgressScope } from './useProgressMetrics'
 import { GOAL_STATUS, PROGRESS_SCOPE_TYPE } from '../../../entities/constants'
-import { useToday } from '../../../composables/goalSpace/today'
-import { panelDateLabel } from '../../../composables/panelDateLabel'
+import { useToday } from '../../../shared/composables/goalSpace/today'
+import { panelDateLabel } from '../../../shared/composables/panelDateLabel'
 import {
   fullDayStreak,
   habitStreaks,
   habitTemplatesOf,
   habitWindowView,
-} from '../../../composables/analytics/habits'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
-import {
-  collectUpcoming,
-  UPCOMING_WINDOW_DAYS,
-} from '../../tasks/composables/useUpcomingTasks'
+} from '../../../shared/composables/analytics/habits'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { recurrenceWords } from '../../../shared/composables/goalSpace/recurrenceWords'
+import { collectUpcoming, UPCOMING_WINDOW_DAYS } from '../../tasks'
 import {
   habitWindowDays,
   monthTrackedMs,

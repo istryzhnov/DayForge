@@ -1,5 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import { readJson, writeJson } from '../../../lib/storage'
+import { onUserAction } from '../../../shared/composables/userActions'
 import {
   TOUR_CHAPTERS,
   TOUR_CHAPTER_BY_ID,
@@ -101,6 +102,12 @@ export function tourEvent(event: TourEvent, payload: TourEventPayload = {}) {
   if (next.step !== previous.step) bubbleOpen.value = true
   state.value = next
 }
+
+// The rest of the app reports what the user did without knowing about the tour;
+// the tour listens for the whole life of the page. This module is part of the
+// startup graph (MainPage renders TourCoach), so it subscribes before the first
+// action can happen; tests/unit/architecture.test.ts guards that.
+onUserAction(tourEvent)
 
 /** Begins Basics at the first step. Does nothing while a tour is already running. */
 export function startTour() {

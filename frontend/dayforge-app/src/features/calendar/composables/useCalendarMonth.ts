@@ -6,21 +6,21 @@ import {
   addMonthsToISODate,
   startOfMonthISODate,
   weekdayOfISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import {
   collectDayEvents,
   groupRowsByDate,
   scheduledMinutesOf,
   type DayEvent,
 } from './useCalendarOccurrences'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import { defaultDurationMinutes } from './useCalendarGrid'
 import {
   formatCalendarMonthTitle,
   formatCalendarWeekday,
 } from './calendarTitles'
 import { useCalendarFilter } from './useCalendarFilter'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 /** Six weeks always fit a month, so the grid never changes height. */
 const GRID_WEEKS = 6

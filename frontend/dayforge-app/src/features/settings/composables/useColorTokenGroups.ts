@@ -1,14 +1,11 @@
 import { computed } from 'vue'
 import { i18n } from '../../../i18n'
-import { useTheme } from '../../../composables/useTheme'
+import { useTheme } from '../../../shared/composables/useTheme'
 import {
   COLOR_TOKENS,
   type ColorTokenMeta,
-} from '../../../composables/theme/tokens'
-import {
-  contrastReport,
-  suggestionsFor,
-} from '../../../composables/theme/suggestions'
+} from '../../../shared/composables/theme/tokens'
+import { contrastReport, suggestionsFor } from './themeSuggestions'
 
 /** Group titles and hints are message keys, translated where the groups render. */
 const GROUPS: {

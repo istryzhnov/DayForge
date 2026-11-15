@@ -1,10 +1,10 @@
 import { watch, type Ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TaskTemplate } from '../../../entities/TaskEntity'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { useUndoToast } from '../../../composables/useUndoToast'
-import { buildRateLookup } from '../../../composables/timer/rates'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { useUndoToast } from '../../../shared/composables/useUndoToast'
+import { buildRateLookup } from '../../../shared/composables/timer/rates'
 import { i18n } from '../../../i18n'
 import {
   BUDGET_LEVEL,
@@ -12,7 +12,7 @@ import {
   isLevelUp,
   type BudgetLevel,
   type BudgetStanding,
-} from './projectBudget'
+} from '../../../shared/composables/billing/projectBudget'
 
 function noticeFor(title: string, standing: BudgetStanding): string {
   const percent = Math.round(standing.fraction * 100)

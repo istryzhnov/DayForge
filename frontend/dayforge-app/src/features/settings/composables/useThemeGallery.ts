@@ -1,13 +1,13 @@
 import { computed } from 'vue'
 import { i18n } from '../../../i18n'
-import { useTheme } from '../../../composables/useTheme'
+import { useTheme } from '../../../shared/composables/useTheme'
 import {
   PALETTE_PRESETS,
   presetColorsFor,
   type PalettePreset,
   samePalette,
-} from '../../../composables/theme/tokens'
-import { suggestedModeFor } from '../../../composables/theme/suggestions'
+} from '../../../shared/composables/theme/tokens'
+import { suggestedModeFor } from './themeSuggestions'
 
 export function useThemeGallery() {
   const theme = useTheme()

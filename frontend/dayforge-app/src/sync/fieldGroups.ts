@@ -1,5 +1,5 @@
 import type { ISODateTime } from '../entities/types'
-import { SYNCED_SECTIONS } from '../composables/settingsRow'
+import { SYNCED_SECTIONS } from '../shared/composables/settingsRow'
 import { stableStringify } from './diff'
 import { SYNC_TABLE, type SyncedRow, type TableName } from './types'
 

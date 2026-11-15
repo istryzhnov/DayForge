@@ -13,7 +13,7 @@
 import * as Sentry from '@sentry/vue'
 import type { App } from 'vue'
 import { watch } from 'vue'
-import { useAuth } from '../composables/useAuth'
+import { useAuth } from '../shared/composables/useAuth'
 import { setErrorSink, type ReportedError } from './errorReporter'
 
 type ScrubbableEvent = Sentry.ErrorEvent

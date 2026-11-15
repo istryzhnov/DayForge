@@ -1,16 +1,19 @@
 import { computed } from 'vue'
 import type { TimerMode } from '../../../entities/TimerEntity'
 import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimer } from '../../../composables/useTimer'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { tourEvent } from '../../onboarding/composables/useTour'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimer } from '../../../shared/composables/useTimer'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { reportUserAction } from '../../../shared/composables/userActions'
 import {
   formatDuration,
   formatShortDuration,
-} from '../../../composables/timer/format'
-import { focusesUntilLongBreak } from '../../../composables/timer/pomodoro'
-import { durationWords, startPhaseLabel } from '../../../composables/timer/text'
+} from '../../../shared/composables/timer/format'
+import { focusesUntilLongBreak } from '../../../shared/composables/timer/pomodoro'
+import {
+  durationWords,
+  startPhaseLabel,
+} from '../../../shared/composables/timer/text'
 import { i18n } from '../../../i18n'
 
 export const COUNTDOWN_PRESETS = [5, 10, 15, 25, 45, 60]
@@ -72,7 +75,7 @@ export function useTimerView() {
   function selectMode(next: TimerMode) {
     if (next === mode.value) return
     timer.setMode(next)
-    tourEvent('timer-mode-changed', { mode: next })
+    reportUserAction('timer-mode-changed', { mode: next })
   }
 
   /** An idle countdown starts on the length picked here, not the stored one. */

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type {
   HabitMonthCell,
   HabitMonthRow as HabitMonthRowData,
-} from '../../../composables/analytics/habits'
+} from '../../../shared/composables/analytics/habits'
 
 defineProps<{
   row: HabitMonthRowData

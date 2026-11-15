@@ -1,7 +1,11 @@
 import type { Ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import { sameBudget, sanitizeBudget, type ProjectBudget } from './projectBudget'
+import {
+  sameBudget,
+  sanitizeBudget,
+  type ProjectBudget,
+} from '../../../shared/composables/billing/projectBudget'
 
 /**
  * Writes a project's budget onto the live goals list. Only the `budget` key and

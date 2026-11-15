@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import {
   isCommitShortcut,
   useNotesDraft,
   useTextareaFit,
-} from '../../../composables/useNotesDraft'
+} from '../../../shared/composables/useNotesDraft'
 import { useEventDetailsForm } from '../composables/useEventDetailsForm'
 
 const props = defineProps<{

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
-import type { AppIconName } from '../../../components/appIconPaths'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import type { StartView } from '../../../composables/useSettings'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import type { AppIconName } from '../../../shared/ui/appIconPaths'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import type { StartView } from '../../../shared/composables/useSettings'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
 import {
   USE_OPTIONS,

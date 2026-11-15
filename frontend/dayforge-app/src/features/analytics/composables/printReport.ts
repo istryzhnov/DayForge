@@ -1,7 +1,10 @@
 import type { ISODate } from '../../../entities/types'
 import { hoursOf, reportTotals, type ReportLine } from './billingExport'
 import { roundMoney } from './clientBilling'
-import { englishText, type Text } from './projectBilling'
+import {
+  englishText,
+  type Text,
+} from '../../../shared/composables/billing/projectBilling'
 
 /**
  * Everything the printed report shows. The page is plain HTML with inline

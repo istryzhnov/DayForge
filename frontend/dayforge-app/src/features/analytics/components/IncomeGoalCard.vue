@@ -3,22 +3,27 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TaskTemplate } from '../../../entities/TaskEntity'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
 import {
   ANALYTICS_PERIOD,
   entriesInRange,
   periodRange,
-} from '../../../composables/timer/analytics'
-import { buildRateLookup } from '../../../composables/timer/rates'
-import { projectEarnings, totalEarned } from '../composables/projectEarnings'
+} from '../../../shared/composables/timer/analytics'
+import { buildRateLookup } from '../../../shared/composables/timer/rates'
 import {
-  INCOME_GOAL_MAX,
+  projectEarnings,
+  totalEarned,
+} from '../../../shared/composables/billing/projectEarnings'
+import {
   amountPerDayNeeded,
   incomeGoalStatus,
-  sanitizeMonthlyIncome,
   workingDaysLeft,
 } from '../composables/incomeGoal'
+import {
+  INCOME_GOAL_MAX,
+  sanitizeMonthlyIncome,
+} from '../../../shared/composables/billing/monthlyIncome'
 
 const props = defineProps<{
   goals: Goal[]

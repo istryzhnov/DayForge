@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useContextMenu } from '../../../composables/useContextMenu'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
+import { useContextMenu } from '../../../shared/composables/useContextMenu'
+import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 
 const props = defineProps<{
   x: number

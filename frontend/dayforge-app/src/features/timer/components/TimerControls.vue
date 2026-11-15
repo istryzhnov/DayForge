@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { shortcutTitle } from '../../../composables/useHotkeys'
-import AppIcon from '../../../components/AppIcon.vue'
-import type { AppIconName } from '../../../components/appIconPaths'
+import { shortcutTitle } from '../../../shared/composables/useHotkeys'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import type { AppIconName } from '../../../shared/ui/appIconPaths'
 
 const { t } = useI18n()
 

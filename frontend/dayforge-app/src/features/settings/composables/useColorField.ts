@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
-import { normalizeHex } from '../../../composables/theme/color'
-import type { ColorSuggestion } from '../../../composables/theme/suggestions'
+import { normalizeHex } from '../../../shared/composables/theme/color'
+import type { ColorSuggestion } from './themeSuggestions'
 
 const HEX_PATTERN = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i
 

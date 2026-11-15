@@ -1,8 +1,8 @@
 import { onUnmounted } from 'vue'
 import { i18n } from '../../../i18n'
-import type { useGoalSpace } from '../../../composables/useGoalSpace'
-import { useUndoToast } from '../../../composables/useUndoToast'
-import { useMobileNav } from '../../sidebar/composables/useMobileNav'
+import type { useGoalSpace } from '../../../shared/composables/useGoalSpace'
+import { useUndoToast } from '../../../shared/composables/useUndoToast'
+import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import { onTaskDroppedOnGoal } from './taskDropTarget'
 
 type GoalSpace = Pick<

@@ -2,12 +2,12 @@
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PRIORITY } from '../../../entities/constants'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
-import { usePressGesture } from '../../../composables/usePressGesture'
-import { useFormat } from '../../../composables/useFormat'
-import { useTimer } from '../../../composables/useTimer'
-import { useToday } from '../../../composables/goalSpace/today'
-import AppIcon from '../../../components/AppIcon.vue'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
+import { usePressGesture } from '../../../shared/composables/usePressGesture'
+import { useFormat } from '../../../shared/composables/useFormat'
+import { useTimer } from '../../../shared/composables/useTimer'
+import { useToday } from '../../../shared/composables/goalSpace/today'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import {
   BOARD_COLUMNS,
   BOARD_COLUMN,
@@ -15,10 +15,9 @@ import {
   type BoardColumn,
 } from '../composables/boardModel'
 import type { BoardCardDrag } from '../composables/useBoardDrag'
-import TaskNotesButton from '../../tasks/components/TaskNotesButton.vue'
-import TaskTimerButton from '../../timer/components/TaskTimerButton.vue'
+import { TaskNotesButton } from '../../tasks'
+import { TaskTimerButton, toggleTaskTimer } from '../../timer'
 import BoardCardMenu from './BoardCardMenu.vue'
-import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
 
 const props = defineProps<{
   card: BoardCardModel

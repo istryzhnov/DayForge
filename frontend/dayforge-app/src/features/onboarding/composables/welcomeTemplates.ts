@@ -1,5 +1,5 @@
-import type { AppIconName } from '../../../components/appIconPaths'
-import { addMinutesToTime } from '../../../composables/goalSpace/date'
+import type { AppIconName } from '../../../shared/ui/appIconPaths'
+import { addMinutesToTime } from '../../../shared/composables/goalSpace/date'
 import type { TimeOfDay } from '../../../entities/types'
 import type { UseChoice } from './useWelcome'
 

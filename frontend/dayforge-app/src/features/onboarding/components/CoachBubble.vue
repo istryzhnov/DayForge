@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { CoachPosition } from '../composables/coachPosition'
 
 /**

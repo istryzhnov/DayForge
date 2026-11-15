@@ -5,14 +5,14 @@ import {
   DEFAULT_GOAL_INTENSITY,
   buildGoalThemeVars,
   type ThemeSurfaces,
-} from '../../../composables/theme/goalTheme'
+} from '../../../shared/composables/theme/goalTheme'
 import {
   THEME_COLOR_KEY,
   type ResolvedPalette,
   type ThemeColorKey,
   type ThemeMode,
-} from '../../../composables/theme/tokens'
-import { suggestionsFor } from '../../../composables/theme/suggestions'
+} from '../../../shared/composables/theme/tokens'
+import { suggestionsFor } from './themeSuggestions'
 import { i18n } from '../../../i18n'
 
 /** The colour fields a project can override by hand. */

@@ -8,17 +8,20 @@ import {
   projectTotalKey,
   type AnalyticsPeriod,
   type ProjectTotal,
-} from '../../../composables/timer/analytics'
-import { entryDate } from '../../../composables/timer/entries'
+} from '../../../shared/composables/timer/analytics'
+import { entryDate } from '../../../shared/composables/timer/entries'
 import {
   addDaysToISODate,
   addMonthsToISODate,
   startOfMonthISODate,
   weekdayOfISODate,
-} from '../../../composables/goalSpace/date'
-import { occursOn } from '../../../composables/goalSpace/recurrence'
-import { segmentForDay } from '../../../composables/goalSpace/overnight'
-import { englishText, type Text } from './projectBilling'
+} from '../../../shared/composables/goalSpace/date'
+import { occursOn } from '../../../shared/composables/goalSpace/recurrence'
+import { segmentForDay } from '../../../shared/composables/goalSpace/overnight'
+import {
+  englishText,
+  type Text,
+} from '../../../shared/composables/billing/projectBilling'
 
 const MINUTE_MS = 60 * 1000
 

@@ -2,12 +2,12 @@ import { computed, ref, useTemplateRef } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
-import { useFormat } from '../../../composables/useFormat'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
+import { useFormat } from '../../../shared/composables/useFormat'
 import {
   usePressGesture,
   type GesturePoint,
-} from '../../../composables/usePressGesture'
+} from '../../../shared/composables/usePressGesture'
 import {
   minutesFromDayStart,
   pxPerMinute,
@@ -18,7 +18,7 @@ import {
 import {
   durationMinutes,
   MINUTES_PER_DAY,
-} from '../../../composables/goalSpace/overnight'
+} from '../../../shared/composables/goalSpace/overnight'
 
 type BlockProps = {
   task: DailyTask

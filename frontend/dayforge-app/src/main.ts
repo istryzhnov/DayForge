@@ -2,7 +2,7 @@ import { createApp, watch } from 'vue'
 import './style.css'
 import App from './App.vue'
 import { i18n, setLanguage } from './i18n'
-import { useSettings } from './composables/useSettings'
+import { useSettings } from './shared/composables/useSettings'
 
 const RELOAD_FLAG = 'dayforge-chunk-reload'
 

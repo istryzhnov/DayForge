@@ -3,8 +3,8 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { PlannedTask } from '../composables/usePlannedTasks'
 import type { ID, ISODate } from '../../../entities/types'
-import { useFormat } from '../../../composables/useFormat'
-import AppIcon from '../../../components/AppIcon.vue'
+import { useFormat } from '../../../shared/composables/useFormat'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { dayHeadingLabel, groupByDay } from '../composables/dayGroups'
 
 const props = defineProps<{

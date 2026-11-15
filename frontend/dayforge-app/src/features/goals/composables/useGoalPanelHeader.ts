@@ -4,7 +4,7 @@ import { i18n } from '../../../i18n'
 import {
   SETTINGS_SECTION,
   useSettingsPanel,
-} from '../../settings/composables/useSettingsPanel'
+} from '../../../shared/composables/useSettingsPanel'
 
 type GoalPanelHeaderProps = {
   /** A goal status, or "overview" in All Projects mode. */

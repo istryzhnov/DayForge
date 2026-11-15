@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
-import { useAuth } from '../../../composables/useAuth'
-import { useSync } from '../../../composables/useSync'
-import { useFormat } from '../../../composables/useFormat'
+import { useAuth } from '../../../shared/composables/useAuth'
+import { useSync } from '../../../shared/composables/useSync'
+import { useFormat } from '../../../shared/composables/useFormat'
 import { clearAccountData } from '../../../sync/accountDeletion'
 import { i18n } from '../../../i18n'
 

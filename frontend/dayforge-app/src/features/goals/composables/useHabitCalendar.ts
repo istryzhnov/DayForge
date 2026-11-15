@@ -4,8 +4,8 @@ import type { ISODate } from '../../../entities/types'
 import type {
   HabitDayState,
   HabitMonthView,
-} from '../../../composables/analytics/habits'
-import { panelDateLabel } from '../../../composables/panelDateLabel'
+} from '../../../shared/composables/analytics/habits'
+import { panelDateLabel } from '../../../shared/composables/panelDateLabel'
 
 type HabitProps = {
   view: HabitMonthView

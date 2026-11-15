@@ -34,13 +34,13 @@ import {
   restampForRestore,
   sweepTombstones,
 } from '../../src/sync/tombstoneRules'
-import { carryOpenTasksForward } from '../../src/composables/goalSpace/dailyTasks'
+import { carryOpenTasksForward } from '../../src/shared/composables/goalSpace/dailyTasks'
 import type { DailyTask, TaskTemplate } from '../../src/entities/TaskEntity'
 import { createSnapshotStore } from '../../src/sync/snapshots'
-import { createIdleTimer } from '../../src/composables/timer/machine'
-import { mustRecordBeforeAdopting } from '../../src/composables/timer/remote'
+import { createIdleTimer } from '../../src/shared/composables/timer/machine'
+import { mustRecordBeforeAdopting } from '../../src/shared/composables/timer/remote'
 import { TIMER_STATUS } from '../../src/entities/constants'
-import { parseQuickAdd } from '../../src/composables/quickAdd/parse'
+import { parseQuickAdd } from '../../src/features/hotkeys/composables/quickAdd/parse'
 import {
   SYNC_TABLE,
   type Mutation,

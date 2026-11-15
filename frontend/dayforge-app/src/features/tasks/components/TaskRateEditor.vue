@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { TaskNode } from '../../../composables/useTaskTree'
+import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import { useTaskRateEditor } from '../composables/useTaskRateEditor'
 
 const props = defineProps<{ node: TaskNode }>()

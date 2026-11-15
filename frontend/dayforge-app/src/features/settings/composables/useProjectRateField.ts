@@ -1,6 +1,6 @@
 import { computed, ref, watch } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import { i18n } from '../../../i18n'
 
 type RateFieldProps = {

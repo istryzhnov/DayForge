@@ -14,9 +14,9 @@ import {
 import {
   isRepeating,
   occursOn,
-} from '../../../composables/goalSpace/recurrence'
-import { addDaysToISODate } from '../../../composables/goalSpace/date'
-import { sortTasks } from '../../../composables/goalSpace/taskOrder'
+} from '../../../shared/composables/goalSpace/recurrence'
+import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import { sortTasks } from '../../../shared/composables/goalSpace/taskOrder'
 
 /**
  * Pure board rules, kept free of Vue so the sync harness can check them.

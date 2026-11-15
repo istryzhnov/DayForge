@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 import { useHabitMonth } from '../composables/useHabitMonth'
 import HabitMonthRow from './HabitMonthRow.vue'
 

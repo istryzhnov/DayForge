@@ -2,9 +2,9 @@ import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { formatHoursMinutes } from '../../../composables/timer/format'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
@@ -14,30 +14,29 @@ import {
   summarize,
   type AnalyticsPeriod,
   type ProjectTotal,
-} from '../../../composables/timer/analytics'
-import { projectColors } from '../../../composables/theme/goalTheme'
+} from '../../../shared/composables/timer/analytics'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { i18n } from '../../../i18n'
 import {
   breakdownEarnings,
   buildRateLookup,
   hasAnyRate,
   rateForTask,
-} from '../../../composables/timer/rates'
+} from '../../../shared/composables/timer/rates'
 import {
   earnedPerHour,
   projectFigures,
   sanitizeBilling,
   type ProjectBilling,
   type ProjectFigures,
-} from './projectBilling'
+} from '../../../shared/composables/billing/projectBilling'
+import { SERIES_GRANULARITY, buildSeries, startOfWeek } from './charts'
+import { habitStats } from '../../../shared/composables/analytics/habits'
 import {
-  SERIES_GRANULARITY,
-  buildSeries,
-  startOfWeek,
-} from '../../../composables/analytics/charts'
-import { habitStats } from '../../../composables/analytics/habits'
-import { totalsByDay, type TaskTotal } from '../../../composables/timer/entries'
-import { summaryLabels } from '../../../composables/timer/text'
+  totalsByDay,
+  type TaskTotal,
+} from '../../../shared/composables/timer/entries'
+import { summaryLabels } from '../../../shared/composables/timer/text'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
@@ -46,7 +45,7 @@ import {
   clientSummaries,
   outstandingSummary,
 } from './clientBilling'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 /** `labelKey` is rendered with `t()` where it shows, so a language switch updates it. */
 export const PERIOD_OPTIONS: { id: AnalyticsPeriod; labelKey: string }[] = [

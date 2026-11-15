@@ -7,7 +7,7 @@ import {
   planTaskReorder,
   reorderSiblings,
   sortTasks,
-} from '../../../src/composables/goalSpace/taskOrder'
+} from '../../../src/shared/composables/goalSpace/taskOrder'
 import { check, clone, same, section, T0, T2 } from './harness'
 
 type TestRow = {

@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
-import type { ActiveView } from '../../../pages/composables/useMainPageState'
-import ProfileAvatar from '../../profile/components/ProfileAvatar.vue'
-import { useProfile } from '../../profile/composables/useProfile'
-import { useProfilePanel } from '../../profile/composables/useProfilePanel'
-import { useMobileNav } from '../composables/useMobileNav'
-import { useTimer } from '../../../composables/useTimer'
-import { useHotkeyOverlay } from '../../../composables/useHotkeys'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import type { ActiveView } from '../../../entities/types'
+import { ProfileAvatar, useProfile, useProfilePanel } from '../../profile'
+import { useMobileNav } from '../../../shared/composables/useMobileNav'
+import { useTimer } from '../../../shared/composables/useTimer'
+import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
 import { SYNC_STATE } from '../../../sync/types'
 
 const props = defineProps<{

@@ -4,8 +4,8 @@ import {
   isTopmost,
   menuKeyTarget,
   trapTabTarget,
-} from '../../../src/composables/focusRules'
-import { planTaskNudge } from '../../../src/composables/goalSpace/taskOrder'
+} from '../../../src/shared/composables/focusRules'
+import { planTaskNudge } from '../../../src/shared/composables/goalSpace/taskOrder'
 import { check, same, section } from './harness'
 
 export function verifyFocusTrapTab() {

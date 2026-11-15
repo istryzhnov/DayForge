@@ -1,13 +1,13 @@
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate, Priority, TimeOfDay } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
-import { addDaysToISODate } from '../../../composables/goalSpace/date'
-import { occursOn } from '../../../composables/goalSpace/recurrence'
+import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import { occursOn } from '../../../shared/composables/goalSpace/recurrence'
 import {
   isOvernight,
   segmentForDay,
-} from '../../../composables/goalSpace/overnight'
-import { durationMinutes as spanMinutes } from '../../../composables/goalSpace/overnight'
+} from '../../../shared/composables/goalSpace/overnight'
+import { durationMinutes as spanMinutes } from '../../../shared/composables/goalSpace/overnight'
 
 export type DayEvent = {
   key: string

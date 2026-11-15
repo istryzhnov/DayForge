@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { useTimeEntryEditor } from '../composables/useTimeEntryEditor'
 
 const props = defineProps<{ entry: TimeEntry | null }>()

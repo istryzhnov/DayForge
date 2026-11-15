@@ -1,20 +1,22 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useI18n } from 'vue-i18n'
 import {
   QUICK_ADD_SYNTAX,
   SHORTCUT_GROUPS,
   useHotkeyOverlay,
-} from '../../../composables/useHotkeys'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { useSettings } from '../../../composables/useSettings'
-import TourChapterList from '../../onboarding/components/TourChapterList.vue'
-import { TOUCH_LAYOUT_QUERY } from '../../onboarding/composables/touchLayout'
-import { useTips } from '../../onboarding/composables/useTips'
-import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
-import { useTour } from '../../onboarding/composables/useTour'
-import { TOUR_CHAPTERS } from '../../onboarding/composables/tourSteps'
+} from '../../../shared/composables/useHotkeys'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
+import { useSettings } from '../../../shared/composables/useSettings'
+import {
+  TourChapterList,
+  TOUCH_LAYOUT_QUERY,
+  useTips,
+  COACH_TIPS_ENABLED,
+  useTour,
+  TOUR_CHAPTERS,
+} from '../../onboarding'
 
 const { t } = useI18n()
 const { closeOverlay } = useHotkeyOverlay()

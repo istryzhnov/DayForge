@@ -3,7 +3,7 @@ import type { ID } from '../../../entities/types'
 import {
   NO_PROJECT_FILTER_ID,
   useSettings,
-} from '../../../composables/useSettings'
+} from '../../../shared/composables/useSettings'
 
 /** One predicate shared by the day, week and month views. */
 export function useCalendarFilter() {

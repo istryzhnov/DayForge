@@ -1,8 +1,8 @@
 import { onUnmounted, ref } from 'vue'
 import type { ID } from '../../../entities/types'
-import type { GesturePoint } from '../../../composables/usePressGesture'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { useMobileNav } from '../../sidebar/composables/useMobileNav'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
+import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import {
   beginGoalDrop,
   emitTaskDroppedOnGoal,

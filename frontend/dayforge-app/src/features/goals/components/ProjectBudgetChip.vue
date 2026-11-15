@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import {
   BUDGET_LEVEL,
   BUDGET_PERIOD,
   type BudgetStanding,
-} from '../../analytics/composables/projectBudget'
+} from '../../../shared/composables/billing/projectBudget'
 
 const props = defineProps<{ standing: BudgetStanding }>()
 

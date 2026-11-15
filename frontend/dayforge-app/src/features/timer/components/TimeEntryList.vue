@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useTimerHistory } from '../composables/useTimerHistory'
 
 const { t } = useI18n()

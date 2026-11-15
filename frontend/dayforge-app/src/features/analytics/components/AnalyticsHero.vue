@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { formatHoursMinutes } from '../../../composables/timer/format'
-import { durationWords } from '../../../composables/timer/text'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 
 const { t } = useI18n()
 

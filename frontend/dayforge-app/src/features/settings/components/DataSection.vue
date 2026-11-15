@@ -2,10 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useBackupFile } from '../composables/useBackupFile'
-import DeleteAccountDialog from '../../profile/components/DeleteAccountDialog.vue'
-import { useAuth } from '../../../composables/useAuth'
-import { useSync } from '../../../composables/useSync'
-import { useFormat } from '../../../composables/useFormat'
+import { DeleteAccountDialog } from '../../profile'
+import { useAuth } from '../../../shared/composables/useAuth'
+import { useSync } from '../../../shared/composables/useSync'
+import { useFormat } from '../../../shared/composables/useFormat'
 import type { SnapshotRecord } from '../../../sync/snapshots'
 
 const props = defineProps<{

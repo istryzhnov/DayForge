@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 
 type TaskComposerActions = {
   onSubmit: (title: string, priority: Priority, schedule?: TaskSchedule) => void

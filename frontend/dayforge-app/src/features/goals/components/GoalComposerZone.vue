@@ -7,10 +7,9 @@ import type {
   MajorTaskOption,
   TaskSchedule,
 } from '../../../entities/TaskEntity'
-import TaskComposer from '../../tasks/components/TaskComposer.vue'
-import { useTaskActions } from '../../tasks/composables/useTaskActions'
-import { useSettings } from '../../../composables/useSettings'
-import { projectColors } from '../../../composables/theme/goalTheme'
+import { TaskComposer, useTaskActions } from '../../tasks'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import ProjectPicker, { type PickerOption } from './ProjectPicker.vue'
 
 const props = defineProps<{

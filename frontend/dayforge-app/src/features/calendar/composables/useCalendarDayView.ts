@@ -2,9 +2,9 @@ import { computed, ref, useTemplateRef } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { formatCalendarDayTitle } from './calendarTitles'
-import type { GesturePoint } from '../../../composables/usePressGesture'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
 import {
   columnStyle,
   minutesFromDayStart,
@@ -13,9 +13,9 @@ import {
 import {
   isOvernight,
   segmentForDay,
-} from '../../../composables/goalSpace/overnight'
-import { addDaysToISODate } from '../../../composables/goalSpace/date'
-import { useToday } from '../../../composables/goalSpace/today'
+} from '../../../shared/composables/goalSpace/overnight'
+import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 import { layoutOverlaps } from './overlapLayout'
 import {
   useCalendarDragDrop,

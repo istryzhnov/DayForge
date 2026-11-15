@@ -1,13 +1,13 @@
 import { computed, ref } from 'vue'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import type { TaskNode } from '../../../composables/useTaskTree'
+import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
 import type { TaskActions } from './useTaskActions'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import {
   usePressGesture,
   type GesturePoint,
-} from '../../../composables/usePressGesture'
+} from '../../../shared/composables/usePressGesture'
 
 type TaskRowProps = {
   node: TaskNode
