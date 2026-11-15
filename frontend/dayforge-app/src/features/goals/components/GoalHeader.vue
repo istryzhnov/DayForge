@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
-import ProjectIcon from './ProjectIcon.vue'
-import { formatHoursMinutes } from '../../../composables/timer/format'
-import { durationWords } from '../../../composables/timer/text'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import ProjectIcon from '../../../shared/ui/ProjectIcon.vue'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
 import type { PanelStats } from '../composables/projectPanelStats'
 import ProjectToolbar from './ProjectToolbar.vue'
 import ProjectBudgetChip from './ProjectBudgetChip.vue'
-import type { BudgetStanding } from '../../analytics/composables/projectBudget'
+import type { BudgetStanding } from '../../../shared/composables/billing/projectBudget'
 
 const props = defineProps<{
   title: string

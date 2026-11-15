@@ -1,0 +1,207 @@
+import { computed } from 'vue'
+import type { Goal } from '../../entities/GoalEntity'
+import { i18n } from '../../i18n'
+import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
+import type { ID, ISODate } from '../../entities/types'
+import { PRIORITY, TASK_STATUS } from '../../entities/constants'
+import { isRepeating } from './goalSpace/recurrence'
+import { sortTasks } from './goalSpace/taskOrder'
+import { projectColors } from './theme/goalTheme'
+
+export type TaskNode = {
+  task: DailyTask
+  /** The task's rule book: repeat, default times, parent. */
+  template?: TaskTemplate
+  /** Goal the task is tagged with, or "All tasks" when it has none. */
+  goalTitle?: string
+  /** Title of the owning project, for the chip on a nested task. */
+  projectTitle?: string
+  /** Drives the one-off highlight animation when a task first appears. */
+  isNew?: boolean
+  /** Started the day before and runs past midnight, so this is its tail. */
+  spilled?: boolean
+  /** How many days this task has been completed on, across its whole history. */
+  completedCount?: number
+  /** The project's hourly rate, which a task without its own one bills at. */
+  goalRate?: number
+  /** The project's colour, marking its rows in the All view. */
+  goalColor?: string
+}
+
+export type TaskGroup =
+  | {
+      kind: 'project'
+      project: TaskNode
+      children: TaskNode[]
+      doneCount: number
+      totalCount: number
+    }
+  | { kind: 'task'; node: TaskNode }
+
+type TaskTreeProps = {
+  goal: Goal | null
+  goals: Goal[]
+  tasks: DailyTask[]
+  currentDate: ISODate
+  /** Every day's rows, not just the open day — needed to count completions. */
+  dailyTasks: DailyTask[]
+  templates: TaskTemplate[]
+  /** Template just created, highlighted until `useGoalSpace` clears it. */
+  newTemplateId: ID | null
+  isAllMode: boolean
+}
+
+export function useTaskTree(props: TaskTreeProps) {
+  const taskGroups = computed<TaskGroup[]>(() => {
+    const goalTitleById = new Map(
+      props.goals.map((goal) => [goal.id, goal.title]),
+    )
+
+    function goalTitleOf(task: DailyTask) {
+      if (!task.goalId) return i18n.global.t('tasks.allTasks')
+      return (
+        goalTitleById.get(task.goalId) ?? i18n.global.t('tasks.unknownGoal')
+      )
+    }
+
+    const goalRateById = new Map(
+      props.goals.map((goal) => [goal.id, goal.hourlyRate]),
+    )
+
+    function goalRateOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalRateById.get(task.goalId)
+    }
+
+    const goalColorById = projectColors(props.goals)
+
+    function goalColorOf(task: DailyTask) {
+      if (!task.goalId) return undefined
+      return goalColorById.get(task.goalId)
+    }
+
+    const templateById = new Map(
+      props.templates.map((template) => [template.id, template]),
+    )
+
+    // The order the user arranged tasks in, top first. A task the user just
+    // added is on top, and a dragged one lands where it was dropped.
+    const drawnRank = new Map(
+      sortTasks(props.templates).map((template, index) => [template.id, index]),
+    )
+    const rankOf = (task: DailyTask) =>
+      drawnRank.get(task.templateId) ?? props.templates.length
+    const byDrawnOrder = (a: DailyTask, b: DailyTask) => rankOf(a) - rankOf(b)
+
+    const spilledOf = (task: DailyTask) => task.date !== props.currentDate
+
+    const isRecentlyCreated = (task: DailyTask) =>
+      props.newTemplateId !== null && task.templateId === props.newTemplateId
+
+    const repeatingTemplateIds = new Set(
+      props.templates.filter(isRepeating).map((template) => template.id),
+    )
+
+    const completionsByTemplate = new Map<ID, number>()
+    props.dailyTasks.forEach((row) => {
+      if (row.status !== TASK_STATUS.DONE) return
+      completionsByTemplate.set(
+        row.templateId,
+        (completionsByTemplate.get(row.templateId) ?? 0) + 1,
+      )
+    })
+
+    function completedCountOf(task: DailyTask) {
+      if (!repeatingTemplateIds.has(task.templateId)) return undefined
+      return completionsByTemplate.get(task.templateId) ?? 0
+    }
+
+    const projects = props.tasks
+      .filter((task) => task.priority === PRIORITY.MAJOR)
+      .sort(byDrawnOrder)
+
+    const groups: TaskGroup[] = []
+    const nestedIds = new Set<string>()
+
+    projects.forEach((project) => {
+      const children = props.tasks
+        .filter((task) => task.parentDailyTaskId === project.id)
+        .sort(byDrawnOrder)
+
+      children.forEach((child) => nestedIds.add(child.id))
+
+      const projectNode: TaskNode = {
+        task: project,
+        template: templateById.get(project.templateId),
+        goalTitle: goalTitleOf(project),
+        goalRate: goalRateOf(project),
+        goalColor: goalColorOf(project),
+        isNew: isRecentlyCreated(project),
+        spilled: spilledOf(project),
+        completedCount: completedCountOf(project),
+      }
+
+      if (!children.length) {
+        groups.push({ kind: 'task', node: projectNode })
+        return
+      }
+
+      groups.push({
+        kind: 'project',
+        project: projectNode,
+        children: children.map((child) => ({
+          task: child,
+          template: templateById.get(child.templateId),
+          goalTitle: goalTitleOf(child),
+          goalRate: goalRateOf(child),
+          goalColor: goalColorOf(child),
+          projectTitle: project.title,
+          isNew: isRecentlyCreated(child),
+          spilled: spilledOf(child),
+          completedCount: completedCountOf(child),
+        })),
+        doneCount: children.filter((task) => task.status === TASK_STATUS.DONE)
+          .length,
+        totalCount: children.length,
+      })
+    })
+
+    // Tasks that don't belong to any visible project stand on their own.
+    props.tasks
+      .filter(
+        (task) => task.priority !== PRIORITY.MAJOR && !nestedIds.has(task.id),
+      )
+      .forEach((task) => {
+        groups.push({
+          kind: 'task',
+          node: {
+            task,
+            template: templateById.get(task.templateId),
+            goalTitle: goalTitleOf(task),
+            goalRate: goalRateOf(task),
+            goalColor: goalColorOf(task),
+            isNew: isRecentlyCreated(task),
+            spilled: spilledOf(task),
+            completedCount: completedCountOf(task),
+          },
+        })
+      })
+
+    return groups.sort((a, b) => {
+      const taskOf = (group: TaskGroup) =>
+        group.kind === 'project' ? group.project.task : group.node.task
+      return byDrawnOrder(taskOf(a), taskOf(b))
+    })
+  })
+
+  const panelTitle = computed(() =>
+    props.isAllMode
+      ? i18n.global.t('tasks.allTasks')
+      : (props.goal?.title ?? i18n.global.t('tasks.goal')),
+  )
+
+  return {
+    taskGroups,
+    panelTitle,
+  }
+}

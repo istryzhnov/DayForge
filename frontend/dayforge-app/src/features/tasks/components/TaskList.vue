@@ -3,12 +3,15 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ID, Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import type { TaskGroup, TaskNode } from '../../../composables/useTaskTree'
+import type {
+  TaskGroup,
+  TaskNode,
+} from '../../../shared/composables/useTaskTree'
 import { PRIORITY } from '../../../entities/constants'
 import { useTaskActions } from '../composables/useTaskActions'
 import { DROP_ZONE_ROOT } from '../composables/dropRules'
 import { useTaskDrag } from '../composables/useTaskDrag'
-import DragGhost from '../../../components/DragGhost.vue'
+import DragGhost from '../../../shared/ui/DragGhost.vue'
 import TaskListItem from './TaskListItem.vue'
 
 defineProps<{

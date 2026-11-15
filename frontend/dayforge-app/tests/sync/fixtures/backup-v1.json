@@ -195,7 +195,11 @@
       "keyboardShortcuts": true
     },
     "format": { "locale": "en-GB", "clock": "24h" },
-    "accessibility": { "textScale": 1, "largeTargets": false, "highContrast": false },
+    "accessibility": {
+      "textScale": 1,
+      "largeTargets": false,
+      "highContrast": false
+    },
     "timer": {
       "focusMinutes": 25,
       "shortBreakMinutes": 5,

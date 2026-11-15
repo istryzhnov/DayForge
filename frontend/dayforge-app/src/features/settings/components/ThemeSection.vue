@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useThemeGallery } from '../composables/useThemeGallery'
-import { swatchStyle } from '../../../composables/inputValue'
+import { swatchStyle } from '../composables/inputValue'
 
 const { t } = useI18n()
 

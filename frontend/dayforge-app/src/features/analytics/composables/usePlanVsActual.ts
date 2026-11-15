@@ -4,9 +4,9 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type {
   AnalyticsPeriod,
   ProjectTotal,
-} from '../../../composables/timer/analytics'
-import { useSettings } from '../../../composables/useSettings'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
+} from '../../../shared/composables/timer/analytics'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
 import { i18n } from '../../../i18n'
 import {
   earliestPlanDate,
@@ -14,7 +14,7 @@ import {
   planVsActual,
   plannedMsByProject,
 } from './planVsActual'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 /**
  * Plan against actual for the period on screen. The hero and the plan table

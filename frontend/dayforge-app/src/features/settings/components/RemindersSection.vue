@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
-import { useSettings } from '../../../composables/useSettings'
+import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
+import { useSettings } from '../../../shared/composables/useSettings'
 import { MINUTE_STEPS } from '../composables/settingsOptions'
 import {
   checkedValue,
   fractionValue,
   textValue,
-} from '../../../composables/inputValue'
-import { useAuth } from '../../../composables/useAuth'
-import { usePushReminders } from '../../../composables/usePushReminders'
+} from '../composables/inputValue'
+import { useAuth } from '../../../shared/composables/useAuth'
+import { usePushReminders } from '../../../shared/composables/usePushReminders'
 
 defineProps<{
   notificationsSupported: boolean

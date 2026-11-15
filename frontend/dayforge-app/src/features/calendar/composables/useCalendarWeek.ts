@@ -4,7 +4,7 @@ import type { ISODate } from '../../../entities/types'
 import {
   addDaysToISODate,
   weekdayOfISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import {
   collectDayEvents,
   groupRowsByDate,
@@ -17,15 +17,15 @@ import {
   minutesFromDayStart,
 } from './useCalendarGrid'
 import { layoutOverlaps, type OverlapSlot } from './overlapLayout'
-import { useSettings } from '../../../composables/useSettings'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { useCalendarFilter } from './useCalendarFilter'
 import { useCalendarDraft, type CreateTaskPayload } from './useCalendarDraft'
 import {
   formatCalendarWeekday,
   formatCalendarWeekTitle,
 } from './calendarTitles'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 const DAYS_PER_WEEK = 7
 

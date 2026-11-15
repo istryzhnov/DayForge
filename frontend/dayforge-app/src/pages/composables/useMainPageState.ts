@@ -1,25 +1,25 @@
 import { computed, onMounted, ref, watchEffect } from 'vue'
-import type { useGoalSpace } from '../../composables/useGoalSpace'
-import type { ID, ISODate, Priority } from '../../entities/types'
+import type { useGoalSpace } from '../../shared/composables/useGoalSpace'
+import type { ActiveView, ID, ISODate, Priority } from '../../entities/types'
 import type { TaskSchedule, TaskTemplate } from '../../entities/TaskEntity'
 import {
   RECURRENCE_TYPE,
   TASK_STATUS,
   type BoardStage,
 } from '../../entities/constants'
-import type { QuickAddResult } from '../../composables/quickAdd/parse'
-import { useTheme } from '../../composables/useTheme'
-import { buildGoalAccentVars } from '../../composables/theme/goalTheme'
-import { useTaskNotifications } from '../../composables/useTaskNotifications'
-import { useSettings } from '../../composables/useSettings'
-import { noteManualTaskAdded } from '../../composables/useShortcutTip'
+import type { QuickAddResult } from '../../features/hotkeys/composables/quickAdd/parse'
+import { useTheme } from '../../shared/composables/useTheme'
+import { buildGoalAccentVars } from '../../shared/composables/theme/goalTheme'
+import { useTaskNotifications } from '../../features/tasks/composables/useTaskNotifications'
+import { useSettings } from '../../shared/composables/useSettings'
+import { noteManualTaskAdded } from '../../features/hotkeys/composables/useShortcutTip'
 import { setTipFacts } from '../../features/onboarding/composables/useTips'
-import { tourEvent } from '../../features/onboarding/composables/useTour'
-import { useToday } from '../../composables/goalSpace/today'
-import { useTimer } from '../../composables/useTimer'
-import { initTimerReminders } from '../../composables/useTimerReminders'
-import { useTimeEntries } from '../../composables/useTimeEntries'
-import { useSync } from '../../composables/useSync'
+import { reportUserAction } from '../../shared/composables/userActions'
+import { useToday } from '../../shared/composables/goalSpace/today'
+import { useTimer } from '../../shared/composables/useTimer'
+import { initTimerReminders } from '../../features/timer/composables/useTimerReminders'
+import { useTimeEntries } from '../../shared/composables/useTimeEntries'
+import { useSync } from '../../shared/composables/useSync'
 import { useDataTransfer } from '../../features/settings/composables/useDataTransfer'
 import type { TaskDropPayload } from '../../features/tasks/composables/useTaskDrag'
 import { provideGoalActions } from '../../features/goals/composables/useGoalActions'
@@ -28,18 +28,15 @@ import { usePlannedTasks } from '../../features/tasks/composables/usePlannedTask
 import { useArchive } from '../../features/tasks/composables/useArchive'
 import { useTaskGoalDrop } from '../../features/tasks/composables/useTaskGoalDrop'
 import { useProjectBilling } from '../../features/analytics/composables/useProjectBilling'
-import { useFormat } from '../../composables/useFormat'
-import { useUndoToast } from '../../composables/useUndoToast'
-import type { ProjectBilling } from '../../features/analytics/composables/projectBilling'
+import { useFormat } from '../../shared/composables/useFormat'
+import { useUndoToast } from '../../shared/composables/useUndoToast'
+import type { ProjectBilling } from '../../shared/composables/billing/projectBilling'
 import { useProjectBudget } from '../../features/analytics/composables/useProjectBudget'
 import { useBudgetAlerts } from '../../features/analytics/composables/useBudgetAlerts'
 import { i18n } from '../../i18n'
 import { registerWorkspaceSync } from './registerWorkspaceSync'
 import { useProjectSeeding } from './useProjectSeeding'
 import { useTaskOptions } from './useTaskOptions'
-
-export type ActiveView =
-  'goals' | 'calendar' | 'planned' | 'archive' | 'timer' | 'analytics'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
 
@@ -72,7 +69,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function selectView(view: ActiveView) {
     activeView.value = view
-    tourEvent('view-opened', { view })
+    reportUserAction('view-opened', { view })
   }
 
   /** Choosing a project always means "show me that project". */
@@ -219,12 +216,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       schedule,
     )
     if (created) {
-      tourEvent('task-added', {
+      reportUserAction('task-added', {
         goalId: created.goalId,
         templateId: created.id,
         scheduled: schedule !== undefined,
       })
-      if (repeats(schedule)) tourEvent('task-repeats')
+      if (repeats(schedule)) reportUserAction('task-repeats')
     }
     announceScheduled(schedule)
     noteManualTaskAdded()
@@ -261,12 +258,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       schedule,
     )
     if (created) {
-      tourEvent('task-added', {
+      reportUserAction('task-added', {
         goalId: created.goalId,
         templateId: created.id,
         scheduled: schedule !== undefined,
       })
-      tourEvent('quick-add-used', { dated: Boolean(result.date) })
+      reportUserAction('quick-add-used', { dated: Boolean(result.date) })
     }
     announceScheduled(schedule)
   }
@@ -284,7 +281,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       schedule,
     )
     if (created) {
-      tourEvent('subtask-added', {
+      reportUserAction('subtask-added', {
         parentTemplateId,
         templateId: created.id,
       })
@@ -305,7 +302,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
       (item) => item.id === dailyTaskId,
     )
     if (row?.status === TASK_STATUS.DONE) {
-      tourEvent('task-done', { templateId: row.templateId })
+      reportUserAction('task-done', { templateId: row.templateId })
     }
   }
 
@@ -345,7 +342,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function handleScheduleTask(templateId: ID, schedule: TaskSchedule | null) {
     goalSpace.updateTaskSchedule(templateId, schedule)
-    if (repeats(schedule)) tourEvent('task-repeats')
+    if (repeats(schedule)) reportUserAction('task-repeats')
   }
 
   // A timer left running on something that no longer exists would keep
@@ -353,13 +350,13 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   function handleDeleteTask(templateId: ID) {
     timer.handleTaskRemoved(templateId)
     goalSpace.deleteTask(templateId)
-    tourEvent('task-removed', { templateId })
+    reportUserAction('task-removed', { templateId })
   }
 
   function handleDeleteGoal(goalId: ID) {
     timer.handleGoalRemoved(goalId)
     goalSpace.deleteGoal(goalId)
-    tourEvent('project-removed', { goalId })
+    reportUserAction('project-removed', { goalId })
   }
 
   const projectBilling = useProjectBilling(goalSpace.goals)
@@ -377,12 +374,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
 
   function handleChangeGoalBoard(goalId: ID, enabled: boolean) {
     goalSpace.updateGoalBoard(goalId, enabled)
-    tourEvent(enabled ? 'board-shown' : 'list-shown', { goalId })
+    reportUserAction(enabled ? 'board-shown' : 'list-shown', { goalId })
   }
 
   function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
     goalSpace.setTaskBoardStage(templateId, stage)
-    tourEvent('card-moved', { templateId, stage })
+    reportUserAction('card-moved', { templateId, stage })
   }
 
   /** A block drawn on the calendar belongs to no project, on the day it was drawn. */
@@ -392,7 +389,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     endTime: string
     date?: ISODate
   }) {
-    tourEvent('block-created')
+    reportUserAction('block-created')
     const date = payload.date ?? goalSpace.currentDate.value
     goalSpace.addTask(
       undefined,

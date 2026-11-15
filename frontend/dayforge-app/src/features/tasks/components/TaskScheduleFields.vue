@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { tourEvent } from '../../onboarding/composables/useTour'
+import { reportUserAction } from '../../../shared/composables/userActions'
 import ComposerToggleSection from './ComposerToggleSection.vue'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
+import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 import {
   MAX_TIME,
   MIN_TIME,
@@ -58,7 +58,7 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             v-model="date"
             type="date"
             :min="minDate"
-            @change="tourEvent('schedule-edited')"
+            @change="reportUserAction('schedule-edited')"
           />
         </label>
 
@@ -69,7 +69,7 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             type="time"
             :min="MIN_TIME"
             :max="MAX_TIME"
-            @change="tourEvent('schedule-edited')"
+            @change="reportUserAction('schedule-edited')"
           />
         </label>
 
@@ -80,7 +80,7 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
             type="time"
             :min="MIN_TIME"
             :max="MAX_TIME"
-            @change="tourEvent('schedule-edited')"
+            @change="reportUserAction('schedule-edited')"
           />
           <span v-if="isNextDay" class="task-schedule__next-day">
             {{ t('tasks.nextDay') }}

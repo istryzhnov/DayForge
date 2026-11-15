@@ -3,26 +3,26 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { diffRows, snapshotRows, stableStringify } from '../../../src/sync/diff'
-import { onlyGrewWithDefaults } from '../../../src/composables/settingsSync'
+import { onlyGrewWithDefaults } from '../../../src/shared/composables/settingsSync'
 import { mergeCollection, mergeRow } from '../../../src/sync/merge'
 import {
   partitionLive,
   restampForRestore,
 } from '../../../src/sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow } from '../../../src/sync/types'
-import { migrateDailyTasks } from '../../../src/composables/goalSpace/dailyTasks'
-import { migrateGoals } from '../../../src/composables/goalSpace/goalMigration'
-import { splitReadableEntries } from '../../../src/composables/timer/entries'
+import { migrateDailyTasks } from '../../../src/shared/composables/goalSpace/dailyTasks'
+import { migrateGoals } from '../../../src/shared/composables/goalSpace/goalMigration'
+import { splitReadableEntries } from '../../../src/shared/composables/timer/entries'
 import {
   isKnownTimerStatus,
   sanitizeActiveTimer,
-} from '../../../src/composables/timer/sanitize'
+} from '../../../src/shared/composables/timer/sanitize'
 import {
   heldFromRow,
   SYNCED_SECTIONS,
   withHeld,
-} from '../../../src/composables/settingsRow'
-import { DEFAULT_SETTINGS } from '../../../src/composables/useSettings'
+} from '../../../src/shared/composables/settingsRow'
+import { DEFAULT_SETTINGS } from '../../../src/shared/composables/useSettings'
 import {
   appStorageKeys,
   clearLocalAppData,

@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
-import type { TaskNode } from '../../../composables/useTaskTree'
-import { useSettings } from '../../../composables/useSettings'
-import { rateFromChain } from '../../../composables/timer/rates'
+import type { TaskNode } from '../../../shared/composables/useTaskTree'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { rateFromChain } from '../../../shared/composables/timer/rates'
 import { i18n } from '../../../i18n'
 
 type RateEditorProps = {

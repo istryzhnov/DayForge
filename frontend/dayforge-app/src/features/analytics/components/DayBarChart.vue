@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ISODate } from '../../../entities/types'
-import type { Bar, SeriesPoint } from '../../../composables/analytics/charts'
+import type { Bar, SeriesPoint } from '../composables/charts'
 import { useBarChartGeometry } from '../composables/useChartGeometry'
 import { useI18n } from 'vue-i18n'
 

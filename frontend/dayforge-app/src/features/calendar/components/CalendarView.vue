@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
@@ -14,7 +14,8 @@ import CalendarMonthView from './CalendarMonthView.vue'
 import CalendarWeekView from './CalendarWeekView.vue'
 import CalendarEventBlock from './CalendarEventBlock.vue'
 import CalendarTaskContextMenu from './CalendarTaskContextMenu.vue'
-import { tourEvent, useTour } from '../../onboarding/composables/useTour'
+import { useTour } from '../../onboarding'
+import { reportUserAction } from '../../../shared/composables/userActions'
 import CalendarUnscheduledItem from './CalendarUnscheduledItem.vue'
 import CalendarFilterPopover from './CalendarFilterPopover.vue'
 import CalendarDraftForm from './CalendarDraftForm.vue'
@@ -33,11 +34,11 @@ import {
 import { useCalendarWeek } from '../composables/useCalendarWeek'
 import { useCalendarMonth } from '../composables/useCalendarMonth'
 import type { CreateTaskPayload } from '../composables/useCalendarDraft'
-import { useTimer } from '../../../composables/useTimer'
-import { toggleTaskTimer } from '../../timer/composables/useTaskTimerButton'
+import { useTimer } from '../../../shared/composables/useTimer'
+import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
-import { useLogPlanned } from '../../../composables/useLogPlanned'
-import { blockFromTask } from '../../../composables/timer/plannedBlocks'
+import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
+import { blockFromTask } from '../../../shared/composables/timer/plannedBlocks'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -133,7 +134,7 @@ const { t } = useI18n()
 /** A view the user picks; the tour hears about it here, not from a watcher. */
 function chooseMode(mode: CalendarViewMode) {
   viewMode.value = mode
-  tourEvent('calendar-view-changed', { mode })
+  reportUserAction('calendar-view-changed', { mode })
 }
 
 // A tour step that only works in one view switches the calendar to it, so the

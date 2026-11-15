@@ -3,9 +3,9 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import type { GesturePoint } from '../../../composables/usePressGesture'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
 import { useCalendarEventBlock } from '../composables/useCalendarEventBlock'
-import { isOvernight } from '../../../composables/goalSpace/overnight'
+import { isOvernight } from '../../../shared/composables/goalSpace/overnight'
 
 const props = defineProps<{
   task: DailyTask

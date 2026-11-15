@@ -5,7 +5,7 @@ import type {
   MonthDayCell,
   useCalendarMonth,
 } from '../composables/useCalendarMonth'
-import { useFormat } from '../../../composables/useFormat'
+import { useFormat } from '../../../shared/composables/useFormat'
 
 const { formatTime } = useFormat()
 

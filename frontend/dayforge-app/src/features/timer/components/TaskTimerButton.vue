@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ID } from '../../../entities/types'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useTaskTimerButton } from '../composables/useTaskTimerButton'
 
 const props = defineProps<{

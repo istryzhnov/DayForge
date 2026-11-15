@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
-import { sortGoals } from '../../../composables/goalSpace/goalOrder'
+import { sortGoals } from '../../../shared/composables/goalSpace/goalOrder'
 import { i18n } from '../../../i18n'
 
 type SidebarProps = {

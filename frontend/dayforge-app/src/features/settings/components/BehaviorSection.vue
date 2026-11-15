@@ -7,23 +7,21 @@ import {
   START_VIEW,
   useSettings,
   type StartView,
-} from '../../../composables/useSettings'
-import { useHotkeyOverlay } from '../../../composables/useHotkeys'
-import { useTips } from '../../onboarding/composables/useTips'
-import { COACH_TIPS_ENABLED } from '../../onboarding/composables/tips'
-import TourChapterList from '../../onboarding/components/TourChapterList.vue'
-import { TOUCH_LAYOUT_QUERY } from '../../onboarding/composables/touchLayout'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { sortGoals } from '../../../composables/goalSpace/goalOrder'
+} from '../../../shared/composables/useSettings'
+import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
+import {
+  useTips,
+  COACH_TIPS_ENABLED,
+  TourChapterList,
+  TOUCH_LAYOUT_QUERY,
+} from '../../onboarding'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
+import { sortGoals } from '../../../shared/composables/goalSpace/goalOrder'
 import {
   PRIORITY_OPTIONS,
   START_VIEW_OPTIONS,
 } from '../composables/settingsOptions'
-import {
-  checkedValue,
-  rangeValue,
-  textValue,
-} from '../../../composables/inputValue'
+import { checkedValue, rangeValue, textValue } from '../composables/inputValue'
 
 const { t } = useI18n()
 

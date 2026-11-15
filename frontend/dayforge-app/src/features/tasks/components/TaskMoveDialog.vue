@@ -5,7 +5,7 @@ import type {
   MajorTaskOption,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { useTaskActions } from '../composables/useTaskActions'
 import { useTaskMove } from '../composables/useTaskMove'
 

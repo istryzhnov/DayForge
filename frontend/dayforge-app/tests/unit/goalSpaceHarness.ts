@@ -32,8 +32,10 @@ export function closeWorld() {
 export async function openWorkspace() {
   vi.resetModules()
   const { effectScope, nextTick } = await import('vue')
-  const { useGoalSpace } = await import('../../src/composables/useGoalSpace')
-  const { useUndoToast } = await import('../../src/composables/useUndoToast')
+  const { useGoalSpace } =
+    await import('../../src/shared/composables/useGoalSpace')
+  const { useUndoToast } =
+    await import('../../src/shared/composables/useUndoToast')
 
   const scope = effectScope()
   const space = scope.run(() => useGoalSpace())!

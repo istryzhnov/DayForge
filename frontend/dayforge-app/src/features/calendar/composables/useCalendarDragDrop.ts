@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import type { GesturePoint } from '../../../composables/usePressGesture'
-import { tourEvent } from '../../onboarding/composables/useTour'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
+import { reportUserAction } from '../../../shared/composables/userActions'
 import {
   clampMinutes,
   durationMinutes,
@@ -10,7 +10,7 @@ import {
   minutesFromDayStart,
   timeFromMinutes,
 } from './useCalendarGrid'
-import { MINUTES_PER_DAY } from '../../../composables/goalSpace/overnight'
+import { MINUTES_PER_DAY } from '../../../shared/composables/goalSpace/overnight'
 
 export type SchedulePayload = {
   taskId: ID
@@ -76,7 +76,10 @@ export function useCalendarDragDrop(options: DragDropOptions) {
       date: options.getCurrentDate(),
     })
     // A task with no time yet came from Unscheduled; a block being moved already had one.
-    tourEvent('task-timed', { taskId: task.id, fromList: !task.startTime })
+    reportUserAction('task-timed', {
+      taskId: task.id,
+      fromList: !task.startTime,
+    })
   }
 
   // --- desktop: native HTML5 drag and drop -------------------------------

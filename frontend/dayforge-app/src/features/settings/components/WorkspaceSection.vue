@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import DisclosureSection from '../../../components/DisclosureSection.vue'
-import { useTheme } from '../../../composables/useTheme'
-import { useSettings } from '../../../composables/useSettings'
+import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
+import { useTheme } from '../../../shared/composables/useTheme'
+import { useSettings } from '../../../shared/composables/useSettings'
 import {
   DENSITY_OPTIONS,
   FONT_OPTIONS,
@@ -13,7 +13,7 @@ import {
   checkedValue,
   fractionValue,
   rangeValue,
-} from '../../../composables/inputValue'
+} from '../composables/inputValue'
 
 const { t } = useI18n()
 

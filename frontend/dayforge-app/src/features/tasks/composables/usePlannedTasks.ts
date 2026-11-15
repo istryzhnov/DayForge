@@ -8,15 +8,15 @@ import {
   TASK_KIND_BY_SCHEDULE,
   TASK_STATUS,
 } from '../../../entities/constants'
-import { recurrenceWords } from '../../../composables/goalSpace/recurrenceWords'
-import { projectColors } from '../../../composables/theme/goalTheme'
+import { recurrenceWords } from '../../../shared/composables/goalSpace/recurrenceWords'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import {
   describeRecurrence,
   isAnnual,
   nextPlannedDateOf,
   scheduleKindOf,
-} from '../../../composables/goalSpace/recurrence'
-import { useToday } from '../../../composables/goalSpace/today'
+} from '../../../shared/composables/goalSpace/recurrence'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 export type PlannedTask = {
   templateId: ID

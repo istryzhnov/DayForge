@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import type { TaskNode } from '../../../composables/useTaskTree'
+import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import TaskScheduleFields from './TaskScheduleFields.vue'
 
 const props = defineProps<{

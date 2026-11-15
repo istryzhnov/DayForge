@@ -11,8 +11,8 @@ import {
   isOvernight,
   rowsShownOn,
   segmentForDay,
-} from '../../../src/composables/goalSpace/overnight'
-import { ensureTodaySnapshot } from '../../../src/composables/goalSpace/dailyTasks'
+} from '../../../src/shared/composables/goalSpace/overnight'
+import { ensureTodaySnapshot } from '../../../src/shared/composables/goalSpace/dailyTasks'
 import { plannedMsByProject } from '../../../src/features/analytics/composables/planVsActual'
 import {
   collectDayEvents,

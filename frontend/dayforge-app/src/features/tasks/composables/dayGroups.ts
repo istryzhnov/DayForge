@@ -3,13 +3,13 @@ import {
   capitalizeFirst,
   dateNameLocale,
   panelDateLabel,
-} from '../../../composables/panelDateLabel'
+} from '../../../shared/composables/panelDateLabel'
 import {
   addDaysToISODate,
   addMonthsToISODate,
   startOfMonthISODate,
   weekdayOfISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 
 export type DayGroup<T> = { date: ISODate; items: T[] }
 

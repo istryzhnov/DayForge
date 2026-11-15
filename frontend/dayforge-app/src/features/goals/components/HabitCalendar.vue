@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
-import type { HabitMonthView } from '../../../composables/analytics/habits'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import type { HabitMonthView } from '../../../shared/composables/analytics/habits'
 import type { ID } from '../../../entities/types'
 import { useHabitCalendar } from '../composables/useHabitCalendar'
 

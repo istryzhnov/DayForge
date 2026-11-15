@@ -1,6 +1,9 @@
 import { computed, ref, watch, type Ref } from 'vue'
-import { useAuth } from '../../../composables/useAuth'
-import { useSettings, type StartView } from '../../../composables/useSettings'
+import { useAuth } from '../../../shared/composables/useAuth'
+import {
+  useSettings,
+  type StartView,
+} from '../../../shared/composables/useSettings'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
 import { startTour } from './useTour'

@@ -2,14 +2,14 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import AppIcon from '../../../components/AppIcon.vue'
-import ProjectIcon from '../../goals/components/ProjectIcon.vue'
-import { useIsCoarsePointer } from '../../../composables/useMediaQuery'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import ProjectIcon from '../../../shared/ui/ProjectIcon.vue'
+import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import {
   usePressGesture,
   type GesturePoint,
-} from '../../../composables/usePressGesture'
-import { goalDropState } from '../../tasks/composables/taskDropTarget'
+} from '../../../shared/composables/usePressGesture'
+import { goalDropState } from '../../tasks'
 
 const { t } = useI18n()
 

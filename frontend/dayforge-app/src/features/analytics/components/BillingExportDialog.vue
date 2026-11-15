@@ -5,10 +5,10 @@ import type { Client } from '../../../entities/BillingEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { NO_PROJECT_KEY } from '../../../composables/timer/analytics'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import { formatHoursMinutes } from '../../../composables/timer/format'
-import { durationWords } from '../../../composables/timer/text'
+import { NO_PROJECT_KEY } from '../../../shared/composables/timer/analytics'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import {
   buildCsv,
   buildReportLines,
@@ -17,7 +17,7 @@ import {
 } from '../composables/billingExport'
 import { buildPrintHtml, openPrintReport } from '../composables/printReport'
 import { roundMoney } from '../composables/clientBilling'
-import type { Text } from '../composables/projectBilling'
+import type { Text } from '../../../shared/composables/billing/projectBilling'
 
 const { t } = useI18n()
 

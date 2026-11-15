@@ -1,8 +1,5 @@
 import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue'
-import {
-  buildBarChart,
-  type SeriesPoint,
-} from '../../../composables/analytics/charts'
+import { buildBarChart, type SeriesPoint } from './charts'
 
 const FALLBACK_WIDTH = 520
 

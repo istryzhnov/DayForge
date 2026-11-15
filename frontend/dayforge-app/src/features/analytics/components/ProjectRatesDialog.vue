@@ -2,8 +2,8 @@
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
 import { useI18n } from 'vue-i18n'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import ProjectRateEditor from '../../settings/components/ProjectRateEditor.vue'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { ProjectRateEditor } from '../../settings'
 
 const { t } = useI18n()
 

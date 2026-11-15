@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { Goal, GoalTheme } from '../../../entities/GoalEntity'
-import type { ThemeSurfaces } from '../../../composables/theme/goalTheme'
+import type { ThemeSurfaces } from '../../../shared/composables/theme/goalTheme'
 import type {
   ResolvedPalette,
   ThemeMode,
-} from '../../../composables/theme/tokens'
+} from '../../../shared/composables/theme/tokens'
 import ColorField from './ColorField.vue'
 import { useProjectThemeEditor } from '../composables/useProjectThemeEditor'
-import { rangeValue, swatchStyle } from '../../../composables/inputValue'
+import { rangeValue, swatchStyle } from '../composables/inputValue'
 
 const props = defineProps<{
   goal: Goal

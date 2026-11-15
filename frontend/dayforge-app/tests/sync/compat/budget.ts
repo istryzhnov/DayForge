@@ -5,8 +5,8 @@ import { SYNC_TABLE } from '../../../src/sync/types'
 import {
   heldFromRow,
   SYNCED_SECTIONS,
-} from '../../../src/composables/settingsRow'
-import { DEFAULT_SETTINGS } from '../../../src/composables/useSettings'
+} from '../../../src/shared/composables/settingsRow'
+import { DEFAULT_SETTINGS } from '../../../src/shared/composables/useSettings'
 import { parseBackupFile } from '../../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../../src/entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../src/entities/TaskEntity'
@@ -17,11 +17,11 @@ import {
   isLevelUp,
   parseBudgetDraft,
   sanitizeBudget,
-} from '../../../src/features/analytics/composables/projectBudget'
+} from '../../../src/shared/composables/billing/projectBudget'
 import {
   projectEarnings,
   totalEarned,
-} from '../../../src/features/analytics/composables/projectEarnings'
+} from '../../../src/shared/composables/billing/projectEarnings'
 import {
   blockDurationMs,
   planBounds,
@@ -31,15 +31,15 @@ import {
 import {
   elapsedWorkingDays,
   incomeGoalStatus,
-  sanitizeMonthlyIncome,
   workingDaysInMonth,
 } from '../../../src/features/analytics/composables/incomeGoal'
-import { buildRateLookup } from '../../../src/composables/timer/rates'
-import { formatHoursMinutes } from '../../../src/composables/timer/format'
+import { sanitizeMonthlyIncome } from '../../../src/shared/composables/billing/monthlyIncome'
+import { buildRateLookup } from '../../../src/shared/composables/timer/rates'
+import { formatHoursMinutes } from '../../../src/shared/composables/timer/format'
 import {
   ANALYTICS_PERIOD,
   NO_PROJECT_KEY,
-} from '../../../src/composables/timer/analytics'
+} from '../../../src/shared/composables/timer/analytics'
 import {
   RECURRENCE_TYPE,
   TIME_ENTRY_SOURCE,

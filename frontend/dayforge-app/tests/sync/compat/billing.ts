@@ -2,12 +2,12 @@
 
 import { mergeRow } from '../../../src/sync/merge'
 import { SYNC_TABLE } from '../../../src/sync/types'
-import { migrateGoals } from '../../../src/composables/goalSpace/goalMigration'
+import { migrateGoals } from '../../../src/shared/composables/goalSpace/goalMigration'
 import {
   heldFromRow,
   SYNCED_SECTIONS,
-} from '../../../src/composables/settingsRow'
-import { DEFAULT_SETTINGS } from '../../../src/composables/useSettings'
+} from '../../../src/shared/composables/settingsRow'
+import { DEFAULT_SETTINGS } from '../../../src/shared/composables/useSettings'
 import { parseBackupFile } from '../../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../../src/entities/GoalEntity'
 import {
@@ -16,17 +16,17 @@ import {
   projectFigures,
   sameBilling,
   sanitizeBilling,
-} from '../../../src/features/analytics/composables/projectBilling'
+} from '../../../src/shared/composables/billing/projectBilling'
 import {
   amountPerDayNeeded,
   workingDaysLeft,
 } from '../../../src/features/analytics/composables/incomeGoal'
-import { buildRateLookup } from '../../../src/composables/timer/rates'
+import { buildRateLookup } from '../../../src/shared/composables/timer/rates'
 import {
   CLIENT_LIMITS,
   sanitizeClients,
   sanitizePayments,
-} from '../../../src/composables/billing/clients'
+} from '../../../src/shared/composables/billing/clients'
 import {
   NO_CLIENT_FILTER_ID,
   OVERDUE_AFTER_DAYS,

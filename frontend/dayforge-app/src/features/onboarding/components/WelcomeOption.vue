@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
-import type { AppIconName } from '../../../components/appIconPaths'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
+import type { AppIconName } from '../../../shared/ui/appIconPaths'
 
 /** One large choice on a welcome step. `aria-pressed` carries the selection. */
 defineProps<{

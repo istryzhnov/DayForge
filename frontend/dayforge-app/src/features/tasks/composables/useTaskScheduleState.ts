@@ -6,13 +6,13 @@ import type {
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { ISODate, TimeOfDay } from '../../../entities/types'
 import { DAY_WINDOW, RECURRENCE_TYPE } from '../../../entities/constants'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import {
   addMinutesToTime,
   getTodayISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import { i18n } from '../../../i18n'
-import { isOvernight } from '../../../composables/goalSpace/overnight'
+import { isOvernight } from '../../../shared/composables/goalSpace/overnight'
 
 /**
  * Repeat options offered in the composer (monthly/custom aren't exposed yet).

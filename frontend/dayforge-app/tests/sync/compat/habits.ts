@@ -5,7 +5,7 @@ import {
   habitMonthView,
   habitStats,
   habitStripCells,
-} from '../../../src/composables/analytics/habits'
+} from '../../../src/shared/composables/analytics/habits'
 import type { RecurrenceRule } from '../../../src/entities/RecurrenceEntity'
 import type { ISODate } from '../../../src/entities/types'
 import type { DailyTask, TaskTemplate } from '../../../src/entities/TaskEntity'

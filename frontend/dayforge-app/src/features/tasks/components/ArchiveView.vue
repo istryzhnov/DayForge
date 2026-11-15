@@ -3,9 +3,9 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ArchivedTask } from '../composables/useArchive'
 import { dayHeadingLabel, type DayGroup } from '../composables/dayGroups'
-import { useFormat } from '../../../composables/useFormat'
-import { formatTimeLabel } from '../../../composables/timer/format'
-import AppIcon from '../../../components/AppIcon.vue'
+import { useFormat } from '../../../shared/composables/useFormat'
+import { formatTimeLabel } from '../../../shared/composables/timer/format'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 
 defineProps<{
   days: DayGroup<ArchivedTask>[]

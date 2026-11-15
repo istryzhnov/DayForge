@@ -4,8 +4,8 @@ import {
   ANALYTICS_PERIOD,
   entriesInRange,
   periodRange,
-} from '../../../composables/timer/analytics'
-import { sumDurations } from '../../../composables/timer/entries'
+} from '../../../shared/composables/timer/analytics'
+import { sumDurations } from '../../../shared/composables/timer/entries'
 
 /** Days the habit grid shows: 14 beside Upcoming, 28 when Upcoming is absent. */
 export const HABIT_WINDOW_DAYS = { BESIDE_UPCOMING: 14, ALONE: 28 } as const

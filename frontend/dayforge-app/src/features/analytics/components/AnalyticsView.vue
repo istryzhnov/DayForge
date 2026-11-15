@@ -5,8 +5,8 @@ import { useI18n } from 'vue-i18n'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { PaymentStatus } from '../../../entities/BillingEntity'
 import type { ID } from '../../../entities/types'
-import { useSettings } from '../../../composables/useSettings'
-import { useAuth } from '../../../composables/useAuth'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useAuth } from '../../../shared/composables/useAuth'
 import DayBarChart from './DayBarChart.vue'
 import ProjectProgressList from './ProjectProgressList.vue'
 import ProjectEarningsList from './ProjectEarningsList.vue'
@@ -22,16 +22,16 @@ import {
 } from '../composables/useTimerAnalytics'
 import { usePlanVsActual } from '../composables/usePlanVsActual'
 import { mergeProjectProgress } from '../composables/projectProgress'
-import { sanitizeMonthlyIncome } from '../composables/incomeGoal'
+import { sanitizeMonthlyIncome } from '../../../shared/composables/billing/monthlyIncome'
 import { ANALYTICS_TAB, useAnalyticsTab } from '../composables/useAnalyticsTab'
-import { tourEvent } from '../../onboarding/composables/useTour'
-import type { ProjectBilling } from '../composables/projectBilling'
+import { reportUserAction } from '../../../shared/composables/userActions'
+import type { ProjectBilling } from '../../../shared/composables/billing/projectBilling'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
 } from '../composables/clientBilling'
 import { useClientPayments } from '../composables/useClientPayments'
-import { projectColors } from '../../../composables/theme/goalTheme'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
 
 /** The export code is only fetched when someone opens the dialog. */
 const BillingExportDialog = defineAsyncComponent(
@@ -130,7 +130,7 @@ const tab = useAnalyticsTab()
 /** A tab the user picks; the tour hears about it here, not from a watcher. */
 function chooseTab(next: (typeof ANALYTICS_TAB)[keyof typeof ANALYTICS_TAB]) {
   tab.value = next
-  tourEvent('analytics-tab', { tab: next })
+  reportUserAction('analytics-tab', { tab: next })
 }
 
 const TAB_CHOICES = [

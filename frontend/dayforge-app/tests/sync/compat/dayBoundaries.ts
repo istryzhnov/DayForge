@@ -3,12 +3,12 @@
 import type { DailyTask } from '../../../src/entities/TaskEntity'
 import type { ISODate } from '../../../src/entities/types'
 import { TASK_STATUS } from '../../../src/entities/constants'
-import { completedAfterItsOwnDay } from '../../../src/composables/goalSpace/dailyTasks'
+import { completedAfterItsOwnDay } from '../../../src/shared/composables/goalSpace/dailyTasks'
 import {
   instantToLocalISODate,
   toLocalISODate,
-} from '../../../src/composables/goalSpace/date'
-import { dayToShowAfterChange } from '../../../src/composables/goalSpace/today'
+} from '../../../src/shared/composables/goalSpace/date'
+import { dayToShowAfterChange } from '../../../src/shared/composables/goalSpace/today'
 import { check, same, section } from './harness'
 
 const TODAY = '2026-10-28' as ISODate

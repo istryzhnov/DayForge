@@ -14,7 +14,7 @@ import {
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import type { DraftRange } from '../composables/useCalendarDraft'
-import { useFormat } from '../../../composables/useFormat'
+import { useFormat } from '../../../shared/composables/useFormat'
 import { useCalendarNow } from '../composables/useCalendarNow'
 import CalendarDraftForm from './CalendarDraftForm.vue'
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useNewGoalFormState } from '../composables/useNewGoalFormState'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { GOAL_COLOR_PRESETS } from '../../../entities/constants'
 
 const { t } = useI18n()

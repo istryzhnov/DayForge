@@ -3,7 +3,7 @@
 import {
   habitStreaks,
   habitWindowView,
-} from '../../../src/composables/analytics/habits'
+} from '../../../src/shared/composables/analytics/habits'
 import {
   habitWindowDays,
   monthTrackedMs,
@@ -13,7 +13,7 @@ import type { Goal } from '../../../src/entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../src/entities/TaskEntity'
 import { planVsActual } from '../../../src/features/analytics/composables/planVsActual'
 import { mergeProjectProgress } from '../../../src/features/analytics/composables/projectProgress'
-import { type ProjectTotal } from '../../../src/composables/timer/analytics'
+import { type ProjectTotal } from '../../../src/shared/composables/timer/analytics'
 import { RECURRENCE_TYPE } from '../../../src/entities/constants'
 import type { TimeEntry } from '../../../src/entities/TimerEntity'
 import { T0, check, section } from './harness'

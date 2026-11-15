@@ -1,6 +1,6 @@
 import { onUnmounted, ref } from 'vue'
 import type { ID } from '../../../entities/types'
-import type { GesturePoint } from '../../../composables/usePressGesture'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
 import { isBoardColumn, type BoardColumn } from './boardModel'
 
 const DRAG_THRESHOLD_PX = 6

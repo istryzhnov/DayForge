@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { onBeforeUnmount, onMounted, ref, useTemplateRef } from 'vue'
-import { createFocusTrap } from '../../../composables/useFocusTrap'
+import { createFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { useI18n } from 'vue-i18n'
-import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
+import { NOTES_MAX_LENGTH } from '../../../shared/composables/goalSpace/notes'
 import {
   isCommitShortcut,
   useNotesDraft,
   useTextareaFit,
-} from '../../../composables/useNotesDraft'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
+} from '../../../shared/composables/useNotesDraft'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
 import {
   placePopover,
   type PopoverPosition,

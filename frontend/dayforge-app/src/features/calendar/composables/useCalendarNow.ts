@@ -1,6 +1,6 @@
 import { computed, onScopeDispose, ref } from 'vue'
 import type { ISODate } from '../../../entities/types'
-import { getTodayISODate } from '../../../composables/goalSpace/date'
+import { getTodayISODate } from '../../../shared/composables/goalSpace/date'
 import { pxPerMinute } from './useCalendarGrid'
 
 const TICK_MS = 60_000

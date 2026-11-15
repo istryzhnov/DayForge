@@ -13,7 +13,7 @@ import {
   sittingRunningMs,
   sittingStartMs,
   splitStretchAroundAway,
-} from '../../../src/composables/timer/reminders'
+} from '../../../src/shared/composables/timer/reminders'
 import {
   blockLogState,
   localMs,
@@ -21,7 +21,7 @@ import {
   pickPlannedStart,
   planBlockEntry,
   type PlannedBlock,
-} from '../../../src/composables/timer/plannedBlocks'
+} from '../../../src/shared/composables/timer/plannedBlocks'
 import {
   decideReminders,
   isEndOfDayMinutes,
@@ -39,16 +39,16 @@ import {
 import {
   createIdleTimer,
   transition,
-} from '../../../src/composables/timer/machine'
+} from '../../../src/shared/composables/timer/machine'
 import {
   DEFAULT_SETTINGS,
   isWithinQuietHours,
-} from '../../../src/composables/useSettings'
+} from '../../../src/shared/composables/useSettings'
 import type { DailyTask } from '../../../src/entities/TaskEntity'
 import {
   formatDayHeading,
   formatEntryDuration,
-} from '../../../src/composables/timer/format'
+} from '../../../src/shared/composables/timer/format'
 import { TIMER_MODE } from '../../../src/entities/constants'
 import type { TimeEntry } from '../../../src/entities/TimerEntity'
 import { T0, check, same, section } from './harness'

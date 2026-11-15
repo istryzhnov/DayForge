@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { onMounted, useTemplateRef, type StyleValue } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ID } from '../../../entities/types'
-import { NOTES_MAX_LENGTH } from '../../../composables/goalSpace/notes'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import { useTextareaFit } from '../../../composables/useNotesDraft'
+import { NOTES_MAX_LENGTH } from '../../../shared/composables/goalSpace/notes'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { useTextareaFit } from '../../../shared/composables/useNotesDraft'
 import { useProjectNotes } from '../composables/useProjectNotes'
 
 const props = defineProps<{

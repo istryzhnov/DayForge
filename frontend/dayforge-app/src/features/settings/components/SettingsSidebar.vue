@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import ClientsSection from './ClientsSection.vue'
 import ThemeSection from './ThemeSection.vue'
@@ -15,9 +15,12 @@ import BehaviorSection from './BehaviorSection.vue'
 import FormatSection from './FormatSection.vue'
 import DataSection from './DataSection.vue'
 import ProjectSection from './ProjectSection.vue'
-import { sectionMeta, useSettingsPanel } from '../composables/useSettingsPanel'
-import { useMediaQuery } from '../../../composables/useMediaQuery'
-import { useOpenFocusTrap } from '../../../composables/useFocusTrap'
+import {
+  sectionMeta,
+  useSettingsPanel,
+} from '../../../shared/composables/useSettingsPanel'
+import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
+import { useOpenFocusTrap } from '../../../shared/composables/useFocusTrap'
 
 const { t } = useI18n()
 

@@ -10,14 +10,17 @@ import type { ID, ISODateTime } from '../../../entities/types'
 import {
   NO_PROJECT_KEY,
   type PeriodRange,
-} from '../../../composables/timer/analytics'
-import { entryDurationMs } from '../../../composables/timer/entries'
+} from '../../../shared/composables/timer/analytics'
+import { entryDurationMs } from '../../../shared/composables/timer/entries'
 import {
   breakdownEarnings,
   rateForTask,
   type RateLookup,
-} from '../../../composables/timer/rates'
-import { projectFigures, sanitizeBilling } from './projectBilling'
+} from '../../../shared/composables/timer/rates'
+import {
+  projectFigures,
+  sanitizeBilling,
+} from '../../../shared/composables/billing/projectBilling'
 
 /** Client filter value for "every client". */
 export const ALL_CLIENTS_FILTER_ID = 'all'

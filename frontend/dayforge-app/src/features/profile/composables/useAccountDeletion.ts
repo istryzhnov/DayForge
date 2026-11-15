@@ -1,10 +1,10 @@
 import { computed, ref } from 'vue'
 import { getSupabase } from '../../../lib/supabaseClient'
 import { reportError } from '../../../lib/errorReporter'
-import { useAuth } from '../../../composables/useAuth'
-import { releasePushSubscription } from '../../../composables/usePushReminders'
-import { useSync } from '../../../composables/useSync'
-import { useUndoToast } from '../../../composables/useUndoToast'
+import { useAuth } from '../../../shared/composables/useAuth'
+import { releasePushSubscription } from '../../../shared/composables/usePushReminders'
+import { useSync } from '../../../shared/composables/useSync'
+import { useUndoToast } from '../../../shared/composables/useUndoToast'
 import { i18n } from '../../../i18n'
 import {
   ACCOUNT_DELETED_NOTICE_KEY,

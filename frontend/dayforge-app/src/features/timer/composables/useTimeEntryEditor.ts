@@ -1,11 +1,11 @@
 import { computed, reactive } from 'vue'
 import type { TimeEntry } from '../../../entities/TimerEntity'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { validateEntry } from '../../../composables/timer/entries'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { validateEntry } from '../../../shared/composables/timer/entries'
 import {
   fromDateTimeInput,
   toDateTimeInput,
-} from '../../../composables/timer/format'
+} from '../../../shared/composables/timer/format'
 
 const HOUR_MS = 60 * 60 * 1000
 

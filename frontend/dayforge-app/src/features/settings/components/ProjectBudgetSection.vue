@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import { useSettings } from '../../../composables/useSettings'
+import { useSettings } from '../../../shared/composables/useSettings'
 import {
   BUDGET_PERIOD,
   draftFromBudget,
@@ -11,8 +11,8 @@ import {
   type BudgetDraft,
   type BudgetPeriod,
   type ProjectBudget,
-} from '../../analytics/composables/projectBudget'
-import type { Messages } from '../../analytics/composables/projectBilling'
+} from '../../../shared/composables/billing/projectBudget'
+import type { Messages } from '../../../shared/composables/billing/projectBilling'
 
 const props = defineProps<{ goal: Goal }>()
 

@@ -1,5 +1,5 @@
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { normalizeNotes } from '../../../composables/goalSpace/notes'
+import { normalizeNotes } from '../../../shared/composables/goalSpace/notes'
 
 const SAVE_DELAY_MS = 800
 

@@ -1,14 +1,14 @@
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate, TimeOfDay } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
-import { addDaysToISODate } from '../../../composables/goalSpace/date'
+import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
 import {
   describeRecurrence,
   ENGLISH_RECURRENCE_WORDS,
   isRepeating,
   occursOn,
   type RecurrenceWords,
-} from '../../../composables/goalSpace/recurrence'
+} from '../../../shared/composables/goalSpace/recurrence'
 
 export const UPCOMING_WINDOW_DAYS = 14
 

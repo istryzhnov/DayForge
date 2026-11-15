@@ -4,10 +4,10 @@ import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ID, ISODate, ISODateTime } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
-import { projectColors } from '../../../composables/theme/goalTheme'
-import { useSettings } from '../../../composables/useSettings'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
+import { useSettings } from '../../../shared/composables/useSettings'
 import { doneCountsOf, groupByDay, type DayGroup } from './dayGroups'
-import { useToday } from '../../../composables/goalSpace/today'
+import { useToday } from '../../../shared/composables/goalSpace/today'
 
 export type ArchivedTask = {
   id: ID

@@ -4,7 +4,7 @@ import { PRIORITY } from '../../../entities/constants'
 import {
   addMinutesToTime,
   getTodayISODate,
-} from '../../../composables/goalSpace/date'
+} from '../../../shared/composables/goalSpace/date'
 import { i18n } from '../../../i18n'
 
 export type StarterFocus = 'work' | 'study' | 'health' | 'balance'

@@ -1,5 +1,5 @@
 import { computed } from 'vue'
-import type { useGoalSpace } from '../../composables/useGoalSpace'
+import type { useGoalSpace } from '../../shared/composables/useGoalSpace'
 import type { MajorTaskOption, TaskTemplate } from '../../entities/TaskEntity'
 import { i18n } from '../../i18n'
 

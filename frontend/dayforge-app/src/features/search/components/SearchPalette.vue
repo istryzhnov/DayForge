@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { ISODate } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
-import { useFormat } from '../../../composables/useFormat'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import { useFormat } from '../../../shared/composables/useFormat'
 import {
   useGlobalSearch,
   type SearchResult,

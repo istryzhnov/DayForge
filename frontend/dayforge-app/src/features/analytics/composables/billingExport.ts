@@ -2,9 +2,15 @@ import type { Client } from '../../../entities/BillingEntity'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { entryDate, entryDurationMs } from '../../../composables/timer/entries'
-import { earningsFor } from '../../../composables/timer/analytics'
-import { englishText, type Text } from './projectBilling'
+import {
+  entryDate,
+  entryDurationMs,
+} from '../../../shared/composables/timer/entries'
+import { earningsFor } from '../../../shared/composables/timer/analytics'
+import {
+  englishText,
+  type Text,
+} from '../../../shared/composables/billing/projectBilling'
 import { roundMoney } from './clientBilling'
 
 /** One line of a report: a time entry with its project, client and money. */

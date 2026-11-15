@@ -1,9 +1,9 @@
 import { computed } from 'vue'
 import type { ID } from '../../../entities/types'
-import { useTimer } from '../../../composables/useTimer'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { formatShortDuration } from '../../../composables/timer/format'
-import { durationWords } from '../../../composables/timer/text'
+import { useTimer } from '../../../shared/composables/useTimer'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { formatShortDuration } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import { i18n } from '../../../i18n'
 
 type TaskTimerProps = {

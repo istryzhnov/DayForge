@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { useGoalSpace } from '../../composables/useGoalSpace'
+import type { useGoalSpace } from '../../shared/composables/useGoalSpace'
 import type { GoalTheme } from '../../entities/GoalEntity'
 import type { ID } from '../../entities/types'
 import {
@@ -8,16 +8,14 @@ import {
   PRIORITY,
   RECURRENCE_TYPE,
 } from '../../entities/constants'
-import { addMinutesToTime } from '../../composables/goalSpace/date'
+import { addMinutesToTime } from '../../shared/composables/goalSpace/date'
 import type { StarterPlan } from '../../features/onboarding/composables/useStarterTemplate'
 import {
   findTemplate,
   type WelcomeTemplateId,
 } from '../../features/onboarding/composables/welcomeTemplates'
-import {
-  startTour,
-  tourEvent,
-} from '../../features/onboarding/composables/useTour'
+import { startTour } from '../../features/onboarding/composables/useTour'
+import { reportUserAction } from '../../shared/composables/userActions'
 import { i18n } from '../../i18n'
 
 type GoalSpaceApi = ReturnType<typeof useGoalSpace>
@@ -108,7 +106,7 @@ export function useProjectSeeding(
       updatedAt: now,
       theme,
     })
-    tourEvent('project-created', { goalId: id })
+    reportUserAction('project-created', { goalId: id })
     return id
   }
 

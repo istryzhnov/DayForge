@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AppIcon from '../../../components/AppIcon.vue'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ProfileAvatar from './ProfileAvatar.vue'
 import DeleteAccountDialog from './DeleteAccountDialog.vue'
 import { useProfile } from '../composables/useProfile'
 import { useAccountDeletion } from '../composables/useAccountDeletion'
-import { useFocusTrap } from '../../../composables/useFocusTrap'
+import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 
 const emit = defineEmits<{
   (e: 'close'): void

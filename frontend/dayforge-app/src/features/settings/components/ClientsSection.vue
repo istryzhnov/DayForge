@@ -2,10 +2,10 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Client } from '../../../entities/BillingEntity'
-import { useSettings } from '../../../composables/useSettings'
-import { CLIENT_LIMITS } from '../../../composables/billing/clients'
-import { createId } from '../../../composables/goalSpace/date'
-import { textValue } from '../../../composables/inputValue'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { CLIENT_LIMITS } from '../../../shared/composables/billing/clients'
+import { createId } from '../../../shared/composables/goalSpace/date'
+import { textValue } from '../composables/inputValue'
 
 const { settings, update } = useSettings()
 const { t } = useI18n()

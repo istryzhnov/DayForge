@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import type { ID } from '../../../entities/types'
-import type { GesturePoint } from '../../../composables/usePressGesture'
+import type { GesturePoint } from '../../../shared/composables/usePressGesture'
 
 /** Put on a sidebar project button that a dragged task can be dropped on. */
 export const GOAL_DROP_ATTRIBUTE = 'data-drop-goal-id'

@@ -7,14 +7,14 @@ import {
   restampForRestore,
 } from '../../../src/sync/tombstoneRules'
 import { SYNC_TABLE, type SyncedRow } from '../../../src/sync/types'
-import { migrateGoals } from '../../../src/composables/goalSpace/goalMigration'
+import { migrateGoals } from '../../../src/shared/composables/goalSpace/goalMigration'
 import {
   NOTES_MAX_LENGTH,
   normalizeNotes,
-} from '../../../src/composables/goalSpace/notes'
+} from '../../../src/shared/composables/goalSpace/notes'
 import { parseBackupFile } from '../../../src/features/settings/composables/backupFormat'
 import type { Goal } from '../../../src/entities/GoalEntity'
-import { describeRecurrence } from '../../../src/composables/goalSpace/recurrence'
+import { describeRecurrence } from '../../../src/shared/composables/goalSpace/recurrence'
 import { collectUpcoming } from '../../../src/features/tasks/composables/useUpcomingTasks'
 import {
   dayHeadingLabel,

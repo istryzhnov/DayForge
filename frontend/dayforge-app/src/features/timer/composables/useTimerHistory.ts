@@ -1,24 +1,27 @@
 import { computed } from 'vue'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import { TIMER_MODE, TIME_ENTRY_SOURCE } from '../../../entities/constants'
-import { useTimeEntries } from '../../../composables/useTimeEntries'
-import { useSettings, CLOCK_FORMAT } from '../../../composables/useSettings'
-import { parseISODate } from '../../../composables/goalSpace/date'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import {
+  useSettings,
+  CLOCK_FORMAT,
+} from '../../../shared/composables/useSettings'
+import { parseISODate } from '../../../shared/composables/goalSpace/date'
 import {
   entryDurationMs,
   type DayGroup,
-} from '../../../composables/timer/entries'
+} from '../../../shared/composables/timer/entries'
 import {
   formatDayHeading,
   formatEntryDuration,
   formatHoursMinutes,
   formatTimeLabel,
-} from '../../../composables/timer/format'
+} from '../../../shared/composables/timer/format'
 import {
   durationWords,
   modeLabel,
   phaseLabel,
-} from '../../../composables/timer/text'
+} from '../../../shared/composables/timer/text'
 import { i18n } from '../../../i18n'
 
 export function useTimerHistory() {
