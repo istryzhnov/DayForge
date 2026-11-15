@@ -21,8 +21,10 @@ The frontend app is organised by feature, with the shared domain logic kept apar
 
 ## Layers and who may import whom
 
+The whole picture (data model, sync, security) is in [ARCHITECTURE.md](../../ARCHITECTURE.md).
+
 ```
-pages  ->  features  ->  shared  ->  entities, lib, i18n, sync
+pages  ->  features  ->  shared, entities, sync, lib, i18n
 ```
 
 - **Shared layers** (`shared/`, `entities/`, `sync/`, `lib/`, `i18n/`) never import from
