@@ -399,3 +399,62 @@ body {
   margin: 0;
   -webkit-appearance: none;
 }
+
+/* ---- Cards, dialogs and the dimmed layer under them ------------------ */
+
+.ui-card {
+  border-color: var(--glass-border);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+/* Dialogs sit over busy content, so their glass is the denser kind. */
+.modal-card,
+.quick-add-card,
+.shortcuts-card,
+.search-palette__card {
+  border-color: var(--glass-border);
+  border-radius: var(--glass-radius);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: var(--glass-highlight), var(--shadow-lg);
+}
+
+.modal-overlay {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Tour and tip bubbles: dark glass with an amber edge instead of a bright
+   inverted card, so they belong to the same family as everything else. */
+.coach-mark,
+.coach-mark__arrow {
+  background: color-mix(in srgb, var(--panel-soft) 94%, var(--accent));
+  color: var(--text);
+}
+
+.coach-mark {
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  border-radius: calc(20px * var(--radius-scale));
+  box-shadow:
+    0 0 1.75rem color-mix(in srgb, var(--accent) 16%, transparent),
+    var(--shadow-lg);
+}
+
+.coach-mark__action {
+  background: var(--accent);
+  color: var(--ring-check);
+  font-weight: 800;
+}
+
+@media (max-width: 960px) {
+  .mobile-topbar {
+    border-bottom-color: var(--glass-border);
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  }
+}
