@@ -33,8 +33,14 @@ import {
 const OUTBOX_STORAGE_KEY = 'dayforge-sync-outbox-v1'
 const META_STORAGE_KEY = 'dayforge-sync-meta-v1'
 const RING_LOG_STORAGE_KEY = 'dayforge-sync-log-v1'
+// Without a live channel the pull is the only way to hear about other devices.
 const PERIODIC_PULL_MS = 30_000
 const HIDDEN_PULL_MS = 120_000
+// With one, realtime carries the changes and the pull is only a safety net for
+// an event the channel dropped. Polling at the fast rate here was most of the
+// project's egress while nothing changed.
+const LIVE_PULL_MS = 5 * 60_000
+const LIVE_HIDDEN_PULL_MS = 15 * 60_000
 const REALTIME_DEBOUNCE_MS = 1_500
 const REALTIME_TABLES = [...SYNC_TABLES, 'deletions']
 
@@ -46,6 +52,8 @@ let initialized = false
 let channel: RealtimeChannel | null = null
 let realtimeTimer: number | undefined
 let lastAutoSyncAt = 0
+/** True only while the realtime channel reports SUBSCRIBED. */
+let realtimeLive = false
 /** Set for the rest of this page's life once the account is being deleted. */
 let stopped = false
 
@@ -128,7 +136,13 @@ function attachListeners() {
   window.setInterval(() => {
     if (!online.value) return
     const now = Date.now()
-    const gap = document.hidden ? HIDDEN_PULL_MS : PERIODIC_PULL_MS
+    const gap = realtimeLive
+      ? document.hidden
+        ? LIVE_HIDDEN_PULL_MS
+        : LIVE_PULL_MS
+      : document.hidden
+        ? HIDDEN_PULL_MS
+        : PERIODIC_PULL_MS
     if (now - lastAutoSyncAt < gap - 1_000) return
     lastAutoSyncAt = now
     void engine.sync()
@@ -150,6 +164,7 @@ function scheduleRealtimeSync() {
 }
 
 function unsubscribeRealtime() {
+  realtimeLive = false
   const client = getSupabase()
   if (channel && client) void client.removeChannel(channel)
   channel = null
@@ -169,7 +184,11 @@ function subscribeRealtime(userId: string) {
     )
   })
   next.subscribe((state) => {
-    if (state === 'SUBSCRIBED') scheduleRealtimeSync()
+    // A stale callback from a channel already replaced must not speak for it.
+    if (channel !== next) return
+    realtimeLive = state === 'SUBSCRIBED'
+    // Also on (re)subscribe: whatever changed while the channel was down.
+    if (realtimeLive) scheduleRealtimeSync()
   })
   channel = next
 }
