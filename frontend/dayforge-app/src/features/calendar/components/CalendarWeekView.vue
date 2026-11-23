@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ISODate, ID } from '../../../entities/types'
 import type {
@@ -16,6 +17,9 @@ import {
 import type { DraftRange } from '../composables/useCalendarDraft'
 import { useFormat } from '../../../shared/composables/useFormat'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import { useCalendarTotals } from '../composables/useCalendarTotals'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import CalendarDraftForm from './CalendarDraftForm.vue'
 
 const { formatTime } = useFormat()
@@ -31,13 +35,15 @@ const props = defineProps<{
   goalVarsById: Record<ID, Record<string, string>>
   /** Formatted earnings for a day, or `null` when there's nothing to show. */
   earnedLabel?: (date: ISODate) => string | null
+  /** Formatted earnings for a set of days, or `null` when there's nothing to show. */
+  earnedTotalLabel?: (dates: ISODate[]) => string | null
 }>()
 
 const emit = defineEmits<{
   (e: 'open-day', date: ISODate): void
 }>()
 
-const { days, weekSummary, onColumnPointerDown, onColumnTap } = props.week
+const { days, onColumnPointerDown, onColumnTap } = props.week
 const {
   draftRange,
   draftDate,
@@ -50,6 +56,28 @@ const {
 const { t } = useI18n()
 
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
+
+const totals = useCalendarTotals()
+const weekDates = computed(() => days.value.map((day) => day.date))
+const weekTrackedLabel = computed(() =>
+  formatTracked(totals.trackedMsOn(weekDates.value)),
+)
+const weekEarnedLabel = computed(
+  () => props.earnedTotalLabel?.(weekDates.value) ?? null,
+)
+
+function formatTracked(ms: number): string {
+  return formatHoursMinutes(ms, durationWords())
+}
+
+/** The block of the timer that is running right now glows. */
+function isLiveEvent(event: PositionedEvent, isToday: boolean): boolean {
+  return (
+    isToday &&
+    totals.liveTaskId.value !== null &&
+    event.taskId === totals.liveTaskId.value
+  )
+}
 
 /** Same minimum height as the day view's draft, so the form always fits. */
 function draftStyle(range: DraftRange) {
@@ -72,16 +100,17 @@ function eventStyle(event: PositionedEvent) {
 
 <template>
   <section class="calendar-week">
-    <p class="calendar-week__summary">
-      {{
-        t('calendar.weekSummary', {
-          done: weekSummary.done,
-          total: weekSummary.total,
-          hours: weekSummary.hours,
-          unit: t('timer.unitHour'),
-        })
-      }}
-    </p>
+    <header class="calendar-week__total">
+      <span class="calendar-week__total-label">{{
+        t('calendar.weekTotal')
+      }}</span>
+      <span class="calendar-week__total-value">
+        <span class="calendar-week__total-time">{{ weekTrackedLabel }}</span>
+        <span v-if="weekEarnedLabel" class="calendar-week__total-money">
+          +{{ weekEarnedLabel }}
+        </span>
+      </span>
+    </header>
 
     <div class="calendar-week__wrap">
       <!-- Hour labels share the grid's geometry so rows line up across columns. -->
@@ -153,7 +182,11 @@ function eventStyle(event: PositionedEvent) {
               class="week-event"
               :class="[
                 event.priority,
-                { 'is-done': event.isDone, 'is-projected': event.isProjected },
+                {
+                  'is-done': event.isDone,
+                  'is-projected': event.isProjected,
+                  'is-live': isLiveEvent(event, day.isToday),
+                },
               ]"
               :style="eventStyle(event)"
               :title="`${event.startTime} ${event.title}`"
@@ -162,7 +195,14 @@ function eventStyle(event: PositionedEvent) {
               <span class="week-event__time">{{
                 formatTime(event.startTime)
               }}</span>
-              <span class="week-event__title">{{ event.title }}</span>
+              <span class="week-event__title">
+                <span
+                  v-if="isLiveEvent(event, day.isToday)"
+                  class="df-live-dot week-event__live"
+                  aria-hidden="true"
+                ></span>
+                {{ event.title }}
+              </span>
             </button>
 
             <div

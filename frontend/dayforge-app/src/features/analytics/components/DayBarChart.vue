@@ -4,6 +4,10 @@ import { computed, useId } from 'vue'
 import { buildWave, type Bar, type SeriesPoint } from '../composables/charts'
 import { useBarChartGeometry } from '../composables/useChartGeometry'
 import { useI18n } from 'vue-i18n'
+import {
+  capitalizeFirst,
+  panelDateLabel,
+} from '../../../shared/composables/panelDateLabel'
 
 const { t } = useI18n()
 
@@ -13,9 +17,29 @@ const props = defineProps<{
   formatHours: (totalMs: number) => string
   /** The bucket holding today: a day, or the week it falls in. */
   todayKey: ISODate
+  granularity?: 'day' | 'week'
 }>()
 
 const { chart } = useBarChartGeometry(() => props.points)
+
+/** Hover and tooltip text: the bucket's date in the user's date locale. */
+function pointTitle(point: SeriesPoint): string {
+  if (props.granularity === 'week') {
+    const date = panelDateLabel(point.date, {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
+    return t('analytics.weekOf', { date })
+  }
+  return capitalizeFirst(
+    panelDateLabel(point.date, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }),
+  )
+}
 
 /** Each SVG needs its own gradient id: two charts can share a page. */
 const gradientId = `wave-${useId()}`
@@ -43,7 +67,7 @@ const tip = computed(() => {
   const latest = bars[bars.length - 1]
   if (!end || !latest || chart.value.isEmpty) return null
   return {
-    date: latest.point.title,
+    date: pointTitle(latest.point),
     value: props.formatHours(latest.point.totalMs),
     left: `${(end.x / chart.value.width) * 100}%`,
     top: `${(end.y / chart.value.height) * 100}%`,
@@ -155,7 +179,7 @@ function hitWidth(): number {
             :height="chart.baseline"
           >
             <title>
-              {{ bar.point.title }} · {{ formatHours(bar.point.totalMs) }}
+              {{ pointTitle(bar.point) }} · {{ formatHours(bar.point.totalMs) }}
             </title>
           </rect>
         </g>

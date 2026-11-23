@@ -16,6 +16,11 @@ import {
 import { sanitizeMonthlyIncome } from './billing/monthlyIncome'
 import { sanitizeClients, sanitizePayments } from './billing/clients'
 import { LANGUAGES, languageFromTag, type Language } from '../../i18n/languages'
+import {
+  allModulesOn,
+  sanitizeModules,
+  type ModuleSettings,
+} from './moduleCatalog'
 
 const SETTINGS_STORAGE_KEY = 'dayforge-settings-v1'
 
@@ -154,6 +159,8 @@ export interface AppSettings {
   goals: GoalSettings
   /** Clients and payment status; synced with the rest of the settings row. */
   billing: BillingSettings
+  /** Which optional modules are on. A missing key means all on. */
+  modules: ModuleSettings
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -222,6 +229,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     clients: [],
     payments: [],
   },
+  modules: allModulesOn(),
 }
 
 const settings = reactive<AppSettings>(clone(DEFAULT_SETTINGS))
@@ -289,6 +297,7 @@ function sanitize(input: unknown): AppSettings {
   const billing = asSection<BillingSettings>(raw.billing)
 
   return {
+    modules: sanitizeModules(raw.modules),
     billing: {
       ...billing,
       clients: sanitizeClients(billing.clients),
@@ -532,6 +541,7 @@ function assign(next: AppSettings) {
   settings.timer = next.timer
   settings.goals = next.goals
   settings.billing = next.billing
+  settings.modules = next.modules
 }
 
 const KNOWN_SECTIONS: ReadonlyArray<string> = [
@@ -543,6 +553,7 @@ const KNOWN_SECTIONS: ReadonlyArray<string> = [
   'timer',
   'goals',
   'billing',
+  'modules',
 ]
 
 /** Sections a newer version stored, kept so this one does not erase them. */

@@ -110,6 +110,28 @@ export const APP_ICON_PATHS = {
     'M9 18h.01',
     'M15 18h.01',
   ],
+  // Modules screen: one icon per optional module, plus the screen's own.
+  modules: ['M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM16.5 13.5v6M13.5 16.5h6'],
+  'mod-notes': ['M7 3.5h7l4.5 4.5v12.5H7zM14 3.5V8h4.5M10 12.5h5M10 16h5'],
+  'mod-subtasks': ['M5 5h14M9 12h10M9 19h10M5 5v14M5 12h4M5 19h4'],
+  'mod-reminders': ['M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4'],
+  'mod-board': ['M4 4.5h4.5v15H4zM9.75 4.5h4.5v10h-4.5zM15.5 4.5H20v7h-4.5z'],
+  'mod-calendar': [
+    'M6.5 5h11a3 3 0 0 1 3 3v9.5a3 3 0 0 1-3 3h-11a3 3 0 0 1-3-3V8a3 3 0 0 1 3-3zM3.5 10h17M8 3v4M16 3v4',
+  ],
+  'mod-timer': [
+    'M12 6a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zM12 10v4l2.5 1.5M9.5 3h5',
+  ],
+  'mod-habits': [
+    'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  ],
+  'mod-earnings': [
+    'M12 3v18M16.5 7.5c0-1.7-2-3-4.5-3s-4.5 1.3-4.5 3 2 2.6 4.5 3 4.5 1.3 4.5 3-2 3-4.5 3-4.5-1.3-4.5-3',
+  ],
+  'mod-clients': [
+    'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18 14a6 6 0 0 1 3.5 6',
+  ],
+  'mod-analytics': ['M3 17c3-6 5-9 8-6s5 1 10-6M3 21h18'],
 } as const
 
 export type AppIconName = keyof typeof APP_ICON_PATHS

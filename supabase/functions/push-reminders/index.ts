@@ -220,7 +220,14 @@ function toTask(data: Json): ServerTask | null {
     status: typeof data.status === 'string' ? data.status : 'todo',
     startTime: typeof data.startTime === 'string' ? data.startTime : undefined,
     endTime: typeof data.endTime === 'string' ? data.endTime : undefined,
+    reminderMinutes: toReminderMinutes(data.reminderMinutes),
   }
+}
+
+/** A stored lead: a number, null for "no reminder", or absent. */
+function toReminderMinutes(value: unknown): number | null | undefined {
+  if (value === null) return null
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined
 }
 
 /** Rows that are buried copies (carry deletedAt) are not live. */

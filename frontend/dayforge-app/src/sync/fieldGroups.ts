@@ -32,7 +32,13 @@ export const GOAL_FIELD_GROUPS: FieldGroups = {
 
 export const TASK_TEMPLATE_FIELD_GROUPS: FieldGroups = {
   text: ['title', 'notes'],
-  schedule: ['startTime', 'endTime', 'recurrence', 'isActive'],
+  schedule: [
+    'startTime',
+    'endTime',
+    'reminderMinutes',
+    'recurrence',
+    'isActive',
+  ],
   structure: ['goalId', 'parentTemplateId', 'priority', 'tagIds'],
   // The board Done clear is part of the board, so it moves with the stage.
   board: ['boardStage', 'boardClearedAt'],

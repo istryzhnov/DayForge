@@ -4,8 +4,8 @@
 
 .modal-overlay {
   background: color-mix(in srgb, var(--bg) 62%, transparent);
-  backdrop-filter: blur(10px) saturate(120%);
-  -webkit-backdrop-filter: blur(10px) saturate(120%);
+  backdrop-filter: blur(0.625rem) saturate(120%);
+  -webkit-backdrop-filter: blur(0.625rem) saturate(120%);
 }
 
 .modal-card,
@@ -16,7 +16,7 @@
   background: var(--glass-sheen), var(--glass-bg-strong);
   box-shadow:
     var(--glass-highlight),
-    0 30px 70px rgba(0, 0, 0, 0.55);
+    0 1.875rem 4.375rem color-mix(in srgb, var(--bg) 55%, transparent);
 }
 
 .modal-card input:focus,
@@ -26,16 +26,17 @@
 .search-palette__input:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--accent) 70%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .modal-card .btn-primary,
 .quick-add-card .btn-primary {
   border: none;
   background: linear-gradient(135deg, var(--accent), var(--major));
-  color: #2a1405;
+  color: var(--ring-check);
   font-weight: 800;
-  box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 28%, transparent);
+  box-shadow: 0 0.5rem 1.375rem
+    color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .modal-card .btn-ghost,
@@ -128,7 +129,7 @@
   background: color-mix(in srgb, var(--accent) 30%, transparent);
   color: var(--text);
   border-radius: 4px;
-  padding: 0 2px;
+  padding: 0 0.125rem;
 }
 
 .search-palette__hint {
@@ -153,7 +154,7 @@
   border-radius: calc(16px * var(--radius-scale));
   background: color-mix(in srgb, var(--bg) 60%, transparent);
   border: 1.5px solid color-mix(in srgb, var(--accent) 70%, transparent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--accent) 15%, transparent);
   font-size: calc(1rem * var(--text-scale));
   font-weight: 600;
 }
@@ -253,7 +254,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow:
     var(--glass-highlight),
-    0 22px 50px rgba(0, 0, 0, 0.5);
+    0 1.375rem 3.125rem color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
 .task-context-menu__item {
@@ -302,7 +303,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   box-shadow:
     var(--glass-highlight),
-    0 18px 40px rgba(0, 0, 0, 0.45);
+    0 1.125rem 2.5rem color-mix(in srgb, var(--bg) 45%, transparent);
   font-weight: 600;
 }
 
@@ -312,7 +313,7 @@
   border: none;
   border-radius: calc(12px * var(--radius-scale));
   background: linear-gradient(135deg, var(--accent), var(--major));
-  color: #2a1405;
+  color: var(--ring-check);
   font-weight: 800;
 }
 
@@ -527,7 +528,7 @@
   background: var(--glass-sheen), var(--glass-bg-strong);
   box-shadow:
     var(--glass-highlight),
-    0 1.5rem 3.5rem rgba(0, 0, 0, 0.5);
+    0 1.5rem 3.5rem color-mix(in srgb, var(--bg) 50%, transparent);
   padding: 0.875rem;
 }
 
@@ -665,7 +666,7 @@
   background: var(--glass-sheen), var(--glass-bg-strong);
   box-shadow:
     var(--glass-highlight),
-    0 1.5rem 3.5rem rgba(0, 0, 0, 0.5);
+    0 1.5rem 3.5rem color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
 .goal-context-menu__title {
@@ -710,7 +711,7 @@
   background: var(--glass-sheen), var(--glass-bg-strong);
   box-shadow:
     var(--glass-highlight),
-    0 1.5rem 3.5rem rgba(0, 0, 0, 0.5);
+    0 1.5rem 3.5rem color-mix(in srgb, var(--bg) 50%, transparent);
   padding: 1.25rem;
   color: var(--text);
 }

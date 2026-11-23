@@ -22,6 +22,8 @@ const props = defineProps<{
   anchor: HTMLElement | null
 }>()
 
+const showInfo = ref(false)
+
 const emit = defineEmits<{
   (e: 'save', notes: string): void
   /** `returnFocus` is false when the user clicked somewhere else. */
@@ -127,6 +129,16 @@ defineExpose({ commitAndClose })
         <span class="notes-pop__title" :title="title">{{ title }}</span>
         <button
           type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+        <button
+          type="button"
           class="notes-pop__close"
           :aria-label="t('tasks.closeNotes')"
           @click="commitAndClose(true)"
@@ -146,7 +158,7 @@ defineExpose({ commitAndClose })
         @blur="commit"
       ></textarea>
 
-      <p class="notes-pop__hint">
+      <p v-if="showInfo" class="notes-pop__hint">
         {{ isSheet ? t('tasks.notesHintTouch') : t('tasks.notesHint') }}
       </p>
     </div>

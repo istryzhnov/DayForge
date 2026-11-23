@@ -94,7 +94,7 @@
   left: -0.5rem;
   top: 0.5rem;
   bottom: 0.5rem;
-  width: 3px;
+  width: 0.1875rem;
   border-radius: 2px;
   background: var(--major);
 }
@@ -256,7 +256,7 @@
 
 .upcoming-row__time {
   min-width: 0;
-  padding-left: calc(0.375rem + 6px);
+  padding-left: calc(0.375rem + 0.375rem);
 }
 
 /* Wide screens: the list on the left, Upcoming and Habits stacked on the right. */
@@ -306,5 +306,5 @@
   border-color: color-mix(in srgb, var(--accent) 70%, transparent);
   box-shadow:
     var(--glass-highlight),
-    0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+    0 0 0 0.25rem color-mix(in srgb, var(--accent) 16%, transparent);
 }

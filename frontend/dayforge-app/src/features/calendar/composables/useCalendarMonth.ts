@@ -148,6 +148,24 @@ export function useCalendarMonth(options: MonthOptions) {
     }
   })
 
+  /** Events of any day, even one outside the grid, sorted by start time. */
+  function eventsOn(date: ISODate): MonthEvent[] {
+    const rowsByDate = groupRowsByDate(options.getDailyTasks())
+    return collectDayEvents({
+      templates: options.getTemplates(),
+      rowsByDate,
+      date,
+    })
+      .filter((event) => isGoalVisible(event.goalId))
+      .sort((a, b) => {
+        if (a.startTime && b.startTime)
+          return a.startTime.localeCompare(b.startTime)
+        if (a.startTime) return -1
+        if (b.startTime) return 1
+        return 0
+      })
+  }
+
   function goToPreviousMonth() {
     monthAnchor.value = addMonthsToISODate(anchor.value, -1)
   }
@@ -170,6 +188,7 @@ export function useCalendarMonth(options: MonthOptions) {
     weekdayLabels,
     days,
     monthSummary,
+    eventsOn,
     goToPreviousMonth,
     goToNextMonth,
     goToMonthOf,

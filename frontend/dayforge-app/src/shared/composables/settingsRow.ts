@@ -8,6 +8,7 @@ export const SYNCED_SECTIONS = [
   'timer',
   'goals',
   'billing',
+  'modules',
 ] as const satisfies ReadonlyArray<keyof AppSettings>
 
 export type SyncedSection = (typeof SYNCED_SECTIONS)[number]
