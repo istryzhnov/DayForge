@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
+import { useModules } from '../../../shared/composables/useModules'
 
 defineProps<{
   boardEnabled: boolean
@@ -9,6 +11,7 @@ defineProps<{
 }>()
 
 const { t } = useI18n()
+const { isOn } = useModules()
 
 const emit = defineEmits<{
   (e: 'set-board', enabled: boolean): void
@@ -19,13 +22,18 @@ const VIEWS: ReadonlyArray<{ labelKey: string; boardEnabled: boolean }> = [
   { labelKey: 'goals.viewList', boardEnabled: false },
   { labelKey: 'goals.viewBoard', boardEnabled: true },
 ]
+
+/** With the Board module off, the list is the only view to switch to. */
+const shownViews = computed(() =>
+  VIEWS.filter((view) => !view.boardEnabled || isOn('board')),
+)
 </script>
 
 <template>
   <div class="project-toolbar">
     <div class="ui-tabs" role="group" :aria-label="t('goals.projectView')">
       <button
-        v-for="view in VIEWS"
+        v-for="view in shownViews"
         :key="view.labelKey"
         type="button"
         class="ui-tab"
@@ -39,6 +47,7 @@ const VIEWS: ReadonlyArray<{ labelKey: string; boardEnabled: boolean }> = [
     </div>
 
     <button
+      v-if="isOn('notes')"
       type="button"
       class="ui-icon-btn ui-icon-btn--outlined project-toolbar__notes"
       :class="{ 'is-active': notesOpen }"

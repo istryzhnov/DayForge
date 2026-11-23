@@ -3,6 +3,7 @@ import type { DailyTask } from '../../../entities/TaskEntity'
 import { TASK_STATUS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
 import { getTodayISODate } from '../../../shared/composables/goalSpace/date'
+import { isModuleOn } from '../../../shared/composables/moduleCatalog'
 import { reminderLeadMs } from '../../../shared/composables/goalSpace/reminder'
 import {
   isWithinQuietHours,
@@ -90,6 +91,8 @@ function acknowledgeAlert() {
 
 function checkUpcomingTasks(dailyTasks: DailyTask[]) {
   if (!enabled.value) return
+  // The Reminders module off: nothing fires locally (the server push is separate).
+  if (!isModuleOn(useSettings().settings.modules, 'reminders')) return
   const today = getTodayISODate()
   const now = new Date()
 

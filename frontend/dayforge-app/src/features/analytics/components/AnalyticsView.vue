@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
-import { computed, defineAsyncComponent, ref } from 'vue'
+import { computed, defineAsyncComponent, ref, watchEffect } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import type { PaymentStatus } from '../../../entities/BillingEntity'
 import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../shared/composables/useSettings'
 import { useAuth } from '../../../shared/composables/useAuth'
+import { useModules } from '../../../shared/composables/useModules'
 import DayBarChart from './DayBarChart.vue'
 import ProjectProgressList from './ProjectProgressList.vue'
 import ProjectEarningsList from './ProjectEarningsList.vue'
@@ -141,6 +142,25 @@ const TAB_CHOICES = [
   { id: ANALYTICS_TAB.MONEY, labelKey: 'analytics.tabMoney' },
   { id: ANALYTICS_TAB.HABITS, labelKey: 'analytics.tabHabits' },
 ] as const
+
+// The money tab belongs to the Earnings module. With it off, the tab is gone
+// and an open money tab falls back to time.
+const { isOn: isModuleOn } = useModules()
+const earningsOn = computed(() => isModuleOn('earnings'))
+const habitsOn = computed(() => isModuleOn('habits'))
+const shownTabChoices = computed(() =>
+  TAB_CHOICES.filter(
+    (choice) =>
+      (choice.id !== ANALYTICS_TAB.MONEY || earningsOn.value) &&
+      (choice.id !== ANALYTICS_TAB.HABITS || habitsOn.value),
+  ),
+)
+watchEffect(() => {
+  if (!earningsOn.value && tab.value === ANALYTICS_TAB.MONEY)
+    chooseTab(ANALYTICS_TAB.TIME)
+  if (!habitsOn.value && tab.value === ANALYTICS_TAB.HABITS)
+    chooseTab(ANALYTICS_TAB.TIME)
+})
 
 const { settings } = useSettings()
 const { setStatus, setAmount } = useClientPayments()
@@ -290,7 +310,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
     />
 
     <AnalyticsKpiTiles
-      :shows-money="showsMoney"
+      :shows-money="showsMoney && earningsOn"
       :earned-label="totalMoneyLabel"
       :tracked-ms="adjustedTotalMs"
       :planned-ms="planResult.total.plannedMs"
@@ -305,7 +325,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
       data-tip-anchor="analytics-tabs"
     >
       <button
-        v-for="choice in TAB_CHOICES"
+        v-for="choice in shownTabChoices"
         :id="`analytics-tab-${choice.id}`"
         :key="choice.id"
         class="ui-tab"
@@ -390,7 +410,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
     </div>
 
     <div
-      v-else-if="tab === ANALYTICS_TAB.MONEY"
+      v-else-if="tab === ANALYTICS_TAB.MONEY && earningsOn"
       id="analytics-panel-money"
       class="analytics__panel"
       role="tabpanel"
@@ -483,7 +503,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
     </div>
 
     <div
-      v-else
+      v-else-if="tab === ANALYTICS_TAB.HABITS && habitsOn"
       id="analytics-panel-habits"
       class="analytics__panel"
       role="tabpanel"

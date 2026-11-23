@@ -36,6 +36,7 @@ import { useCalendarMonth } from '../composables/useCalendarMonth'
 import type { CreateTaskPayload } from '../composables/useCalendarDraft'
 import { useTimer } from '../../../shared/composables/useTimer'
 import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
+import { useModules } from '../../../shared/composables/useModules'
 import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
 import { useCalendarTotals } from '../composables/useCalendarTotals'
@@ -258,16 +259,21 @@ const earnings = useDayEarnings({
   getTemplates: () => props.templates,
   getGoals: () => props.goals,
 })
+// Money on the calendar belongs to the Earnings module.
+const { isOn: isModuleOn } = useModules()
+function moneyShown(): boolean {
+  return isModuleOn('earnings') && earnings.showsMoney.value
+}
 
 function earnedLabel(date: ISODate): string | null {
-  if (!earnings.showsMoney.value) return null
+  if (!moneyShown()) return null
   const amount = earnings.earnedOn(date)
   return amount > 0 ? earnings.formatMoney(amount) : null
 }
 
 /** Earnings for a span of days (a week or a month row), or `null` without a rate. */
 function periodEarnedLabel(dates: ISODate[]): string | null {
-  if (!earnings.showsMoney.value) return null
+  if (!moneyShown()) return null
   const amount = dates.reduce((sum, date) => sum + earnings.earnedOn(date), 0)
   return amount > 0 ? earnings.formatMoney(amount) : null
 }

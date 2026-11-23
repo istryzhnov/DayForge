@@ -85,6 +85,8 @@ export interface ServerSettings {
     quietTo?: unknown
   }
   timer?: { longRunHours?: unknown }
+  /** The app's module switches; only `reminders` matters here. */
+  modules?: { reminders?: unknown }
 }
 
 export interface RuleInput {
@@ -296,6 +298,10 @@ export function decideReminders(input: RuleInput): ReminderMessage[] {
       asTime(notifications.quietTo, DEFAULTS.quietTo),
     )
   const longRunHours = asNumber(timerSettings.longRunHours, DEFAULTS.longRunHours)
+  // The app's Reminders module: off means no per-task reminders. A missing
+  // key (older clients) counts as on.
+  const modules = input.settings?.modules ?? {}
+  const taskReminders = modules.reminders !== false
 
   const out: ReminderMessage[] = []
   if (quiet) return out
@@ -355,7 +361,9 @@ export function decideReminders(input: RuleInput): ReminderMessage[] {
   }
 
   // Upcoming: a task that set its own lead, shortly before it starts.
-  const upcoming = upcomingTasks(tasks, clock.today, clock.now, clock.localMs)
+  const upcoming = taskReminders
+    ? upcomingTasks(tasks, clock.today, clock.now, clock.localMs)
+    : []
   for (const task of upcoming) {
     if (wasSent('upcoming', task.id)) continue
     const startMs = clock.localMs(clock.today, task.startTime!)

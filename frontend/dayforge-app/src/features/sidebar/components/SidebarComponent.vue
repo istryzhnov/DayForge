@@ -18,6 +18,7 @@ import { useSidebarState } from '../composables/useSidebarState'
 import { useGoalReorder } from '../composables/useGoalReorder'
 import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import { useSettings } from '../../../shared/composables/useSettings'
+import { useModules } from '../../../shared/composables/useModules'
 import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
 import {
   shortcutTitle,
@@ -100,6 +101,7 @@ const menuGoalIndex = computed(() =>
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
 const { isLive, isRunning, displayLabel, task, pause, resume } = useTimer()
+const { isOn } = useModules()
 const { openShortcuts, openSearch } = useHotkeyOverlay()
 const { open: openProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
@@ -153,7 +155,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <div class="sidebar-brand">
       <BrandWordmark />
       <button
-        v-if="notificationsSupported"
+        v-if="notificationsSupported && isOn('reminders')"
         class="sidebar-notify-trigger"
         :class="{ 'is-active': notificationsEnabled }"
         type="button"
@@ -345,6 +347,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <p class="sidebar-caption">{{ t('sidebar.view') }}</p>
 
     <button
+      v-if="isOn('calendar')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
       data-tip-anchor="nav-calendar"
@@ -359,6 +362,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </span>
     </button>
     <button
+      v-if="isOn('timer')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'timer' }"
       data-tip-anchor="nav-timer"
@@ -373,6 +377,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </span>
     </button>
     <button
+      v-if="isOn('analytics')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'analytics' }"
       :title="shortcutTitle(t('sidebar.analytics'), 'G then Y')"
@@ -428,7 +433,11 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </span>
     </button>
 
-    <TimerWidget @open-timer="chooseView('timer')" />
+    <!-- A running timer stays visible, so it can still be stopped with the module off. -->
+    <TimerWidget
+      v-if="isOn('timer') || isLive"
+      @open-timer="chooseView('timer')"
+    />
     <div class="sidebar-actions">
       <button
         class="btn btn-primary"

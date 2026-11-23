@@ -903,6 +903,19 @@ export function verifyPushReminderParity() {
       `${upcomingTasks[0].id},${upcomingTasks[1].id}`,
     upcomingDue.map((message) => message.ref),
   )
+  const upcomingModuleOff = decideReminders({
+    clock: upcomingClock,
+    settings: { modules: { reminders: false } },
+    timer: null,
+    entries: [],
+    tasks: upcomingTasks,
+    wasSent: () => false,
+  }).filter((message) => message.kind === 'upcoming')
+  check(
+    'upcoming: the Reminders module switched off sends none',
+    upcomingModuleOff.length === 0,
+    upcomingModuleOff.map((message) => message.ref),
+  )
   check(
     'upcoming: the message names the minutes left, tagged for the app',
     upcomingDue[0]?.body === '"Block u15" starts in 10 min' &&

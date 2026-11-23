@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useModules } from '../../../shared/composables/useModules'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
@@ -22,6 +23,7 @@ const showInfo = ref(false)
 const isEnabled = defineModel<boolean>('enabled', { default: false })
 
 // A composer with its own calendar button hides the checkbox.
+const { isOn: isModuleOn } = useModules()
 defineProps<{ hideToggle?: boolean; hideReminder?: boolean }>()
 
 const {
@@ -103,7 +105,10 @@ defineExpose({
         </label>
       </div>
 
-      <div v-if="!hideReminder" class="task-schedule__row">
+      <div
+        v-if="!hideReminder && isModuleOn('reminders')"
+        class="task-schedule__row"
+      >
         <label class="task-schedule__field">
           <span class="task-schedule__label">{{
             t('tasks.reminderLabel')

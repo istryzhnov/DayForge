@@ -17,6 +17,7 @@ import TaskRateEditor from './TaskRateEditor.vue'
 import TaskContextMenu from './TaskContextMenu.vue'
 import { TaskTimerButton, toggleTaskTimer } from '../../timer'
 import TaskNotesButton from './TaskNotesButton.vue'
+import { useModules } from '../../../shared/composables/useModules'
 import { useTaskActions } from '../composables/useTaskActions'
 import { useTaskRow } from '../composables/useTaskRow'
 import type { TaskRowDrag } from '../composables/useTaskDrag'
@@ -69,6 +70,10 @@ function onRowPointerDown(event: PointerEvent) {
 
 const timer = useTimer()
 const { formatTime } = useFormat()
+const { isOn: isModuleOn } = useModules()
+/** Notes and subtasks belong to their modules; off hides the affordances only. */
+const notesOn = computed(() => isModuleOn('notes'))
+const subtasksOn = computed(() => isModuleOn('subtasks'))
 const { t } = useI18n()
 
 /** "Every 2 days", the same wording the Upcoming list uses. */
@@ -256,7 +261,7 @@ const {
 
     <div class="actions">
       <TaskNotesButton
-        v-if="showNotes"
+        v-if="showNotes && notesOn"
         ref="notesButton"
         :notes="node.template?.notes"
         :title="node.task.title"
@@ -273,7 +278,7 @@ const {
 
       <!-- Nested tasks can't own children, so the affordance would be a dead end. -->
       <button
-        v-if="!isNested"
+        v-if="!isNested && subtasksOn"
         class="ui-icon-btn ui-icon-btn--outlined task-add-btn"
         type="button"
         data-tour-action="add-subtask"
@@ -304,7 +309,8 @@ const {
     :y="contextMenuPos.y"
     :is-done="isDone"
     :can-set-as-project="canSetAsProject"
-    :can-add-child="!isNested"
+    :can-add-child="!isNested && subtasksOn"
+    :can-notes="notesOn"
     :is-project="isProject"
     :can-move="!isNested"
     :is-scheduled="!!node.task.startTime"
@@ -344,7 +350,7 @@ const {
   />
 
   <TaskComposer
-    v-if="isActiveParent"
+    v-if="isActiveParent && subtasksOn"
     :is-subtask="true"
     @submit="
       (title: string, priority: Priority, schedule?: TaskSchedule) =>

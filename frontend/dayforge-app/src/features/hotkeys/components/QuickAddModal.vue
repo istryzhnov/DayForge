@@ -26,6 +26,7 @@ import {
 import { parseQuickDate } from '../composables/parseQuickDate'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
+import { useModules } from '../../../shared/composables/useModules'
 import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { TaskScheduleFields } from '../../tasks'
 
@@ -173,6 +174,8 @@ const repeats = computed(() => {
 function toggleSchedule() {
   scheduleOn.value = !scheduleOn.value
 }
+
+const { isOn: isModuleOn } = useModules()
 
 // --- reminder tile: needs a start time on the sheet -------------------------
 
@@ -656,6 +659,7 @@ useFocusTrap({
           </button>
 
           <button
+            v-if="isModuleOn('reminders')"
             type="button"
             class="qa-tile"
             :class="{ 'is-on': typeof reminderMinutes === 'number' }"

@@ -16,6 +16,7 @@ import HabitCalendar from './HabitCalendar.vue'
 import { TaskList, TaskMoveDialog, UpcomingTasks } from '../../tasks'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
+import { useModules } from '../../../shared/composables/useModules'
 import { useProjectBudgetStatus } from '../../../shared/composables/billing/useProjectBudgetStatus'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { filterGroupsByProject, flattenNodes } from '../composables/todayView'
@@ -52,8 +53,14 @@ const emit = defineEmits<{
 
 // The board is opt-in per project: until it is switched on, nothing here
 // changes and the list is the only view.
+const { isOn: isModuleOn } = useModules()
+/** Habit calendar and streaks belong to the Habits module. */
+const showHabits = computed(() => hasHabits.value && isModuleOn('habits'))
 const showBoard = computed(
-  () => !props.isAllMode && props.goal?.boardEnabled === true,
+  () =>
+    !props.isAllMode &&
+    props.goal?.boardEnabled === true &&
+    isModuleOn('board'),
 )
 
 /** The board shows this project's tasks only, whatever day the list shows. */
@@ -159,7 +166,7 @@ const listGroups = computed<TaskGroup[]>(() =>
   <section
     class="goal-panel"
     :class="{
-      'has-side': !showBoard && (showUpcoming || hasHabits),
+      'has-side': !showBoard && (showUpcoming || showHabits),
       'is-all-mode': isAllMode,
     }"
     :style="goalPanelStyle"
@@ -233,7 +240,7 @@ const listGroups = computed<TaskGroup[]>(() =>
     />
 
     <!-- Upcoming and Habits share a row; each one drops out when it has nothing. -->
-    <div v-if="showUpcoming || hasHabits" class="goal-side-row">
+    <div v-if="showUpcoming || showHabits" class="goal-side-row">
       <UpcomingTasks
         v-if="showUpcoming"
         :days="upcomingDays"
@@ -241,14 +248,14 @@ const listGroups = computed<TaskGroup[]>(() =>
         @select-date="(date) => emit('select-date', date)"
       />
       <HabitCalendar
-        v-if="hasHabits"
+        v-if="showHabits"
         :view="habitWindow"
         :streaks="habitStreakByTemplate"
       />
     </div>
 
     <ProjectNotesPanel
-      v-if="notesOpen && goal && !isAllMode"
+      v-if="notesOpen && goal && !isAllMode && isModuleOn('notes')"
       :key="goal.id"
       :goal-id="goal.id"
       :title="goal.title"

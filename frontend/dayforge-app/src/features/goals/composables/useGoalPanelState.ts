@@ -17,6 +17,7 @@ import {
 } from '../../../shared/composables/analytics/habits'
 import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
 import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
+import { useModules } from '../../../shared/composables/useModules'
 import { recurrenceWords } from '../../../shared/composables/goalSpace/recurrenceWords'
 import { collectUpcoming, UPCOMING_WINDOW_DAYS } from '../../tasks'
 import {
@@ -79,6 +80,7 @@ export function useGoalPanelState(props: GoalPanelProps) {
     props.isAllMode || !props.goal ? null : props.goal.id,
   )
 
+  const { isOn: isModuleOn } = useModules()
   const earnings = useDayEarnings({
     getTemplates: () => props.templates,
     getGoals: () => props.goals,
@@ -115,9 +117,11 @@ export function useGoalPanelState(props: GoalPanelProps) {
         })
       : null,
     trackedMs: monthTrackedMs(entries.value, goalScopeId.value, new Date()),
-    earnedToday: earnings.showsMoney.value
-      ? earnings.formatMoney(earnings.earnedOn(today.value))
-      : null,
+    // Money belongs to the Earnings module: with it off, no earned figure at all.
+    earnedToday:
+      isModuleOn('earnings') && earnings.showsMoney.value
+        ? earnings.formatMoney(earnings.earnedOn(today.value))
+        : null,
   }))
 
   // --- upcoming: paused and archived projects do not fire their repeats ---

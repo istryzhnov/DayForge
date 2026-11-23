@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onMounted, useTemplateRef } from 'vue'
+import {
+  defineAsyncComponent,
+  onMounted,
+  useTemplateRef,
+  watchEffect,
+} from 'vue'
 import { useI18n } from 'vue-i18n'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
@@ -13,6 +18,8 @@ import TourCoach from '../features/onboarding/components/TourCoach.vue'
 import type { TourOffscreen } from '../features/onboarding/composables/tourSteps'
 import type { ActiveView, ID } from '../entities/types'
 import type { SettingsSection } from '../shared/composables/useSettingsPanel'
+import { useModules } from '../shared/composables/useModules'
+import { VIEW_MODULE } from '../shared/composables/moduleCatalog'
 import {
   setAnalyticsTab,
   type AnalyticsTab,
@@ -151,6 +158,14 @@ useHotkeys({
 })
 
 const { overlay, closeOverlay } = useHotkeyOverlay()
+
+// A view whose module is switched off (or the start view, when it is off)
+// falls back to the projects view. The data behind it is untouched.
+const { isOn: isModuleOn } = useModules()
+watchEffect(() => {
+  const module = VIEW_MODULE[activeView.value]
+  if (module !== undefined && !isModuleOn(module)) selectView('goals')
+})
 
 const { isOpen: isSettingsOpen, open: openSettings } = useSettingsPanel()
 const { editRequest, closeEntryEdit } = useEntryEditRequest()

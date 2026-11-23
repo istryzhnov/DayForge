@@ -14,6 +14,7 @@ import {
   taskRate,
 } from '../../timer'
 import { capsuleMeta } from './liveTimerMeta'
+import { useModules } from '../../../shared/composables/useModules'
 
 /**
  * The live capsule's second line. It prices the sitting exactly as the Timer
@@ -27,6 +28,7 @@ export function useLiveTimerMeta(sources: {
   const { entries } = useTimeEntries()
   const { settings } = useSettings()
   const { t } = useI18n()
+  const { isOn } = useModules()
 
   const lookup = computed(() =>
     buildRateLookup(
@@ -46,7 +48,9 @@ export function useLiveTimerMeta(sources: {
     const locale = settings.format.locale
     const currency = settings.timer.currency
     const rate = taskRate(lookup.value, timer.value.task)
-    if (rate <= 0) return capsuleMeta({ projectName: projectName.value })
+    // The rate and the money line belong to the Earnings module.
+    if (rate <= 0 || !isOn('earnings'))
+      return capsuleMeta({ projectName: projectName.value })
 
     const earned = sessionEarned({
       entries: entries.value,

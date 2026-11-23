@@ -14,6 +14,7 @@ import { durationWords } from '../../../shared/composables/timer/text'
 import { buildRateLookup } from '../../../shared/composables/timer/rates'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { useSettings } from '../../../shared/composables/useSettings'
+import { useModules } from '../../../shared/composables/useModules'
 import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
@@ -94,6 +95,7 @@ const {
 const newTaskTitle = ref('')
 
 const { settings } = useSettings()
+const { isOn: isModuleOn } = useModules()
 const { entries } = useTimeEntries()
 const rateLookup = computed(() =>
   buildRateLookup(props.templates, props.goals, settings.timer.hourlyRate),
@@ -360,7 +362,7 @@ function closeEditor() {
 
           <p v-if="timer.task" class="timer-view__subline">
             <span class="timer-view__project">{{ attachedProject }}</span>
-            <template v-if="attachedRate > 0">
+            <template v-if="attachedRate > 0 && isModuleOn('earnings')">
               <span aria-hidden="true">·</span>
               <span>
                 {{

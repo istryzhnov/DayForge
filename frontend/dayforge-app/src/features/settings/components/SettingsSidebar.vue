@@ -5,6 +5,7 @@ import type { Goal } from '../../../entities/GoalEntity'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import SettingsMenu from './SettingsMenu.vue'
 import ClientsSection from './ClientsSection.vue'
+import ModulesSection from './ModulesSection.vue'
 import ThemeSection from './ThemeSection.vue'
 import ColorsSection from './ColorsSection.vue'
 import WorkspaceSection from './WorkspaceSection.vue'
@@ -142,6 +143,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
       <FormatSection v-else-if="activeSection === 'format'" />
 
       <ClientsSection v-else-if="activeSection === 'clients'" />
+
+      <ModulesSection v-else-if="activeSection === 'modules'" />
 
       <DataSection
         v-else-if="activeSection === 'data'"
