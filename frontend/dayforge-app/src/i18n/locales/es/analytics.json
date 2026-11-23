@@ -156,5 +156,11 @@
   "invoicedOn": "Facturado el {date}",
   "paidOn": "· pagado el {date}",
   "notInvoiced": "Sin facturar",
-  "withoutTask": "Sin tarea"
+  "withoutTask": "Sin tarea",
+  "kpiAria": "Cifras clave",
+  "kpiVsPrevious": "vs anterior",
+  "kpiUp": "subió",
+  "kpiDown": "bajó",
+  "kpiPlanVsActual": "Plan vs real",
+  "kpiTasksDone": "Tareas hechas"
 }

@@ -156,5 +156,11 @@
   "invoicedOn": "Invoiced {date}",
   "paidOn": "· paid {date}",
   "notInvoiced": "Not invoiced",
-  "withoutTask": "Without a task"
+  "withoutTask": "Without a task",
+  "kpiAria": "Key figures",
+  "kpiVsPrevious": "vs previous",
+  "kpiUp": "up",
+  "kpiDown": "down",
+  "kpiPlanVsActual": "Plan vs actual",
+  "kpiTasksDone": "Tasks done"
 }

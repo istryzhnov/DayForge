@@ -16,6 +16,7 @@ import HabitMonthSection from './HabitMonthSection.vue'
 import IncomeGoalCard from './IncomeGoalCard.vue'
 import ClientSummaryTable from './ClientSummaryTable.vue'
 import AnalyticsHero from './AnalyticsHero.vue'
+import AnalyticsKpiTiles from './AnalyticsKpiTiles.vue'
 import {
   PERIOD_OPTIONS,
   useTimerAnalytics,
@@ -74,6 +75,8 @@ const {
   hoursLabel,
   projectRows,
   hasAdjustments,
+  currentFigures,
+  periodDeltas,
   barWidth,
   copyReport,
   clientFilter,
@@ -283,6 +286,16 @@ function saveBilling(billing: ProjectBilling | undefined) {
       :session-count="summary.sessionCount"
       :day-count="summary.dayCount"
       :has-adjustments="hasAdjustments"
+      :tracked-delta="periodDeltas.trackedPct"
+    />
+
+    <AnalyticsKpiTiles
+      :shows-money="showsMoney"
+      :earned-label="totalMoneyLabel"
+      :tracked-ms="adjustedTotalMs"
+      :planned-ms="planResult.total.plannedMs"
+      :tasks-done="currentFigures.tasksDone"
+      :deltas="periodDeltas"
     />
 
     <div
@@ -336,6 +349,7 @@ function saveBilling(billing: ProjectBilling | undefined) {
             :caption="seriesCaption"
             :format-hours="hoursLabel"
             :today-key="chartTodayKey"
+            :granularity="daySeries.granularity"
           />
         </div>
 
