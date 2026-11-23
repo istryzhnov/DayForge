@@ -16,6 +16,8 @@
     "format:check": "prettier --check \"src/**/*.{ts,vue,css}\" \"tests/**/*.ts\""
   },
   "dependencies": {
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
     "@sentry/vue": "11.4.0",
     "@supabase/supabase-js": "^2.117.2",
     "vue": "3.5.43",

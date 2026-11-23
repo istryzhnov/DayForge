@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n'
 import GoalComponent from '../features/goals/components/GoalComponent.vue'
 import SidebarComponent from '../features/sidebar/components/SidebarComponent.vue'
 import MobileTopBar from '../features/sidebar/components/MobileTopBar.vue'
+import MobileTabBar from '../features/sidebar/components/MobileTabBar.vue'
 import { useMobileNav } from '../shared/composables/useMobileNav'
 import TaskReminderPopup from '../features/tasks/components/TaskReminderPopup.vue'
 import CoachMark from '../features/onboarding/components/CoachMark.vue'
@@ -377,6 +378,8 @@ function handleSearchSelect(result: SearchResult) {
         />
       </div>
     </main>
+
+    <MobileTabBar :active-view="activeView" @select-view="selectView" />
 
     <!-- Sits to the right of everything: its own column on a wide screen, an
          overlay drawer once the shell runs out of room. -->

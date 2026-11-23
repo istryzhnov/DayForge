@@ -1,4 +1,6 @@
 import { createApp, watch } from 'vue'
+import '@fontsource-variable/manrope'
+import '@fontsource-variable/jetbrains-mono'
 import './style.css'
 import App from './App.vue'
 import { i18n, setLanguage } from './i18n'

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { TIMER_STATUS } from '../../../entities/constants'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import { useTimerView } from '../composables/useTimerView'
@@ -24,16 +26,23 @@ const {
   stop,
   skipPhase,
 } = useTimerView()
+
+/** Running right now: the widget glows and its status dot breathes. */
+const isRunning = computed(() => timer.value.status === TIMER_STATUS.RUNNING)
 </script>
 
 <template>
   <section
     class="timer-widget"
+    :class="{ 'is-live': isRunning }"
     :aria-label="t('timer.title')"
     data-tip-anchor="sidebar-timer"
   >
     <header class="timer-widget__head">
-      <span class="timer-widget__status">{{ statusLabel }}</span>
+      <span class="timer-widget__status">
+        <span v-if="isRunning" class="df-live-dot" aria-hidden="true"></span>
+        {{ statusLabel }}
+      </span>
       <button
         class="timer-widget__expand"
         type="button"
