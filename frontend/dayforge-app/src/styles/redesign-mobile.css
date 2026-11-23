@@ -3,7 +3,7 @@
 /* Phone-only pieces stay out of the desktop sidebar and layout. */
 .sidebar-live,
 .sidebar-settings-row,
-.mobile-pagehead,
+.goal-panel-header__date,
 .mobile-timer-capsule {
   display: none;
 }
@@ -197,10 +197,9 @@
   }
 
   /* Date line directly above the page's own heading. */
-  .mobile-pagehead {
+  .goal-panel-header__date {
     display: block;
-    margin: 0;
-    padding: 1.5rem 1.25rem 0;
+    margin: 0 0 0.25rem;
     font-size: calc(0.8125rem * var(--text-scale));
     font-weight: 600;
     color: var(--muted);

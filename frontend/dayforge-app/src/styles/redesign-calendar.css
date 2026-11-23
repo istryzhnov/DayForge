@@ -911,3 +911,17 @@
   padding: 0 0.75rem;
   white-space: nowrap;
 }
+
+/* ---- Phone: the pinned toolbar is a glass card, not a dark band ------- */
+@media (max-width: 720px) {
+  .calendar-view__toolbar {
+    margin: 0 0 0.5rem;
+    padding: 0.625rem;
+    border: 1px solid var(--glass-border);
+    border-radius: calc(20px * var(--radius-scale));
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    box-shadow: var(--glass-highlight);
+  }
+}

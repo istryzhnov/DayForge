@@ -9,7 +9,7 @@
 /* ---- Day summary: a glass card with three cells (the money one is optional) ---- */
 
 .today-summary {
-  margin: 1.25rem 1.25rem 0;
+  margin: 1.25rem 0 0;
   padding: 1rem;
   border: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
   border-radius: calc(20px * var(--radius-scale));
