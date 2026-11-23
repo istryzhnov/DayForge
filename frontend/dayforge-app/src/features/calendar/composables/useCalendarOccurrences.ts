@@ -14,6 +14,8 @@ export type DayEvent = {
   title: string
   /** Which project it belongs to, so its colour can travel with it. */
   goalId?: ID
+  /** The task template it belongs to; matches the running timer's task. */
+  taskId?: ID
   startTime?: TimeOfDay
   endTime?: TimeOfDay
   priority: Priority
@@ -71,6 +73,7 @@ export function collectDayEvents({
     key: row.id,
     title: row.title,
     goalId: row.goalId,
+    taskId: row.templateId,
     ...timesOn(date, row),
     priority: row.priority,
     isDone: row.status === TASK_STATUS.DONE,
@@ -83,6 +86,7 @@ export function collectDayEvents({
       key: `${row.id}@tail`,
       title: row.title,
       goalId: row.goalId,
+      taskId: row.templateId,
       ...timesOn(date, row),
       priority: row.priority,
       isDone: row.status === TASK_STATUS.DONE,
@@ -96,6 +100,7 @@ export function collectDayEvents({
         key: `${template.id}@${date}`,
         title: template.title,
         goalId: template.goalId,
+        taskId: template.id,
         ...timesOn(date, { ...template, date }),
         priority: template.priority,
         isDone: false,
@@ -115,6 +120,7 @@ export function collectDayEvents({
         key: `${template.id}@${previousDate}@tail`,
         title: template.title,
         goalId: template.goalId,
+        taskId: template.id,
         ...timesOn(date, block),
         priority: template.priority,
         isDone: false,

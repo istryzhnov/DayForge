@@ -38,6 +38,9 @@ import { useTimer } from '../../../shared/composables/useTimer'
 import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import { useCalendarTotals } from '../composables/useCalendarTotals'
+import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
 import { blockFromTask } from '../../../shared/composables/timer/plannedBlocks'
 
@@ -181,6 +184,16 @@ const month = useCalendarMonth({
   getCurrentDate: () => props.currentDate,
 })
 
+/** Tracked time and earnings across the month on screen (its own days only). */
+const totals = useCalendarTotals()
+const monthDates = computed(() =>
+  month.days.value.filter((day) => day.isCurrentMonth).map((day) => day.date),
+)
+const monthTrackedLabel = computed(() =>
+  formatHoursMinutes(totals.trackedMsOn(monthDates.value), durationWords()),
+)
+const monthEarnedLabel = computed(() => periodEarnedLabel(monthDates.value))
+
 const periodTitle = computed(() => {
   if (viewMode.value === 'week') return week.weekLabel.value
   if (viewMode.value === 'month') return month.monthLabel.value
@@ -251,6 +264,13 @@ function earnedLabel(date: ISODate): string | null {
   const amount = earnings.earnedOn(date)
   return amount > 0 ? earnings.formatMoney(amount) : null
 }
+
+/** Earnings for a span of days (a week or a month row), or `null` without a rate. */
+function periodEarnedLabel(dates: ISODate[]): string | null {
+  if (!earnings.showsMoney.value) return null
+  const amount = dates.reduce((sum, date) => sum + earnings.earnedOn(date), 0)
+  return amount > 0 ? earnings.formatMoney(amount) : null
+}
 </script>
 
 <template>
@@ -282,6 +302,14 @@ function earnedLabel(date: ISODate): string | null {
           <AppIcon name="chevron-right" :size="16" />
         </button>
         <h1 class="calendar-view__title ui-oneline">{{ periodTitle }}</h1>
+        <span v-if="viewMode === 'month'" class="calendar-view__period-total">
+          <span class="calendar-view__period-time">{{
+            monthTrackedLabel
+          }}</span>
+          <span v-if="monthEarnedLabel" class="calendar-view__period-money">
+            +{{ monthEarnedLabel }}
+          </span>
+        </span>
       </div>
 
       <div class="calendar-view__views">
@@ -314,6 +342,7 @@ function earnedLabel(date: ISODate): string | null {
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
       :earned-label="earnedLabel"
+      :earned-total-label="periodEarnedLabel"
       @open-day="openDay"
     />
 
@@ -323,6 +352,7 @@ function earnedLabel(date: ISODate): string | null {
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
       :earned-label="earnedLabel"
+      :goals="goals"
       @open-day="openDay"
     />
 
