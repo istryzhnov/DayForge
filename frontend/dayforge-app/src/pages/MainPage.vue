@@ -349,6 +349,8 @@ function handleSearchSelect(result: SearchResult) {
         <TimerView
           v-else-if="activeView === 'timer'"
           :task-options="timerTaskOptions"
+          :goals="goals"
+          :templates="taskTemplates"
           @save-as-task="handleSaveTimerAsTask"
           @attach-task="handleAttachTimerTask"
         />

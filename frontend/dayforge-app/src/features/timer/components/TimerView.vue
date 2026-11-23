@@ -2,11 +2,20 @@
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
-import type { MajorTaskOption } from '../../../entities/TaskEntity'
+import type { Goal } from '../../../entities/GoalEntity'
+import type {
+  MajorTaskOption,
+  TaskTemplate,
+} from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
 import { TIMER_MODE, TIMER_STATUS } from '../../../entities/constants'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
+import { buildRateLookup } from '../../../shared/composables/timer/rates'
+import { projectColors } from '../../../shared/composables/theme/goalTheme'
+import { useSettings } from '../../../shared/composables/useSettings'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import TimerModePicker from './TimerModePicker.vue'
@@ -17,11 +26,25 @@ import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
 import {
+  liveStretchMs,
+  sessionEarned,
+  taskRate,
+} from '../composables/timerSubline'
+import {
   SETTINGS_SECTION,
   useSettingsPanel,
 } from '../../../shared/composables/useSettingsPanel'
 
-const props = defineProps<{ taskOptions: MajorTaskOption[] }>()
+const props = withDefaults(
+  defineProps<{
+    taskOptions: MajorTaskOption[]
+    /** Projects, for row colours and the default rate of each project. */
+    goals?: Goal[]
+    /** Task templates, which carry a task's own rate. */
+    templates?: TaskTemplate[]
+  }>(),
+  { goals: () => [], templates: () => [] },
+)
 
 const { t } = useI18n()
 
@@ -47,6 +70,7 @@ function shortLabel(text: string): string {
 
 const {
   timer,
+  now,
   dialLabel,
   progress,
   statusLabel,
@@ -67,6 +91,43 @@ const {
 } = useTimerView()
 
 const newTaskTitle = ref('')
+
+const { settings } = useSettings()
+const { entries } = useTimeEntries()
+const { formatMoney } = useDayEarnings({
+  getTemplates: () => props.templates,
+  getGoals: () => props.goals,
+})
+
+const rateLookup = computed(() =>
+  buildRateLookup(props.templates, props.goals, settings.timer.hourlyRate),
+)
+
+/** Project colours for the history rows, the same ones Analytics uses. */
+const rowColors = computed(() => projectColors(props.goals))
+
+/** The attached task's rate, so the subline shows money only when one is set. */
+const attachedRate = computed(() =>
+  taskRate(rateLookup.value, timer.value.task),
+)
+
+/** Money earned in this sitting: saved stretches plus the one running now. */
+const sittingEarned = computed(() =>
+  sessionEarned({
+    entries: entries.value,
+    sessionId: timer.value.sessionId,
+    liveMs: liveStretchMs(timer.value, now.value),
+    task: timer.value.task,
+    lookup: rateLookup.value,
+  }),
+)
+
+const attachedProject = computed(() => {
+  const task = timer.value.task
+  if (!task) return ''
+  const option = props.taskOptions.find((item) => item.id === task.taskId)
+  return option?.goalTitle || t('analytics.noProject')
+})
 
 const settingsPanel = useSettingsPanel()
 
@@ -301,6 +362,24 @@ function closeEditor() {
             </button>
           </div>
 
+          <p v-if="timer.task" class="timer-view__subline">
+            <span class="timer-view__project">{{ attachedProject }}</span>
+            <template v-if="attachedRate > 0">
+              <span aria-hidden="true">·</span>
+              <span>
+                {{
+                  t('analytics.ratePerHour', {
+                    rate: formatMoney(attachedRate),
+                  })
+                }}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span class="timer-view__earned">{{
+                formatMoney(sittingEarned)
+              }}</span>
+            </template>
+          </p>
+
           <DisclosureSection
             v-if="canNameSession"
             :label="t('timer.saveAsTaskOr')"
@@ -362,7 +441,11 @@ function closeEditor() {
           </button>
         </header>
 
-        <TimeEntryList data-tip-anchor="timer-history" @edit="openEditor" />
+        <TimeEntryList
+          data-tip-anchor="timer-history"
+          :project-colors="rowColors"
+          @edit="openEditor"
+        />
       </div>
     </div>
 
