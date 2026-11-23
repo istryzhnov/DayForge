@@ -355,6 +355,7 @@ export function ensureDailyTaskForTemplate({
     completedAt: undefined,
     startTime: template.startTime,
     endTime: template.endTime,
+    reminderMinutes: template.reminderMinutes,
     createdAt: now,
     updatedAt: now,
   }

@@ -119,5 +119,9 @@
   "recurrenceWeeklyOn": "Wöchentlich · {days}",
   "recurrenceMonthly": "Monatlich",
   "recurrenceMonthlyOn": "Monatlich · Tag {days}",
-  "recurrenceRepeats": "Wiederholt sich"
+  "recurrenceRepeats": "Wiederholt sich",
+  "reminderLabel": "Erinnerung",
+  "reminderDefault": "Wie in den Einstellungen",
+  "reminderOff": "Aus",
+  "reminderBefore": "{minutes} Min. vorher"
 }

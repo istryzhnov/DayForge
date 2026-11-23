@@ -18,5 +18,8 @@
   "moveTo": "Move to",
   "clearedDone": "Cleared {n} done task | Cleared {n} done tasks",
   "customTag": "custom",
-  "majorTag": "Important"
+  "majorTag": "Important",
+  "addColumn": "Column",
+  "trackedTime": "Tracked time",
+  "runningNow": "Running now"
 }

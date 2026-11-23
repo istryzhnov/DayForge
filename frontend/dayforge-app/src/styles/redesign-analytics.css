@@ -5,7 +5,7 @@
 .analytics .analytics-hero.ui-card {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 0.625rem;
   padding: 0;
   border: 0;
   background: none;
@@ -18,9 +18,9 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 6px;
+  gap: 0.375rem;
   min-width: 0;
-  padding: 14px 16px;
+  padding: 0.875rem 1rem;
   border: 1px solid var(--glass-border);
   border-radius: calc(20px * var(--radius-scale));
   background: var(--glass-sheen), var(--glass-bg);
@@ -86,13 +86,13 @@
 }
 
 .analytics .analytics-hero .ui-progress {
-  height: 6px;
+  height: 0.375rem;
 }
 
 @container analytics (min-width: 900px) {
   .analytics .analytics-hero.ui-card {
     grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
-    gap: 12px;
+    gap: 0.75rem;
   }
 
   .analytics .analytics-hero .analytics-hero__main {
@@ -111,7 +111,7 @@
 /* ---- Segmented tabs: amber tint with an inset amber outline ------------ */
 
 .analytics .ui-tabs {
-  padding: 4px;
+  padding: 0.25rem;
   border: 1px solid var(--glass-border);
   border-radius: calc(16px * var(--radius-scale));
   background: var(--glass-bg);
@@ -142,8 +142,8 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 8px 12px;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
   border: 1px solid var(--glass-border);
   border-radius: calc(12px * var(--radius-scale));
   background: var(--glass-bg-strong);
@@ -152,7 +152,7 @@
   box-shadow: var(--glass-highlight);
   white-space: nowrap;
   pointer-events: none;
-  transform: translate(calc(-100% - 14px), -50%);
+  transform: translate(calc(-100% - 0.875rem), -50%);
 }
 
 .analytics .analytics-chart__tip-date {
@@ -164,7 +164,7 @@
 .analytics .analytics-chart__tip-value {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   font-family: var(--font-mono);
   font-size: calc(0.875rem * var(--text-scale));
   font-weight: 700;
@@ -172,8 +172,8 @@
 }
 
 .analytics .analytics-chart__tip-dot {
-  width: 7px;
-  height: 7px;
+  width: 0.4375rem;
+  height: 0.4375rem;
   border-radius: 50%;
   background: var(--accent);
 }
@@ -181,7 +181,7 @@
 /* ---- Project progress: rounded bars with a white plan tick ------------- */
 
 .analytics .project-progress .ui-progress {
-  height: 8px;
+  height: 0.5rem;
   overflow: visible;
   background: color-mix(in srgb, var(--text) 7%, transparent);
 }
@@ -192,9 +192,9 @@
 
 .analytics .project-progress__tick {
   position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
+  top: -0.1875rem;
+  bottom: -0.1875rem;
+  width: 0.125rem;
   margin-left: -1px;
   border-radius: 1px;
   background: var(--text);
@@ -213,7 +213,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .analytics .earnings-row__main .earnings-row__name {
@@ -223,8 +223,8 @@
 
 .analytics .earnings-row__bar {
   flex: 1 1 auto;
-  min-width: 48px;
-  height: 26px;
+  min-width: 3rem;
+  height: 1.625rem;
   border-radius: 8px;
   background: color-mix(in srgb, var(--text) 5%, transparent);
   overflow: hidden;
@@ -248,7 +248,7 @@
 /* ---- Income goal: glowing ring card ------------------------------------ */
 
 .analytics .income-goal.income-goal {
-  padding: 20px;
+  padding: 1.25rem;
   border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   border-radius: calc(22px * var(--radius-scale));
   background:
@@ -258,13 +258,13 @@
       transparent 70%
     ),
     var(--glass-bg);
-  box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 10%, transparent);
+  box-shadow: 0 0 1.75rem color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .analytics .income-goal__ring {
   flex: 0 0 auto;
-  width: 112px;
-  height: 112px;
+  width: 7rem;
+  height: 7rem;
 }
 
 .analytics .income-goal__ring-track {
@@ -279,13 +279,13 @@
   stroke-width: 12;
   stroke-linecap: round;
   filter: drop-shadow(
-    0 0 8px color-mix(in srgb, var(--accent) 50%, transparent)
+    0 0 0.5rem color-mix(in srgb, var(--accent) 50%, transparent)
   );
 }
 
 .analytics .income-goal__ring-text {
   font-family: var(--font-mono);
-  font-size: 24px;
+  font-size: 1.5rem;
   font-weight: 700;
   fill: var(--text);
 }
@@ -299,15 +299,15 @@
 
 .analytics .analytics-table td {
   border-top: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }
 
 .analytics .analytics-status {
   appearance: none;
   -webkit-appearance: none;
-  height: 28px;
-  padding: 0 26px 0 10px;
+  height: 1.75rem;
+  padding: 0 1.625rem 0 0.625rem;
   border: 0;
   border-radius: calc(10px * var(--radius-scale));
   background-color: color-mix(in srgb, var(--text) 8%, transparent);
@@ -317,10 +317,11 @@
   cursor: pointer;
 }
 
-/* Paid: green, invoiced: amber, unbilled: neutral. */
+/* Told apart by fill, not hue, so every palette keeps them distinct:
+   paid is solid accent, invoiced a tint of it, unbilled neutral. */
 .analytics .analytics-status--paid {
-  background-color: rgba(126, 224, 138, 0.16);
-  color: #9ce8a5;
+  background-color: var(--accent);
+  color: var(--ring-check);
 }
 
 .analytics .analytics-status--invoiced {

@@ -36,7 +36,10 @@ import {
   totalsByDay,
   type TaskTotal,
 } from '../../../shared/composables/timer/entries'
-import { summaryLabels } from '../../../shared/composables/timer/text'
+import {
+  durationWords,
+  summaryLabels,
+} from '../../../shared/composables/timer/text'
 import {
   ALL_CLIENTS_FILTER_ID,
   NO_CLIENT_FILTER_ID,
@@ -46,6 +49,14 @@ import {
   outstandingSummary,
 } from './clientBilling'
 import { useToday } from '../../../shared/composables/goalSpace/today'
+import {
+  comparePeriods,
+  previousRange,
+  tasksDoneIn,
+  type PeriodDeltas,
+  type PeriodFigures,
+} from './periodComparison'
+import { sumDurations } from '../../../shared/composables/timer/entries'
 
 /** `labelKey` is rendered with `t()` where it shows, so a language switch updates it. */
 export const PERIOD_OPTIONS: { id: AnalyticsPeriod; labelKey: string }[] = [
@@ -175,6 +186,40 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   )
 
   const isAllTime = computed(() => period.value === ANALYTICS_PERIOD.ALL)
+
+  /** Tracked time, earnings and finished tasks of the period, raw (no adjustments). */
+  const currentFigures = computed<PeriodFigures>(() => ({
+    trackedMs: summary.value.totalMs,
+    earned: earnings.value.total,
+    tasksDone: tasksDoneIn(
+      sources
+        .getDailyTasks()
+        .filter((task) => matchesClientFilter(task.goalId)),
+      range.value,
+    ),
+  }))
+
+  /** The same-length window before the period; null for all time. */
+  const previousFigures = computed<PeriodFigures | null>(() => {
+    const before = previousRange(range.value)
+    if (!before) return null
+    const entriesBefore = entriesInRange(filteredEntries.value, before)
+    return {
+      trackedMs: sumDurations(entriesBefore),
+      earned: breakdownEarnings(entriesBefore, rateLookup.value).total,
+      tasksDone: tasksDoneIn(
+        sources
+          .getDailyTasks()
+          .filter((task) => matchesClientFilter(task.goalId)),
+        before,
+      ),
+    }
+  })
+
+  /** Percent / count change against the previous period, for the KPI tiles. */
+  const periodDeltas = computed<PeriodDeltas>(() =>
+    comparePeriods(currentFigures.value, previousFigures.value),
+  )
 
   const allTimeSummary = computed(() =>
     summarize(filteredEntries.value, goalTitleById.value, summaryLabels()),
@@ -342,11 +387,11 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
   }
 
   function durationLabel(totalMs: number): string {
-    return formatHoursMinutes(totalMs)
+    return formatHoursMinutes(totalMs, durationWords())
   }
 
   function hoursLabel(totalMs: number): string {
-    return formatHoursMinutes(totalMs)
+    return formatHoursMinutes(totalMs, durationWords())
   }
 
   function shareLabel(totalMs: number): string {
@@ -562,6 +607,8 @@ export function useTimerAnalytics(sources: AnalyticsSources) {
       return option ? i18n.global.t(option.labelKey) : ''
     }),
     hasAdjustments,
+    currentFigures,
+    periodDeltas,
     projectRows,
     projectShareLabel,
     adjustedTotalMs,

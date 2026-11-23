@@ -43,5 +43,6 @@
   "projectField": "项目",
   "startField": "开始",
   "endField": "结束",
-  "save": "保存"
+  "save": "保存",
+  "weekTotal": "本周"
 }

@@ -156,5 +156,11 @@
   "invoicedOn": "Berechnet am {date}",
   "paidOn": "· bezahlt am {date}",
   "notInvoiced": "Nicht berechnet",
-  "withoutTask": "Ohne Aufgabe"
+  "withoutTask": "Ohne Aufgabe",
+  "kpiAria": "Kennzahlen",
+  "kpiVsPrevious": "ggü. Vorperiode",
+  "kpiUp": "gestiegen",
+  "kpiDown": "gesunken",
+  "kpiPlanVsActual": "Plan vs. Ist",
+  "kpiTasksDone": "Erledigte Aufgaben"
 }

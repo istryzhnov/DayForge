@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { useModules } from '../../../shared/composables/useModules'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { reportUserAction } from '../../../shared/composables/userActions'
 import ComposerToggleSection from './ComposerToggleSection.vue'
 import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
+import { TASK_REMINDER_OPTIONS } from '../../../shared/composables/goalSpace/reminder'
 import {
   MAX_TIME,
   MIN_TIME,
@@ -13,11 +17,14 @@ import {
 
 const { t } = useI18n()
 
+const showInfo = ref(false)
+
 // Owned by the parent when it binds `enabled`, otherwise kept here.
 const isEnabled = defineModel<boolean>('enabled', { default: false })
 
 // A composer with its own calendar button hides the checkbox.
-defineProps<{ hideToggle?: boolean }>()
+const { isOn: isModuleOn } = useModules()
+defineProps<{ hideToggle?: boolean; hideReminder?: boolean }>()
 
 const {
   date,
@@ -26,6 +33,8 @@ const {
   repeatType,
   intervalDays,
   weekdays,
+  reminder,
+  cycleReminder,
   minDate,
   isWeekly,
   isCustomInterval,
@@ -41,7 +50,15 @@ const {
 } = useTaskScheduleState(isEnabled)
 
 // The owning composer reads the payload on submit and clears it afterwards.
-defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
+defineExpose({
+  buildSchedule,
+  load,
+  reset,
+  isValid,
+  isEnabled,
+  reminder,
+  cycleReminder,
+})
 </script>
 
 <template>
@@ -85,6 +102,32 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
           <span v-if="isNextDay" class="task-schedule__next-day">
             {{ t('tasks.nextDay') }}
           </span>
+        </label>
+      </div>
+
+      <div
+        v-if="!hideReminder && isModuleOn('reminders')"
+        class="task-schedule__row"
+      >
+        <label class="task-schedule__field">
+          <span class="task-schedule__label">{{
+            t('tasks.reminderLabel')
+          }}</span>
+          <select
+            v-model="reminder"
+            :disabled="!startTime"
+            @change="reportUserAction('schedule-edited')"
+          >
+            <option value="default">{{ t('tasks.reminderDefault') }}</option>
+            <option
+              v-for="minutes in TASK_REMINDER_OPTIONS"
+              :key="minutes"
+              :value="minutes"
+            >
+              {{ t('tasks.reminderBefore', { minutes }) }}
+            </option>
+            <option :value="null">{{ t('tasks.reminderOff') }}</option>
+          </select>
         </label>
       </div>
 
@@ -133,15 +176,27 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
       </DisclosureSection>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
-      <p v-else-if="isAnnual" class="task-schedule__hint">
-        {{ t('tasks.hintAnnual') }}
-      </p>
-      <p v-else-if="isRepeating" class="task-schedule__hint">
-        {{ t('tasks.hintRepeats', { date }) }}
-      </p>
-      <p v-else class="task-schedule__hint">
-        {{ t('tasks.hintOnce', { date }) }}
-      </p>
+      <template v-else>
+        <button
+          type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+        <p v-if="showInfo && isAnnual" class="task-schedule__hint">
+          {{ t('tasks.hintAnnual') }}
+        </p>
+        <p v-else-if="showInfo && isRepeating" class="task-schedule__hint">
+          {{ t('tasks.hintRepeats', { date }) }}
+        </p>
+        <p v-else-if="showInfo" class="task-schedule__hint">
+          {{ t('tasks.hintOnce', { date }) }}
+        </p>
+      </template>
     </div>
   </ComposerToggleSection>
 </template>

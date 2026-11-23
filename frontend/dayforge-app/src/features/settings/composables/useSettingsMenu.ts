@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useTheme } from '../../../shared/composables/useTheme'
+import { useModules } from '../../../shared/composables/useModules'
 import { findPreset } from '../../../shared/composables/theme/tokens'
 import { GOAL_STATUS } from '../../../entities/constants'
 import {
@@ -49,6 +50,7 @@ export function useSettingsMenu(props: MenuProps) {
   const { t } = useI18n()
   const { presetId, themeMode, palette, workspace } = useTheme()
   const { settings } = useSettings()
+  const { onCount, allCount, isOn } = useModules()
 
   /** Translated label of an option, or of a fallback key when none matches. */
   function labelOf<T>(
@@ -150,6 +152,10 @@ export function useSettingsMenu(props: MenuProps) {
         labelOf(CLOCK_OPTIONS, format.clock, 'settings.clock24'),
       ].join(' · '),
       clients: t('settings.summaryClients', settings.billing.clients.length),
+      modules: t('modules.summary', {
+        on: onCount.value,
+        all: allCount,
+      }),
       data: t('settings.summaryData', {
         projects: t('settings.summaryProjects', props.dataStats.goals),
         tasks: t('settings.summaryTasks', props.dataStats.templates),
@@ -162,6 +168,8 @@ export function useSettingsMenu(props: MenuProps) {
     const byGroup = new Map<SettingsGroup, SettingsMenuRow[]>()
 
     SETTINGS_SECTIONS.forEach((section) => {
+      // The Reminders entry belongs to the Reminders module.
+      if (section.id === 'reminders' && !isOn('reminders')) return
       const rows = byGroup.get(section.group) ?? []
       rows.push({
         id: section.id,

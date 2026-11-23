@@ -6,6 +6,9 @@ import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { usePressGesture } from '../../../shared/composables/usePressGesture'
 import { useFormat } from '../../../shared/composables/useFormat'
 import { useTimer } from '../../../shared/composables/useTimer'
+import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { formatShortDuration } from '../../../shared/composables/timer/format'
+import { durationWords } from '../../../shared/composables/timer/text'
 import { useToday } from '../../../shared/composables/goalSpace/today'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import {
@@ -39,6 +42,7 @@ const { t } = useI18n()
 const today = useToday()
 const isCoarsePointer = useIsCoarsePointer()
 const timer = useTimer()
+const timeEntries = useTimeEntries()
 
 // On touch a held card is picked up and follows the finger; a quick tap is
 // still a tap, and a sideways swipe still scrolls the columns.
@@ -64,6 +68,15 @@ const priorityText = computed(() =>
   t('tasks.priorityLabel', { level: priorityLabel.value }),
 )
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
+
+/** The card's own time plus its subtasks', the same total the list shows. */
+const trackedLabel = computed(() => {
+  const ms = timeEntries.totalForTasks([
+    props.card.templateId,
+    ...props.card.childTemplateIds,
+  ])
+  return ms > 0 ? formatShortDuration(ms, durationWords()) : ''
+})
 
 const notesButton =
   useTemplateRef<InstanceType<typeof TaskNotesButton>>('notesButton')
@@ -210,9 +223,19 @@ function onMoveChange(event: Event) {
 
         <span
           v-if="isTiming"
-          class="df-live-dot board-card__live"
-          aria-hidden="true"
-        ></span>
+          class="board-chip board-card__live"
+          :title="t('board.runningNow')"
+        >
+          <span class="df-live-dot" aria-hidden="true"></span>
+          {{ timer.displayLabel }}
+        </span>
+        <span
+          v-else-if="trackedLabel"
+          class="board-chip board-card__tracked"
+          :title="t('board.trackedTime')"
+        >
+          {{ trackedLabel }}
+        </span>
       </span>
     </button>
 

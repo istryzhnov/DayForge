@@ -156,5 +156,11 @@
   "invoicedOn": "Wystawiono {date}",
   "paidOn": "· opłacono {date}",
   "notInvoiced": "Nie wystawiono faktury",
-  "withoutTask": "Bez zadania"
+  "withoutTask": "Bez zadania",
+  "kpiAria": "Kluczowe wskaźniki",
+  "kpiVsPrevious": "vs poprzedni",
+  "kpiUp": "wzrost",
+  "kpiDown": "spadek",
+  "kpiPlanVsActual": "Plan vs fakt",
+  "kpiTasksDone": "Zrobione zadania"
 }

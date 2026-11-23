@@ -18,5 +18,8 @@
   "moveTo": "Verschieben nach",
   "clearedDone": "Entfernt: {n} erledigte Aufgabe | Entfernt: {n} erledigte Aufgaben",
   "customTag": "eigene",
-  "majorTag": "Wichtig"
+  "majorTag": "Wichtig",
+  "addColumn": "Spalte",
+  "trackedTime": "Erfasste Zeit",
+  "runningNow": "Läuft gerade"
 }

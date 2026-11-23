@@ -1,5 +1,6 @@
 import type { Goal } from '../../../../entities/GoalEntity'
-import type { ID, ISODate } from '../../../../entities/types'
+import type { TaskSchedule } from '../../../../entities/TaskEntity'
+import type { ID, ISODate, Priority } from '../../../../entities/types'
 import { addDaysToISODate } from '../../../../shared/composables/goalSpace/date'
 
 export type QuickAddGoal = Pick<Goal, 'id' | 'title'>
@@ -14,6 +15,14 @@ export interface QuickAddResult {
   newGoalTitle: string | null
   day: QuickAddDay | null
   date: ISODate | null
+  /** The sheet's full schedule (date, time, repeat), when it has one. */
+  schedule?: TaskSchedule
+  /** The sheet's priority; the default applies when absent. */
+  priority?: Priority
+  /** "Без проєкту" was picked: the task gets no project at all. */
+  noProject?: boolean
+  /** "Додати й запустити таймер": the new task starts the timer. */
+  startTimer?: boolean
 }
 
 /**

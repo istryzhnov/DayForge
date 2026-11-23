@@ -17,7 +17,7 @@
   - No midnight-crossing push: the in-app midnight warning stays in the app.
 */
 
-export type ReminderKind = 'long-run' | 'planned-start' | 'end-of-day'
+export type ReminderKind = 'long-run' | 'planned-start' | 'end-of-day' | 'upcoming'
 
 export interface ReminderMessage {
   kind: ReminderKind
@@ -55,6 +55,12 @@ export interface ServerTask {
   status: string
   startTime?: string
   endTime?: string
+  /**
+   * Minutes before startTime to push a reminder. A number sets the lead, null
+   * means none, absent means the task has no lead of its own (the server has
+   * no global lead, so it pushes nothing before the start for it).
+   */
+  reminderMinutes?: number | null
 }
 
 /** Everything a rule needs to know about "now", in the user's own time zone. */
@@ -79,6 +85,8 @@ export interface ServerSettings {
     quietTo?: unknown
   }
   timer?: { longRunHours?: unknown }
+  /** The app's module switches; only `reminders` matters here. */
+  modules?: { reminders?: unknown }
 }
 
 export interface RuleInput {
@@ -251,6 +259,26 @@ export function plannedNudgeLabel(count: number): string {
     : `${count} planned blocks today have no time logged`
 }
 
+/**
+ * Tasks today whose own lead has begun: the start is still ahead, and the
+ * start is within `reminderMinutes` of now. Null and absent leads never match.
+ */
+export function upcomingTasks(
+  tasks: ServerTask[],
+  today: string,
+  now: number,
+  localMs: Clock['localMs'],
+): ServerTask[] {
+  return tasks.filter((task) => {
+    if (task.date !== today || !task.startTime) return false
+    if (task.status === DONE) return false
+    const lead = task.reminderMinutes
+    if (typeof lead !== 'number') return false
+    const startMs = localMs(today, task.startTime)
+    return now >= startMs - lead * MINUTE_MS && now < startMs
+  })
+}
+
 // ---- The decision ---------------------------------------------------------
 
 /** Every reminder that is due now and not yet sent. Pure. */
@@ -270,6 +298,10 @@ export function decideReminders(input: RuleInput): ReminderMessage[] {
       asTime(notifications.quietTo, DEFAULTS.quietTo),
     )
   const longRunHours = asNumber(timerSettings.longRunHours, DEFAULTS.longRunHours)
+  // The app's Reminders module: off means no per-task reminders. A missing
+  // key (older clients) counts as on.
+  const modules = input.settings?.modules ?? {}
+  const taskReminders = modules.reminders !== false
 
   const out: ReminderMessage[] = []
   if (quiet) return out
@@ -326,6 +358,24 @@ export function decideReminders(input: RuleInput): ReminderMessage[] {
         url: '/',
       })
     }
+  }
+
+  // Upcoming: a task that set its own lead, shortly before it starts.
+  const upcoming = taskReminders
+    ? upcomingTasks(tasks, clock.today, clock.now, clock.localMs)
+    : []
+  for (const task of upcoming) {
+    if (wasSent('upcoming', task.id)) continue
+    const startMs = clock.localMs(clock.today, task.startTime!)
+    const minutes = Math.max(1, Math.ceil((startMs - clock.now) / MINUTE_MS))
+    out.push({
+      kind: 'upcoming',
+      ref: task.id,
+      title: 'DayForge',
+      body: `"${task.title}" starts in ${minutes} min`,
+      tag: `upcoming-${task.id}`,
+      url: '/',
+    })
   }
 
   // End of day: once a day, when the summary time has passed and finished

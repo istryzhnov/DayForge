@@ -1,12 +1,25 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
+import type { ID } from '../../../entities/types'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useTimerHistory } from '../composables/useTimerHistory'
 
 const { t } = useI18n()
 
+const props = withDefaults(
+  defineProps<{
+    /** Each project's colour, keyed by project id; unknown rows get the muted tone. */
+    projectColors?: Map<ID, string>
+  }>(),
+  { projectColors: () => new Map<ID, string>() },
+)
+
 const emit = defineEmits<{ (e: 'edit', entry: TimeEntry): void }>()
+
+function rowColor(entry: TimeEntry): string | undefined {
+  return entry.goalId ? props.projectColors.get(entry.goalId) : undefined
+}
 
 const {
   days,
@@ -34,7 +47,12 @@ const {
       </header>
 
       <div class="ui-card timer-history__list">
-        <div v-for="entry in group.entries" :key="entry.id" class="timer-entry">
+        <div
+          v-for="entry in group.entries"
+          :key="entry.id"
+          class="timer-entry"
+          :style="{ '--entry-color': rowColor(entry) }"
+        >
           <div class="timer-entry__main">
             <span class="timer-entry__title ui-oneline">
               {{ entry.taskTitle ?? t('timer.noTask') }}

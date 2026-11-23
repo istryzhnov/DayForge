@@ -18,5 +18,8 @@
   "moveTo": "移动到",
   "clearedDone": "已清除 {n} 个已完成任务",
   "customTag": "自定义",
-  "majorTag": "重要"
+  "majorTag": "重要",
+  "addColumn": "列",
+  "trackedTime": "已记录时间",
+  "runningNow": "正在计时"
 }

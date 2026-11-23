@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, useTemplateRef } from 'vue'
+import { onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import { useTaskRateEditor } from '../composables/useTaskRateEditor'
 
@@ -13,6 +14,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const rateInput = useTemplateRef<HTMLInputElement>('rateInput')
+const showInfo = ref(false)
 
 const { draft, currency, hasOwnRate, isValid, hint, placeholder, save, clear } =
   useTaskRateEditor(props, {
@@ -43,7 +45,17 @@ onMounted(() => rateInput.value?.focus())
       />
     </label>
 
-    <p class="task-editor__hint">{{ hint }}</p>
+    <button
+      type="button"
+      class="ui-icon-btn"
+      :title="t('common.aboutThis')"
+      :aria-label="t('common.aboutThis')"
+      :aria-expanded="showInfo"
+      @click="showInfo = !showInfo"
+    >
+      <AppIcon name="info" :size="16" />
+    </button>
+    <p v-if="showInfo" class="task-editor__hint">{{ hint }}</p>
 
     <div class="task-editor__actions">
       <button class="btn btn-ghost" type="button" @click="emit('close')">

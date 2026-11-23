@@ -9,6 +9,7 @@ import NewGoalComponent from './NewGoalComponent.vue'
 import SidebarGoalButton from './SidebarGoalButton.vue'
 import GoalContextMenu from './GoalContextMenu.vue'
 import { TimerWidget } from '../../timer'
+import { useTimer } from '../../../shared/composables/useTimer'
 import { SyncStatusDot } from '../../sync'
 import { SidebarProfileButton, useProfilePanel } from '../../profile'
 import { TourPill } from '../../onboarding'
@@ -17,6 +18,7 @@ import { useSidebarState } from '../composables/useSidebarState'
 import { useGoalReorder } from '../composables/useGoalReorder'
 import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import { useSettings } from '../../../shared/composables/useSettings'
+import { useModules } from '../../../shared/composables/useModules'
 import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
 import {
   shortcutTitle,
@@ -98,6 +100,8 @@ const menuGoalIndex = computed(() =>
 )
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
+const { isLive, isRunning, displayLabel, task, pause, resume } = useTimer()
+const { isOn } = useModules()
 const { openShortcuts, openSearch } = useHotkeyOverlay()
 const { open: openProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
@@ -115,6 +119,14 @@ function openSearchFromNav() {
 function toggleSettingsFromNav() {
   toggleSettings()
   closeMobileNav()
+}
+
+/** The phone drawer's timer card: the same pause/resume the capsule offers. */
+const liveTitle = computed(() => task.value?.taskTitle || t('timer.noTask'))
+
+function toggleLiveRunning() {
+  if (isRunning.value) pause()
+  else resume()
 }
 
 function onKeydown(event: KeyboardEvent) {
@@ -143,7 +155,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <div class="sidebar-brand">
       <BrandWordmark />
       <button
-        v-if="notificationsSupported"
+        v-if="notificationsSupported && isOn('reminders')"
         class="sidebar-notify-trigger"
         :class="{ 'is-active': notificationsEnabled }"
         type="button"
@@ -242,6 +254,24 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </button>
     </div>
 
+    <!-- Phone drawer only; hidden on desktop by redesign-mobile.css. -->
+    <section v-if="isLive" class="sidebar-live" :aria-label="t('timer.title')">
+      <span class="df-live-dot" aria-hidden="true"></span>
+      <div class="sidebar-live__text">
+        <p class="sidebar-live__title">{{ liveTitle }}</p>
+        <p class="sidebar-live__time">{{ displayLabel }}</p>
+      </div>
+      <button
+        class="sidebar-live__btn"
+        type="button"
+        :aria-label="isRunning ? t('timer.pause') : t('timer.resume')"
+        :title="isRunning ? t('timer.pause') : t('timer.resume')"
+        @click="toggleLiveRunning"
+      >
+        <AppIcon :name="isRunning ? 'pause' : 'play'" :size="16" />
+      </button>
+    </section>
+
     <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>
 
     <button
@@ -317,6 +347,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
     <p class="sidebar-caption">{{ t('sidebar.view') }}</p>
 
     <button
+      v-if="isOn('calendar')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'calendar' }"
       data-tip-anchor="nav-calendar"
@@ -331,6 +362,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </span>
     </button>
     <button
+      v-if="isOn('timer')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'timer' }"
       data-tip-anchor="nav-timer"
@@ -345,6 +377,7 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       </span>
     </button>
     <button
+      v-if="isOn('analytics')"
       class="nav-goal-btn"
       :class="{ active: activeView === 'analytics' }"
       :title="shortcutTitle(t('sidebar.analytics'), 'G then Y')"
@@ -386,7 +419,25 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       <span class="goal-count">{{ doneCount }}</span>
     </button>
 
-    <TimerWidget @open-timer="chooseView('timer')" />
+    <!-- Phone drawer only; the desktop sidebar keeps its gear in the brand row. -->
+    <button
+      class="nav-goal-btn sidebar-settings-row"
+      type="button"
+      @click="toggleSettingsFromNav"
+    >
+      <span class="nav-goal-btn__main">
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="settings" :size="16" />
+        </span>
+        <span>{{ t('sidebar.settings') }}</span>
+      </span>
+    </button>
+
+    <!-- A running timer stays visible, so it can still be stopped with the module off. -->
+    <TimerWidget
+      v-if="isOn('timer') || isLive"
+      @open-timer="chooseView('timer')"
+    />
     <div class="sidebar-actions">
       <button
         class="btn btn-primary"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { BoardCustomColumn, Goal } from '../../../entities/GoalEntity'
 import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
@@ -19,6 +19,8 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+const showInfo = ref(false)
 
 const BUILT_IN = [
   'board.columnTodo',
@@ -65,8 +67,18 @@ function remove(id: string) {
   <div class="board-columns-editor ui-card">
     <p class="board-columns-editor__title">
       {{ t('settings.boardColumns') }}
+      <button
+        type="button"
+        class="ui-icon-btn"
+        :title="t('common.aboutThis')"
+        :aria-label="t('common.aboutThis')"
+        :aria-expanded="showInfo"
+        @click="showInfo = !showInfo"
+      >
+        <AppIcon name="info" :size="16" />
+      </button>
     </p>
-    <p class="board-columns-editor__hint">
+    <p v-if="showInfo" class="board-columns-editor__hint">
       {{ t('settings.boardColumnsHint') }}
     </p>
 

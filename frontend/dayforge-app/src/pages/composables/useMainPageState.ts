@@ -241,22 +241,38 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     const newGoalId = result.newGoalTitle
       ? handleCreateGoal(result.newGoalTitle, '', unusedProjectColor())
       : null
-    const schedule: TaskSchedule | undefined = result.date
-      ? {
-          date: result.date,
-          recurrence: {
-            type: RECURRENCE_TYPE.NONE,
-            startDate: result.date,
-          },
-        }
-      : undefined
+    const schedule: TaskSchedule | undefined =
+      result.schedule ??
+      (result.date
+        ? {
+            date: result.date,
+            recurrence: {
+              type: RECURRENCE_TYPE.NONE,
+              startDate: result.date,
+            },
+          }
+        : undefined)
 
+    const goalId = result.noProject
+      ? undefined
+      : (newGoalId ??
+        result.goalId ??
+        goalSpace.activeGoalId.value ??
+        undefined)
     const created = goalSpace.addTask(
-      newGoalId ?? result.goalId ?? goalSpace.activeGoalId.value ?? undefined,
+      goalId,
       result.title,
-      settings.behavior.defaultPriority,
+      result.priority ?? settings.behavior.defaultPriority,
       schedule,
     )
+    if (created && result.startTimer) {
+      // Same switch the task's own timer button makes.
+      useTimer().toggleForTask({
+        taskId: created.id,
+        goalId: created.goalId,
+        taskTitle: created.title,
+      })
+    }
     if (created) {
       reportUserAction('task-added', {
         goalId: created.goalId,
