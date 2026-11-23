@@ -533,3 +533,63 @@ body {
   display: block;
   text-align: left;
 }
+
+/* ---- Task rows, board, calendar, settings drawer ------------------- */
+
+.task-row {
+  border-color: color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+}
+
+/* The row whose timer is running glows amber, like the sidebar widget. */
+.task-row.is-timing {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--glass-bg-strong));
+  box-shadow: 0 0 1.75rem color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.task-composer__row {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+.board-column {
+  border-color: var(--glass-border);
+  border-radius: calc(22px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+}
+
+.board-card {
+  border-color: color-mix(in srgb, var(--text) 9%, transparent);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+  box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, #000 18%, transparent);
+}
+
+.calendar-view__grid-wrap,
+.calendar-week__wrap {
+  border-color: var(--glass-border);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+}
+
+.calendar-month__day {
+  border-color: color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--glass-bg);
+}
+
+.calendar-month__day.is-today {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--glass-bg));
+  box-shadow: 0 0 1.25rem color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.app-settings {
+  border-left-color: var(--glass-border);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}

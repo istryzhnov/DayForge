@@ -168,6 +168,7 @@ const {
       'is-dragging': isDragging,
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
+      'is-timing': isTimerActive,
     }"
     :data-drop-row="drag ? node.task.templateId : undefined"
     :data-drop-major="isProject ? 'true' : undefined"
