@@ -119,5 +119,9 @@
   "recurrenceWeeklyOn": "Щотижня · {days}",
   "recurrenceMonthly": "Щомісяця",
   "recurrenceMonthlyOn": "Щомісяця · числа {days}",
-  "recurrenceRepeats": "Повторюється"
+  "recurrenceRepeats": "Повторюється",
+  "reminderLabel": "Нагадування",
+  "reminderDefault": "Як у налаштуваннях",
+  "reminderOff": "Вимкнено",
+  "reminderBefore": "За {minutes} хв"
 }

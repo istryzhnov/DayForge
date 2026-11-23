@@ -17,6 +17,8 @@ useFocusTrap({ onEscape: () => emit('close') })
 
 const { t } = useI18n()
 
+const showInfo = ref(false)
+
 const isDeleteOpen = ref(false)
 const { isOnline, offlineHint } = useAccountDeletion()
 
@@ -121,12 +123,24 @@ const {
           <a href="/about">{{ t('profile.aboutLink') }}</a>
         </p>
 
-        <p class="settings-group-hint">
-          {{ t('profile.newHere') }}
-        </p>
-        <p class="settings-group-hint">
-          {{ t('profile.firstSignInNote') }}
-        </p>
+        <button
+          type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+        <template v-if="showInfo">
+          <p class="settings-group-hint">
+            {{ t('profile.newHere') }}
+          </p>
+          <p class="settings-group-hint">
+            {{ t('profile.firstSignInNote') }}
+          </p>
+        </template>
 
         <p v-if="auth.error.value" class="settings-message is-error">
           {{ auth.error.value }}
@@ -204,7 +218,7 @@ const {
             {{ t('profile.signOutOffline') }}
           </p>
           <button
-            class="btn btn-ghost settings-action settings-action--danger"
+            class="btn btn-ghost settings-action profile-signout"
             type="button"
             :disabled="auth.isBusy.value || isSigningOut"
             @click="signOut"
@@ -238,7 +252,7 @@ const {
         </div>
 
         <button
-          class="btn btn-ghost settings-action settings-action--danger"
+          class="btn btn-ghost settings-action profile-delete"
           type="button"
           :disabled="!isOnline"
           @click="isDeleteOpen = true"

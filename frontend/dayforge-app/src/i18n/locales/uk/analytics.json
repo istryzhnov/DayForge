@@ -156,5 +156,11 @@
   "invoicedOn": "Виставлено {date}",
   "paidOn": "· оплачено {date}",
   "notInvoiced": "Рахунок не виставлено",
-  "withoutTask": "Без завдання"
+  "withoutTask": "Без завдання",
+  "kpiAria": "Ключові показники",
+  "kpiVsPrevious": "до минулого",
+  "kpiUp": "зросло",
+  "kpiDown": "зменшилось",
+  "kpiPlanVsActual": "План vs факт",
+  "kpiTasksDone": "Виконано задач"
 }

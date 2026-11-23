@@ -69,12 +69,6 @@ const awayRange = computed(() => {
       <p class="task-reminder-card__hint">{{ awayRange }}</p>
       <p class="task-reminder-card__hint">{{ t('timer.awayHint') }}</p>
       <div class="modal-actions">
-        <button class="btn btn-ghost" type="button" @click="discardAndStopAway">
-          {{ t('timer.discardAndStop') }}
-        </button>
-        <button class="btn btn-ghost" type="button" @click="discardAway">
-          {{ t('timer.discardAway') }}
-        </button>
         <button
           ref="keepRef"
           class="btn btn-primary"
@@ -82,6 +76,12 @@ const awayRange = computed(() => {
           @click="keepAway"
         >
           {{ t('timer.keepTime') }}
+        </button>
+        <button class="btn btn-ghost" type="button" @click="discardAway">
+          {{ t('timer.discardAway') }}
+        </button>
+        <button class="btn btn-ghost" type="button" @click="discardAndStopAway">
+          {{ t('timer.discardAndStop') }}
         </button>
       </div>
     </div>

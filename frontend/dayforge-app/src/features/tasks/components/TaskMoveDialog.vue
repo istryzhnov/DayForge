@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type {
   MajorTaskOption,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { useTaskActions } from '../composables/useTaskActions'
 import { useTaskMove } from '../composables/useTaskMove'
@@ -21,6 +23,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const actions = useTaskActions()
+const showInfo = ref(false)
 
 useFocusTrap({ onEscape: () => emit('close') })
 
@@ -79,9 +82,21 @@ function submit() {
         </select>
       </label>
 
-      <p v-else class="settings-group-hint">
-        {{ t('tasks.projectCannotNest') }}
-      </p>
+      <template v-else>
+        <button
+          type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+        <p v-if="showInfo" class="settings-group-hint">
+          {{ t('tasks.projectCannotNest') }}
+        </p>
+      </template>
 
       <p
         v-if="canAttachToProject && projectsForGoal.length === 0"

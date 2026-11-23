@@ -43,5 +43,6 @@
   "projectField": "Projekt",
   "startField": "Początek",
   "endField": "Koniec",
-  "save": "Zapisz"
+  "save": "Zapisz",
+  "weekTotal": "Tydzień"
 }

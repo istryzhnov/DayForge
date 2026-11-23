@@ -24,11 +24,25 @@ useFocusTrap({ onEscape: () => emit('acknowledge') })
   <div ref="trapRef" class="new-goal-modal task-reminder-modal">
     <div class="modal-overlay"></div>
     <div
-      class="modal-card task-reminder-card"
+      class="modal-card task-reminder-card task-reminder-card--popup"
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-reminder-title"
     >
+      <span class="task-reminder-card__tile" aria-hidden="true">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" />
+        </svg>
+      </span>
       <p class="task-reminder-card__eyebrow">
         {{ t('tasks.reminderEyebrow') }}
       </p>

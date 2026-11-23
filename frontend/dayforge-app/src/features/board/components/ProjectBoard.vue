@@ -6,9 +6,17 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import {
+  BOARD_CUSTOM_COLUMN_LIMIT,
+  PRIORITY,
+  TASK_STATUS,
+} from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../shared/composables/useSettings'
+import {
+  SETTINGS_SECTION,
+  useSettingsPanel,
+} from '../../../shared/composables/useSettingsPanel'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import { dailyTaskId } from '../../../shared/composables/goalSpace/date'
 import { useToday } from '../../../shared/composables/goalSpace/today'
@@ -37,6 +45,7 @@ const props = defineProps<{
 
 const actions = useTaskActions()
 const { settings } = useSettings()
+const settingsPanel = useSettingsPanel()
 
 // The real day, which moves on at midnight while the board stays open.
 const today = useToday()
@@ -53,6 +62,16 @@ const cards = computed(() =>
 const allCards = computed<BoardCardModel[]>(() =>
   Object.values(cards.value).flat(),
 )
+
+/** The "+ Column" tile hides once the project has its maximum of own columns. */
+const canAddColumn = computed(
+  () => (props.customColumns ?? []).length < BOARD_CUSTOM_COLUMN_LIMIT,
+)
+
+/** Columns are edited in the project's settings, next to the board switch. */
+function openColumnSettings() {
+  settingsPanel.open(SETTINGS_SECTION.PROJECT)
+}
 
 const { t } = useI18n()
 
@@ -188,102 +207,118 @@ function submitAdd() {
 
 <template>
   <section class="project-board" :aria-label="t('board.projectBoard')">
-    <div class="project-board__columns">
-      <section
-        v-for="column in columns"
-        :key="column.key"
-        class="board-column"
-        :class="{
-          'is-drop-target': drag.dropColumn.value === column.key,
-          'is-custom': column.custom,
-        }"
-        :data-board-column="column.key"
-        :aria-labelledby="`board-column-${column.key}`"
-      >
-        <header class="board-column__head">
-          <span class="board-column__dot" aria-hidden="true"></span>
-          <h3 :id="`board-column-${column.key}`">{{ columnTitle(column) }}</h3>
-          <span v-if="column.custom" class="board-column__tag">{{
-            t('board.customTag')
-          }}</span>
-          <span class="board-column__count">{{
-            cards[column.key]?.length ?? 0
-          }}</span>
-          <button
-            v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
-            type="button"
-            class="board-column__clear"
-            :title="t('board.clearDoneHint')"
-            @click="clearDone"
-          >
-            {{ t('board.clearDone') }}
-          </button>
-        </header>
-
-        <ul class="board-column__list">
-          <li v-for="card in cards[column.key] ?? []" :key="card.id">
-            <BoardCard
-              :card="card"
-              :columns="columns"
-              :drag="drag.forCard(card.id)"
-              :is-dragging="drag.draggingId.value === card.id"
-              @open="openCard(card)"
-              @move="(target) => moveCard(card.id, target)"
-              @save-notes="(notes) => actions.editNotes(card.templateId, notes)"
-              @delete="actions.remove(card.templateId)"
-            />
-          </li>
-        </ul>
-
-        <p
-          v-if="
-            !cards[column.key]?.length &&
-            !(column.key === BOARD_COLUMN.TODO && adding)
-          "
-          class="board-column__empty"
+    <div class="project-board__frame">
+      <div class="project-board__columns">
+        <section
+          v-for="column in columns"
+          :key="column.key"
+          class="board-column"
+          :class="{
+            'is-drop-target': drag.dropColumn.value === column.key,
+            'is-custom': column.custom,
+          }"
+          :data-board-column="column.key"
+          :aria-labelledby="`board-column-${column.key}`"
         >
-          {{ t(emptyTextKey(column.key)) }}
-        </p>
+          <header class="board-column__head">
+            <span class="board-column__dot" aria-hidden="true"></span>
+            <h3 :id="`board-column-${column.key}`">
+              {{ columnTitle(column) }}
+            </h3>
+            <span v-if="column.custom" class="board-column__tag">{{
+              t('board.customTag')
+            }}</span>
+            <span class="board-column__count">{{
+              cards[column.key]?.length ?? 0
+            }}</span>
+            <button
+              v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
+              type="button"
+              class="board-column__clear"
+              :title="t('board.clearDoneHint')"
+              @click="clearDone"
+            >
+              {{ t('board.clearDone') }}
+            </button>
+          </header>
 
-        <div v-if="column.key === BOARD_COLUMN.TODO" class="board-add">
-          <button
-            v-if="!adding"
-            type="button"
-            class="board-add__btn"
-            @click="startAdd"
-          >
-            {{ t('board.addTask') }}
-          </button>
+          <ul class="board-column__list">
+            <li v-for="card in cards[column.key] ?? []" :key="card.id">
+              <BoardCard
+                :card="card"
+                :columns="columns"
+                :drag="drag.forCard(card.id)"
+                :is-dragging="drag.draggingId.value === card.id"
+                @open="openCard(card)"
+                @move="(target) => moveCard(card.id, target)"
+                @save-notes="
+                  (notes) => actions.editNotes(card.templateId, notes)
+                "
+                @delete="actions.remove(card.templateId)"
+              />
+            </li>
+          </ul>
 
-          <form
-            v-else
-            class="board-add__form"
-            @submit.prevent="submitAdd"
-            @keydown.esc="stopAdd"
+          <p
+            v-if="
+              !cards[column.key]?.length &&
+              !(column.key === BOARD_COLUMN.TODO && adding)
+            "
+            class="board-column__empty"
           >
-            <input
-              v-model="draft"
-              type="text"
-              maxlength="200"
-              :placeholder="t('board.taskTitle')"
-              :aria-label="t('board.newTaskTitle')"
-              autofocus
-            />
-            <div class="board-add__actions">
-              <button
-                type="submit"
-                class="btn btn-primary"
-                :disabled="!draft.trim()"
-              >
-                {{ t('common.add') }}
-              </button>
-              <button type="button" class="btn btn-ghost" @click="stopAdd">
-                {{ t('common.close') }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </section>
+            {{ t(emptyTextKey(column.key)) }}
+          </p>
+
+          <div v-if="column.key === BOARD_COLUMN.TODO" class="board-add">
+            <button
+              v-if="!adding"
+              type="button"
+              class="board-add__btn"
+              @click="startAdd"
+            >
+              {{ t('board.addTask') }}
+            </button>
+
+            <form
+              v-else
+              class="board-add__form"
+              @submit.prevent="submitAdd"
+              @keydown.esc="stopAdd"
+            >
+              <input
+                v-model="draft"
+                type="text"
+                maxlength="200"
+                :placeholder="t('board.taskTitle')"
+                :aria-label="t('board.newTaskTitle')"
+                autofocus
+              />
+              <div class="board-add__actions">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  :disabled="!draft.trim()"
+                >
+                  {{ t('common.add') }}
+                </button>
+                <button type="button" class="btn btn-ghost" @click="stopAdd">
+                  {{ t('common.close') }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <button
+        v-if="canAddColumn"
+        type="button"
+        class="board-add-column"
+        :aria-label="t('board.addColumn')"
+        @click="openColumnSettings"
+      >
+        + {{ t('board.addColumn') }}
+      </button>
     </div>
 
     <DragGhost

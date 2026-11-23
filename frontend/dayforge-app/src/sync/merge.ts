@@ -32,7 +32,7 @@ export type DailyFieldGroup =
 
 const DAILY_GROUP_FIELDS: Record<DailyFieldGroup, string[]> = {
   status: ['status', 'completedAt'],
-  time: ['startTime', 'endTime'],
+  time: ['startTime', 'endTime', 'reminderMinutes'],
   date: ['date'],
 }
 

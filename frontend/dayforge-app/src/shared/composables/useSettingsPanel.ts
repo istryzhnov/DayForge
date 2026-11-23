@@ -12,6 +12,7 @@ export const SETTINGS_SECTION = {
   BEHAVIOR: 'behavior',
   FORMAT: 'format',
   CLIENTS: 'clients',
+  MODULES: 'modules',
   DATA: 'data',
 } as const
 
@@ -64,6 +65,13 @@ export const SETTINGS_SECTIONS: SettingsSectionMeta[] = [
     icon: 'ruler',
     labelKey: 'settings.sectionWorkspace',
     descriptionKey: 'settings.sectionWorkspaceHint',
+  },
+  {
+    id: SETTINGS_SECTION.MODULES,
+    group: SETTINGS_GROUP.PLANNER,
+    icon: 'modules',
+    labelKey: 'modules.sectionName',
+    descriptionKey: 'modules.sectionHint',
   },
   {
     id: SETTINGS_SECTION.REMINDERS,

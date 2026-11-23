@@ -1,10 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import ProjectIcon from '../../../shared/ui/ProjectIcon.vue'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
 import { useGoalPanelHeader } from '../composables/useGoalPanelHeader'
+import { useToday } from '../../../shared/composables/goalSpace/today'
+import {
+  capitalizeFirst,
+  panelDateLabel,
+} from '../../../shared/composables/panelDateLabel'
 import type { PanelStats } from '../composables/projectPanelStats'
 import ProjectToolbar from './ProjectToolbar.vue'
 import ProjectBudgetChip from './ProjectBudgetChip.vue'
@@ -37,6 +43,18 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
   useGoalPanelHeader(props)
+
+/** Today's date over the heading; only the phone layout shows it. */
+const today = useToday()
+const todayLine = computed(() =>
+  capitalizeFirst(
+    panelDateLabel(today.value, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    }),
+  ),
+)
 </script>
 
 <template>
@@ -59,6 +77,7 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
       </span>
 
       <div class="goal-panel-header__text">
+        <p class="goal-panel-header__date">{{ todayLine }}</p>
         <div class="goal-panel-header__title">
           <h1>{{ title }}</h1>
           <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>

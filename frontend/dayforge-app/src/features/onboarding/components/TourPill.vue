@@ -10,6 +10,13 @@ const { t } = useI18n()
 const { running, chapterTitleKey, stepNumber, stepCount, reopen } = useTour()
 
 const chapterName = computed(() => t(chapterTitleKey.value))
+
+/** How far through the chapter the pill's bar should show. */
+const progress = computed(() =>
+  stepCount.value > 0
+    ? Math.round((stepNumber.value / stepCount.value) * 100)
+    : 0,
+)
 </script>
 
 <template>
@@ -29,5 +36,8 @@ const chapterName = computed(() => t(chapterTitleKey.value))
     <AppIcon name="target" :size="14" />
     <span class="tour-pill__label">{{ chapterName }}</span>
     <span class="tour-pill__count">· {{ stepNumber }}/{{ stepCount }}</span>
+    <span class="tour-pill__bar" aria-hidden="true">
+      <span class="tour-pill__fill" :style="{ width: `${progress}%` }"></span>
+    </span>
   </button>
 </template>

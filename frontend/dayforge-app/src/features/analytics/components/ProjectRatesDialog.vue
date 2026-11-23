@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Goal } from '../../../entities/GoalEntity'
 import type { ID } from '../../../entities/types'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
 import { ProjectRateEditor } from '../../settings'
 
@@ -15,6 +17,8 @@ const emit = defineEmits<{
 }>()
 
 useFocusTrap({ onEscape: () => emit('close') })
+
+const showInfo = ref(false)
 </script>
 
 <template>
@@ -27,7 +31,19 @@ useFocusTrap({ onEscape: () => emit('close') })
       aria-labelledby="project-rates-title"
     >
       <h3 id="project-rates-title">{{ t('analytics.ratesTitle') }}</h3>
-      <p class="settings-group-hint">{{ t('analytics.ratesHint') }}</p>
+      <button
+        type="button"
+        class="ui-icon-btn"
+        :title="t('common.aboutThis')"
+        :aria-label="t('common.aboutThis')"
+        :aria-expanded="showInfo"
+        @click="showInfo = !showInfo"
+      >
+        <AppIcon name="info" :size="16" />
+      </button>
+      <p v-if="showInfo" class="settings-group-hint">
+        {{ t('analytics.ratesHint') }}
+      </p>
 
       <div v-for="goal in goals" :key="goal.id" class="project-rates__row">
         <span class="project-rates__name">{{ goal.title }}</span>

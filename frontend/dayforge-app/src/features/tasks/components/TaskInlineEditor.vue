@@ -37,6 +37,9 @@ onMounted(() => {
     {
       startTime: props.node.task.startTime,
       endTime: props.node.task.endTime,
+      reminderMinutes: props.node.template
+        ? props.node.template.reminderMinutes
+        : props.node.task.reminderMinutes,
       recurrence: props.node.template?.recurrence,
     },
     { enable: props.openScheduled },

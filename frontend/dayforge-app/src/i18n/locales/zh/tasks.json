@@ -119,5 +119,9 @@
   "recurrenceWeeklyOn": "每周 · {days}",
   "recurrenceMonthly": "每月",
   "recurrenceMonthlyOn": "每月 · 第 {days} 天",
-  "recurrenceRepeats": "重复"
+  "recurrenceRepeats": "重复",
+  "reminderLabel": "提醒",
+  "reminderDefault": "与设置相同",
+  "reminderOff": "关闭",
+  "reminderBefore": "提前 {minutes} 分钟"
 }
