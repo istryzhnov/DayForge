@@ -136,7 +136,8 @@ export const FONT_OPTION = {
 export type FontOption = (typeof FONT_OPTION)[keyof typeof FONT_OPTION]
 
 export const FONT_STACKS: Record<FontOption, string> = {
-  [FONT_OPTION.MANROPE]: "'Manrope Variable', 'Manrope', 'Segoe UI', sans-serif",
+  [FONT_OPTION.MANROPE]:
+    "'Manrope Variable', 'Manrope', 'Segoe UI', sans-serif",
   [FONT_OPTION.SYSTEM]: "'Segoe UI', system-ui, -apple-system, sans-serif",
   [FONT_OPTION.SERIF]: "'Iowan Old Style', Georgia, 'Times New Roman', serif",
   [FONT_OPTION.MONO]: "'JetBrains Mono', 'Cascadia Mono', Consolas, monospace",

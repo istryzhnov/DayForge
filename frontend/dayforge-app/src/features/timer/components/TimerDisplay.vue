@@ -32,6 +32,12 @@ const percent = computed(() => `${clamped.value * 100}%`)
       viewBox="0 0 120 120"
       aria-hidden="true"
     >
+      <defs>
+        <linearGradient id="timer-ring-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" style="stop-color: var(--accent)" />
+          <stop offset="100%" style="stop-color: var(--major)" />
+        </linearGradient>
+      </defs>
       <circle class="timer-display__track" cx="60" cy="60" :r="RADIUS" />
       <circle
         class="timer-display__progress"
