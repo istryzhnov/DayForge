@@ -20,6 +20,12 @@ const CURSOR_OVERLAP_MS = 30_000
 
 const MISSING_TABLE_CODES = new Set(['42P01', 'PGRST205'])
 
+/** The one-call pull (supabase/schema.sql, section 8). */
+const PULL_CHANGES_RPC = 'pull_changes'
+
+/** The function is not there: a project that has not run its migration yet. */
+const MISSING_FUNCTION_CODES = new Set(['PGRST202', '42883'])
+
 function withOverlap(since: string | null): string | null {
   if (since === null) return null
   const at = Date.parse(since)
@@ -70,6 +76,48 @@ function isRetryable(
 
 function errorMessage(error: { message?: string } | null): string {
   return error?.message ?? 'unknown error'
+}
+
+/** What `pull_changes` returns; each list holds at most `max_rows + 1`. */
+interface PulledChanges {
+  tables: Partial<Record<string, StoredRow[]>>
+  deletions: StoredDeletion[]
+}
+
+/** The row the app reads is the payload; the columns are just an index. */
+function toSyncedRows(rows: StoredRow[]): {
+  rows: SyncedRow[]
+  cursor: string | null
+} {
+  let cursor: string | null = null
+  const synced = rows.map((row) => {
+    if (cursor === null || row.updated_at > cursor) cursor = row.updated_at
+    return { ...row.data, id: row.id }
+  })
+  return { rows: synced, cursor }
+}
+
+function toTombstones(deletions: StoredDeletion[]): {
+  tombstones: Tombstone[]
+  cursor: string | null
+} {
+  const stored = deletions.filter((row) =>
+    (SYNC_TABLES as string[]).includes(row.table_name),
+  )
+
+  let cursor: string | null = null
+  stored.forEach((row) => {
+    if (cursor === null || row.synced_at > cursor) cursor = row.synced_at
+  })
+
+  return {
+    tombstones: stored.map((row) => ({
+      table: row.table_name as TableName,
+      id: row.row_id,
+      deletedAt: row.deleted_at,
+    })),
+    cursor,
+  }
 }
 
 export interface SupabaseTransportDeps {
@@ -243,9 +291,7 @@ export function createSupabaseTransport(
     userId: string,
     since: string | null,
   ): Promise<{ rows: SyncedRow[]; cursor: string | null }> {
-    const collected: SyncedRow[] = []
-    let cursor: string | null = null
-
+    const collected: StoredRow[] = []
     let last: StoredRow | null = null
 
     for (;;) {
@@ -279,17 +325,13 @@ export function createSupabaseTransport(
       }
 
       const rows = (data ?? []) as StoredRow[]
-      rows.forEach((row) => {
-        // The row the app reads is the payload; the columns are just an index.
-        collected.push({ ...row.data, id: row.id })
-        if (cursor === null || row.updated_at > cursor) cursor = row.updated_at
-      })
+      collected.push(...rows)
 
       if (rows.length < PAGE_SIZE) break
       last = rows[rows.length - 1]
     }
 
-    return { rows: collected, cursor }
+    return toSyncedRows(collected)
   }
 
   async function pullDeletions(
@@ -318,28 +360,74 @@ export function createSupabaseTransport(
       if (rows.length < PAGE_SIZE) break
     }
 
-    const stored = fetched.filter((row) =>
-      (SYNC_TABLES as string[]).includes(row.table_name),
-    )
+    return toTombstones(fetched)
+  }
 
+  /** Set once the server says it has no `pull_changes`; asked again on reload. */
+  let rpcMissing = false
+
+  /**
+   * Everything newer than `since` in one request instead of seven. Null when
+   * this pull has to go table by table: the function is not deployed, a table
+   * it reads is missing, or some list filled up and needs paging.
+   */
+  async function pullInOneCall(since: string): Promise<PullResult | null> {
+    if (rpcMissing) return null
+
+    const { data, error } = await client.rpc(PULL_CHANGES_RPC, {
+      since,
+      max_rows: PAGE_SIZE,
+    })
+    if (error) {
+      const code = error.code ?? ''
+      if (MISSING_FUNCTION_CODES.has(code)) {
+        rpcMissing = true
+        return null
+      }
+      if (MISSING_TABLE_CODES.has(code)) return null
+      throw new Error(errorMessage(error))
+    }
+
+    const changes = data as PulledChanges | null
+    if (!changes || typeof changes !== 'object') return null
+
+    const deletionList = changes.deletions ?? []
+    const lists = SYNC_TABLES.map((table) => changes.tables?.[table] ?? [])
+    if (
+      deletionList.length > PAGE_SIZE ||
+      lists.some((list) => list.length > PAGE_SIZE)
+    ) {
+      return null
+    }
+
+    const rows: Partial<Record<TableName, SyncedRow[]>> = {}
     let cursor: string | null = null
-    stored.forEach((row) => {
-      if (cursor === null || row.synced_at > cursor) cursor = row.synced_at
+    const advance = (stamp: string | null) => {
+      if (stamp !== null && (cursor === null || stamp > cursor)) cursor = stamp
+    }
+
+    SYNC_TABLES.forEach((table, index) => {
+      const result = toSyncedRows(lists[index])
+      rows[table] = result.rows
+      advance(result.cursor)
     })
 
-    return {
-      tombstones: stored.map((row) => ({
-        table: row.table_name as TableName,
-        id: row.row_id,
-        deletedAt: row.deleted_at,
-      })),
-      cursor,
-    }
+    const deletions = toTombstones(deletionList)
+    advance(deletions.cursor)
+
+    return { rows, tombstones: deletions.tombstones, cursor }
   }
 
   async function pull(since: string | null): Promise<PullResult> {
     const userId = requireUser()
     const from = withOverlap(since)
+
+    // The usual case: a device that has pulled before asks what is new.
+    if (from !== null) {
+      const quick = await pullInOneCall(from)
+      if (quick) return quick
+    }
+
     const rows: Partial<Record<TableName, SyncedRow[]>> = {}
     let cursor: string | null = null
 

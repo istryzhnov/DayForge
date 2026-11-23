@@ -6,6 +6,12 @@ merged into `main`, newest first. The format follows
 
 ## Unreleased
 
+### Changed
+
+- Sync polls every 5 min instead of every 30 s while the Realtime channel is live, and asks for
+  all changes in one `pull_changes()` request instead of seven. Run
+  `supabase/migrations/2026-11-23-pull-changes.sql` on an existing project to use it.
+
 ### Documentation
 
 - Project guide: README, architecture, contributing, backend setup and this changelog.

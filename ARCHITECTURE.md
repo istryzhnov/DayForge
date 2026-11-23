@@ -250,9 +250,12 @@ sequenceDiagram
   deletes in the outbox. The outbox keeps the order of edits, survives a reload, retries with
   backoff (1 s up to 5 min) when offline or on a transient error, and moves writes the server
   rejects to a dead-letter list that can be retried from the UI.
-- **Pull.** Rows newer than the stored cursor (the server clock, with a 30 s overlap) are pulled
-  with keyset paging, then merged into the local lists. Realtime notifications only trigger a
-  pull; they carry no data the app trusts.
+- **Pull.** Rows newer than the stored cursor (the server clock, with a 30 s overlap) are pulled,
+  then merged into the local lists. A device that has pulled before asks `pull_changes()` for
+  every table and the deletions in one request; the first pull, a delta longer than a page, or a
+  project without the function goes table by table with keyset paging. Realtime notifications
+  only trigger a pull; they carry no data the app trusts. While the channel is live, the timed
+  pull runs every 5 min (15 min in a hidden tab); without it, every 30 s (2 min hidden).
 - **Merge.** The newer `updatedAt` wins, but per **field group**, not per row: ticking a task
   off on the phone and moving it in the calendar on the laptop are both kept (`status`, `time`
   and `date` groups on a day; `details`, `look`, `money`, `board`, `order` on a project, and so

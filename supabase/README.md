@@ -9,6 +9,7 @@ our own.
 | `schema.sql`                               | the whole schema; safe to run again                  |
 | `migrations/2026-10-25-delete-account.sql` | `delete_my_account()` on its own, for older projects |
 | `migrations/2026-10-26-web-push.sql`       | push tables and the 5-minute schedule                |
+| `migrations/2026-11-23-pull-changes.sql`   | `pull_changes()` on its own, for older projects      |
 | `functions/push-reminders/index.ts`        | Edge Function that sends due reminders               |
 | `functions/push-reminders/rules.ts`        | which reminders are due; the same rules as the app   |
 
@@ -19,8 +20,13 @@ How the tables, triggers and merge work is explained in [ARCHITECTURE.md](../ARC
 1. Create a Supabase project.
 2. Open the SQL editor and run `schema.sql` as a whole. It creates the six row tables
    (`goals`, `task_templates`, `daily_tasks`, `time_entries`, `settings`, `active_timer`), the
-   `deletions` table, Row Level Security policies, triggers, Realtime publication and
-   `delete_my_account()`. Running it again is harmless.
+   `deletions` table, Row Level Security policies, triggers, Realtime publication,
+   `delete_my_account()` and `pull_changes()`. Running it again is harmless.
+
+   A project set up before `pull_changes()` existed only needs
+   `migrations/2026-11-23-pull-changes.sql`. The app works without it, but then every sync
+   costs seven requests instead of one.
+
 3. Copy the project URL and the anon (public) key into `frontend/dayforge-app/.env.local`:
 
    ```
