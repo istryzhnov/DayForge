@@ -15,6 +15,8 @@ const props = defineProps<{
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
+  /** Formatted earnings for a day, or `null` when there's nothing to show. */
+  earnedLabel?: (date: ISODate) => string | null
 }>()
 
 const emit = defineEmits<{
@@ -93,6 +95,12 @@ function hiddenCount(day: MonthDayCell) {
           <span v-if="day.totalCount" class="calendar-month__day-count">
             {{ day.doneCount }}/{{ day.totalCount }}
           </span>
+        </span>
+        <span
+          v-if="earnedLabel?.(day.date)"
+          class="calendar-day-money calendar-month__day-money"
+        >
+          +{{ earnedLabel(day.date) }}
         </span>
 
         <span class="calendar-month__events">

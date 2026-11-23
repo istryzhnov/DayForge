@@ -82,6 +82,14 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
             })
           }}</span>
         </li>
+        <li
+          v-if="stats.earnedToday !== null"
+          class="goal-panel-stats__item goal-panel-stats__item--money"
+        >
+          <span class="ui-oneline">{{
+            t('goals.earnedToday', { amount: stats.earnedToday })
+          }}</span>
+        </li>
         <li v-if="stats.streakDays !== null" class="goal-panel-stats__item">
           <AppIcon name="flame" :size="14" />
           <span class="ui-oneline">{{

@@ -23,6 +23,8 @@ export type PanelStats = {
   /** Full days in a row; `null` hides the item when there are no habits. */
   streakDays: number | null
   trackedMs: number
+  /** Money earned today, formatted; `null` hides it when no rate is set. */
+  earnedToday: string | null
 }
 
 /** Time booked this month, to one project or to all of them when `goalId` is null. */

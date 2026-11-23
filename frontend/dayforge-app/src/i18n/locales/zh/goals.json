@@ -5,6 +5,7 @@
   "projectNotes": "项目备注",
   "showingDay": "正在查看 {day}。返回今天",
   "todayStat": "今天 {done}/{total}",
+  "earnedToday": "今天 +{amount}",
   "streakDays": "连续 {n} 天",
   "trackedThisMonth": "本月 {time}",
   "projectSettings": "项目设置",

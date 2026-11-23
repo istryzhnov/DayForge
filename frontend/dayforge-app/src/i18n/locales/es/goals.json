@@ -5,6 +5,7 @@
   "projectNotes": "Notas del proyecto",
   "showingDay": "Mostrando {day}. Volver a hoy",
   "todayStat": "{done}/{total} hoy",
+  "earnedToday": "+{amount} hoy",
   "streakDays": "{n} día | {n} días",
   "trackedThisMonth": "{time} este mes",
   "projectSettings": "Ajustes del proyecto",

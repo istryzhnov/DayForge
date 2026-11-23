@@ -511,3 +511,25 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* Today's earnings in the project header: only there once a rate is set. */
+.goal-panel-stats__item--money {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* A day's earnings in the calendar: amber mono, only on days that earned. */
+.calendar-day-money {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.calendar-month__day-money {
+  display: block;
+  text-align: left;
+}
