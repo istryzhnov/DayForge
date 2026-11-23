@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { reportUserAction } from '../../../shared/composables/userActions'
 import ComposerToggleSection from './ComposerToggleSection.vue'
 import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
@@ -12,6 +14,8 @@ import {
 } from '../composables/useTaskScheduleState'
 
 const { t } = useI18n()
+
+const showInfo = ref(false)
 
 // Owned by the parent when it binds `enabled`, otherwise kept here.
 const isEnabled = defineModel<boolean>('enabled', { default: false })
@@ -133,15 +137,27 @@ defineExpose({ buildSchedule, load, reset, isValid, isEnabled })
       </DisclosureSection>
 
       <p v-if="error" class="task-schedule__error">{{ error }}</p>
-      <p v-else-if="isAnnual" class="task-schedule__hint">
-        {{ t('tasks.hintAnnual') }}
-      </p>
-      <p v-else-if="isRepeating" class="task-schedule__hint">
-        {{ t('tasks.hintRepeats', { date }) }}
-      </p>
-      <p v-else class="task-schedule__hint">
-        {{ t('tasks.hintOnce', { date }) }}
-      </p>
+      <template v-else>
+        <button
+          type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+        <p v-if="showInfo && isAnnual" class="task-schedule__hint">
+          {{ t('tasks.hintAnnual') }}
+        </p>
+        <p v-else-if="showInfo && isRepeating" class="task-schedule__hint">
+          {{ t('tasks.hintRepeats', { date }) }}
+        </p>
+        <p v-else-if="showInfo" class="task-schedule__hint">
+          {{ t('tasks.hintOnce', { date }) }}
+        </p>
+      </template>
     </div>
   </ComposerToggleSection>
 </template>

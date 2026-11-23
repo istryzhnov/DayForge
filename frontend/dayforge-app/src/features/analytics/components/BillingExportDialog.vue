@@ -7,6 +7,7 @@ import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { ID, ISODate } from '../../../entities/types'
 import { NO_PROJECT_KEY } from '../../../shared/composables/timer/analytics'
 import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
 import {
@@ -102,6 +103,8 @@ const money = computed(
     }),
 )
 
+const showInfo = ref(false)
+
 const summaryLabel = computed(() =>
   t('analytics.exportSummary', {
     entries: t('analytics.entryCount', lines.value.length),
@@ -181,7 +184,19 @@ function handleExport() {
         }}
       </p>
 
-      <p class="sidebar-caption">{{ t('analytics.formatLabel') }}</p>
+      <p class="sidebar-caption">
+        {{ t('analytics.formatLabel') }}
+        <button
+          type="button"
+          class="ui-icon-btn"
+          :title="t('common.aboutThis')"
+          :aria-label="t('common.aboutThis')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+      </p>
       <div class="settings-chips">
         <button
           class="theme-chip"
@@ -219,7 +234,7 @@ function handleExport() {
 
       <p class="billing-export__summary">{{ summaryLabel }}</p>
 
-      <p class="project-billing__note">
+      <p v-if="showInfo" class="project-billing__note">
         <template v-if="format === 'csv'">{{
           t('analytics.csvNote')
         }}</template>

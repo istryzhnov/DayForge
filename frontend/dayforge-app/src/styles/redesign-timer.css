@@ -162,7 +162,7 @@
   color: var(--ring-check);
   font-size: calc(1.0625rem * var(--text-scale));
   box-shadow:
-    0 12px 30px color-mix(in srgb, var(--accent) 30%, transparent),
+    0 0.75rem 1.875rem color-mix(in srgb, var(--accent) 30%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--text) 35%, transparent);
 }
 

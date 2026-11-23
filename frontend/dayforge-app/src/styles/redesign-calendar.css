@@ -95,7 +95,7 @@
 
 .calendar-filter__badge {
   background: var(--accent);
-  box-shadow: 0 0 0 2px var(--panel);
+  box-shadow: 0 0 0 0.125rem var(--panel);
 }
 
 /* Filter popover: dark glass, sitting over the calendar. */
@@ -106,9 +106,9 @@
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
   border-radius: calc(18px * var(--radius-scale));
   background: color-mix(in srgb, var(--panel-soft) 92%, transparent);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
-  box-shadow: 0 1.25rem 2.75rem color-mix(in srgb, #000 50%, transparent);
+  backdrop-filter: blur(1.5rem) saturate(160%);
+  -webkit-backdrop-filter: blur(1.5rem) saturate(160%);
+  box-shadow: 0 1.25rem 2.75rem color-mix(in srgb, var(--bg) 50%, transparent);
 }
 
 .calendar-filter__section {

@@ -90,7 +90,7 @@
   border-color: color-mix(in srgb, var(--text) 9%, transparent);
   border-radius: calc(16px * var(--radius-scale));
   background: var(--glass-sheen), var(--glass-bg-strong);
-  box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, #000 18%, transparent);
+  box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--bg) 18%, transparent);
 }
 
 .board-card__body {
@@ -159,7 +159,7 @@
     var(--glass-bg-strong);
   box-shadow:
     0 0 1.625rem color-mix(in srgb, var(--accent) 14%, transparent),
-    0 0.5rem 1.25rem color-mix(in srgb, #000 18%, transparent);
+    0 0.5rem 1.25rem color-mix(in srgb, var(--bg) 18%, transparent);
 }
 
 .board-card.is-timing.is-dragging {

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import { useFocusTrap } from '../../../shared/composables/useFocusTrap'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { useSettings } from '../../../shared/composables/useSettings'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
@@ -27,6 +28,8 @@ const emit = defineEmits<{
 const { settings } = useSettings()
 const { t } = useI18n()
 useFocusTrap({ onEscape: () => emit('close') })
+
+const showInfo = ref(false)
 
 const currency = computed(() => settings.timer.currency)
 const trackedLabel = computed(() =>
@@ -65,7 +68,19 @@ function clear() {
       @submit.prevent="save"
     >
       <h3 id="project-billing-title">{{ goal.title }}</h3>
-      <p class="project-billing__note">{{ t('analytics.billingNote') }}</p>
+      <button
+        type="button"
+        class="ui-icon-btn"
+        :title="t('common.aboutThis')"
+        :aria-label="t('common.aboutThis')"
+        :aria-expanded="showInfo"
+        @click="showInfo = !showInfo"
+      >
+        <AppIcon name="info" :size="16" />
+      </button>
+      <p v-if="showInfo" class="project-billing__note">
+        {{ t('analytics.billingNote') }}
+      </p>
 
       <label class="project-billing__field">
         <span>{{ t('analytics.fixedPriceLabel', { currency }) }}</span>
@@ -78,7 +93,7 @@ function clear() {
           :placeholder="t('analytics.pricedByHours')"
           @input="error = ''"
         />
-        <em>{{ t('analytics.fixedPriceHint') }}</em>
+        <em v-if="showInfo">{{ t('analytics.fixedPriceHint') }}</em>
       </label>
 
       <label class="project-billing__field">
@@ -92,7 +107,9 @@ function clear() {
           :placeholder="t('analytics.trackedTime')"
           @input="error = ''"
         />
-        <em>{{ t('analytics.hoursHint', { tracked: trackedLabel }) }}</em>
+        <em v-if="showInfo">{{
+          t('analytics.hoursHint', { tracked: trackedLabel })
+        }}</em>
       </label>
 
       <label class="project-billing__field">
