@@ -16,6 +16,7 @@ import {
   occursOn,
 } from '../../../shared/composables/goalSpace/recurrence'
 import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 import { sortTasks } from '../../../shared/composables/goalSpace/taskOrder'
 
 /**
@@ -40,49 +41,92 @@ export const BOARD_COLUMN = {
   DONE: 'done',
 } as const
 
-export type BoardColumn = (typeof BOARD_COLUMN)[keyof typeof BOARD_COLUMN]
+/** A built-in column, or the id of a column the project added itself. */
+export type BoardColumn = string
 
-/** `titleKey` is a message key, rendered with t() where the column is shown. */
-export const BOARD_COLUMNS: ReadonlyArray<{
+/**
+ * A column as the board draws it. Built-in ones carry a message key
+ * (`titleKey`, rendered with t()); a project's own carry their typed `title`.
+ */
+export interface BoardColumnDef {
   key: BoardColumn
-  titleKey: string
-}> = [
-  { key: BOARD_COLUMN.TODO, titleKey: 'board.columnTodo' },
-  { key: BOARD_COLUMN.DOING, titleKey: 'board.columnDoing' },
-  { key: BOARD_COLUMN.DONE, titleKey: 'board.columnDone' },
+  titleKey?: string
+  title?: string
+  custom: boolean
+}
+
+/** The three built-in columns, in order. */
+export const BOARD_COLUMNS: ReadonlyArray<BoardColumnDef> = [
+  { key: BOARD_COLUMN.TODO, titleKey: 'board.columnTodo', custom: false },
+  { key: BOARD_COLUMN.DOING, titleKey: 'board.columnDoing', custom: false },
+  { key: BOARD_COLUMN.DONE, titleKey: 'board.columnDone', custom: false },
 ]
+
+/**
+ * A project's board, left to right: To do, In progress, then its own columns
+ * (stages between working on something and finishing it), then Done.
+ */
+export function boardColumnsFor(
+  custom: ReadonlyArray<BoardCustomColumn> = [],
+): BoardColumnDef[] {
+  return [
+    BOARD_COLUMNS[0],
+    BOARD_COLUMNS[1],
+    ...custom.map((column) => ({
+      key: column.id,
+      title: column.title,
+      custom: true,
+    })),
+    BOARD_COLUMNS[2],
+  ]
+}
 
 /** How far ahead a repeating task is searched for its next occurrence. */
 const NEXT_OCCURRENCE_SEARCH_DAYS = 800
 
-export function isBoardColumn(value: unknown): value is BoardColumn {
+/** Whether a value names one of this board's columns. */
+export function isBoardColumn(
+  value: unknown,
+  customIds: ReadonlyArray<string> = [],
+): value is BoardColumn {
   return (
     value === BOARD_COLUMN.TODO ||
     value === BOARD_COLUMN.DOING ||
-    value === BOARD_COLUMN.DONE
+    value === BOARD_COLUMN.DONE ||
+    (typeof value === 'string' && customIds.includes(value))
   )
 }
 
-/** A missing or unrecognised stage counts as "todo". */
-export function stageOf(template: TaskTemplate | undefined): BoardStage {
-  return template?.boardStage === BOARD_STAGE.DOING
-    ? BOARD_STAGE.DOING
-    : BOARD_STAGE.TODO
+/**
+ * A task's open stage: "doing", one of the project's own column ids, or
+ * "todo". A missing or unrecognised stage — say, a column that was removed on
+ * another device — counts as "todo".
+ */
+export function stageOf(
+  template: TaskTemplate | undefined,
+  customIds: ReadonlyArray<string> = [],
+): BoardStage | string {
+  const stage = template?.boardStage
+  if (stage === BOARD_STAGE.DOING) return BOARD_STAGE.DOING
+  if (stage !== undefined && customIds.includes(stage)) return stage
+  return BOARD_STAGE.TODO
 }
 
 /** Column of an open (not done) task. */
-export function openColumnOf(template: TaskTemplate | undefined): BoardColumn {
-  return stageOf(template) === BOARD_STAGE.DOING
-    ? BOARD_COLUMN.DOING
-    : BOARD_COLUMN.TODO
+export function openColumnOf(
+  template: TaskTemplate | undefined,
+  customIds: ReadonlyArray<string> = [],
+): BoardColumn {
+  return stageOf(template, customIds)
 }
 
 export function columnOf(
   row: DailyTask,
   template: TaskTemplate | undefined,
+  customIds: ReadonlyArray<string> = [],
 ): BoardColumn {
   if (row.status === TASK_STATUS.DONE) return BOARD_COLUMN.DONE
-  return openColumnOf(template)
+  return openColumnOf(template, customIds)
 }
 
 export interface BoardCard {
@@ -113,7 +157,12 @@ export interface BoardCard {
   subtasksTotal: number
 }
 
-export type BoardCards = Record<BoardColumn, BoardCard[]>
+/** Cards per column; the built-in three are always present. */
+export type BoardCards = Record<BoardColumn, BoardCard[]> & {
+  todo: BoardCard[]
+  doing: BoardCard[]
+  done: BoardCard[]
+}
 
 interface TaskState {
   date?: ISODate
@@ -209,6 +258,7 @@ export function buildBoardCards(
   rows: DailyTask[],
   templates: TaskTemplate[],
   today: ISODate,
+  customIds: ReadonlyArray<string> = [],
 ): BoardCards {
   const templateIds = new Set(templates.map((item) => item.id))
   const drawnRank = new Map(
@@ -233,6 +283,9 @@ export function buildBoardCards(
   })
 
   const cards: BoardCards = { todo: [], doing: [], done: [] }
+  customIds.forEach((id) => {
+    cards[id] = []
+  })
 
   templates.forEach((template) => {
     if (!template.isActive) return
@@ -258,7 +311,9 @@ export function buildBoardCards(
       stateOf(child, rowsByTemplate.get(child.id) ?? [], today),
     )
 
-    const column = state.done ? BOARD_COLUMN.DONE : openColumnOf(template)
+    const column = state.done
+      ? BOARD_COLUMN.DONE
+      : openColumnOf(template, customIds)
 
     cards[column].push({
       id: template.id,
@@ -300,9 +355,9 @@ export function buildBoardCards(
     return drawnFirst(a, b)
   }
 
-  cards.todo.sort(byDue)
-  cards.doing.sort(byDue)
-  cards.done.sort(byCompletion)
+  Object.entries(cards).forEach(([key, list]) => {
+    list.sort(key === BOARD_COLUMN.DONE ? byCompletion : byDue)
+  })
 
   return cards
 }
@@ -314,7 +369,7 @@ export interface BoardMovePlan {
    * The template's new stage. `null` means back to the default ("todo") and
    * `undefined` means leave the stage alone.
    */
-  stage?: BoardStage | null
+  stage?: BoardStage | string | null
 }
 
 /**
@@ -335,6 +390,6 @@ export function planBoardMove(
 
   return {
     toggleDone: card.done,
-    stage: column === BOARD_COLUMN.DOING ? BOARD_STAGE.DOING : null,
+    stage: column === BOARD_COLUMN.TODO ? null : column,
   }
 }

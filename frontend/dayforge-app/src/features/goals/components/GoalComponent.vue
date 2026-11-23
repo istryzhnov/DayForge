@@ -154,6 +154,7 @@ const projectColor = computed(() =>
       v-if="showBoard"
       :rows="dailyTasks"
       :templates="boardTemplates"
+      :custom-columns="goal?.boardColumns ?? []"
     />
 
     <TaskList

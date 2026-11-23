@@ -377,7 +377,10 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     reportUserAction(enabled ? 'board-shown' : 'list-shown', { goalId })
   }
 
-  function handleSetBoardStage(templateId: ID, stage: BoardStage | undefined) {
+  function handleSetBoardStage(
+    templateId: ID,
+    stage: BoardStage | string | undefined,
+  ) {
     goalSpace.setTaskBoardStage(templateId, stage)
     reportUserAction('card-moved', { templateId, stage })
   }
@@ -453,6 +456,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     updateBudget: projectBudget.updateGoalBudget,
     updateClient: goalSpace.updateGoalClient,
     setBoard: handleChangeGoalBoard,
+    setBoardColumns: goalSpace.setGoalBoardColumns,
     remove: handleDeleteGoal,
   })
 

@@ -37,7 +37,8 @@ export interface TaskTemplate {
    * Which open column of the project board holds this task. Absent means
    * "todo". Done is not stored here: it is the row's own status.
    */
-  boardStage?: BoardStage
+  /** A built-in open column ("doing") or the id of the project's own column. */
+  boardStage?: BoardStage | (string & {})
   /**
    * When the board's Done column was last cleared for this task. A done card
    * is hidden while its completion is not later than this. Clearing only

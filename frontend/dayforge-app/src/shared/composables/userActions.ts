@@ -44,7 +44,7 @@ export interface UserActionPayload {
   parentTemplateId?: ID
   taskId?: ID
   /** Undefined means the card went back to To do. */
-  stage?: BoardStage
+  stage?: BoardStage | string
   /** The view that was opened, e.g. analytics. */
   view?: string
   /** A task was added with a date and time. */

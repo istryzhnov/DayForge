@@ -22,6 +22,9 @@ export const BOARD_STAGE = {
 
 export type BoardStage = (typeof BOARD_STAGE)[keyof typeof BOARD_STAGE]
 
+/** How many columns of its own one project's board may add. */
+export const BOARD_CUSTOM_COLUMN_LIMIT = 4
+
 export const GOAL_STATUS = {
   ACTIVE: 'active',
   PAUSED: 'paused',

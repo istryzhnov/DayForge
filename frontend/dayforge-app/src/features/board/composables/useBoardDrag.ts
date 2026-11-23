@@ -1,7 +1,7 @@
 import { onUnmounted, ref } from 'vue'
 import type { ID } from '../../../entities/types'
 import type { GesturePoint } from '../../../shared/composables/usePressGesture'
-import { isBoardColumn, type BoardColumn } from './boardModel'
+import type { BoardColumn } from './boardModel'
 
 const DRAG_THRESHOLD_PX = 6
 /** Controls inside a card keep their own clicks and never start a drag. */
@@ -41,7 +41,9 @@ export function useBoardDrag(
     const element = document.elementFromPoint(point.x, point.y)
     const value = element?.closest<HTMLElement>('[data-board-column]')?.dataset
       .boardColumn
-    return isBoardColumn(value) ? value : null
+    // Only drawn columns carry the attribute, so any value found is one of
+    // this board's columns, a project's own ones included.
+    return typeof value === 'string' && value ? value : null
   }
 
   function stopListening() {

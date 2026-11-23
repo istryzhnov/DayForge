@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BoardColumnsEditor from './BoardColumnsEditor.vue'
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
@@ -178,6 +179,12 @@ const {
         <em>{{ t('settings.projectBoardHint') }}</em>
       </span>
     </label>
+
+    <BoardColumnsEditor
+      v-if="goal.boardEnabled"
+      :goal="goal"
+      @update="(columns) => actions.setBoardColumns(goal.id, columns)"
+    />
 
     <DisclosureSection :label="t('settings.sectionColours')">
       <ProjectThemeEditor

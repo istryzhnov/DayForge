@@ -16,5 +16,6 @@
   "subtasksDone": "{done} de {total} subtareas hechas",
   "moreActions": "Más acciones",
   "moveTo": "Mover a",
-  "clearedDone": "Se quitó {n} tarea completada | Se quitaron {n} tareas completadas"
+  "clearedDone": "Se quitó {n} tarea completada | Se quitaron {n} tareas completadas",
+  "customTag": "propia"
 }

@@ -44,7 +44,7 @@ export interface TaskActions {
   /** A dropped row: new project and new position in one go. */
   moveTo(payload: TaskDropPayload): void
   nudge(templateId: ID, step: -1 | 1): void
-  setBoardStage(templateId: ID, stage: BoardStage | undefined): void
+  setBoardStage(templateId: ID, stage: BoardStage | string | undefined): void
   clearBoardDone(templateIds: ID[]): void
 }
 

@@ -16,5 +16,6 @@
   "subtasksDone": "{done} of {total} subtasks done",
   "moreActions": "More actions",
   "moveTo": "Move to",
-  "clearedDone": "Cleared {n} done task | Cleared {n} done tasks"
+  "clearedDone": "Cleared {n} done task | Cleared {n} done tasks",
+  "customTag": "custom"
 }

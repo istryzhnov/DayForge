@@ -1,8 +1,13 @@
 import { computed, ref, watch } from 'vue'
-import type { Goal, GoalTheme } from '../../entities/GoalEntity'
+import type {
+  BoardCustomColumn,
+  Goal,
+  GoalTheme,
+} from '../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../entities/types'
 import { migrateGoals } from './goalSpace/goalMigration'
 import { normalizeNotes } from './goalSpace/notes'
+import { normalizeBoardColumns } from './goalSpace/boardColumns'
 import { GOALS_STORAGE_KEY } from './goalSpace/storage'
 import {
   onExternalWrite,
@@ -131,6 +136,26 @@ export function useGoals() {
     goal.updatedAt = new Date().toISOString()
   }
 
+  /**
+   * The project's own board columns. An empty list removes the field, so a
+   * project that never added a column serialises exactly as before.
+   */
+  function updateGoalBoardColumns(goalId: ID, columns: BoardCustomColumn[]) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+
+    const next = normalizeBoardColumns(columns)
+    if (stableStringify(next) === stableStringify(goal.boardColumns ?? [])) {
+      return
+    }
+    if (next.length) {
+      goal.boardColumns = next
+    } else {
+      delete goal.boardColumns
+    }
+    goal.updatedAt = new Date().toISOString()
+  }
+
   /** Blank notes remove the field, so a project without notes stays unchanged. */
   function updateGoalNotes(goalId: ID, notes: string) {
     const goal = goals.value.find((item) => item.id === goalId)
@@ -250,6 +275,7 @@ export function useGoals() {
     updateGoalClient,
     updateGoalIcon,
     updateGoalBoard,
+    updateGoalBoardColumns,
     updateGoalNotes,
     reorderGoals,
     loadFromStorage,

@@ -17,19 +17,22 @@ import DragGhost from '../../../shared/ui/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
 import {
   BOARD_COLUMN,
-  BOARD_COLUMNS,
+  boardColumnsFor,
   buildBoardCards,
   planBoardMove,
   type BoardCard as BoardCardModel,
   type BoardColumn,
 } from '../composables/boardModel'
 import { useBoardDrag } from '../composables/useBoardDrag'
+import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 
 const props = defineProps<{
   /** Daily rows of the project, from any day: the board is not per day. */
   rows: DailyTask[]
   /** The project's own tasks. */
   templates: TaskTemplate[]
+  /** Columns the project added, drawn between In progress and Done. */
+  customColumns?: BoardCustomColumn[]
 }>()
 
 const actions = useTaskActions()
@@ -38,15 +41,18 @@ const { settings } = useSettings()
 // The real day, which moves on at midnight while the board stays open.
 const today = useToday()
 
-const cards = computed(() =>
-  buildBoardCards(props.rows, props.templates, today.value),
+const columns = computed(() => boardColumnsFor(props.customColumns))
+const customIds = computed(() =>
+  (props.customColumns ?? []).map((column) => column.id),
 )
 
-const allCards = computed<BoardCardModel[]>(() => [
-  ...cards.value.todo,
-  ...cards.value.doing,
-  ...cards.value.done,
-])
+const cards = computed(() =>
+  buildBoardCards(props.rows, props.templates, today.value, customIds.value),
+)
+
+const allCards = computed<BoardCardModel[]>(() =>
+  Object.values(cards.value).flat(),
+)
 
 const { t } = useI18n()
 
@@ -54,6 +60,15 @@ const EMPTY_TEXT_KEY: Record<BoardColumn, string> = {
   [BOARD_COLUMN.TODO]: 'board.emptyTodo',
   [BOARD_COLUMN.DOING]: 'board.emptyDoing',
   [BOARD_COLUMN.DONE]: 'board.emptyDone',
+}
+
+/** A project's own column reads like In progress when it is empty. */
+function emptyTextKey(column: BoardColumn): string {
+  return EMPTY_TEXT_KEY[column] ?? EMPTY_TEXT_KEY[BOARD_COLUMN.DOING]
+}
+
+function columnTitle(column: { title?: string; titleKey?: string }): string {
+  return column.title ?? t(column.titleKey ?? '')
 }
 
 /**
@@ -175,19 +190,23 @@ function submitAdd() {
   <section class="project-board" :aria-label="t('board.projectBoard')">
     <div class="project-board__columns">
       <section
-        v-for="column in BOARD_COLUMNS"
+        v-for="column in columns"
         :key="column.key"
         class="board-column"
         :class="{
           'is-drop-target': drag.dropColumn.value === column.key,
+          'is-custom': column.custom,
         }"
         :data-board-column="column.key"
         :aria-labelledby="`board-column-${column.key}`"
       >
         <header class="board-column__head">
-          <h3 :id="`board-column-${column.key}`">{{ t(column.titleKey) }}</h3>
+          <h3 :id="`board-column-${column.key}`">{{ columnTitle(column) }}</h3>
+          <span v-if="column.custom" class="board-column__tag">{{
+            t('board.customTag')
+          }}</span>
           <span class="board-column__count">{{
-            cards[column.key].length
+            cards[column.key]?.length ?? 0
           }}</span>
           <button
             v-if="column.key === BOARD_COLUMN.DONE && cards.done.length"
@@ -201,9 +220,10 @@ function submitAdd() {
         </header>
 
         <ul class="board-column__list">
-          <li v-for="card in cards[column.key]" :key="card.id">
+          <li v-for="card in cards[column.key] ?? []" :key="card.id">
             <BoardCard
               :card="card"
+              :columns="columns"
               :drag="drag.forCard(card.id)"
               :is-dragging="drag.draggingId.value === card.id"
               @open="openCard(card)"
@@ -216,12 +236,12 @@ function submitAdd() {
 
         <p
           v-if="
-            !cards[column.key].length &&
+            !cards[column.key]?.length &&
             !(column.key === BOARD_COLUMN.TODO && adding)
           "
           class="board-column__empty"
         >
-          {{ t(EMPTY_TEXT_KEY[column.key]) }}
+          {{ t(emptyTextKey(column.key)) }}
         </p>
 
         <div v-if="column.key === BOARD_COLUMN.TODO" class="board-add">

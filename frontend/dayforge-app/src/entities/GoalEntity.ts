@@ -30,6 +30,11 @@ export interface Goal {
   icon?: string
   /** Shows the List / Board switch on this project. Absent means off. */
   boardEnabled?: boolean
+  /**
+   * The project's own board columns, shown between In progress and Done.
+   * Absent means only the three built-in ones.
+   */
+  boardColumns?: BoardCustomColumn[]
   /** Free-text pad for the whole project. Absent means no notes. */
   notes?: string
   /** Analytics-only figures; never touches time entries. Absent means none. */
@@ -40,4 +45,10 @@ export interface Goal {
   order?: number
   /** Set only on a buried copy; a project in the live list never carries it. */
   deletedAt?: ISODateTime
+}
+
+/** A board column the user added; it behaves like In progress. */
+export interface BoardCustomColumn {
+  id: ID
+  title: string
 }

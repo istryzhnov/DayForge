@@ -16,5 +16,6 @@
   "subtasksDone": "Zrobione: {done} z {total} podzadań",
   "moreActions": "Więcej działań",
   "moveTo": "Przenieś do",
-  "clearedDone": "Wyczyszczono {n} ukończonych zadań | Wyczyszczono {n} ukończone zadanie | Wyczyszczono {n} ukończone zadania | Wyczyszczono {n} ukończonych zadań"
+  "clearedDone": "Wyczyszczono {n} ukończonych zadań | Wyczyszczono {n} ukończone zadanie | Wyczyszczono {n} ukończone zadania | Wyczyszczono {n} ukończonych zadań",
+  "customTag": "własna"
 }
