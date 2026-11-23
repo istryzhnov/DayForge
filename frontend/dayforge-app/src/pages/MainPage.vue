@@ -381,7 +381,12 @@ function handleSearchSelect(result: SearchResult) {
       </div>
     </main>
 
-    <MobileTabBar :active-view="activeView" @select-view="selectView" />
+    <MobileTabBar
+      :active-view="activeView"
+      :goals="goals"
+      :templates="taskTemplates"
+      @select-view="selectView"
+    />
 
     <!-- Sits to the right of everything: its own column on a wide screen, an
          overlay drawer once the shell runs out of room. -->

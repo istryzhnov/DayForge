@@ -6,6 +6,11 @@ import type { ActiveView } from '../../../entities/types'
 import { ProfileAvatar, useProfile, useProfilePanel } from '../../profile'
 import { useMobileNav } from '../../../shared/composables/useMobileNav'
 import { useTimer } from '../../../shared/composables/useTimer'
+import { useToday } from '../../../shared/composables/goalSpace/today'
+import {
+  capitalizeFirst,
+  panelDateLabel,
+} from '../../../shared/composables/panelDateLabel'
 import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
 import { SYNC_STATE } from '../../../sync/types'
 
@@ -45,6 +50,20 @@ const isLabelTitle = computed(
 )
 
 const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
+
+/** The date line sits directly above the goals page's own heading. */
+const today = useToday()
+const dateLine = computed(() =>
+  props.activeView === 'goals'
+    ? capitalizeFirst(
+        panelDateLabel(today.value, {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        }),
+      )
+    : '',
+)
 </script>
 
 <template>
@@ -138,4 +157,7 @@ const showSyncDot = computed(() => status.value.state !== SYNC_STATE.OFF)
       </button>
     </div>
   </header>
+
+  <!-- Date line only: the page's own heading below is the one big title. -->
+  <p v-if="dateLine" class="mobile-pagehead">{{ dateLine }}</p>
 </template>

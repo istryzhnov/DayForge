@@ -5,6 +5,9 @@ import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { ActiveView } from '../../../entities/types'
 import { useTimer } from '../../../shared/composables/useTimer'
 import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
+import { useLiveTimerMeta } from '../composables/useLiveTimerMeta'
+import type { Goal } from '../../../entities/GoalEntity'
+import type { TaskTemplate } from '../../../entities/TaskEntity'
 
 /**
  * The phone's main navigation: a floating bar of glass at the bottom of the
@@ -13,12 +16,24 @@ import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
  * runs, its tab carries the breathing amber dot and a live capsule floats
  * above the bar.
  */
-const props = defineProps<{ activeView: ActiveView }>()
+const props = withDefaults(
+  defineProps<{
+    activeView: ActiveView
+    /** Projects and task templates, so the capsule prices like the Timer view. */
+    goals?: Goal[]
+    templates?: TaskTemplate[]
+  }>(),
+  { goals: () => [], templates: () => [] },
+)
 const emit = defineEmits<{ (e: 'select-view', view: ActiveView): void }>()
 
 const { t } = useI18n()
 const { isLive, isRunning, displayLabel, task, pause, resume } = useTimer()
 const { openQuickAdd } = useHotkeyOverlay()
+const { meta: capsuleMetaLine } = useLiveTimerMeta({
+  goals: () => props.goals,
+  templates: () => props.templates,
+})
 
 type Tab = {
   view: ActiveView
@@ -77,7 +92,10 @@ function toggleRunning() {
       @click="openTimer"
     >
       <span class="df-live-dot" aria-hidden="true"></span>
-      <span class="mobile-timer-capsule__title">{{ capsuleTitle }}</span>
+      <span class="mobile-timer-capsule__text">
+        <span class="mobile-timer-capsule__title">{{ capsuleTitle }}</span>
+        <span class="mobile-timer-capsule__meta">{{ capsuleMetaLine }}</span>
+      </span>
     </button>
     <span class="mobile-timer-capsule__time">{{ displayLabel }}</span>
     <button

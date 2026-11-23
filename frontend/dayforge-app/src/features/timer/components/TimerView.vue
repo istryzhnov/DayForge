@@ -15,7 +15,6 @@ import { buildRateLookup } from '../../../shared/composables/timer/rates'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
 import { useSettings } from '../../../shared/composables/useSettings'
 import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
-import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import TimerDisplay from './TimerDisplay.vue'
 import TimerControls from './TimerControls.vue'
 import TimerModePicker from './TimerModePicker.vue'
@@ -26,6 +25,8 @@ import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
 import {
+  formatEarned,
+  formatRate,
   liveStretchMs,
   sessionEarned,
   taskRate,
@@ -94,11 +95,6 @@ const newTaskTitle = ref('')
 
 const { settings } = useSettings()
 const { entries } = useTimeEntries()
-const { formatMoney } = useDayEarnings({
-  getTemplates: () => props.templates,
-  getGoals: () => props.goals,
-})
-
 const rateLookup = computed(() =>
   buildRateLookup(props.templates, props.goals, settings.timer.hourlyRate),
 )
@@ -369,13 +365,21 @@ function closeEditor() {
               <span>
                 {{
                   t('analytics.ratePerHour', {
-                    rate: formatMoney(attachedRate),
+                    rate: formatRate(
+                      attachedRate,
+                      settings.format.locale,
+                      settings.timer.currency,
+                    ),
                   })
                 }}
               </span>
               <span aria-hidden="true">·</span>
               <span class="timer-view__earned">{{
-                formatMoney(sittingEarned)
+                formatEarned(
+                  sittingEarned,
+                  settings.format.locale,
+                  settings.timer.currency,
+                )
               }}</span>
             </template>
           </p>

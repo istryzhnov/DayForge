@@ -51,3 +51,34 @@ export function sessionEarned(input: {
 export function taskRate(lookup: RateLookup, task?: TimerTaskRef): number {
   return rateForTask(lookup, task?.taskId, task?.goalId)
 }
+
+/** A rate reads "$45" or "$45.5": up to two decimals, none forced. */
+export function formatRate(
+  amount: number,
+  locale: string,
+  currency: string,
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount)
+}
+
+/** Earned money always carries cents and a "+", as in the mockup: "+$31.70". */
+export function formatEarned(
+  amount: number,
+  locale: string,
+  currency: string,
+): string {
+  const money = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount)
+  return `+${money}`
+}

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { ActiveTimer, TimeEntry } from '../../src/entities/TimerEntity'
 import {
+  formatEarned,
+  formatRate,
   liveStretchMs,
   sessionEarned,
   taskRate,
@@ -121,5 +123,19 @@ describe('taskRate', () => {
     expect(taskRate(l, { taskId: 't2', taskTitle: '', goalId: 'g1' })).toBe(30)
     expect(taskRate(l, { taskId: 't2', taskTitle: '' })).toBe(10)
     expect(taskRate(l, undefined)).toBe(10)
+  })
+})
+
+describe('money formats shared by the timer and the capsule', () => {
+  it('formatRate shows whole rates without decimals and keeps up to two', () => {
+    expect(formatRate(45, 'en-US', 'USD')).toBe('$45')
+    expect(formatRate(45.5, 'en-US', 'USD')).toBe('$45.5')
+    expect(formatRate(45.456, 'en-US', 'USD')).toBe('$45.46')
+  })
+
+  it('formatEarned always has cents and a plus sign', () => {
+    expect(formatEarned(31.7, 'en-US', 'USD')).toBe('+$31.70')
+    expect(formatEarned(0, 'en-US', 'USD')).toBe('+$0.00')
+    expect(formatEarned(0.075, 'en-US', 'USD')).toBe('+$0.08')
   })
 })

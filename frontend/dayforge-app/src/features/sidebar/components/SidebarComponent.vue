@@ -9,6 +9,7 @@ import NewGoalComponent from './NewGoalComponent.vue'
 import SidebarGoalButton from './SidebarGoalButton.vue'
 import GoalContextMenu from './GoalContextMenu.vue'
 import { TimerWidget } from '../../timer'
+import { useTimer } from '../../../shared/composables/useTimer'
 import { SyncStatusDot } from '../../sync'
 import { SidebarProfileButton, useProfilePanel } from '../../profile'
 import { TourPill } from '../../onboarding'
@@ -98,6 +99,7 @@ const menuGoalIndex = computed(() =>
 )
 
 const { isOpen: isSettingsOpen, toggle: toggleSettings } = useSettingsPanel()
+const { isLive, isRunning, displayLabel, task, pause, resume } = useTimer()
 const { openShortcuts, openSearch } = useHotkeyOverlay()
 const { open: openProfile } = useProfilePanel()
 const { isOpen: isMobileNavOpen, close: closeMobileNav } = useMobileNav()
@@ -115,6 +117,14 @@ function openSearchFromNav() {
 function toggleSettingsFromNav() {
   toggleSettings()
   closeMobileNav()
+}
+
+/** The phone drawer's timer card: the same pause/resume the capsule offers. */
+const liveTitle = computed(() => task.value?.taskTitle || t('timer.noTask'))
+
+function toggleLiveRunning() {
+  if (isRunning.value) pause()
+  else resume()
 }
 
 function onKeydown(event: KeyboardEvent) {
@@ -241,6 +251,24 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         <AppIcon name="close" :size="18" />
       </button>
     </div>
+
+    <!-- Phone drawer only; hidden on desktop by redesign-mobile.css. -->
+    <section v-if="isLive" class="sidebar-live" :aria-label="t('timer.title')">
+      <span class="df-live-dot" aria-hidden="true"></span>
+      <div class="sidebar-live__text">
+        <p class="sidebar-live__title">{{ liveTitle }}</p>
+        <p class="sidebar-live__time">{{ displayLabel }}</p>
+      </div>
+      <button
+        class="sidebar-live__btn"
+        type="button"
+        :aria-label="isRunning ? t('timer.pause') : t('timer.resume')"
+        :title="isRunning ? t('timer.pause') : t('timer.resume')"
+        @click="toggleLiveRunning"
+      >
+        <AppIcon :name="isRunning ? 'pause' : 'play'" :size="16" />
+      </button>
+    </section>
 
     <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>
 
@@ -384,6 +412,20 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
         <span>{{ t('sidebar.whatIDid') }}</span>
       </span>
       <span class="goal-count">{{ doneCount }}</span>
+    </button>
+
+    <!-- Phone drawer only; the desktop sidebar keeps its gear in the brand row. -->
+    <button
+      class="nav-goal-btn sidebar-settings-row"
+      type="button"
+      @click="toggleSettingsFromNav"
+    >
+      <span class="nav-goal-btn__main">
+        <span class="nav-goal-btn__icon" aria-hidden="true">
+          <AppIcon name="settings" :size="16" />
+        </span>
+        <span>{{ t('sidebar.settings') }}</span>
+      </span>
     </button>
 
     <TimerWidget @open-timer="chooseView('timer')" />
