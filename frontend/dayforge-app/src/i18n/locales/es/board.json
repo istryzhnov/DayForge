@@ -18,5 +18,8 @@
   "moveTo": "Mover a",
   "clearedDone": "Se quitó {n} tarea completada | Se quitaron {n} tareas completadas",
   "customTag": "propia",
-  "majorTag": "Importante"
+  "majorTag": "Importante",
+  "addColumn": "Columna",
+  "trackedTime": "Tiempo registrado",
+  "runningNow": "En curso ahora"
 }
