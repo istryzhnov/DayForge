@@ -53,5 +53,19 @@
   "keysHint": "{enter} hinzufügen {shiftEnter} hinzufügen und offen lassen {esc} schließen",
   "addTask": "Aufgabe hinzufügen",
   "dayWordToday": "heute",
-  "dayWordTomorrow": "morgen"
+  "dayWordTomorrow": "morgen",
+  "sheetHeading": "Neue Aufgabe",
+  "sheetWhat": "Was ist zu tun?",
+  "sheetRecognized": "Datum erkannt: {value}",
+  "sheetAtTime": "{date} um {time}",
+  "sheetProject": "Projekt",
+  "sheetDate": "Datum",
+  "sheetNoDate": "Ohne Datum",
+  "sheetPriority": "Priorität",
+  "sheetMajor": "Wichtig",
+  "sheetMinor": "Normal",
+  "sheetRepeat": "Wiederholen",
+  "sheetAdd": "Aufgabe hinzufügen",
+  "sheetAddTimer": "Hinzufügen und Timer starten",
+  "sheetClose": "Schließen"
 }

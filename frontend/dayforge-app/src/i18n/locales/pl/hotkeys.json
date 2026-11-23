@@ -53,5 +53,19 @@
   "keysHint": "{enter} dodaj {shiftEnter} dodaj i zostaw otwarte {esc} zamknij",
   "addTask": "Dodaj zadanie",
   "dayWordToday": "dziś",
-  "dayWordTomorrow": "jutro"
+  "dayWordTomorrow": "jutro",
+  "sheetHeading": "Nowe zadanie",
+  "sheetWhat": "Co trzeba zrobić?",
+  "sheetRecognized": "Rozpoznano datę: {value}",
+  "sheetAtTime": "{date} o {time}",
+  "sheetProject": "Projekt",
+  "sheetDate": "Data",
+  "sheetNoDate": "Bez daty",
+  "sheetPriority": "Priorytet",
+  "sheetMajor": "Ważne",
+  "sheetMinor": "Zwykłe",
+  "sheetRepeat": "Powtarzaj",
+  "sheetAdd": "Dodaj zadanie",
+  "sheetAddTimer": "Dodaj i uruchom timer",
+  "sheetClose": "Zamknij"
 }

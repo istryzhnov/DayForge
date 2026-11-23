@@ -53,5 +53,19 @@
   "keysHint": "{enter} 添加 {shiftEnter} 添加并保持打开 {esc} 关闭",
   "addTask": "添加任务",
   "dayWordToday": "今天",
-  "dayWordTomorrow": "明天"
+  "dayWordTomorrow": "明天",
+  "sheetHeading": "新任务",
+  "sheetWhat": "需要做什么？",
+  "sheetRecognized": "已识别日期：{value}",
+  "sheetAtTime": "{date} {time}",
+  "sheetProject": "项目",
+  "sheetDate": "日期",
+  "sheetNoDate": "无日期",
+  "sheetPriority": "优先级",
+  "sheetMajor": "重要",
+  "sheetMinor": "普通",
+  "sheetRepeat": "重复",
+  "sheetAdd": "添加任务",
+  "sheetAddTimer": "添加并启动计时器",
+  "sheetClose": "关闭"
 }

@@ -37,6 +37,7 @@
 @import './styles/redesign-account.css';
 @import './styles/redesign-mobile.css';
 @import './styles/redesign-today.css';
+@import './styles/redesign-quickadd.css';
 
 /* Fallback for any focusable control without its own ring. Panels that
    draw their own ring use box-shadow instead of removing the outline. */
