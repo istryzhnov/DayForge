@@ -35,6 +35,7 @@ import { useCalendarWeek } from '../composables/useCalendarWeek'
 import { useCalendarMonth } from '../composables/useCalendarMonth'
 import type { CreateTaskPayload } from '../composables/useCalendarDraft'
 import { useTimer } from '../../../shared/composables/useTimer'
+import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
 import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
@@ -238,6 +239,18 @@ const selectedTaskNotes = computed(
       (template) => template.id === selectedTask.value?.templateId,
     )?.notes ?? '',
 )
+
+/** What a day earned, shown on week and month days once a rate is set. */
+const earnings = useDayEarnings({
+  getTemplates: () => props.templates,
+  getGoals: () => props.goals,
+})
+
+function earnedLabel(date: ISODate): string | null {
+  if (!earnings.showsMoney.value) return null
+  const amount = earnings.earnedOn(date)
+  return amount > 0 ? earnings.formatMoney(amount) : null
+}
 </script>
 
 <template>
@@ -300,6 +313,7 @@ const selectedTaskNotes = computed(
       :week="week"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :earned-label="earnedLabel"
       @open-day="openDay"
     />
 
@@ -308,6 +322,7 @@ const selectedTaskNotes = computed(
       :month="month"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
+      :earned-label="earnedLabel"
       @open-day="openDay"
     />
 

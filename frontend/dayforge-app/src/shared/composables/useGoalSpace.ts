@@ -1,3 +1,4 @@
+import type { BoardCustomColumn } from '../../entities/GoalEntity'
 import { computed, ref, watch } from 'vue'
 import { useGoals } from './useGoals'
 import {
@@ -14,6 +15,7 @@ import type {
   Priority,
 } from '../../entities/types'
 import {
+  BOARD_STAGE,
   GOAL_STATUS,
   PRIORITY,
   TASK_KIND,
@@ -27,6 +29,7 @@ import { dayToShowAfterChange, useToday } from './goalSpace/today'
 import { isRepeating } from './goalSpace/recurrence'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
+import { removedColumnIds } from './goalSpace/boardColumns'
 import {
   nextTopOrder,
   orderFromStoredPosition,
@@ -76,6 +79,7 @@ export function useGoalSpace() {
     updateGoalClient,
     updateGoalIcon,
     updateGoalBoard,
+    updateGoalBoardColumns,
     updateGoalNotes,
     reorderGoals,
     restoreGoal,
@@ -364,10 +368,36 @@ export function useGoalSpace() {
   }
 
   /**
+   * Sets a project's own board columns. Cards standing in a column that was
+   * removed move to In progress — the column a custom one behaves like — so
+   * nothing silently drops back to To do.
+   */
+  function setGoalBoardColumns(goalId: ID, columns: BoardCustomColumn[]) {
+    const goal = goals.value.find((item) => item.id === goalId)
+    if (!goal) return
+    const before = goal.boardColumns ?? []
+    updateGoalBoardColumns(goalId, columns)
+    const gone = new Set(removedColumnIds(before, goal.boardColumns ?? []))
+    if (!gone.size) return
+    const now = new Date().toISOString()
+    taskTemplates.value.forEach((template) => {
+      if (template.goalId !== goalId) return
+      if (template.boardStage === undefined || !gone.has(template.boardStage)) {
+        return
+      }
+      template.boardStage = BOARD_STAGE.DOING
+      template.updatedAt = now
+    })
+  }
+
+  /**
    * Which open column a task sits in. `undefined` (or "todo") removes the key
    * entirely, so a task that never used the board serialises exactly as before.
    */
-  function setTaskBoardStage(templateId: ID, stage: BoardStage | undefined) {
+  function setTaskBoardStage(
+    templateId: ID,
+    stage: BoardStage | string | undefined,
+  ) {
     const template = templateOf(templateId)
     if (!template || template.boardStage === stage) return
 
@@ -826,6 +856,7 @@ export function useGoalSpace() {
     updateGoalClient,
     updateGoalIcon,
     updateGoalBoard,
+    setGoalBoardColumns,
     updateGoalNotes,
     reorderGoals,
     addTask,

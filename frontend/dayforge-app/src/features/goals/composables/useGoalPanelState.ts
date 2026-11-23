@@ -16,6 +16,7 @@ import {
   habitWindowView,
 } from '../../../shared/composables/analytics/habits'
 import { useTimeEntries } from '../../../shared/composables/useTimeEntries'
+import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import { recurrenceWords } from '../../../shared/composables/goalSpace/recurrenceWords'
 import { collectUpcoming, UPCOMING_WINDOW_DAYS } from '../../tasks'
 import {
@@ -77,6 +78,12 @@ export function useGoalPanelState(props: GoalPanelProps) {
     props.isAllMode || !props.goal ? null : props.goal.id,
   )
 
+  const earnings = useDayEarnings({
+    getTemplates: () => props.templates,
+    getGoals: () => props.goals,
+    getGoalId: () => goalScopeId.value,
+  })
+
   // --- habits: the same numbers as Analytics, for this project -----------
 
   const habitTemplates = computed(() => {
@@ -102,6 +109,9 @@ export function useGoalPanelState(props: GoalPanelProps) {
         })
       : null,
     trackedMs: monthTrackedMs(entries.value, goalScopeId.value, new Date()),
+    earnedToday: earnings.showsMoney.value
+      ? earnings.formatMoney(earnings.earnedOn(today.value))
+      : null,
   }))
 
   // --- upcoming: paused and archived projects do not fire their repeats ---

@@ -26,7 +26,7 @@ export const GOAL_FIELD_GROUPS: FieldGroups = {
   details: ['title', 'description', 'status', 'icon'],
   look: ['theme', 'accentColor'],
   money: ['hourlyRate', 'clientId', 'billing', 'budget'],
-  board: ['boardEnabled', 'notes'],
+  board: ['boardEnabled', 'boardColumns', 'notes'],
   order: ['order'],
 }
 

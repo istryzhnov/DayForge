@@ -9,7 +9,7 @@ import { useTimer } from '../../../shared/composables/useTimer'
 import { useToday } from '../../../shared/composables/goalSpace/today'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import {
-  BOARD_COLUMNS,
+  type BoardColumnDef,
   BOARD_COLUMN,
   type BoardCard as BoardCardModel,
   type BoardColumn,
@@ -23,6 +23,8 @@ const props = defineProps<{
   card: BoardCardModel
   drag: BoardCardDrag
   isDragging: boolean
+  /** This board's columns, the project's own included, for "Move to". */
+  columns: ReadonlyArray<BoardColumnDef>
 }>()
 
 const emit = defineEmits<{
@@ -129,9 +131,13 @@ const scheduleLabel = computed(() => {
   return [day, time].filter(Boolean).join(' ')
 })
 
+function titleOf(column: BoardColumnDef): string {
+  return column.title ?? t(column.titleKey ?? '')
+}
+
 const columnTitle = computed(() => {
-  const column = BOARD_COLUMNS.find((item) => item.key === props.card.column)
-  return column ? t(column.titleKey) : ''
+  const column = props.columns.find((item) => item.key === props.card.column)
+  return column ? titleOf(column) : ''
 })
 
 function onMoveChange(event: Event) {
@@ -236,12 +242,12 @@ function onMoveChange(event: Event) {
         <span>{{ t('board.moveTo') }}</span>
         <select :value="card.column" @change="onMoveChange">
           <option
-            v-for="column in BOARD_COLUMNS"
+            v-for="column in columns"
             :key="column.key"
             :value="column.key"
             :disabled="column.key === BOARD_COLUMN.DONE && !card.canFinish"
           >
-            {{ t(column.titleKey) }}
+            {{ titleOf(column) }}
           </option>
         </select>
       </label>

@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey } from 'vue'
-import type { GoalTheme } from '../../../entities/GoalEntity'
+import type { GoalTheme, BoardCustomColumn } from '../../../entities/GoalEntity'
 import type { GoalStatus, ID } from '../../../entities/types'
 import type { ProjectBudget } from '../../../shared/composables/billing/projectBudget'
 
@@ -17,6 +17,7 @@ export interface GoalActions {
   updateBudget(goalId: ID, budget: ProjectBudget | undefined): void
   updateClient(goalId: ID, clientId: ID | undefined): void
   setBoard(goalId: ID, enabled: boolean): void
+  setBoardColumns(goalId: ID, columns: BoardCustomColumn[]): void
   remove(goalId: ID): void
 }
 

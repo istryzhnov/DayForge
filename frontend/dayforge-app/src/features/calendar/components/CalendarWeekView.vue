@@ -29,6 +29,8 @@ const props = defineProps<{
   currentDate: ISODate
   /** Per-project colours, keyed by goal id. */
   goalVarsById: Record<ID, Record<string, string>>
+  /** Formatted earnings for a day, or `null` when there's nothing to show. */
+  earnedLabel?: (date: ISODate) => string | null
 }>()
 
 const emit = defineEmits<{
@@ -117,6 +119,9 @@ function eventStyle(event: PositionedEvent) {
             <span class="calendar-week__day-number">{{ day.dayNumber }}</span>
             <span v-if="day.totalCount" class="calendar-week__day-count">
               {{ day.doneCount }}/{{ day.totalCount }}
+            </span>
+            <span v-if="earnedLabel?.(day.date)" class="calendar-day-money">
+              +{{ earnedLabel(day.date) }}
             </span>
           </button>
 

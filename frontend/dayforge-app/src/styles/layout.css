@@ -37,7 +37,7 @@
   --density-scale: 1;
   --text-scale: 1;
   --panel-blur: 0.5rem;
-  --font-ui: 'Manrope', 'Segoe UI', sans-serif;
+  --font-ui: 'Manrope Variable', 'Manrope', 'Segoe UI', sans-serif;
   /* Native scrollbars and form controls follow the theme mode. */
   color-scheme: dark;
 }

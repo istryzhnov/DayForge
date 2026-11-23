@@ -16,5 +16,6 @@
   "subtasksDone": "{done} von {total} Unteraufgaben erledigt",
   "moreActions": "Weitere Aktionen",
   "moveTo": "Verschieben nach",
-  "clearedDone": "Entfernt: {n} erledigte Aufgabe | Entfernt: {n} erledigte Aufgaben"
+  "clearedDone": "Entfernt: {n} erledigte Aufgabe | Entfernt: {n} erledigte Aufgaben",
+  "customTag": "eigene"
 }

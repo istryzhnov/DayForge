@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { TimeEntry } from '../../../entities/TimerEntity'
 import type { MajorTaskOption } from '../../../entities/TaskEntity'
@@ -16,6 +16,10 @@ import AppIcon from '../../../shared/ui/AppIcon.vue'
 import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 import { COUNTDOWN_PRESETS, useTimerView } from '../composables/useTimerView'
 import { useTaskPicker } from '../composables/useTaskPicker'
+import {
+  SETTINGS_SECTION,
+  useSettingsPanel,
+} from '../../../shared/composables/useSettingsPanel'
 
 const props = defineProps<{ taskOptions: MajorTaskOption[] }>()
 
@@ -64,6 +68,40 @@ const {
 
 const newTaskTitle = ref('')
 
+const settingsPanel = useSettingsPanel()
+
+/** Pomodoro lengths, the default countdown and the rest live in settings. */
+function openTimerSettings() {
+  settingsPanel.open(SETTINGS_SECTION.TIMER)
+}
+
+/** Before a countdown starts, its dial is a button: tap it to type a length. */
+const canEditLength = computed(
+  () => mode.value === TIMER_MODE.COUNTDOWN && isIdle.value,
+)
+const isEditingLength = ref(false)
+const draftMinutes = ref(0)
+const lengthInput = ref<HTMLInputElement | null>(null)
+
+async function startEditLength() {
+  draftMinutes.value = countdownMinutes.value
+  isEditingLength.value = true
+  await nextTick()
+  lengthInput.value?.select()
+}
+
+/** Any whole number of minutes the settings accept; anything else is dropped. */
+function applyLength() {
+  if (!isEditingLength.value) return
+  const minutes = Math.round(Number(draftMinutes.value))
+  if (minutes >= 1 && minutes <= 240) countdownMinutes.value = minutes
+  isEditingLength.value = false
+}
+
+function cancelEditLength() {
+  isEditingLength.value = false
+}
+
 /** Any whole number of minutes the settings accept; anything else is ignored. */
 function setCustomLength(event: Event) {
   const minutes = Math.round(Number((event.target as HTMLInputElement).value))
@@ -107,16 +145,27 @@ function closeEditor() {
   <section class="timer-view">
     <header class="timer-view__head">
       <h1 class="timer-view__title">{{ t('timer.title') }}</h1>
-      <button
-        class="ui-icon-btn"
-        type="button"
-        :title="t('timer.aboutTimer')"
-        :aria-label="t('timer.aboutTimer')"
-        :aria-expanded="showInfo"
-        @click="showInfo = !showInfo"
-      >
-        <AppIcon name="info" :size="16" />
-      </button>
+      <span class="timer-view__head-actions">
+        <button
+          class="ui-icon-btn timer-view__settings"
+          type="button"
+          :title="t('timer.settingsTitle')"
+          :aria-label="t('timer.settingsTitle')"
+          @click="openTimerSettings"
+        >
+          <AppIcon name="settings" :size="16" />
+        </button>
+        <button
+          class="ui-icon-btn"
+          type="button"
+          :title="t('timer.aboutTimer')"
+          :aria-label="t('timer.aboutTimer')"
+          :aria-expanded="showInfo"
+          @click="showInfo = !showInfo"
+        >
+          <AppIcon name="info" :size="16" />
+        </button>
+      </span>
     </header>
     <p v-if="showInfo" class="timer-view__info">
       {{ t('timer.timerInfo') }}
@@ -129,13 +178,49 @@ function closeEditor() {
         @select="selectMode"
       />
 
-      <TimerDisplay
-        :value="dialLabel"
-        :caption="statusLabel"
-        :progress="progress"
-        :status="timer.status"
-        variant="large"
-      />
+      <div class="timer-view__dial" :class="{ 'is-editing': isEditingLength }">
+        <component
+          :is="canEditLength && !isEditingLength ? 'button' : 'div'"
+          class="timer-view__dial-face"
+          :class="{ 'is-editable': canEditLength && !isEditingLength }"
+          v-bind="
+            canEditLength && !isEditingLength
+              ? {
+                  type: 'button',
+                  title: t('timer.editLengthTitle'),
+                  'aria-label': t('timer.editLengthTitle'),
+                }
+              : {}
+          "
+          @click="canEditLength && !isEditingLength && startEditLength()"
+        >
+          <TimerDisplay
+            :value="dialLabel"
+            :caption="statusLabel"
+            :progress="progress"
+            :status="timer.status"
+            variant="large"
+          />
+        </component>
+        <form
+          v-if="isEditingLength"
+          class="timer-view__dial-edit"
+          @submit.prevent="applyLength"
+        >
+          <input
+            ref="lengthInput"
+            v-model.number="draftMinutes"
+            type="number"
+            min="1"
+            max="240"
+            inputmode="numeric"
+            :aria-label="t('timer.customLengthLabel')"
+            @blur="applyLength"
+            @keydown.esc.prevent="cancelEditLength"
+          />
+          <span>{{ t('timer.unitMinuteShort') }}</span>
+        </form>
+      </div>
 
       <!-- Countdown length, picked right under the dial before starting. -->
       <div

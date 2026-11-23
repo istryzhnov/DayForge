@@ -1,0 +1,692 @@
+/* The 2026 redesign's shared look: liquid-glass panels, gradient outlines,
+   a numeric mono face and the pulse a running timer wears everywhere.
+   Every value is mixed from the theme's own colours, so each palette and
+   both Day and Night keep working without per-theme overrides. */
+
+:root {
+  --font-mono:
+    'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SFMono-Regular',
+    Menlo, monospace;
+  --glass-bg: color-mix(in srgb, var(--panel) 58%, transparent);
+  --glass-bg-strong: color-mix(in srgb, var(--panel) 82%, transparent);
+  --glass-border: color-mix(in srgb, var(--text) 13%, transparent);
+  --glass-sheen: linear-gradient(
+    140deg,
+    color-mix(in srgb, #fff 11%, transparent) 0%,
+    color-mix(in srgb, #fff 3%, transparent) 30%,
+    transparent 60%
+  );
+  --glass-highlight: inset 0 1px 0 color-mix(in srgb, #fff 16%, transparent);
+  --glass-blur: calc(var(--panel-blur, 0.5rem) * 3);
+  --glass-radius: calc(24px * var(--radius-scale));
+  --outline-gradient: linear-gradient(
+    135deg,
+    var(--accent) 0%,
+    var(--major) 45%,
+    color-mix(in srgb, var(--text) 8%, transparent) 75%,
+    color-mix(in srgb, var(--accent) 30%, transparent) 100%
+  );
+  --accent-glow: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* A light glass reads as frosted paper: less sheen, a darker hairline. */
+:root[data-theme-mode='light'] {
+  --glass-bg: color-mix(in srgb, var(--panel) 72%, transparent);
+  --glass-border: color-mix(in srgb, var(--text) 12%, transparent);
+  --glass-highlight: inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
+}
+
+@keyframes df-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* The live dot: amber (the accent), glowing, breathing. */
+.df-live-dot {
+  display: inline-block;
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0.625rem var(--accent-glow);
+  animation: df-pulse 1.6s ease-in-out infinite;
+}
+
+:root[data-motion='reduced'] .df-live-dot {
+  animation: none;
+}
+
+.df-mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Warm light behind the glass: without colour underneath, frosted glass
+   just reads as grey. Accent top-left, the "major" hue bottom-left, both
+   faint enough to stay out of the text's way. */
+body {
+  background:
+    radial-gradient(
+      34rem 30rem at 4% 8%,
+      color-mix(in srgb, var(--accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      30rem 26rem at 8% 94%,
+      color-mix(in srgb, var(--major) 13%, transparent),
+      transparent 70%
+    ),
+    var(--bg-base);
+  background-attachment: fixed;
+}
+
+/* ---- Sidebar: a floating sheet of glass ------------------------------ */
+
+.app-sidebar {
+  border-right: none;
+  background: var(--glass-sheen), var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}
+
+@media (min-width: 961px) {
+  .app-sidebar {
+    margin: 0.75rem 0 0.75rem 0.75rem;
+    height: calc(100vh - 1.5rem);
+    height: calc(100dvh - 1.5rem);
+    top: 0.75rem;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-highlight), var(--shadow-lg);
+  }
+
+  .sidebar-footer {
+    background: transparent;
+  }
+}
+
+@media (max-width: 960px) {
+  .app-sidebar {
+    top: 0.5rem;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    height: auto;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--glass-radius);
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    box-shadow: var(--glass-highlight), var(--shadow-lg);
+  }
+}
+
+/* Active item: a sheen that warms towards the accent, and a glowing bar on
+   the right edge. */
+.nav-goal-btn {
+  position: relative;
+}
+
+.nav-goal-btn.active {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--text) 9%, transparent) 0%,
+    color-mix(in srgb, var(--text) 4%, transparent) 55%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 100%
+  );
+  box-shadow: var(--glass-highlight);
+}
+
+.nav-goal-btn.active::after {
+  content: '';
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  right: 0;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 0.75rem var(--accent-glow);
+}
+
+/* Profile: wrapped in the accent → major gradient outline. */
+.sidebar-profile {
+  border: 1.5px solid transparent;
+  border-radius: calc(16px * var(--radius-scale));
+  background:
+    linear-gradient(var(--glass-bg-strong), var(--glass-bg-strong)) padding-box,
+    var(--outline-gradient) border-box;
+  padding: 0.5rem 0.625rem;
+  box-shadow: 0 0 1.5rem color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.sidebar-profile:hover,
+.sidebar-profile:focus-visible,
+.sidebar-profile.is-active {
+  border-color: transparent;
+  background:
+    linear-gradient(var(--panel-soft), var(--panel-soft)) padding-box,
+    var(--outline-gradient) border-box;
+}
+
+/* ---- Timer widget: glows while it runs ------------------------------- */
+
+.timer-widget {
+  border-color: var(--glass-border);
+  border-radius: calc(18px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+.timer-widget.is-live {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background:
+    var(--glass-sheen), color-mix(in srgb, var(--accent) 8%, var(--glass-bg));
+  box-shadow:
+    var(--glass-highlight),
+    0 0 1.75rem color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.timer-widget__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.timer-widget.is-live .timer-widget__status {
+  color: var(--accent);
+}
+
+/* ---- Phone: floating tab bar --------------------------------------- */
+
+.mobile-tabbar {
+  display: none;
+}
+
+@media (max-width: 960px) {
+  .mobile-tabbar {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
+    z-index: 1090;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.25rem;
+    max-width: 30rem;
+    height: 4.25rem;
+    margin: 0 auto;
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    box-shadow: var(--glass-highlight), var(--shadow-lg);
+  }
+
+  .mobile-tabbar__tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 3rem;
+    height: 3rem;
+    padding: 0 0.75rem;
+    border: none;
+    border-radius: 999px;
+    background: none;
+    color: var(--muted);
+    font: inherit;
+    font-size: calc(0.8125rem * var(--text-scale));
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .mobile-tabbar__tab.is-active {
+    padding: 0 1rem;
+    background: color-mix(in srgb, var(--accent) 20%, transparent);
+    color: var(--accent);
+  }
+
+  .mobile-tabbar__label {
+    white-space: nowrap;
+  }
+
+  .mobile-tabbar__live {
+    position: absolute;
+    top: 0.625rem;
+    right: 0.625rem;
+  }
+
+  .mobile-tabbar__add {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.25rem;
+    height: 3.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(
+      135deg,
+      var(--accent),
+      color-mix(in srgb, var(--accent) 70%, var(--major))
+    );
+    color: var(--ring-check);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--bg) 60%, transparent),
+      0 0.5rem 1.375rem var(--accent-glow);
+    cursor: pointer;
+  }
+
+  .mobile-tabbar__tab:focus-visible,
+  .mobile-tabbar__add:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Room under the last row, so nothing hides behind the floating bar. */
+  .app-content {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0));
+  }
+}
+
+/* ---- Timer screen ---------------------------------------------------- */
+
+.timer-view__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.timer-view__stage {
+  border-color: var(--glass-border);
+  border-radius: var(--glass-radius);
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+.timer-display__value {
+  font-family: var(--font-mono);
+}
+
+.timer-display__progress {
+  stroke: url(#timer-ring-gradient);
+  filter: drop-shadow(0 0 4px var(--accent-glow));
+}
+
+.timer-display.is-running .timer-display__caption {
+  color: var(--accent);
+}
+
+/* The dial doubles as the countdown's length picker before it starts. */
+.timer-view__dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.timer-view__dial-face {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.timer-view__dial-face.is-editable {
+  cursor: pointer;
+}
+
+.timer-view__dial-face.is-editable:hover .timer-display__value,
+.timer-view__dial-face.is-editable:focus-visible .timer-display__value {
+  color: var(--accent);
+}
+
+.timer-view__dial-face:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.timer-view__dial-edit {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.timer-view__dial-edit input {
+  width: 5.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1.5px solid var(--accent);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.timer-view__dial.is-editing .timer-display__readout {
+  visibility: hidden;
+}
+
+.timer-view__dial-edit input {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.timer-view__dial-edit input::-webkit-inner-spin-button,
+.timer-view__dial-edit input::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
+}
+
+/* ---- Cards, dialogs and the dimmed layer under them ------------------ */
+
+.ui-card {
+  border-color: var(--glass-border);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+/* Dialogs sit over busy content, so their glass is the denser kind. */
+.modal-card,
+.quick-add-card,
+.shortcuts-card,
+.search-palette__card {
+  border-color: var(--glass-border);
+  border-radius: var(--glass-radius);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  box-shadow: var(--glass-highlight), var(--shadow-lg);
+}
+
+.modal-overlay {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* Tour and tip bubbles: dark glass with an amber edge instead of a bright
+   inverted card, so they belong to the same family as everything else. */
+.coach-mark,
+.coach-mark__arrow {
+  background: color-mix(in srgb, var(--panel-soft) 94%, var(--accent));
+  color: var(--text);
+}
+
+.coach-mark {
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  border-radius: calc(20px * var(--radius-scale));
+  box-shadow:
+    0 0 1.75rem color-mix(in srgb, var(--accent) 16%, transparent),
+    var(--shadow-lg);
+}
+
+.coach-mark__action {
+  background: var(--accent);
+  color: var(--ring-check);
+  font-weight: 800;
+}
+
+@media (max-width: 960px) {
+  .mobile-topbar {
+    border-bottom-color: var(--glass-border);
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  }
+}
+
+/* ---- Analytics: the wave --------------------------------------------- */
+
+.analytics-wave__stop-top {
+  stop-color: var(--accent);
+  stop-opacity: 0.42;
+}
+
+.analytics-wave__stop-bottom {
+  stop-color: var(--accent);
+  stop-opacity: 0;
+}
+
+.analytics-wave__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 5px var(--accent-glow));
+}
+
+.analytics-wave__guide {
+  stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 4;
+}
+
+.analytics-wave__halo {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.analytics-wave__dot {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.analytics-chart__hits rect {
+  fill: transparent;
+}
+
+.analytics-chart__hits rect:hover {
+  fill: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+/* Figures read as instruments: the mono face, tabular digits. */
+.analytics-hero__figure,
+.analytics-hero__percent,
+.ui-stat__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Today's earnings in the project header: only there once a rate is set. */
+.goal-panel-stats__item--money {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* A day's earnings in the calendar: amber mono, only on days that earned. */
+.calendar-day-money {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.calendar-month__day-money {
+  display: block;
+  text-align: left;
+}
+
+/* ---- Task rows, board, calendar, settings drawer ------------------- */
+
+.task-row {
+  border-color: color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+}
+
+/* The row whose timer is running glows amber, like the sidebar widget. */
+.task-row.is-timing {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, var(--glass-bg-strong));
+  box-shadow: 0 0 1.75rem color-mix(in srgb, var(--accent) 13%, transparent);
+}
+
+.task-composer__row {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+.board-column {
+  border-color: var(--glass-border);
+  border-radius: calc(22px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+}
+
+.board-card {
+  border-color: color-mix(in srgb, var(--text) 9%, transparent);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+  box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, #000 18%, transparent);
+}
+
+.calendar-view__grid-wrap,
+.calendar-week__wrap {
+  border-color: var(--glass-border);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+}
+
+.calendar-month__day {
+  border-color: color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--glass-bg);
+}
+
+.calendar-month__day.is-today {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--glass-bg));
+  box-shadow: 0 0 1.25rem color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.app-settings {
+  border-left-color: var(--glass-border);
+  background: var(--glass-sheen), var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+}
+
+/* ---- Board: a project's own columns -------------------------------- */
+
+.board-column.is-custom {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--glass-border));
+}
+
+.board-column__tag {
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 700;
+}
+
+.board-columns-editor {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.875rem;
+}
+
+.board-columns-editor__title {
+  margin: 0;
+  font-weight: 700;
+}
+
+.board-columns-editor__hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(0.8125rem * var(--text-scale));
+  line-height: 1.45;
+}
+
+.board-columns-editor__list {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board-columns-editor__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0 0.375rem 0 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--text) 8%, transparent);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+}
+
+.board-columns-editor__row.is-custom {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.board-columns-editor__name {
+  flex: 1;
+  min-width: 0;
+}
+
+.board-columns-editor__badge {
+  color: var(--muted);
+  font-size: calc(0.75rem * var(--text-scale));
+}
+
+.board-columns-editor__row input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.375rem 0;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+}
+
+.board-columns-editor__row input:focus-visible {
+  outline: none;
+  box-shadow: 0 1.5px 0 var(--accent);
+}
+
+.board-columns-editor__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  min-height: 2.5rem;
+  border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: var(--accent);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}

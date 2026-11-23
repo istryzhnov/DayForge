@@ -201,6 +201,27 @@ describe('ticking a task off', () => {
 })
 
 describe('the board', () => {
+  it("keeps a project's own columns and moves cards out of a removed one", async () => {
+    const { space, templateOf } = await openWorkspace()
+    space.createGoal(makeGoal('work'))
+    const task = space.addTask('work', 'Review')!
+
+    space.setGoalBoardColumns('work', [
+      { id: 'review', title: '  On review  ' },
+      { id: 'blank', title: '   ' },
+    ])
+    space.setTaskBoardStage(task.id, 'review')
+
+    const goal = space.goals.value.find((item) => item.id === 'work')!
+    expect(goal.boardColumns).toEqual([{ id: 'review', title: 'On review' }])
+    expect(templateOf(task.id)!.boardStage).toBe('review')
+
+    space.setGoalBoardColumns('work', [])
+
+    expect('boardColumns' in goal).toBe(false)
+    expect(templateOf(task.id)!.boardStage).toBe('doing')
+  })
+
   it('stores no stage for To do', async () => {
     const { space, templateOf } = await openWorkspace()
     const task = space.addTask(undefined, 'Task')!
