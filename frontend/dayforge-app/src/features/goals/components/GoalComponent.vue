@@ -121,7 +121,11 @@ const projectColor = computed(() =>
 </script>
 
 <template>
-  <section class="goal-panel" :style="goalPanelStyle">
+  <section
+    class="goal-panel"
+    :class="{ 'has-side': !showBoard && (showUpcoming || hasHabits) }"
+    :style="goalPanelStyle"
+  >
     <GoalPanelHeader
       :title="panelTitle"
       :color="projectColor"

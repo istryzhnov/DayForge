@@ -29,6 +29,13 @@ function toggle(key: string) {
   expanded.value = next
 }
 
+/** Bars are relative to the best-paid project, so the top row fills the track. */
+function barStyle(rows: ProjectRow[], row: ProjectRow) {
+  const top = Math.max(0, ...rows.map((item) => item.figures.earned))
+  const share = top > 0 ? row.figures.earned / top : 0
+  return { width: `${Math.round(share * 100)}%` }
+}
+
 function rateLabel(
   rate: number | null,
   money: (value: number) => string,
@@ -77,6 +84,14 @@ function rateLabel(
               <rect x="5" y="11" width="14" height="10" rx="2"></rect>
               <path d="M8 11V8a4 4 0 0 1 8 0v3"></path>
             </svg>
+          </span>
+          <span class="earnings-row__bar" aria-hidden="true">
+            <span
+              :style="{
+                ...barStyle(rows, row),
+                '--earn-color': row.color ?? 'var(--accent)',
+              }"
+            ></span>
           </span>
           <strong class="earnings-row__amount">{{
             money(row.figures.earned)

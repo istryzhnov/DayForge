@@ -61,7 +61,11 @@ const emit = defineEmits<{
 
     <button
       v-if="canStop"
-      :class="size === 'large' ? 'timer-controls__secondary' : 'btn btn-ghost'"
+      :class="
+        size === 'large'
+          ? 'timer-controls__secondary timer-controls__stop'
+          : 'btn btn-ghost'
+      "
       type="button"
       :title="t('timer.stopTitle')"
       @click="emit('stop')"

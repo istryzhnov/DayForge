@@ -42,69 +42,75 @@ const { statusBadge, isProjectSettingsOpen, toggleProjectSettings } =
 <template>
   <header class="goal-panel-header">
     <div class="goal-panel-header__main">
-      <div class="goal-panel-header__title">
+      <!-- The project's dot or icon sits in a glass tile tinted by its colour. -->
+      <span
+        v-if="color"
+        class="goal-panel-header__tile"
+        :style="{ '--project-color': color, color }"
+        aria-hidden="true"
+      >
         <ProjectIcon
-          v-if="color && icon"
+          v-if="icon"
           class="goal-panel-header__project-icon"
           :icon="icon"
           :style="{ color }"
         />
-        <span
-          v-else-if="color"
-          class="goal-panel-header__dot"
-          :style="{ background: color }"
-          aria-hidden="true"
-        />
-        <h1>{{ title }}</h1>
-        <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
-      </div>
+        <span v-else class="goal-panel-header__dot" />
+      </span>
 
-      <!-- Picking a day in Upcoming shows that day; this is the way back. -->
-      <button
-        v-if="viewedDay"
-        class="ui-chip is-active goal-panel-header__day"
-        type="button"
-        :aria-label="t('goals.showingDay', { day: viewedDay })"
-        @click="emit('today')"
-      >
-        <AppIcon name="calendar" :size="14" />
-        {{ viewedDay }}
-        <AppIcon name="close" :size="14" />
-      </button>
+      <div class="goal-panel-header__text">
+        <div class="goal-panel-header__title">
+          <h1>{{ title }}</h1>
+          <span v-if="statusBadge" class="goal-status">{{ statusBadge }}</span>
+        </div>
 
-      <ul class="goal-panel-stats">
-        <li class="goal-panel-stats__item">
-          <AppIcon name="check" :size="14" />
-          <span class="ui-oneline">{{
-            t('goals.todayStat', {
-              done: stats.todayDone,
-              total: stats.todayTotal,
-            })
-          }}</span>
-        </li>
-        <li
-          v-if="stats.earnedToday !== null"
-          class="goal-panel-stats__item goal-panel-stats__item--money"
+        <!-- Picking a day in Upcoming shows that day; this is the way back. -->
+        <button
+          v-if="viewedDay"
+          class="ui-chip is-active goal-panel-header__day"
+          type="button"
+          :aria-label="t('goals.showingDay', { day: viewedDay })"
+          @click="emit('today')"
         >
-          <span class="ui-oneline">{{
-            t('goals.earnedToday', { amount: stats.earnedToday })
-          }}</span>
-        </li>
-        <li v-if="stats.streakDays !== null" class="goal-panel-stats__item">
-          <AppIcon name="flame" :size="14" />
-          <span class="ui-oneline">{{
-            t('goals.streakDays', stats.streakDays)
-          }}</span>
-        </li>
-        <li v-if="stats.trackedMs > 0" class="goal-panel-stats__item">
-          <AppIcon name="timer" :size="14" />
-          <span class="ui-oneline">{{
-            t('goals.trackedThisMonth', {
-              time: formatHoursMinutes(stats.trackedMs, durationWords()),
-            })
-          }}</span>
-        </li>
-      </ul>
+          <AppIcon name="calendar" :size="14" />
+          {{ viewedDay }}
+          <AppIcon name="close" :size="14" />
+        </button>
+
+        <ul class="goal-panel-stats">
+          <li class="goal-panel-stats__item">
+            <AppIcon name="check" :size="14" />
+            <span class="ui-oneline">{{
+              t('goals.todayStat', {
+                done: stats.todayDone,
+                total: stats.todayTotal,
+              })
+            }}</span>
+          </li>
+          <li
+            v-if="stats.earnedToday !== null"
+            class="goal-panel-stats__item goal-panel-stats__item--money"
+          >
+            <span class="ui-oneline">{{
+              t('goals.earnedToday', { amount: stats.earnedToday })
+            }}</span>
+          </li>
+          <li v-if="stats.streakDays !== null" class="goal-panel-stats__item">
+            <AppIcon name="flame" :size="14" />
+            <span class="ui-oneline">{{
+              t('goals.streakDays', stats.streakDays)
+            }}</span>
+          </li>
+          <li v-if="stats.trackedMs > 0" class="goal-panel-stats__item">
+            <AppIcon name="timer" :size="14" />
+            <span class="ui-oneline">{{
+              t('goals.trackedThisMonth', {
+                time: formatHoursMinutes(stats.trackedMs, durationWords()),
+              })
+            }}</span>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <div class="goal-panel-header__aside">

@@ -30,7 +30,7 @@ function whenLabel(task: ArchivedTask): string {
 </script>
 
 <template>
-  <section class="goal-panel">
+  <section class="goal-panel archive-view">
     <header class="goal-panel-header" data-tip-anchor="archive-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
@@ -100,10 +100,6 @@ function whenLabel(task: ArchivedTask): string {
                 {{ task.title }}
               </span>
 
-              <p v-if="whenLabel(task)" class="task-when ui-oneline">
-                {{ whenLabel(task) }}
-              </p>
-
               <div class="task-meta">
                 <span class="task-project-name ui-oneline">
                   <span
@@ -119,6 +115,10 @@ function whenLabel(task: ArchivedTask): string {
                 </span>
               </div>
             </div>
+
+            <time v-if="whenLabel(task)" class="archive-row__time">{{
+              whenLabel(task)
+            }}</time>
           </div>
         </div>
       </section>

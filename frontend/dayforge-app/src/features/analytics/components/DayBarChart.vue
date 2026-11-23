@@ -34,6 +34,22 @@ const wave = computed(() =>
   ),
 )
 
+/** The floating tip sits on the latest point of the wave: today's bucket. */
+const tip = computed(() => {
+  const end = wave.value.end
+  const bars = chart.value.bars.filter(
+    (bar) => bar.point.date <= props.todayKey,
+  )
+  const latest = bars[bars.length - 1]
+  if (!end || !latest || chart.value.isEmpty) return null
+  return {
+    date: latest.point.title,
+    value: props.formatHours(latest.point.totalMs),
+    left: `${(end.x / chart.value.width) * 100}%`,
+    top: `${(end.y / chart.value.height) * 100}%`,
+  }
+})
+
 /** Every bucket keeps a full-height hover strip carrying its exact time. */
 function hitX(bar: Bar): number {
   const slot = chart.value.bars[1]
@@ -144,6 +160,18 @@ function hitWidth(): number {
           </rect>
         </g>
       </svg>
+
+      <div
+        v-if="tip"
+        class="analytics-chart__tip"
+        :style="{ left: tip.left, top: tip.top }"
+        aria-hidden="true"
+      >
+        <span class="analytics-chart__tip-date">{{ tip.date }}</span>
+        <span class="analytics-chart__tip-value">
+          <i class="analytics-chart__tip-dot"></i>{{ tip.value }}
+        </span>
+      </div>
     </div>
 
     <p v-if="chart.isEmpty" class="analytics-chart__empty">

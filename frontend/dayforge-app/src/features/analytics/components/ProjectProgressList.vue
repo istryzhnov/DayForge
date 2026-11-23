@@ -43,11 +43,25 @@ function donePercent(row: ProjectProgress): string {
   return `${Math.round((row.trackedMs / row.plannedMs) * 100)}%`
 }
 
+/**
+ * The track spans the larger of plan and actual, so the white plan tick sits
+ * inside the track and overtime fills past it.
+ */
+function scaleOf(row: ProjectProgress): number {
+  return Math.max(row.plannedMs, row.trackedMs, 1)
+}
+
 function fillStyle(row: ProjectProgress) {
   return {
-    width: `${row.fill * 100}%`,
+    width: row.planned
+      ? `${(row.trackedMs / scaleOf(row)) * 100}%`
+      : `${row.fill * 100}%`,
     background: row.planned ? (row.color ?? 'var(--accent)') : undefined,
   }
+}
+
+function tickStyle(row: ProjectProgress) {
+  return { left: `${(row.plannedMs / scaleOf(row)) * 100}%` }
 }
 </script>
 
@@ -89,6 +103,12 @@ function fillStyle(row: ProjectProgress) {
           :class="{ 'is-unplanned': !row.planned }"
         >
           <span :style="fillStyle(row)"></span>
+          <span
+            v-if="row.planned"
+            class="project-progress__tick"
+            :style="tickStyle(row)"
+            aria-hidden="true"
+          ></span>
         </span>
       </button>
 

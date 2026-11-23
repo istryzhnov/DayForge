@@ -85,6 +85,13 @@ const percentLabel = computed(() =>
   status.value ? `${Math.round(status.value.fraction * 100)}%` : '',
 )
 
+/** Circumference of the ring (r = 54), with the arc capped at a full turn. */
+const RING_LENGTH = 2 * Math.PI * 54
+const ringDash = computed(() => {
+  const fraction = Math.min(status.value?.fraction ?? 0, 1)
+  return `${fraction * RING_LENGTH} ${RING_LENGTH}`
+})
+
 const barWidth = computed(() =>
   status.value ? `${Math.min(status.value.fraction, 1) * 100}%` : '0%',
 )
@@ -194,6 +201,25 @@ function clear() {
 
     <div v-else-if="status" class="income-goal__body">
       <div class="income-goal__head">
+        <svg class="income-goal__ring" viewBox="0 0 130 130" aria-hidden="true">
+          <circle class="income-goal__ring-track" cx="65" cy="65" r="54" />
+          <circle
+            class="income-goal__ring-arc"
+            cx="65"
+            cy="65"
+            r="54"
+            :stroke-dasharray="ringDash"
+            transform="rotate(-90 65 65)"
+          />
+          <text
+            class="income-goal__ring-text"
+            x="65"
+            y="72"
+            text-anchor="middle"
+          >
+            {{ percentLabel }}
+          </text>
+        </svg>
         <div class="income-goal__figure">
           <span class="analytics__card-label">{{
             t('analytics.earnedThisMonth')
