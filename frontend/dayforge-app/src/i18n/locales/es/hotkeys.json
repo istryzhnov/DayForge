@@ -67,5 +67,9 @@
   "sheetRepeat": "Repetir",
   "sheetAdd": "Añadir tarea",
   "sheetAddTimer": "Añadir e iniciar temporizador",
-  "sheetClose": "Cerrar"
+  "sheetClose": "Cerrar",
+  "sheetReminder": "Recordatorio",
+  "sheetReminderDefault": "Como en ajustes",
+  "sheetReminderOff": "Desactivado",
+  "sheetReminderBefore": "{minutes} min antes"
 }

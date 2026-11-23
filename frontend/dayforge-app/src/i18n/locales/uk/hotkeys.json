@@ -67,5 +67,9 @@
   "sheetRepeat": "Повтор",
   "sheetAdd": "Додати задачу",
   "sheetAddTimer": "Додати й запустити таймер",
-  "sheetClose": "Закрити"
+  "sheetClose": "Закрити",
+  "sheetReminder": "Нагадування",
+  "sheetReminderDefault": "Як у налаштуваннях",
+  "sheetReminderOff": "Вимкнено",
+  "sheetReminderBefore": "За {minutes} хв"
 }

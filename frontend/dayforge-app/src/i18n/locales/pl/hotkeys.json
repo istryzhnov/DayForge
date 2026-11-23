@@ -67,5 +67,9 @@
   "sheetRepeat": "Powtarzaj",
   "sheetAdd": "Dodaj zadanie",
   "sheetAddTimer": "Dodaj i uruchom timer",
-  "sheetClose": "Zamknij"
+  "sheetClose": "Zamknij",
+  "sheetReminder": "Przypomnienie",
+  "sheetReminderDefault": "Jak w ustawieniach",
+  "sheetReminderOff": "Wyłączone",
+  "sheetReminderBefore": "{minutes} min wcześniej"
 }

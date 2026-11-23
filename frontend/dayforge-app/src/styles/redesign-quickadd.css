@@ -210,8 +210,9 @@
   cursor: pointer;
 }
 
-.qa-tile:last-child {
-  grid-column: 1 / -1;
+.qa-tile:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .qa-tile > svg {

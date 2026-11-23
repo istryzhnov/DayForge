@@ -865,4 +865,60 @@ export function verifyPushReminderParity() {
     wasSent: () => false,
   })
   check('a long run never pushes when switched off', longRunOff.length === 0)
+
+  // Before-start reminders: each task's own lead, or none.
+  const upcomingNow = localAt(2026, 10, 21, 8, 50)
+  const upcomingClock: Clock = {
+    ...clock,
+    now: upcomingNow,
+    minutesOfDay: 8 * 60 + 50,
+  }
+  const withLead = (
+    id: string,
+    startTime: string,
+    reminderMinutes: number | null | undefined,
+  ) =>
+    ({
+      ...blockTask(id, day, startTime, undefined),
+      reminderMinutes,
+    }) as unknown as ServerTask
+  const upcomingTasks = [
+    withLead('u15', '09:00', 15),
+    withLead('u60', '09:30', 60),
+    withLead('uOff', '09:00', null),
+    withLead('uAbsent', '09:00', undefined),
+    withLead('u5', '10:00', 5),
+  ]
+  const upcomingDue = decideReminders({
+    clock: upcomingClock,
+    settings: null,
+    timer: null,
+    entries: [],
+    tasks: upcomingTasks,
+    wasSent: () => false,
+  }).filter((message) => message.kind === 'upcoming')
+  check(
+    'upcoming: a task pushes inside its own lead, and only then',
+    upcomingDue.map((message) => message.ref).join(',') ===
+      `${upcomingTasks[0].id},${upcomingTasks[1].id}`,
+    upcomingDue.map((message) => message.ref),
+  )
+  check(
+    'upcoming: the message names the minutes left, tagged for the app',
+    upcomingDue[0]?.body === '"Block u15" starts in 10 min' &&
+      upcomingDue[0]?.tag === `upcoming-${upcomingTasks[0].id}`,
+    upcomingDue[0],
+  )
+  const upcomingSent = decideReminders({
+    clock: upcomingClock,
+    settings: null,
+    timer: null,
+    entries: [],
+    tasks: upcomingTasks,
+    wasSent: (kind, ref) => kind === 'upcoming' && ref === upcomingTasks[0].id,
+  }).filter((message) => message.kind === 'upcoming')
+  check(
+    'upcoming: a reminder already pushed is not pushed again',
+    upcomingSent.length === 1 && upcomingSent[0].ref === upcomingTasks[1].id,
+  )
 }

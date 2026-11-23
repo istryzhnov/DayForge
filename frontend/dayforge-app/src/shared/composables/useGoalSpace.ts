@@ -270,6 +270,7 @@ export function useGoalSpace() {
       recurrence: input.schedule?.recurrence,
       startTime: input.schedule?.startTime,
       endTime: input.schedule?.endTime,
+      reminderMinutes: input.schedule?.reminderMinutes,
       isActive: true,
       createdAt: now,
       updatedAt: now,
@@ -604,6 +605,7 @@ export function useGoalSpace() {
     template.recurrence = schedule?.recurrence
     template.startTime = schedule?.startTime
     template.endTime = schedule?.endTime
+    template.reminderMinutes = schedule?.reminderMinutes
     template.updatedAt = new Date().toISOString()
 
     dailyTasks.value = dailyTasks.value.filter(
@@ -629,6 +631,7 @@ export function useGoalSpace() {
 
     row.startTime = schedule.startTime
     row.endTime = schedule.endTime
+    row.reminderMinutes = schedule.reminderMinutes
     touchRow(row, DAILY_FIELD_GROUPS.TIME)
   }
 

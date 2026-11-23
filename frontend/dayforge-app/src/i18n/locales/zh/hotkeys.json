@@ -67,5 +67,9 @@
   "sheetRepeat": "重复",
   "sheetAdd": "添加任务",
   "sheetAddTimer": "添加并启动计时器",
-  "sheetClose": "关闭"
+  "sheetClose": "关闭",
+  "sheetReminder": "提醒",
+  "sheetReminderDefault": "与设置相同",
+  "sheetReminderOff": "关闭",
+  "sheetReminderBefore": "提前 {minutes} 分钟"
 }

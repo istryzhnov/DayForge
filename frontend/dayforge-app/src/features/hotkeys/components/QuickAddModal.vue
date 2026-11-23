@@ -121,7 +121,7 @@ watch(
           startTime: startTime ?? undefined,
           recurrence: { type: RECURRENCE_TYPE.NONE, startDate: date },
         },
-        { enable: true },
+        { enable: true, keepReminder: true },
       )
     } else if (previousDate) {
       scheduleFields.value?.reset()
@@ -172,6 +172,28 @@ const repeats = computed(() => {
 
 function toggleSchedule() {
   scheduleOn.value = !scheduleOn.value
+}
+
+// --- reminder tile: needs a start time on the sheet -------------------------
+
+/** The sheet has a start time, so a reminder can be set for it. */
+const hasStartTime = computed(() => Boolean(schedule.value?.startTime))
+
+/** undefined follows settings, null is off, a number is that many minutes. */
+const reminderMinutes = computed(() => schedule.value?.reminderMinutes)
+
+const reminderValue = computed(() => {
+  if (!hasStartTime.value) return '—'
+  const minutes = reminderMinutes.value
+  if (minutes === undefined) return t('hotkeys.sheetReminderDefault')
+  if (minutes === null) return t('hotkeys.sheetReminderOff')
+  return t('hotkeys.sheetReminderBefore', { minutes })
+})
+
+function cycleReminderTile() {
+  if (!hasStartTime.value) return
+  scheduleFields.value?.cycleReminder()
+  bumpRevision()
 }
 
 // --- priority and project ---------------------------------------------------
@@ -632,6 +654,35 @@ useFocusTrap({
               <span class="qa-tile__value">{{ repeatValue }}</span>
             </span>
           </button>
+
+          <button
+            type="button"
+            class="qa-tile"
+            :class="{ 'is-on': typeof reminderMinutes === 'number' }"
+            :disabled="!hasStartTime"
+            @click="cycleReminderTile"
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z" />
+              <path d="M10 21h4" />
+            </svg>
+            <span class="qa-tile__text">
+              <span class="qa-tile__label">{{
+                t('hotkeys.sheetReminder')
+              }}</span>
+              <span class="qa-tile__value">{{ reminderValue }}</span>
+            </span>
+          </button>
         </div>
 
         <div class="qa-schedule" @change="bumpRevision" @input="bumpRevision">
@@ -639,6 +690,7 @@ useFocusTrap({
             ref="scheduleFields"
             v-model:enabled="scheduleOn"
             hide-toggle
+            hide-reminder
           />
         </div>
 

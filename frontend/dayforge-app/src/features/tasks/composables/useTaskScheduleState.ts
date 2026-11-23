@@ -13,6 +13,12 @@ import {
 } from '../../../shared/composables/goalSpace/date'
 import { i18n } from '../../../i18n'
 import { isOvernight } from '../../../shared/composables/goalSpace/overnight'
+import {
+  nextReminderChoice,
+  reminderChoiceOf,
+  reminderMinutesOf,
+  type ReminderChoice,
+} from '../../../shared/composables/goalSpace/reminder'
 
 /**
  * Repeat options offered in the composer (monthly/custom aren't exposed yet).
@@ -58,6 +64,8 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
   const repeatType = ref<RecurrenceType>(RECURRENCE_TYPE.NONE)
   const intervalDays = ref(2)
   const weekdays = ref<number[]>([])
+  /** Minutes before the start to remind; see TaskTemplate.reminderMinutes. */
+  const reminder = ref<ReminderChoice>('default')
 
   const minDate = getTodayISODate()
 
@@ -146,12 +154,18 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
                 startDate,
               }
 
+    const reminderMinutes = reminderMinutesOf(reminder.value)
     return {
       date: startDate,
       startTime: startTime.value,
       endTime: endTime.value,
+      ...(reminderMinutes === undefined ? {} : { reminderMinutes }),
       recurrence,
     }
+  }
+
+  function cycleReminder() {
+    reminder.value = nextReminderChoice(reminder.value)
   }
 
   /** Fills the fields from a task that already exists, for editing it. */
@@ -159,16 +173,24 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
     template: {
       startTime?: TimeOfDay
       endTime?: TimeOfDay
+      reminderMinutes?: number | null
       recurrence?: RecurrenceRule
     },
-    options: { enable?: boolean } = {},
+    options: { enable?: boolean; keepReminder?: boolean } = {},
   ) {
     const rule = template.recurrence
     const hasTimes = Boolean(template.startTime && template.endTime)
+    if (!options.keepReminder) {
+      reminder.value = reminderChoiceOf(template.reminderMinutes)
+    }
 
     suppressEndSync = true
-    startTime.value = template.startTime ?? defaultStart()
-    endTime.value = template.endTime ?? defaultEnd()
+    const loadedStart = template.startTime ?? defaultStart()
+    startTime.value = loadedStart
+    // Without an end, the block lasts the default length from its own start.
+    endTime.value =
+      template.endTime ??
+      addMinutesToTime(loadedStart, settings.calendar.defaultDurationMinutes)
     void nextTick(() => {
       suppressEndSync = false
     })
@@ -210,6 +232,7 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
     repeatType.value = RECURRENCE_TYPE.NONE
     intervalDays.value = 2
     weekdays.value = []
+    reminder.value = 'default'
   }
 
   return {
@@ -220,6 +243,8 @@ export function useTaskScheduleState(enabled: Ref<boolean> = ref(false)) {
     repeatType,
     intervalDays,
     weekdays,
+    reminder,
+    cycleReminder,
     minDate,
     isWeekly,
     isCustomInterval,
