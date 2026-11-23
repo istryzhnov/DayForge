@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ChapterId } from '../composables/tourSteps'
 import { TOUR_CHAPTERS } from '../composables/tourSteps'
@@ -8,7 +9,10 @@ import { useTour } from '../composables/useTour'
 const emit = defineEmits<{ (e: 'start', chapter: ChapterId): void }>()
 
 const { t } = useI18n()
-const { completed, startChapter } = useTour()
+const { completed, startChapter, chapter: runningChapter } = useTour()
+
+/** The chapter that is running right now, so its row can be tinted. */
+const currentChapter = computed(() => runningChapter.value)
 
 function start(chapter: ChapterId) {
   startChapter(chapter)
@@ -22,6 +26,7 @@ function start(chapter: ChapterId) {
       v-for="chapter in TOUR_CHAPTERS"
       :key="chapter.id"
       class="tour-chapters__row"
+      :class="{ 'is-current': chapter.id === currentChapter }"
     >
       <span class="tour-chapters__name">
         {{ t(chapter.titleKey) }}

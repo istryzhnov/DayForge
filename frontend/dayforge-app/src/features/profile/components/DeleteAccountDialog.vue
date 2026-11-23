@@ -48,6 +48,20 @@ async function confirm() {
         aria-labelledby="account-delete-title"
         aria-describedby="account-delete-body"
       >
+        <span class="account-delete__icon" aria-hidden="true">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 4l9 16H3zM12 10v4M12 17h.01" />
+          </svg>
+        </span>
         <h3 id="account-delete-title">{{ t('profile.deleteDialogTitle') }}</h3>
 
         <p id="account-delete-body" class="settings-group-hint">

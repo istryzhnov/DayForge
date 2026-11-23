@@ -204,7 +204,7 @@ const {
             {{ t('profile.signOutOffline') }}
           </p>
           <button
-            class="btn btn-ghost settings-action settings-action--danger"
+            class="btn btn-ghost settings-action profile-signout"
             type="button"
             :disabled="auth.isBusy.value || isSigningOut"
             @click="signOut"
@@ -238,7 +238,7 @@ const {
         </div>
 
         <button
-          class="btn btn-ghost settings-action settings-action--danger"
+          class="btn btn-ghost settings-action profile-delete"
           type="button"
           :disabled="!isOnline"
           @click="isDeleteOpen = true"

@@ -34,6 +34,7 @@
 @import './styles/redesign-analytics.css';
 @import './styles/redesign-lists-settings.css';
 @import './styles/redesign-dialogs.css';
+@import './styles/redesign-account.css';
 @import './styles/redesign-mobile.css';
 
 /* Fallback for any focusable control without its own ring. Panels that

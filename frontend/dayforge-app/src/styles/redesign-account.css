@@ -1,0 +1,668 @@
+/* Redesign: account — profile, sync states, onboarding and the tour.
+   Theme roles only (--accent, --major, --muted, --line, ...). The two fixed
+   colours below are status greens and the dark ink on the amber gradient;
+   they do not change with the palette. */
+
+.profile-modal,
+.account-delete,
+.welcome-overlay,
+.starter-overlay {
+  --account-on-accent: var(--bg);
+  --account-accent-grad: linear-gradient(135deg, var(--accent), var(--major));
+}
+
+/* --- Profile card ---------------------------------------------------- */
+
+.profile-card {
+  width: min(100%, 26.25rem);
+  padding: 1.5rem;
+  border-radius: calc(26px * var(--radius-scale));
+  gap: 1rem;
+}
+
+.profile-card__head h3 {
+  font-size: calc(1.125rem * var(--text-scale));
+  font-weight: 800;
+}
+
+.profile-card__hero {
+  align-items: flex-start;
+}
+
+.profile-card__hero strong {
+  font-size: calc(1.0625rem * var(--text-scale));
+  font-weight: 800;
+}
+
+/* The large avatar: a conic ring (padding-box fill, border-box gradient). */
+.profile-modal .profile-avatar--large {
+  width: 6rem;
+  height: 6rem;
+  font-size: calc(2.125rem * var(--text-scale));
+  font-weight: 800;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(var(--panel), var(--panel)) padding-box,
+    conic-gradient(
+        from 200deg,
+        var(--accent),
+        var(--major),
+        var(--minor),
+        var(--accent)
+      )
+      border-box;
+  box-shadow: 0 0 1.875rem color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.account-identity {
+  flex-direction: column;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.account-identity__text {
+  display: grid;
+  justify-items: center;
+  gap: 0.125rem;
+}
+
+.account-identity__text strong {
+  font-size: calc(1.375rem * var(--text-scale));
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.account-identity__text span {
+  color: var(--muted);
+  font-size: calc(0.875rem * var(--text-scale));
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Sync status pill: green synced, amber pulsing syncing, outline offline,
+   major-colour error. Built on the same sync states as the sidebar dot. */
+.profile-sync {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 0.5rem;
+  width: auto;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: var(--panel-soft);
+  color: var(--muted);
+  font-size: calc(0.8125rem * var(--text-scale));
+  font-weight: 800;
+}
+
+.profile-sync__text {
+  margin-right: 0;
+}
+
+.profile-sync__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+
+.profile-sync.is-idle {
+  background: color-mix(in srgb, var(--minor) 12%, transparent);
+  color: var(--minor);
+}
+
+.profile-sync.is-idle .profile-sync__dot {
+  background: var(--minor);
+}
+
+.profile-sync.is-syncing {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+
+.profile-sync.is-syncing .profile-sync__dot {
+  background: var(--accent);
+}
+
+.profile-sync.is-offline {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.profile-sync.is-offline .profile-sync__dot {
+  background: transparent;
+  border: 2px solid var(--muted);
+  box-sizing: border-box;
+}
+
+.profile-sync.is-error {
+  background: color-mix(in srgb, var(--major) 14%, transparent);
+  color: var(--major);
+}
+
+.profile-sync.is-error .profile-sync__text {
+  color: var(--major);
+}
+
+.profile-sync.is-error .profile-sync__dot {
+  background: var(--major);
+}
+
+/* Stacked, full-width glass buttons. */
+.profile-card .settings-action {
+  width: 100%;
+  min-height: 2.875rem;
+  border-radius: calc(14px * var(--radius-scale));
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  color: var(--text);
+  font-weight: 700;
+  justify-content: center;
+}
+
+.profile-card .settings-action.btn-primary {
+  border: none;
+  background: var(--account-accent-grad);
+  color: var(--account-on-accent);
+  font-weight: 800;
+}
+
+.profile-card .profile-signout,
+.profile-card .profile-signout.settings-action--danger {
+  color: var(--text);
+}
+
+.profile-card .profile-delete {
+  min-height: 2.5rem;
+  border: none;
+  background: none;
+  color: var(--major);
+  font-weight: 700;
+}
+
+.profile-card .profile-delete:hover:not(:disabled),
+.profile-card .profile-delete:focus-visible {
+  background: color-mix(in srgb, var(--major) 10%, transparent);
+}
+
+.profile-card .settings-group-hint {
+  text-align: center;
+}
+
+/* Signed-out: the glass card reads as a panel of its own. */
+.profile-card__hero + .settings-action {
+  margin-top: 0.25rem;
+}
+
+.account-failures {
+  border-radius: calc(14px * var(--radius-scale));
+}
+
+/* --- Delete account dialog ------------------------------------------ */
+
+.account-delete__card {
+  width: min(100%, 27.5rem);
+  padding: 1.375rem;
+  gap: 0.875rem;
+  border-color: color-mix(in srgb, var(--major) 45%, var(--line));
+  box-shadow:
+    0 0 2.125rem color-mix(in srgb, var(--major) 14%, transparent),
+    var(--glass-highlight, none),
+    var(--shadow-lg);
+}
+
+.account-delete__icon {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: calc(16px * var(--radius-scale));
+  background: color-mix(in srgb, var(--major) 16%, transparent);
+  color: var(--major);
+}
+
+.account-delete__card h3 {
+  margin: 0;
+  font-size: calc(1.25rem * var(--text-scale));
+  font-weight: 800;
+}
+
+.account-delete__card .settings-group-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: calc(0.8125rem * var(--text-scale));
+  line-height: 1.5;
+}
+
+.account-delete__card .settings-action {
+  border-radius: calc(14px * var(--radius-scale));
+  min-height: 2.875rem;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.account-delete__card input {
+  height: 2.75rem;
+  border: 1px solid color-mix(in srgb, var(--major) 50%, transparent);
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--panel) 55%, transparent);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: calc(0.875rem * var(--text-scale));
+  letter-spacing: 0.04em;
+}
+
+.account-delete__card .modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.account-delete__card .modal-actions .btn {
+  width: 100%;
+  min-height: 2.875rem;
+  border-radius: calc(14px * var(--radius-scale));
+  font-weight: 800;
+}
+
+.account-delete__card .modal-actions .settings-action--danger {
+  border: none;
+  background: color-mix(in srgb, var(--major) 35%, transparent);
+  color: var(--text);
+}
+
+.account-delete__card
+  .modal-actions
+  .settings-action--danger:not(:disabled):hover {
+  background: color-mix(in srgb, var(--major) 50%, transparent);
+}
+
+.account-delete__card .modal-actions .settings-action--danger:disabled {
+  opacity: 0.6;
+}
+
+/* --- Sidebar sync pill (offline / error only) ----------------------- */
+
+.sync-status {
+  margin-top: 0.375rem;
+}
+
+.sync-status__body {
+  width: auto;
+  max-width: 100%;
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+}
+
+.sync-status.is-error .sync-status__body {
+  border-color: color-mix(in srgb, var(--major) 45%, transparent);
+  background: color-mix(in srgb, var(--major) 12%, transparent);
+  color: var(--major);
+}
+
+.sync-status.is-offline .sync-status__body {
+  background: transparent;
+}
+
+/* --- Welcome flow ---------------------------------------------------- */
+
+.welcome {
+  position: relative;
+  border-color: var(--glass-border, var(--line));
+  border-radius: calc(26px * var(--radius-scale));
+  padding: 1.5rem 1.5rem 1.25rem;
+  background: var(--glass-sheen), var(--panel);
+  backdrop-filter: blur(var(--glass-blur, 1.5rem)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 1.5rem)) saturate(180%);
+}
+
+/* Step dots in the top corner: the current step stretches into a pill. */
+.welcome__progress {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  gap: 0.375rem;
+  width: auto;
+  margin: 0;
+}
+
+.welcome__bar {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 999px;
+  background: var(--line);
+  transition:
+    width 0.25s ease,
+    background 0.25s ease;
+}
+
+.welcome__bar.is-current {
+  width: 1.375rem;
+  background: var(--accent);
+}
+
+.welcome__bar.is-done {
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.welcome__badge {
+  width: 3rem;
+  height: 3rem;
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--account-accent-grad);
+  color: var(--account-on-accent);
+  box-shadow: 0 0 1.25rem color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.welcome__title {
+  font-weight: 800;
+}
+
+.welcome__options {
+  gap: 0.5rem;
+}
+
+.welcome-option {
+  padding: 0.875rem;
+  border-radius: calc(16px * var(--radius-scale));
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-soft) 60%, transparent);
+  align-items: center;
+}
+
+.welcome-option__icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--accent) 14%, var(--panel));
+  color: var(--accent);
+}
+
+.welcome-option[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel-soft));
+  box-shadow:
+    0 0 0 0.0625rem color-mix(in srgb, var(--accent) 40%, transparent),
+    0 0 1.125rem var(--accent-glow);
+}
+
+.welcome-option[aria-pressed='true'] .welcome-option__icon {
+  background: var(--account-accent-grad);
+  color: var(--account-on-accent);
+}
+
+/* Footer: one full-width gradient "Next" on the first step, Back beside it
+   on the rest. */
+.welcome__footer {
+  gap: 0.625rem;
+}
+
+.welcome__actions {
+  flex: 1;
+  display: flex;
+}
+
+.welcome__actions .btn-primary,
+.welcome .btn-primary {
+  flex: 1;
+  width: 100%;
+  min-height: 2.875rem;
+  border: none;
+  border-radius: calc(14px * var(--radius-scale));
+  background: var(--account-accent-grad);
+  color: var(--account-on-accent);
+  font-weight: 800;
+  box-shadow: 0 0.5rem 1.25rem
+    color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.welcome .btn-ghost {
+  min-height: 2.875rem;
+  border-radius: calc(14px * var(--radius-scale));
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+  color: var(--text);
+}
+
+/* --- Starter template: chips with an amber selected state ------------ */
+
+.starter__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.starter__option {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  width: auto;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel-soft) 70%, transparent);
+  color: var(--text);
+}
+
+.starter__option strong {
+  font-size: calc(0.875rem * var(--text-scale));
+  font-weight: 700;
+}
+
+.starter__option span {
+  color: var(--muted);
+  font-size: calc(0.75rem * var(--text-scale));
+  font-weight: 600;
+}
+
+.starter__option.is-selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  box-shadow: 0 0 0.875rem var(--accent-glow);
+}
+
+.starter__option.is-selected strong,
+.starter__option.is-selected span {
+  color: var(--accent);
+}
+
+/* --- Tour: chapter list ---------------------------------------------- */
+
+.tour-chapters {
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border: 1px solid var(--glass-border, var(--line));
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-bg, var(--panel));
+}
+
+.tour-chapters__row {
+  min-height: 2.625rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: calc(12px * var(--radius-scale));
+  border: 1px solid transparent;
+  font-weight: 700;
+}
+
+.tour-chapters__row.is-current {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text);
+}
+
+.tour-chapters__row:not(.is-current) .tour-chapters__name {
+  color: var(--text);
+}
+
+.tour-chapters__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: calc(0.875rem * var(--text-scale));
+}
+
+.tour-chapters__done {
+  margin-left: 0;
+  color: var(--minor);
+  font-weight: 800;
+}
+
+.tour-chapters__row.is-current .tour-chapters__name::before {
+  content: '';
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: var(--accent);
+  margin-right: 0.125rem;
+}
+
+.tour-chapters__row .btn-ghost {
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  font-size: calc(0.8125rem * var(--text-scale));
+}
+
+/* --- Tour: pill (amber, with a small progress bar) ------------------- */
+
+.tour-pill {
+  flex-direction: row;
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+  height: auto;
+  min-height: 2.375rem;
+  padding: 0.5rem 0.75rem;
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent) 16%, var(--panel-soft));
+  color: var(--accent);
+  box-shadow: 0 0 1rem color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.tour-pill__label {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.tour-pill__count {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.tour-pill__bar {
+  flex-basis: 100%;
+  height: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  overflow: hidden;
+}
+
+.tour-pill__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* --- Tour: bubble actions -------------------------------------------- */
+
+.coach-mark__action {
+  border: none;
+  border-radius: calc(10px * var(--radius-scale));
+  background: var(--account-accent-grad);
+  color: var(--account-on-accent);
+  font-weight: 800;
+}
+
+.coach-mark__quiet {
+  border-radius: calc(10px * var(--radius-scale));
+  border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.coach-mark__eyebrow {
+  color: var(--accent);
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  opacity: 1;
+}
+
+/* --- Phone: profile is a bottom sheet -------------------------------- */
+
+@media (max-width: 960px) {
+  .profile-modal {
+    align-items: flex-end;
+  }
+
+  .profile-card {
+    width: 100%;
+    max-height: calc(100dvh - 3rem);
+    padding: 0.5rem 1rem 1.5rem;
+    border-radius: 28px 28px 0 0;
+  }
+
+  /* The grab handle at the top of the sheet. */
+  .profile-card::before {
+    content: '';
+    justify-self: center;
+    width: 2.5rem;
+    height: 0.3125rem;
+    margin-bottom: -0.375rem;
+    border-radius: 3px;
+    background: var(--line);
+  }
+
+  .profile-card__head {
+    position: sticky;
+    top: 0;
+  }
+
+  .profile-modal .profile-avatar--large {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* On a phone the welcome fills the screen, as in the phone mockup. */
+  .welcome-overlay {
+    --welcome-top: 0px;
+    padding: 0;
+  }
+
+  .welcome {
+    width: 100%;
+    max-height: 100dvh;
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+    padding: 1.25rem 1.25rem calc(1rem + env(safe-area-inset-bottom, 0rem));
+  }
+
+  .welcome__progress {
+    top: 1rem;
+    right: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome__bar,
+  .tour-pill__fill {
+    transition: none;
+  }
+}
+
+:root[data-motion='reduced'] .welcome__bar,
+:root[data-motion='reduced'] .tour-pill__fill {
+  transition: none;
+}
