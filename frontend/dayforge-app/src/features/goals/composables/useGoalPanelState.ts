@@ -24,6 +24,7 @@ import {
   monthTrackedMs,
   type PanelStats,
 } from './projectPanelStats'
+import { todayTrackedMs } from './todayView'
 
 type GoalPanelProps = {
   goal: Goal | null
@@ -95,6 +96,11 @@ export function useGoalPanelState(props: GoalPanelProps) {
   /** Habits in scope; the Habits card is left out when there are none. */
   const hasHabits = computed(
     () => habitTemplatesOf(habitTemplates.value).length > 0,
+  )
+
+  /** Time booked today, for the All view's day summary. */
+  const trackedTodayMs = computed(() =>
+    todayTrackedMs(entries.value, goalScopeId.value, today.value),
   )
 
   const panelStats = computed<PanelStats>(() => ({
@@ -188,6 +194,7 @@ export function useGoalPanelState(props: GoalPanelProps) {
   return {
     ...taskTree,
     panelStats,
+    trackedTodayMs,
     viewedDayLabel,
     upcomingDays,
     hasHabits,

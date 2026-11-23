@@ -10,12 +10,16 @@ import type { ID, ISODate } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import GoalPanelHeader from './GoalPanelHeader.vue'
 import GoalComposerZone from './GoalComposerZone.vue'
+import TodaySummary from './TodaySummary.vue'
+import TodayProjectChips from './TodayProjectChips.vue'
 import HabitCalendar from './HabitCalendar.vue'
 import { TaskList, TaskMoveDialog, UpcomingTasks } from '../../tasks'
 import { useGoalPanelState } from '../composables/useGoalPanelState'
 import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
 import { useProjectBudgetStatus } from '../../../shared/composables/billing/useProjectBudgetStatus'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
+import { filterGroupsByProject, flattenNodes } from '../composables/todayView'
+import type { TaskGroup } from '../../../shared/composables/useTaskTree'
 
 // Opened on demand (board toggle, notes button), so kept out of the first chunk.
 const ProjectBoard = defineAsyncComponent(() =>
@@ -98,6 +102,7 @@ const {
   taskGroups,
   panelTitle,
   panelStats,
+  trackedTodayMs,
   viewedDayLabel,
   upcomingDays,
   hasHabits,
@@ -118,12 +123,45 @@ const projectColor = computed(() =>
     ? undefined
     : projectColors(props.goals).get(props.goal.id),
 )
+
+// --- the All view's day summary and project filter (local UI state only) ---
+
+const allProjectColors = computed(() => projectColors(props.goals))
+
+/** The project picked in the chips row; null shows every project. */
+const pickedProjectId = ref<ID | null>(null)
+
+const allModeRowCount = computed(() => flattenNodes(taskGroups.value).length)
+
+/** One chip per active project; none outside All view. */
+const todayProjects = computed(() =>
+  props.isAllMode
+    ? props.goals.filter((goal) => goal.status === GOAL_STATUS.ACTIVE)
+    : [],
+)
+
+/** A pick is dropped as soon as its project has no rows left today. */
+const activeProjectId = computed<ID | null>(() =>
+  todayProjects.value.some((project) => project.id === pickedProjectId.value)
+    ? pickedProjectId.value
+    : null,
+)
+
+/** The rows the list draws: all of them, or just the picked project's. */
+const listGroups = computed<TaskGroup[]>(() =>
+  activeProjectId.value
+    ? filterGroupsByProject(taskGroups.value, activeProjectId.value)
+    : taskGroups.value,
+)
 </script>
 
 <template>
   <section
     class="goal-panel"
-    :class="{ 'has-side': !showBoard && (showUpcoming || hasHabits) }"
+    :class="{
+      'has-side': !showBoard && (showUpcoming || hasHabits),
+      'is-all-mode': isAllMode,
+    }"
     :style="goalPanelStyle"
   >
     <GoalPanelHeader
@@ -146,6 +184,23 @@ const projectColor = computed(() =>
       @today="emit('today')"
     />
 
+    <template v-if="isAllMode">
+      <TodaySummary
+        :tracked-ms="trackedTodayMs"
+        :earned="panelStats.earnedToday"
+        :done="panelStats.todayDone"
+        :total="panelStats.todayTotal"
+      />
+      <TodayProjectChips
+        v-if="todayProjects.length"
+        :projects="todayProjects"
+        :colors="allProjectColors"
+        :total="allModeRowCount"
+        :selected-id="activeProjectId"
+        @select="(goalId) => (pickedProjectId = goalId)"
+      />
+    </template>
+
     <GoalComposerZone
       :is-all-mode="isAllMode"
       :goals="goals"
@@ -163,7 +218,7 @@ const projectColor = computed(() =>
 
     <TaskList
       v-else
-      :groups="taskGroups"
+      :groups="listGroups"
       :is-all-mode="isAllMode"
       @focus-project="focusProject"
       @move-task="openMoveDialog"

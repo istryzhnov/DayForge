@@ -225,6 +225,14 @@ const {
             {{ doneCount }}/{{ totalCount }}
           </span>
 
+          <!-- A standalone important task; a project header already has its stripe. -->
+          <span
+            v-if="node.task.priority === 'major' && !isProjectHeader"
+            class="task-major-chip"
+          >
+            {{ t('board.majorTag') }}
+          </span>
+
           <span
             v-if="hasOwnRate"
             class="task-priority-chip"
