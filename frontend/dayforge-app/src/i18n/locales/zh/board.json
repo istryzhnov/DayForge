@@ -17,5 +17,6 @@
   "moreActions": "更多操作",
   "moveTo": "移动到",
   "clearedDone": "已清除 {n} 个已完成任务",
-  "customTag": "自定义"
+  "customTag": "自定义",
+  "majorTag": "重要"
 }

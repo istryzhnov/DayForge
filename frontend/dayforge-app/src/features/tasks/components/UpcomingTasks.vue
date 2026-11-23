@@ -48,6 +48,15 @@ function dayLabel(date: ISODate) {
   return panelDateLabel(date, { weekday: 'short', day: 'numeric' })
 }
 
+/** The date tile's two parts: weekday, and the day of the month. */
+function weekdayLabel(date: ISODate) {
+  return panelDateLabel(date, { weekday: 'short' })
+}
+
+function dayNumberLabel(date: ISODate) {
+  return panelDateLabel(date, { day: 'numeric' })
+}
+
 function timeRange(item: UpcomingItem) {
   if (!item.startTime) return ''
   if (!item.endTime) return formatTime(item.startTime)
@@ -80,19 +89,30 @@ function timeRange(item: UpcomingItem) {
               :title="t('tasks.showDay', { day: dayLabel(item.date) })"
               @click="emit('select-date', item.date)"
             >
-              <span class="upcoming-row__day">{{ dayLabel(item.date) }}</span>
-              <span class="upcoming-row__time">{{ timeRange(item) }}</span>
-              <span class="upcoming-row__dot" aria-hidden="true"></span>
-              <span class="upcoming-row__title ui-oneline">{{
-                item.title
-              }}</span>
-              <span
-                v-if="item.repeatLabel"
-                class="upcoming-row__repeat"
-                role="img"
-                :aria-label="t('tasks.repeats')"
-              >
-                <AppIcon name="repeat" :size="13" />
+              <span class="upcoming-row__tile" aria-hidden="true">
+                <span class="upcoming-row__weekday">{{
+                  weekdayLabel(item.date)
+                }}</span>
+                <span class="upcoming-row__num">{{
+                  dayNumberLabel(item.date)
+                }}</span>
+              </span>
+              <span class="upcoming-row__text">
+                <span class="upcoming-row__head">
+                  <span class="upcoming-row__dot" aria-hidden="true"></span>
+                  <span class="upcoming-row__title ui-oneline">{{
+                    item.title
+                  }}</span>
+                  <span
+                    v-if="item.repeatLabel"
+                    class="upcoming-row__repeat"
+                    role="img"
+                    :aria-label="t('tasks.repeats')"
+                  >
+                    <AppIcon name="repeat" :size="13" />
+                  </span>
+                </span>
+                <span class="upcoming-row__time">{{ timeRange(item) }}</span>
               </span>
             </button>
           </li>

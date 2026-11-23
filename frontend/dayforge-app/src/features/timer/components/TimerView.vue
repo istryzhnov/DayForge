@@ -171,191 +171,200 @@ function closeEditor() {
       {{ t('timer.timerInfo') }}
     </p>
 
-    <section class="ui-card timer-view__stage">
-      <TimerModePicker
-        :mode="mode"
-        data-tip-anchor="timer-mode"
-        @select="selectMode"
-      />
+    <div class="timer-view__body">
+      <section class="ui-card timer-view__stage">
+        <TimerModePicker
+          :mode="mode"
+          data-tip-anchor="timer-mode"
+          @select="selectMode"
+        />
 
-      <div class="timer-view__dial" :class="{ 'is-editing': isEditingLength }">
-        <component
-          :is="canEditLength && !isEditingLength ? 'button' : 'div'"
-          class="timer-view__dial-face"
-          :class="{ 'is-editable': canEditLength && !isEditingLength }"
-          v-bind="
-            canEditLength && !isEditingLength
-              ? {
-                  type: 'button',
-                  title: t('timer.editLengthTitle'),
-                  'aria-label': t('timer.editLengthTitle'),
-                }
-              : {}
-          "
-          @click="canEditLength && !isEditingLength && startEditLength()"
+        <div
+          class="timer-view__dial"
+          :class="{ 'is-editing': isEditingLength }"
         >
-          <TimerDisplay
-            :value="dialLabel"
-            :caption="statusLabel"
-            :progress="progress"
-            :status="timer.status"
-            variant="large"
-          />
-        </component>
-        <form
-          v-if="isEditingLength"
-          class="timer-view__dial-edit"
-          @submit.prevent="applyLength"
-        >
-          <input
-            ref="lengthInput"
-            v-model.number="draftMinutes"
-            type="number"
-            min="1"
-            max="240"
-            inputmode="numeric"
-            :aria-label="t('timer.customLengthLabel')"
-            @blur="applyLength"
-            @keydown.esc.prevent="cancelEditLength"
-          />
-          <span>{{ t('timer.unitMinuteShort') }}</span>
-        </form>
-      </div>
-
-      <!-- Countdown length, picked right under the dial before starting. -->
-      <div
-        v-if="mode === TIMER_MODE.COUNTDOWN && isIdle"
-        class="ui-chips timer-view__lengths"
-        data-tip-anchor="timer-lengths"
-        role="group"
-        :aria-label="t('timer.countdownLengthLabel')"
-      >
-        <button
-          v-for="minutes in COUNTDOWN_PRESETS"
-          :key="minutes"
-          class="ui-chip"
-          :class="{ 'is-active': countdownMinutes === minutes }"
-          type="button"
-          :aria-pressed="countdownMinutes === minutes"
-          @click="countdownMinutes = minutes"
-        >
-          {{ t('timer.lengthMinutes', { n: minutes }) }}
-        </button>
-        <label class="ui-chip timer-view__custom">
-          <input
-            type="number"
-            min="1"
-            max="240"
-            inputmode="numeric"
-            :aria-label="t('timer.customLengthLabel')"
-            :value="
-              COUNTDOWN_PRESETS.includes(countdownMinutes)
-                ? ''
-                : countdownMinutes
+          <component
+            :is="canEditLength && !isEditingLength ? 'button' : 'div'"
+            class="timer-view__dial-face"
+            :class="{ 'is-editable': canEditLength && !isEditingLength }"
+            v-bind="
+              canEditLength && !isEditingLength
+                ? {
+                    type: 'button',
+                    title: t('timer.editLengthTitle'),
+                    'aria-label': t('timer.editLengthTitle'),
+                  }
+                : {}
             "
-            placeholder="…"
-            @change="setCustomLength"
-          />
-          {{ t('timer.unitMinuteShort') }}
-        </label>
-      </div>
-
-      <!-- Where this sitting's time is booked: an existing task, or a new one. -->
-      <div class="timer-view__assign">
-        <div class="timer-view__pick">
-          <select
-            class="timer-view__picker"
-            :value="timer.task?.taskId ?? ''"
-            :aria-label="t('timer.addTimeToTask')"
-            @change="pickTask"
+            @click="canEditLength && !isEditingLength && startEditLength()"
           >
-            <option value="">{{ t('timer.noTask') }}</option>
-            <optgroup
-              v-for="group in taskGroups"
-              :key="group.label"
-              :label="shortLabel(group.label)"
-            >
-              <option
-                v-for="option in group.tasks"
-                :key="option.id"
-                :value="option.id"
-                :title="option.title"
-              >
-                {{ shortLabel(option.title) }}
-              </option>
-            </optgroup>
-          </select>
-          <button
-            v-if="timer.task"
-            class="ui-icon-btn"
-            type="button"
-            :title="t('timer.detachTask')"
-            :aria-label="t('timer.detachTask')"
-            @click="clearTask"
+            <TimerDisplay
+              :value="dialLabel"
+              :caption="statusLabel"
+              :progress="progress"
+              :status="timer.status"
+              variant="large"
+            />
+          </component>
+          <form
+            v-if="isEditingLength"
+            class="timer-view__dial-edit"
+            @submit.prevent="applyLength"
           >
-            <AppIcon name="close" :size="14" />
-          </button>
+            <input
+              ref="lengthInput"
+              v-model.number="draftMinutes"
+              type="number"
+              min="1"
+              max="240"
+              inputmode="numeric"
+              :aria-label="t('timer.customLengthLabel')"
+              @blur="applyLength"
+              @keydown.esc.prevent="cancelEditLength"
+            />
+            <span>{{ t('timer.unitMinuteShort') }}</span>
+          </form>
         </div>
 
-        <DisclosureSection
-          v-if="canNameSession"
-          :label="t('timer.saveAsTaskOr')"
-          class="timer-view__save"
+        <!-- Countdown length, picked right under the dial before starting. -->
+        <div
+          v-if="mode === TIMER_MODE.COUNTDOWN && isIdle"
+          class="ui-chips timer-view__lengths"
+          data-tip-anchor="timer-lengths"
+          role="group"
+          :aria-label="t('timer.countdownLengthLabel')"
         >
-          <form class="timer-view__save-form" @submit.prevent="saveAsTask">
+          <button
+            v-for="minutes in COUNTDOWN_PRESETS"
+            :key="minutes"
+            class="ui-chip"
+            :class="{ 'is-active': countdownMinutes === minutes }"
+            type="button"
+            :aria-pressed="countdownMinutes === minutes"
+            @click="countdownMinutes = minutes"
+          >
+            {{ t('timer.lengthMinutes', { n: minutes }) }}
+          </button>
+          <label class="ui-chip timer-view__custom">
             <input
-              v-model="newTaskTitle"
-              type="text"
-              :placeholder="t('timer.taskPlaceholder')"
-              :aria-label="t('timer.nameSessionLabel')"
+              type="number"
+              min="1"
+              max="240"
+              inputmode="numeric"
+              :aria-label="t('timer.customLengthLabel')"
+              :value="
+                COUNTDOWN_PRESETS.includes(countdownMinutes)
+                  ? ''
+                  : countdownMinutes
+              "
+              placeholder="…"
+              @change="setCustomLength"
             />
-            <button
-              class="btn btn-ghost"
-              type="submit"
-              :disabled="!newTaskTitle.trim()"
+            {{ t('timer.unitMinuteShort') }}
+          </label>
+        </div>
+
+        <!-- Where this sitting's time is booked: an existing task, or a new one. -->
+        <div class="timer-view__assign">
+          <div class="timer-view__pick">
+            <select
+              class="timer-view__picker"
+              :value="timer.task?.taskId ?? ''"
+              :aria-label="t('timer.addTimeToTask')"
+              @change="pickTask"
             >
-              {{ t('timer.saveAsNewTask') }}
+              <option value="">{{ t('timer.noTask') }}</option>
+              <optgroup
+                v-for="group in taskGroups"
+                :key="group.label"
+                :label="shortLabel(group.label)"
+              >
+                <option
+                  v-for="option in group.tasks"
+                  :key="option.id"
+                  :value="option.id"
+                  :title="option.title"
+                >
+                  {{ shortLabel(option.title) }}
+                </option>
+              </optgroup>
+            </select>
+            <button
+              v-if="timer.task"
+              class="ui-icon-btn"
+              type="button"
+              :title="t('timer.detachTask')"
+              :aria-label="t('timer.detachTask')"
+              @click="clearTask"
+            >
+              <AppIcon name="close" :size="14" />
             </button>
-          </form>
-        </DisclosureSection>
+          </div>
+
+          <DisclosureSection
+            v-if="canNameSession"
+            :label="t('timer.saveAsTaskOr')"
+            class="timer-view__save"
+          >
+            <form class="timer-view__save-form" @submit.prevent="saveAsTask">
+              <input
+                v-model="newTaskTitle"
+                type="text"
+                :placeholder="t('timer.taskPlaceholder')"
+                :aria-label="t('timer.nameSessionLabel')"
+              />
+              <button
+                class="btn btn-ghost"
+                type="submit"
+                :disabled="!newTaskTitle.trim()"
+              >
+                {{ t('timer.saveAsNewTask') }}
+              </button>
+            </form>
+          </DisclosureSection>
+        </div>
+
+        <p v-if="hint" class="timer-view__hint ui-oneline">{{ hint }}</p>
+
+        <TimerControls
+          data-tip-anchor="timer-controls"
+          :primary-label="primaryLabel"
+          :primary-icon="
+            timer.status === TIMER_STATUS.RUNNING ? 'pause' : 'play'
+          "
+          :can-stop="canStop"
+          :can-skip="canSkip"
+          size="large"
+          @primary="primary"
+          @stop="stop"
+          @skip="skipPhase"
+        />
+
+        <p class="timer-view__today">
+          {{
+            t('timer.todayTotal', {
+              time: formatHoursMinutes(todayTotalMs, durationWords()),
+            })
+          }}
+        </p>
+      </section>
+
+      <div class="timer-view__log">
+        <header class="timer-view__history-head">
+          <p class="ui-section-label">{{ t('timer.history') }}</p>
+          <button
+            class="ui-chip timer-view__add"
+            type="button"
+            @click="openEditor(null)"
+          >
+            <AppIcon name="plus" :size="14" />
+            {{ t('timer.addEntry') }}
+          </button>
+        </header>
+
+        <TimeEntryList data-tip-anchor="timer-history" @edit="openEditor" />
       </div>
-
-      <p v-if="hint" class="timer-view__hint ui-oneline">{{ hint }}</p>
-
-      <TimerControls
-        data-tip-anchor="timer-controls"
-        :primary-label="primaryLabel"
-        :primary-icon="timer.status === TIMER_STATUS.RUNNING ? 'pause' : 'play'"
-        :can-stop="canStop"
-        :can-skip="canSkip"
-        size="large"
-        @primary="primary"
-        @stop="stop"
-        @skip="skipPhase"
-      />
-
-      <p class="timer-view__today">
-        {{
-          t('timer.todayTotal', {
-            time: formatHoursMinutes(todayTotalMs, durationWords()),
-          })
-        }}
-      </p>
-    </section>
-
-    <header class="timer-view__history-head">
-      <p class="ui-section-label">{{ t('timer.history') }}</p>
-      <button
-        class="ui-chip timer-view__add"
-        type="button"
-        @click="openEditor(null)"
-      >
-        <AppIcon name="plus" :size="14" />
-        {{ t('timer.addEntry') }}
-      </button>
-    </header>
-
-    <TimeEntryList data-tip-anchor="timer-history" @edit="openEditor" />
+    </div>
 
     <TimeEntryEditor
       v-if="isEditorOpen"

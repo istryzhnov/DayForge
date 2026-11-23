@@ -169,6 +169,7 @@ const {
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
       'is-timing': isTimerActive,
+      'is-major': node.task.priority === 'major',
     }"
     :data-drop-row="drag ? node.task.templateId : undefined"
     :data-drop-major="isProject ? 'true' : undefined"

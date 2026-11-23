@@ -1,0 +1,358 @@
+/* Redesign: analytics — brings this area in line with the canvas mockups. */
+
+/* ---- KPI tiles: the hero becomes a row of glass tiles ------------------- */
+
+.analytics .analytics-hero.ui-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.analytics .analytics-hero .analytics-hero__main,
+.analytics .analytics-hero .analytics-hero__stat {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--glass-border);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-sheen), var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+/* The stats stay grid items of the hero, so the tiles share one row. */
+.analytics .analytics-hero .analytics-hero__stats {
+  display: contents;
+}
+
+.analytics .analytics-hero .analytics-hero__main {
+  grid-column: 1 / -1;
+  align-items: stretch;
+}
+
+.analytics .analytics-hero__head {
+  align-items: flex-start;
+}
+
+.analytics .analytics-hero__tracked,
+.analytics .analytics-hero__stat .ui-stat__value,
+.analytics .analytics-hero__percent {
+  font-family: var(--font-mono);
+}
+
+.analytics .analytics-hero__tracked {
+  font-size: calc(1.625rem * var(--text-scale));
+}
+
+.analytics .analytics-hero .analytics-hero__stat {
+  color: var(--muted);
+}
+
+.analytics .analytics-hero .analytics-hero__stat .ui-stat__value {
+  font-size: calc(1.25rem * var(--text-scale));
+  font-weight: 700;
+  color: var(--text);
+}
+
+.analytics .analytics-hero .analytics-hero__label {
+  font-size: calc(0.75rem * var(--text-scale));
+  font-weight: 700;
+}
+
+.analytics .analytics-hero__icon {
+  display: none;
+}
+
+.analytics .analytics-hero .analytics-hero__name {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+}
+
+.analytics .analytics-hero .analytics-hero__stat .ui-stat__value {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.analytics .analytics-hero .ui-progress {
+  height: 6px;
+}
+
+@container analytics (min-width: 900px) {
+  .analytics .analytics-hero.ui-card {
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .analytics .analytics-hero .analytics-hero__main {
+    grid-column: auto;
+  }
+
+  .analytics .analytics-hero .analytics-hero__stats {
+    display: contents;
+  }
+
+  .analytics .analytics-hero .analytics-hero__stat .ui-stat__value {
+    font-size: calc(1.375rem * var(--text-scale));
+  }
+}
+
+/* ---- Segmented tabs: amber tint with an inset amber outline ------------ */
+
+.analytics .ui-tabs {
+  padding: 4px;
+  border: 1px solid var(--glass-border);
+  border-radius: calc(16px * var(--radius-scale));
+  background: var(--glass-bg);
+  box-shadow: var(--glass-highlight);
+}
+
+.analytics .ui-tabs .ui-tab {
+  height: 2.625rem;
+  border-radius: calc(12px * var(--radius-scale));
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.analytics .ui-tabs .ui-tab.is-active {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* ---- Wave card: floating tip on the latest point ----------------------- */
+
+.analytics .analytics-chart__box {
+  position: relative;
+}
+
+.analytics .analytics-chart__tip {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: calc(12px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-highlight);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(calc(-100% - 14px), -50%);
+}
+
+.analytics .analytics-chart__tip-date {
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.analytics .analytics-chart__tip-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: calc(0.875rem * var(--text-scale));
+  font-weight: 700;
+  color: var(--text);
+}
+
+.analytics .analytics-chart__tip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* ---- Project progress: rounded bars with a white plan tick ------------- */
+
+.analytics .project-progress .ui-progress {
+  height: 8px;
+  overflow: visible;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+.analytics .project-progress .ui-progress > span {
+  border-radius: 4px;
+}
+
+.analytics .project-progress__tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+}
+
+/* ---- Earnings: gradient bars next to each project ---------------------- */
+
+.analytics .earnings-row__head {
+  flex-direction: row;
+  align-items: center;
+}
+
+.analytics .earnings-row__main {
+  width: 100%;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics .earnings-row__main .earnings-row__name {
+  flex: 0 1 auto;
+  max-width: 8.5rem;
+}
+
+.analytics .earnings-row__bar {
+  flex: 1 1 auto;
+  min-width: 48px;
+  height: 26px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  overflow: hidden;
+}
+
+.analytics .earnings-row__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--earn-color) 45%, transparent),
+    var(--earn-color)
+  );
+}
+
+.analytics .earnings-row__amount {
+  font-family: var(--font-mono);
+}
+
+/* ---- Income goal: glowing ring card ------------------------------------ */
+
+.analytics .income-goal.income-goal {
+  padding: 20px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-radius: calc(22px * var(--radius-scale));
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 70%
+    ),
+    var(--glass-bg);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.analytics .income-goal__ring {
+  flex: 0 0 auto;
+  width: 112px;
+  height: 112px;
+}
+
+.analytics .income-goal__ring-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--text) 8%, transparent);
+  stroke-width: 12;
+}
+
+.analytics .income-goal__ring-arc {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 12;
+  stroke-linecap: round;
+  filter: drop-shadow(
+    0 0 8px color-mix(in srgb, var(--accent) 50%, transparent)
+  );
+}
+
+.analytics .income-goal__ring-text {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  fill: var(--text);
+}
+
+/* The ring carries the percent; the text figure stays for screen readers. */
+.analytics .income-goal__percent {
+  display: none;
+}
+
+/* ---- Clients table: status pills --------------------------------------- */
+
+.analytics .analytics-table td {
+  border-top: 1px solid color-mix(in srgb, var(--text) 6%, transparent);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.analytics .analytics-status {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  padding: 0 26px 0 10px;
+  border: 0;
+  border-radius: calc(10px * var(--radius-scale));
+  background-color: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--muted);
+  font-size: calc(0.75rem * var(--text-scale));
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Paid: green, invoiced: amber, unbilled: neutral. */
+.analytics .analytics-status--paid {
+  background-color: rgba(126, 224, 138, 0.16);
+  color: #9ce8a5;
+}
+
+.analytics .analytics-status--invoiced {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+}
+
+/* ---- Habits: day-cell grid with amber done cells ----------------------- */
+
+.analytics .habits__cell {
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: calc(5px * var(--radius-scale));
+}
+
+.analytics .habits__cell.is-done {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.analytics .habits__cell.is-missed {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  border-color: transparent;
+}
+
+.analytics .habits__cell.is-pending {
+  background: transparent;
+  border: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-motion='reduced'] .analytics * {
+    transition: none;
+  }
+}

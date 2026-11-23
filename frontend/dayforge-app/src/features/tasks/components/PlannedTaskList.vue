@@ -4,6 +4,14 @@ import { useI18n } from 'vue-i18n'
 import type { PlannedTask } from '../composables/usePlannedTasks'
 import type { ID, ISODate } from '../../../entities/types'
 import { useFormat } from '../../../shared/composables/useFormat'
+import {
+  capitalizeFirst,
+  panelDateLabel,
+} from '../../../shared/composables/panelDateLabel'
+import {
+  addDaysToISODate,
+  getTodayISODate,
+} from '../../../shared/composables/goalSpace/date'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import { dayHeadingLabel, groupByDay } from '../composables/dayGroups'
 
@@ -29,18 +37,31 @@ const overdueCount = computed(
   () => props.tasks.filter((task) => task.isOverdue).length,
 )
 
-/** Overdue, repeat and time on one muted line under the title. */
+/** Overdue and repeat on one muted line under the title; the time has its own pill. */
 function whenLine(task: PlannedTask): string {
   const repeat = task.isAnnual ? t('tasks.everyYear') : task.repeatLabel
-  const time = task.startTime ? formatTime(task.startTime) : ''
-  return [task.isOverdue ? t('tasks.overdue') : '', repeat ?? '', time]
+  return [task.isOverdue ? t('tasks.overdue') : '', repeat ?? '']
     .filter(Boolean)
     .join(' · ')
+}
+
+/** The day tile: short weekday and the day of the month. */
+function weekdayShort(date: ISODate): string {
+  return capitalizeFirst(panelDateLabel(date, { weekday: 'short' }))
+}
+
+function dayOfMonth(date: ISODate): string {
+  return panelDateLabel(date, { day: 'numeric' })
+}
+
+/** Tomorrow gets the accent tint on its tile. */
+function isTomorrow(date: ISODate): boolean {
+  return date === addDaysToISODate(getTodayISODate(), 1)
 }
 </script>
 
 <template>
-  <section class="goal-panel">
+  <section class="goal-panel planned-view">
     <header class="goal-panel-header" data-tip-anchor="planned-header">
       <div class="goal-panel-header__main">
         <div class="goal-panel-header__title">
@@ -89,7 +110,21 @@ function whenLine(task: PlannedTask): string {
     </p>
 
     <div v-if="tasks.length" class="day-list">
-      <section v-for="day in days" :key="day.date" class="day-group">
+      <section
+        v-for="day in days"
+        :key="day.date"
+        class="day-group"
+        :aria-label="dayHeadingLabel(day.date)"
+      >
+        <span
+          class="day-tile"
+          :class="{ 'is-tomorrow': isTomorrow(day.date) }"
+          aria-hidden="true"
+        >
+          <span class="day-tile__weekday">{{ weekdayShort(day.date) }}</span>
+          <span class="day-tile__num">{{ dayOfMonth(day.date) }}</span>
+        </span>
+
         <header class="day-group__head">
           <span class="day-group__title ui-oneline">
             {{ dayHeadingLabel(day.date)
@@ -125,6 +160,10 @@ function whenLine(task: PlannedTask): string {
                 :size="14"
               />
             </button>
+
+            <span v-if="task.startTime" class="task-time-pill">
+              {{ formatTime(task.startTime) }}
+            </span>
 
             <div class="day-row__copy">
               <span

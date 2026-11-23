@@ -201,6 +201,7 @@ function submitAdd() {
         :aria-labelledby="`board-column-${column.key}`"
       >
         <header class="board-column__head">
+          <span class="board-column__dot" aria-hidden="true"></span>
           <h3 :id="`board-column-${column.key}`">{{ columnTitle(column) }}</h3>
           <span v-if="column.custom" class="board-column__tag">{{
             t('board.customTag')

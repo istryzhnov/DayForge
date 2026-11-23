@@ -167,6 +167,10 @@ function onMoveChange(event: Event) {
       "
       @click="emit('open')"
     >
+      <span v-if="isMajor" class="board-card__tag">{{
+        t('board.majorTag')
+      }}</span>
+
       <span class="board-card__title" :class="{ 'task-done': isDone }">
         {{ card.title }}
       </span>
@@ -192,7 +196,7 @@ function onMoveChange(event: Event) {
 
         <span
           v-if="card.subtasksTotal"
-          class="board-chip"
+          class="board-chip board-chip--count"
           :title="
             t('board.subtasksDone', {
               done: card.subtasksDone,
@@ -203,6 +207,12 @@ function onMoveChange(event: Event) {
           <AppIcon name="check" :size="11" />
           {{ card.subtasksDone }}/{{ card.subtasksTotal }}
         </span>
+
+        <span
+          v-if="isTiming"
+          class="df-live-dot board-card__live"
+          aria-hidden="true"
+        ></span>
       </span>
     </button>
 

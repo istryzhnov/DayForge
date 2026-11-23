@@ -19,6 +19,18 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 const clamped = computed(() => Math.min(1, Math.max(0, props.progress)))
 const dashOffset = computed(() => CIRCUMFERENCE * (1 - clamped.value))
 const percent = computed(() => `${clamped.value * 100}%`)
+
+/**
+ * The white knob sits where the progress arc ends. The arc starts at 3 o'clock
+ * inside the SVG; the SVG itself is rotated to start at 12 o'clock.
+ */
+const knob = computed(() => {
+  const angle = clamped.value * 2 * Math.PI
+  return {
+    x: 60 + RADIUS * Math.cos(angle),
+    y: 60 + RADIUS * Math.sin(angle),
+  }
+})
 </script>
 
 <template>
@@ -41,11 +53,19 @@ const percent = computed(() => `${clamped.value * 100}%`)
       <circle class="timer-display__track" cx="60" cy="60" :r="RADIUS" />
       <circle
         class="timer-display__progress"
+        :class="{ 'is-empty': clamped === 0 }"
         cx="60"
         cy="60"
         :r="RADIUS"
         :stroke-dasharray="CIRCUMFERENCE"
         :stroke-dashoffset="dashOffset"
+      />
+      <circle
+        v-if="clamped > 0"
+        class="timer-display__knob"
+        :cx="knob.x"
+        :cy="knob.y"
+        r="4.5"
       />
     </svg>
 

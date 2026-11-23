@@ -26,6 +26,15 @@
 /* Very last: the redesign's glass and outlines restyle panels, cards, dialogs
    and bubbles defined above, so it has to win every tie. */
 @import './styles/glass.css';
+/* Per-area layout passes that match the mockups, after the shared glass. */
+@import './styles/redesign-project.css';
+@import './styles/redesign-board.css';
+@import './styles/redesign-calendar.css';
+@import './styles/redesign-timer.css';
+@import './styles/redesign-analytics.css';
+@import './styles/redesign-lists-settings.css';
+@import './styles/redesign-dialogs.css';
+@import './styles/redesign-mobile.css';
 
 /* Fallback for any focusable control without its own ring. Panels that
    draw their own ring use box-shadow instead of removing the outline. */

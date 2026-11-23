@@ -1,0 +1,153 @@
+/* Redesign: mobile — brings this area in line with the canvas mockups. */
+
+@media (max-width: 960px) {
+  /* ---- Live timer capsule: glass, floating just above the tab bar ---- */
+  .mobile-timer-capsule {
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0) + 4.25rem + 0.75rem);
+    z-index: 1090;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    max-width: 30rem;
+    height: 3.75rem;
+    margin: 0 auto;
+    padding: 0 0.5rem 0 1rem;
+    box-sizing: border-box;
+    border: 1px solid var(--glass-border);
+    border-radius: calc(22px * var(--radius-scale));
+    background: var(--glass-sheen), var(--glass-bg-strong);
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    box-shadow: var(--glass-highlight), var(--shadow-lg);
+  }
+
+  .mobile-timer-capsule__open {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .mobile-timer-capsule__title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: calc(0.875rem * var(--text-scale));
+    font-weight: 700;
+  }
+
+  .mobile-timer-capsule__time {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: calc(1rem * var(--text-scale));
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  .mobile-timer-capsule__btn {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: none;
+    border-radius: calc(16px * var(--radius-scale));
+    background: color-mix(in srgb, var(--text) 10%, transparent);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .mobile-timer-capsule__btn:hover {
+    background: color-mix(in srgb, var(--text) 16%, transparent);
+  }
+
+  .mobile-timer-capsule__open:focus-visible,
+  .mobile-timer-capsule__btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* Tab bar (4.25rem + 0.75rem inset), capsule (3.75rem) and a breath of room. */
+  body.has-timer-capsule .app-content {
+    padding-bottom: calc(10.5rem + env(safe-area-inset-bottom, 0));
+  }
+
+  /* ---- Avatar: a conic gradient ring, in the top bar and the drawer ---- */
+  .mobile-topbar__btn.mobile-topbar__profile {
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 2px;
+    border: none;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 200deg,
+      var(--accent),
+      var(--minor),
+      var(--accent)
+    );
+  }
+
+  .mobile-topbar__btn.mobile-topbar__profile:hover,
+  .mobile-topbar__btn.mobile-topbar__profile:focus-visible,
+  .mobile-topbar__btn.mobile-topbar__profile.is-active,
+  .mobile-topbar__btn.mobile-topbar__profile[aria-expanded='true'] {
+    border: none;
+    background: conic-gradient(
+      from 200deg,
+      var(--accent),
+      var(--minor),
+      var(--accent)
+    );
+  }
+
+  .mobile-topbar__btn.mobile-topbar__profile.is-active {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+
+  .mobile-topbar__profile .profile-avatar {
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--bg);
+    background: var(--panel-soft);
+  }
+
+  .app-sidebar .sidebar-footer .sidebar-profile {
+    display: flex;
+  }
+
+  .app-sidebar .sidebar-profile__avatar {
+    width: 2.375rem;
+    height: 2.375rem;
+    padding: 2px;
+    box-sizing: border-box;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 200deg,
+      var(--accent),
+      var(--major),
+      var(--accent)
+    );
+  }
+
+  .app-sidebar .sidebar-profile__avatar .profile-avatar {
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--bg);
+    background: var(--panel-soft);
+  }
+}

@@ -17,5 +17,6 @@
   "moreActions": "More actions",
   "moveTo": "Move to",
   "clearedDone": "Cleared {n} done task | Cleared {n} done tasks",
-  "customTag": "custom"
+  "customTag": "custom",
+  "majorTag": "Important"
 }

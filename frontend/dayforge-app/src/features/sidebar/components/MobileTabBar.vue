@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
 import type { ActiveView } from '../../../entities/types'
@@ -10,13 +10,14 @@ import { useHotkeyOverlay } from '../../../shared/composables/useHotkeys'
  * The phone's main navigation: a floating bar of glass at the bottom of the
  * screen. Projects, Calendar, a raised quick-add button, Analytics and Timer;
  * the active view shows its label, the rest stay icon-only. While a timer
- * runs, its tab carries the breathing amber dot.
+ * runs, its tab carries the breathing amber dot and a live capsule floats
+ * above the bar.
  */
 const props = defineProps<{ activeView: ActiveView }>()
 const emit = defineEmits<{ (e: 'select-view', view: ActiveView): void }>()
 
 const { t } = useI18n()
-const { isLive } = useTimer()
+const { isLive, isRunning, displayLabel, task, pause, resume } = useTimer()
 const { openQuickAdd } = useHotkeyOverlay()
 
 type Tab = {
@@ -40,9 +41,56 @@ const current = computed<ActiveView>(() =>
     ? 'goals'
     : props.activeView,
 )
+
+/**
+ * The live capsule floats above the bar while a timer runs. On the Timer view
+ * the screen already shows the timer, so the capsule steps aside there.
+ */
+const showCapsule = computed(() => isLive.value && current.value !== 'timer')
+
+/** Lets the page reserve room under its last row for the capsule. */
+watch(
+  showCapsule,
+  (on) => document.body.classList.toggle('has-timer-capsule', on),
+  { immediate: true },
+)
+onUnmounted(() => document.body.classList.remove('has-timer-capsule'))
+
+const capsuleTitle = computed(() => task.value?.taskTitle || t('timer.noTask'))
+
+function openTimer() {
+  emit('select-view', 'timer')
+}
+
+function toggleRunning() {
+  if (isRunning.value) pause()
+  else resume()
+}
 </script>
 
 <template>
+  <div v-if="showCapsule" class="mobile-timer-capsule">
+    <button
+      class="mobile-timer-capsule__open"
+      type="button"
+      :aria-label="t('sidebar.openTimer', { time: displayLabel })"
+      @click="openTimer"
+    >
+      <span class="df-live-dot" aria-hidden="true"></span>
+      <span class="mobile-timer-capsule__title">{{ capsuleTitle }}</span>
+    </button>
+    <span class="mobile-timer-capsule__time">{{ displayLabel }}</span>
+    <button
+      class="mobile-timer-capsule__btn"
+      type="button"
+      :aria-label="isRunning ? t('timer.pause') : t('timer.resume')"
+      :title="isRunning ? t('timer.pause') : t('timer.resume')"
+      @click="toggleRunning"
+    >
+      <AppIcon :name="isRunning ? 'pause' : 'play'" :size="18" />
+    </button>
+  </div>
+
   <nav class="mobile-tabbar" :aria-label="t('sidebar.navigation')">
     <button
       v-for="tab in LEFT"
