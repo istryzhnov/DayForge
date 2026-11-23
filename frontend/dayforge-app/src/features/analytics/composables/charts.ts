@@ -209,3 +209,54 @@ export function buildBarChart(
     isEmpty: points.every((point) => point.totalMs === 0),
   }
 }
+
+export interface WavePoint {
+  x: number
+  y: number
+}
+
+export interface WavePath {
+  /** The smooth line through every point. Empty when there is nothing to draw. */
+  line: string
+  /** The same line closed down to the baseline, for the gradient fill. */
+  area: string
+  /** The last point, where the glowing dot sits. */
+  end: WavePoint | null
+}
+
+function round(value: number): number {
+  return Math.round(value * 10) / 10
+}
+
+/**
+ * A smooth curve through the points (Catmull-Rom turned into cubic Béziers).
+ * Control points are clamped to the baseline, so a dip between two quiet days
+ * never draws below zero hours.
+ */
+export function buildWave(points: WavePoint[], baseline: number): WavePath {
+  if (points.length === 0) return { line: '', area: '', end: null }
+
+  const first = points[0]
+  const last = points[points.length - 1]
+  const clamp = (y: number) => Math.min(baseline, y)
+  let line = `M${round(first.x)} ${round(first.y)}`
+
+  if (points.length === 1) {
+    line += ` H${round(first.x + 0.01)}`
+  }
+
+  for (let index = 0; index < points.length - 1; index++) {
+    const p0 = points[index - 1] ?? points[index]
+    const p1 = points[index]
+    const p2 = points[index + 1]
+    const p3 = points[index + 2] ?? p2
+    const c1x = p1.x + (p2.x - p0.x) / 6
+    const c1y = clamp(p1.y + (p2.y - p0.y) / 6)
+    const c2x = p2.x - (p3.x - p1.x) / 6
+    const c2y = clamp(p2.y - (p3.y - p1.y) / 6)
+    line += ` C${round(c1x)} ${round(c1y)} ${round(c2x)} ${round(c2y)} ${round(p2.x)} ${round(p2.y)}`
+  }
+
+  const area = `${line} L${round(last.x)} ${round(baseline)} L${round(first.x)} ${round(baseline)} Z`
+  return { line, area, end: { x: last.x, y: last.y } }
+}

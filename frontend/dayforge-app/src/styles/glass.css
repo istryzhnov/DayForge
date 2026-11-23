@@ -458,3 +458,56 @@ body {
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
   }
 }
+
+/* ---- Analytics: the wave --------------------------------------------- */
+
+.analytics-wave__stop-top {
+  stop-color: var(--accent);
+  stop-opacity: 0.42;
+}
+
+.analytics-wave__stop-bottom {
+  stop-color: var(--accent);
+  stop-opacity: 0;
+}
+
+.analytics-wave__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 5px var(--accent-glow));
+}
+
+.analytics-wave__guide {
+  stroke: color-mix(in srgb, var(--accent) 55%, transparent);
+  stroke-width: 1.25;
+  stroke-dasharray: 3 4;
+}
+
+.analytics-wave__halo {
+  fill: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.analytics-wave__dot {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 2;
+}
+
+.analytics-chart__hits rect {
+  fill: transparent;
+}
+
+.analytics-chart__hits rect:hover {
+  fill: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+/* Figures read as instruments: the mono face, tabular digits. */
+.analytics-hero__figure,
+.analytics-hero__percent,
+.ui-stat__value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}

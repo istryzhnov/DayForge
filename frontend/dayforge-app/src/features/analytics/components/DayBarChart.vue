@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ISODate } from '../../../entities/types'
-import type { Bar, SeriesPoint } from '../composables/charts'
+import { computed, useId } from 'vue'
+import { buildWave, type Bar, type SeriesPoint } from '../composables/charts'
 import { useBarChartGeometry } from '../composables/useChartGeometry'
 import { useI18n } from 'vue-i18n'
 
@@ -16,22 +17,34 @@ const props = defineProps<{
 
 const { chart } = useBarChartGeometry(() => props.points)
 
-/** Days still ahead have no time yet, so they read as a neutral stub. */
-const FUTURE_STUB_PX = 2
+/** Each SVG needs its own gradient id: two charts can share a page. */
+const gradientId = `wave-${useId()}`
 
-function barClass(bar: Bar): string {
-  if (bar.point.date > props.todayKey) return 'is-future'
-  return bar.point.date === props.todayKey ? 'is-today' : 'is-past'
+/**
+ * The time drawn as a smooth wave through the top of each bucket. It stops at
+ * today: days still ahead have no time yet, so the line doesn't fall to zero
+ * in front of them.
+ */
+const wave = computed(() =>
+  buildWave(
+    chart.value.bars
+      .filter((bar) => bar.point.date <= props.todayKey)
+      .map((bar) => ({ x: bar.x + bar.width / 2, y: bar.y })),
+    chart.value.baseline,
+  ),
+)
+
+/** Every bucket keeps a full-height hover strip carrying its exact time. */
+function hitX(bar: Bar): number {
+  const slot = chart.value.bars[1]
+    ? chart.value.bars[1].x - chart.value.bars[0].x
+    : bar.width
+  return bar.x + bar.width / 2 - slot / 2
 }
 
-function barTop(bar: Bar): number {
-  return bar.point.date > props.todayKey
-    ? chart.value.baseline - FUTURE_STUB_PX
-    : bar.y
-}
-
-function barHeight(bar: Bar): number {
-  return bar.point.date > props.todayKey ? FUTURE_STUB_PX : bar.height
+function hitWidth(): number {
+  const bars = chart.value.bars
+  return bars[1] ? bars[1].x - bars[0].x : (bars[0]?.width ?? 0)
 }
 </script>
 
@@ -81,16 +94,49 @@ function barHeight(bar: Bar): number {
           </text>
         </g>
 
-        <g class="analytics-chart__bars">
+        <defs>
+          <linearGradient :id="gradientId" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" class="analytics-wave__stop-top" />
+            <stop offset="100%" class="analytics-wave__stop-bottom" />
+          </linearGradient>
+        </defs>
+
+        <g v-if="wave.end && !chart.isEmpty" class="analytics-wave">
+          <path
+            class="analytics-wave__area"
+            :d="wave.area"
+            :fill="`url(#${gradientId})`"
+          />
+          <path class="analytics-wave__line" :d="wave.line" />
+          <line
+            class="analytics-wave__guide"
+            :x1="wave.end.x"
+            :x2="wave.end.x"
+            :y1="wave.end.y + 8"
+            :y2="chart.baseline"
+          />
+          <circle
+            class="analytics-wave__halo"
+            :cx="wave.end.x"
+            :cy="wave.end.y"
+            r="9"
+          />
+          <circle
+            class="analytics-wave__dot"
+            :cx="wave.end.x"
+            :cy="wave.end.y"
+            r="4.5"
+          />
+        </g>
+
+        <g class="analytics-chart__hits">
           <rect
             v-for="bar in chart.bars"
             :key="bar.point.date"
-            :x="bar.x"
-            :class="barClass(bar)"
-            :y="barTop(bar)"
-            :width="bar.width"
-            :height="barHeight(bar)"
-            rx="2"
+            :x="hitX(bar)"
+            :y="0"
+            :width="hitWidth()"
+            :height="chart.baseline"
           >
             <title>
               {{ bar.point.title }} · {{ formatHours(bar.point.totalMs) }}
