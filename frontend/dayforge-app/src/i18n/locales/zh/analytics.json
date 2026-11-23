@@ -156,5 +156,11 @@
   "invoicedOn": "开票于 {date}",
   "paidOn": "· 付款于 {date}",
   "notInvoiced": "未开票",
-  "withoutTask": "无任务"
+  "withoutTask": "无任务",
+  "kpiAria": "关键指标",
+  "kpiVsPrevious": "较上一期",
+  "kpiUp": "上升",
+  "kpiDown": "下降",
+  "kpiPlanVsActual": "计划 vs 实际",
+  "kpiTasksDone": "已完成任务"
 }

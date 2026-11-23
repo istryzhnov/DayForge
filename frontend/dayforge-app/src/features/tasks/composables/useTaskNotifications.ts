@@ -3,6 +3,8 @@ import type { DailyTask } from '../../../entities/TaskEntity'
 import { TASK_STATUS } from '../../../entities/constants'
 import { i18n } from '../../../i18n'
 import { getTodayISODate } from '../../../shared/composables/goalSpace/date'
+import { isModuleOn } from '../../../shared/composables/moduleCatalog'
+import { reminderLeadMs } from '../../../shared/composables/goalSpace/reminder'
 import {
   isWithinQuietHours,
   useSettings,
@@ -89,6 +91,8 @@ function acknowledgeAlert() {
 
 function checkUpcomingTasks(dailyTasks: DailyTask[]) {
   if (!enabled.value) return
+  // The Reminders module off: nothing fires locally (the server push is separate).
+  if (!isModuleOn(useSettings().settings.modules, 'reminders')) return
   const today = getTodayISODate()
   const now = new Date()
 
@@ -96,7 +100,7 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
     useSettings().settings.notifications
   if (quietHours && isWithinQuietHours(now, quietFrom, quietTo)) return
 
-  const leadMs = leadWindowMs()
+  const globalLeadMs = leadWindowMs()
 
   for (const task of dailyTasks) {
     if (
@@ -105,6 +109,10 @@ function checkUpcomingTasks(dailyTasks: DailyTask[]) {
       task.status === TASK_STATUS.DONE
     )
       continue
+
+    // The task's own lead wins; null means it has no reminder at all.
+    const leadMs = reminderLeadMs(task.reminderMinutes, globalLeadMs)
+    if (leadMs === null) continue
 
     const key = `${task.date}::${task.id}::${task.startTime}`
     if (handledKeys.has(key)) continue

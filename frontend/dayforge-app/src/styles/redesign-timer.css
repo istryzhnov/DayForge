@@ -17,6 +17,30 @@
 
 /* --- focus card ----------------------------------------------------------- */
 
+/* Project · rate · earned in this sitting, under the attached task. */
+.timer-view .timer-view__subline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.4375rem;
+  margin: 0.125rem 0 0;
+  min-width: 0;
+  color: var(--muted);
+  font-size: calc(0.75rem * var(--text-scale));
+  font-weight: 600;
+}
+
+.timer-view .timer-view__project {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.timer-view .timer-view__earned {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
 .timer-view .timer-view__stage {
   border-radius: calc(26px * var(--radius-scale));
   padding: 1.25rem 1rem;
@@ -207,14 +231,14 @@
   padding: 0.625rem 0.25rem 0.625rem 0.25rem;
 }
 
-/* Colour dot per row, as in the mockup. */
+/* Colour dot per row: the row's project colour, as in the mockup. */
 .timer-view .timer-entry::before {
   content: '';
   flex: 0 0 auto;
   width: 0.5rem;
   height: 0.5rem;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--entry-color, var(--muted));
 }
 
 .timer-view .timer-entry__meta {

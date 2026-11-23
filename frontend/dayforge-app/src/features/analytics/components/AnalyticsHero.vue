@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
+import AnalyticsDelta from './AnalyticsDelta.vue'
 
 const { t } = useI18n()
 
@@ -16,6 +17,8 @@ const props = defineProps<{
   sessionCount: number
   dayCount: number
   hasAdjustments: boolean
+  /** Percent change of tracked time against the previous period; null when there is none. */
+  trackedDelta: number | null
 }>()
 
 const showInfo = ref(false)
@@ -40,16 +43,25 @@ const averageLabel = computed(() =>
     <div class="analytics-hero__main">
       <div class="analytics-hero__head">
         <p class="analytics-hero__figure">
-          <span class="analytics-hero__tracked ui-oneline">
+          <span class="analytics-hero__tracked">
             {{ formatHoursMinutes(trackedMs, durationWords()) }}
           </span>
-          <span v-if="hasPlan" class="analytics-hero__plan ui-oneline">
+          <span v-if="hasPlan" class="analytics-hero__plan">
             / {{ formatHoursMinutes(plannedMs, durationWords()) }}
           </span>
         </p>
         <span v-if="hasPlan" class="analytics-hero__percent"
           >{{ percent }}%</span
         >
+        <span v-if="trackedDelta !== null" class="analytics-hero__delta">
+          <AnalyticsDelta
+            :value="trackedDelta"
+            unit="%"
+            :suffix="t('analytics.kpiVsPrevious')"
+            :up-label="t('analytics.kpiUp')"
+            :down-label="t('analytics.kpiDown')"
+          />
+        </span>
         <button
           class="ui-icon-btn"
           type="button"
@@ -173,6 +185,7 @@ const averageLabel = computed(() =>
 
 .analytics-hero__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
@@ -180,11 +193,19 @@ const averageLabel = computed(() =>
 
 .analytics-hero__figure {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
+}
+
+/* A duration is never cut: the value wraps instead of an ellipsis. */
+.analytics-hero__tracked,
+.analytics-hero__plan {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .analytics-hero__tracked {
@@ -207,6 +228,14 @@ const averageLabel = computed(() =>
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
+}
+
+.analytics-hero__delta {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.625rem;
+  border-radius: calc(12px * var(--radius-scale));
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  font-size: calc(0.75rem * var(--text-scale));
 }
 
 .analytics-hero__info {

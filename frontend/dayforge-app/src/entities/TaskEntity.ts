@@ -22,6 +22,11 @@ export interface TaskTemplate {
   recurrence?: RecurrenceRule
   startTime?: TimeOfDay
   endTime?: TimeOfDay
+  /**
+   * How many minutes before startTime to remind. Absent follows the global
+   * lead in settings, null turns this task's reminder off, a number sets it.
+   */
+  reminderMinutes?: number | null
   isActive: boolean
   /** What an hour on this task is worth; falls back to its project's rate. */
   hourlyRate?: number
@@ -52,6 +57,8 @@ export type TaskSchedule = {
   date: ISODate
   startTime?: TimeOfDay
   endTime?: TimeOfDay
+  /** See TaskTemplate.reminderMinutes. */
+  reminderMinutes?: number | null
   recurrence: RecurrenceRule
 }
 
@@ -69,6 +76,8 @@ export interface DailyTask {
   completedAt?: ISODateTime
   startTime?: TimeOfDay
   endTime?: TimeOfDay
+  /** Copied from the template; see TaskTemplate.reminderMinutes. */
+  reminderMinutes?: number | null
   createdAt?: ISODateTime
   /** Last edit, so two devices can tell which version of a row is newer. */
   updatedAt?: ISODateTime

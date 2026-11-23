@@ -9,6 +9,8 @@ const props = defineProps<{
   isDone: boolean
   canSetAsProject: boolean
   canAddChild: boolean
+  /** The Notes module is on; off hides the notes entry. */
+  canNotes?: boolean
   isProject: boolean
   /** Only a task without a parent can pick a new home. */
   canMove: boolean
@@ -97,6 +99,7 @@ const { menuPositionStyle } = useContextMenu({
       {{ isScheduled ? t('tasks.changeTime') : t('tasks.addToCalendar') }}
     </button>
     <button
+      v-if="canNotes !== false"
       role="menuitem"
       class="task-context-menu__item"
       type="button"

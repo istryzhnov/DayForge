@@ -1,0 +1,125 @@
+/* Today / All view: the day summary, the project chips and the task rows,
+   following the Today mockup. Colours come from theme tokens only. */
+
+/* The header's own stat row is replaced by the summary card in this view. */
+.goal-panel.is-all-mode .goal-panel-stats {
+  display: none;
+}
+
+/* ---- Day summary: a glass card with three cells (the money one is optional) ---- */
+
+.today-summary {
+  margin: 1.25rem 0 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--text) 9%, transparent);
+  border-radius: calc(20px * var(--radius-scale));
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-highlight);
+  min-width: 0;
+}
+
+.today-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+/* With no rate set there is no money cell: the other two share the row. */
+.today-summary__grid.is-no-money {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Phone: the cells size to their values, so a long time is never cut short. */
+@media (max-width: 960px) {
+  .today-summary__grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+  }
+
+  .today-summary__grid > .ui-stat {
+    flex: 1 1 auto;
+  }
+}
+
+.today-summary .ui-stat__label {
+  font-size: calc(0.6875rem * var(--text-scale));
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.today-summary__value {
+  font-family: var(--font-mono);
+  font-size: calc(1.125rem * var(--text-scale));
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.today-summary__value--money {
+  color: var(--accent);
+}
+
+/* ---- Project chips: one row that scrolls sideways on phones only ---- */
+
+.today-chips {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  padding: 0.25rem 1.25rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+.today-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.today-chips__chip {
+  flex: none;
+  min-width: max-content;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  gap: 0.5rem;
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.today-chips__chip.is-active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.today-chips__dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* ---- Task rows: a standalone important task gets a pink marker ---- */
+
+.task-major-chip {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--major) 16%, transparent);
+  color: var(--major);
+  font-size: calc(0.75rem * var(--text-scale));
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+@media (max-width: 960px) {
+  .today-summary {
+    margin: 1rem 1rem 0;
+  }
+
+  .today-chips {
+    margin-top: 0.875rem;
+    padding: 0.25rem 1rem;
+  }
+}
