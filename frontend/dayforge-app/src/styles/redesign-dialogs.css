@@ -281,6 +281,14 @@
   outline: none;
 }
 
+/* This file loads after tasks.css and repaints every item, so the danger
+   colour has to be restated here, hover included. */
+.task-context-menu__item--danger,
+.task-context-menu__item--danger:hover,
+.task-context-menu__item--danger:focus-visible {
+  color: var(--danger);
+}
+
 .task-context-menu__divider {
   height: 1px;
   margin: 0.25rem 0.5rem;
@@ -811,5 +819,7 @@
 .task-context-menu__item--icon {
   display: flex;
   align-items: center;
+  /* tasks.css spreads items apart; with an icon the label sits right after it. */
+  justify-content: flex-start;
   gap: 0.625rem;
 }
