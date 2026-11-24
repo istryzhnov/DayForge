@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ISODate, ID } from '../../../entities/types'
 import type {
@@ -22,7 +22,7 @@ import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
 import CalendarDraftForm from './CalendarDraftForm.vue'
 
-const { formatTime } = useFormat()
+const { formatHour, formatTime } = useFormat()
 
 /** The breathing room a week column keeps on both sides. */
 const WEEK_INSET_PX = 2
@@ -56,6 +56,10 @@ const {
 const { t } = useI18n()
 
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
+
+// The start-hour scroll needs the hour grid's top edge, which is midnight.
+const hourList = useTemplateRef<HTMLElement>('hourList')
+defineExpose({ hourList })
 
 const totals = useCalendarTotals()
 const weekDates = computed(() => days.value.map((day) => day.date))
@@ -116,14 +120,18 @@ function eventStyle(event: PositionedEvent) {
       <!-- Hour labels share the grid's geometry so rows line up across columns. -->
       <div class="calendar-week__hours">
         <div class="calendar-week__corner"></div>
-        <div class="calendar-week__hour-list" :style="gridStyle(gridHeightPx)">
+        <div
+          ref="hourList"
+          class="calendar-week__hour-list"
+          :style="gridStyle(gridHeightPx)"
+        >
           <div
             v-for="hour in HOURS"
             :key="hour"
             class="calendar-week__hour-label"
             :style="hourLineStyle(hour)"
           >
-            {{ String(hour).padStart(2, '0') }}:00
+            {{ formatHour(hour) }}
           </div>
         </div>
       </div>
@@ -181,7 +189,6 @@ function eventStyle(event: PositionedEvent) {
               type="button"
               class="week-event"
               :class="[
-                event.priority,
                 {
                   'is-done': event.isDone,
                   'is-projected': event.isProjected,

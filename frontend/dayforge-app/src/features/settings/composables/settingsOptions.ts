@@ -14,8 +14,8 @@ import {
   type ClockFormat,
   type StartView,
 } from '../../../shared/composables/useSettings'
-import { GOAL_STATUS, PRIORITY } from '../../../entities/constants'
-import type { GoalStatus, Priority } from '../../../entities/types'
+import { GOAL_STATUS } from '../../../entities/constants'
+import type { GoalStatus } from '../../../entities/types'
 import type { Language } from '../../../i18n/languages'
 
 /**
@@ -89,11 +89,6 @@ export const START_VIEW_OPTIONS: SettingOption<StartView>[] = [
   { id: START_VIEW.ANALYTICS, labelKey: 'settings.viewAnalytics' },
   { id: START_VIEW.PLANNED, labelKey: 'settings.viewPlanned' },
   { id: START_VIEW.ARCHIVE, labelKey: 'settings.viewArchive' },
-]
-
-export const PRIORITY_OPTIONS: SettingOption<Priority>[] = [
-  { id: PRIORITY.MINOR, labelKey: 'settings.priorityTask' },
-  { id: PRIORITY.MAJOR, labelKey: 'settings.priorityProject' },
 ]
 
 export const GOAL_STATUS_OPTIONS: SettingOption<GoalStatus>[] = [

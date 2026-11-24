@@ -19,6 +19,7 @@ import { useSettingsPanel } from '../../../shared/composables/useSettingsPanel'
 import { useModules } from '../../../shared/composables/useModules'
 import { useProjectBudgetStatus } from '../../../shared/composables/billing/useProjectBudgetStatus'
 import { projectColors } from '../../../shared/composables/theme/goalTheme'
+import { referencedParentIds } from '../../../shared/composables/goalSpace/taskParents'
 import { filterGroupsByProject, flattenNodes } from '../composables/todayView'
 import type { TaskGroup } from '../../../shared/composables/useTaskTree'
 
@@ -87,6 +88,11 @@ function toggleNotes() {
 watch(isSettingsOpen, (open) => {
   if (open) notesOpen.value = false
 })
+
+/** Templates some other template is filed under: the parents. */
+const parentTemplateIds = computed(() =>
+  referencedParentIds(props.templates, (template) => template.parentTemplateId),
+)
 
 const movingTemplateId = ref<ID | null>(null)
 
@@ -221,6 +227,8 @@ const listGroups = computed<TaskGroup[]>(() =>
       :rows="dailyTasks"
       :templates="boardTemplates"
       :custom-columns="goal?.boardColumns ?? []"
+      :project-rate="goal?.hourlyRate"
+      @move-task="openMoveDialog"
     />
 
     <TaskList
@@ -234,6 +242,7 @@ const listGroups = computed<TaskGroup[]>(() =>
     <TaskMoveDialog
       v-if="movingTemplate"
       :template="movingTemplate"
+      :has-children="parentTemplateIds.has(movingTemplate.id)"
       :goals="goals"
       :project-options="majorTaskOptions"
       @close="closeMoveDialog"

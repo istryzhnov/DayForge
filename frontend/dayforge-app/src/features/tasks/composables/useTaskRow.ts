@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
-import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import { TASK_STATUS } from '../../../entities/constants'
 import type { TaskActions } from './useTaskActions'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import {
@@ -12,6 +12,8 @@ import {
 type TaskRowProps = {
   node: TaskNode
   isNested?: boolean
+  /** Drawn as the header of a block of children, so the row has children. */
+  isProjectHeader?: boolean
 }
 
 /** Touch drag hooks; absent for rows that cannot be moved. */
@@ -33,10 +35,10 @@ export function useTaskRow(
   const editorStartsScheduled = ref(false)
   const isRateEditing = ref(false)
 
-  const isProject = computed(() => props.node.task.priority === PRIORITY.MAJOR)
+  /** Structure: other rows are filed under this one. */
+  const hasChildren = computed(() => !!props.isProjectHeader)
   const hasOwnRate = computed(() => (props.node.template?.hourlyRate ?? 0) > 0)
   const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
-  const canSetAsProject = computed(() => !isProject.value && !props.isNested)
 
   const isCoarsePointer = useIsCoarsePointer()
 
@@ -108,9 +110,8 @@ export function useTaskRow(
     isEditing,
     editorStartsScheduled,
     isRateEditing,
-    isProject,
+    hasChildren,
     isDone,
-    canSetAsProject,
     hasOwnRate,
     isLifted,
     onPointerDown,

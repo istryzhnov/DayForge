@@ -4,10 +4,11 @@ import type {
   TaskTemplate,
 } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { PRIORITY } from '../../../entities/constants'
 
 type MoveProps = {
   template: TaskTemplate
+  /** The task has subtasks, so it is a parent and cannot be filed under another. */
+  hasChildren: boolean
   projectOptions: MajorTaskOption[]
 }
 
@@ -20,10 +21,8 @@ export function useTaskMove(props: MoveProps, actions: MoveActions) {
   const goalId = ref<ID | ''>(props.template.goalId ?? '')
   const projectId = ref<ID | ''>(props.template.parentTemplateId ?? '')
 
-  // A project groups other tasks, so it cannot itself be nested.
-  const canAttachToProject = computed(
-    () => props.template.priority !== PRIORITY.MAJOR,
-  )
+  // A parent groups other tasks, so it cannot itself be filed under one.
+  const canAttachToProject = computed(() => !props.hasChildren)
 
   const projectsForGoal = computed(() => {
     const selectedGoalId = goalId.value || undefined

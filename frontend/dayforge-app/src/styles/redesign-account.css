@@ -177,13 +177,13 @@
   min-height: 2.5rem;
   border: none;
   background: none;
-  color: var(--major);
+  color: var(--danger);
   font-weight: 700;
 }
 
 .profile-card .profile-delete:hover:not(:disabled),
 .profile-card .profile-delete:focus-visible {
-  background: color-mix(in srgb, var(--major) 10%, transparent);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
 }
 
 .profile-card .settings-group-hint {

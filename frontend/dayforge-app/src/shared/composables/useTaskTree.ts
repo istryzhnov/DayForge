@@ -3,9 +3,10 @@ import type { Goal } from '../../entities/GoalEntity'
 import { i18n } from '../../i18n'
 import type { DailyTask, TaskTemplate } from '../../entities/TaskEntity'
 import type { ID, ISODate } from '../../entities/types'
-import { PRIORITY, TASK_STATUS } from '../../entities/constants'
+import { TASK_STATUS } from '../../entities/constants'
 import { isRepeating } from './goalSpace/recurrence'
 import { sortTasks } from './goalSpace/taskOrder'
+import { referencedParentIds } from './goalSpace/taskParents'
 import { projectColors } from './theme/goalTheme'
 
 export type TaskNode = {
@@ -116,75 +117,57 @@ export function useTaskTree(props: TaskTreeProps) {
       return completionsByTemplate.get(task.templateId) ?? 0
     }
 
-    const projects = props.tasks
-      .filter((task) => task.priority === PRIORITY.MAJOR)
-      .sort(byDrawnOrder)
-
-    const groups: TaskGroup[] = []
-    const nestedIds = new Set<string>()
-
-    projects.forEach((project) => {
-      const children = props.tasks
-        .filter((task) => task.parentDailyTaskId === project.id)
-        .sort(byDrawnOrder)
-
-      children.forEach((child) => nestedIds.add(child.id))
-
-      const projectNode: TaskNode = {
-        task: project,
-        template: templateById.get(project.templateId),
-        goalTitle: goalTitleOf(project),
-        goalRate: goalRateOf(project),
-        goalColor: goalColorOf(project),
-        isNew: isRecentlyCreated(project),
-        spilled: spilledOf(project),
-        completedCount: completedCountOf(project),
+    function nodeOf(task: DailyTask, projectTitle?: string): TaskNode {
+      return {
+        task,
+        template: templateById.get(task.templateId),
+        goalTitle: goalTitleOf(task),
+        goalRate: goalRateOf(task),
+        goalColor: goalColorOf(task),
+        projectTitle,
+        isNew: isRecentlyCreated(task),
+        spilled: spilledOf(task),
+        completedCount: completedCountOf(task),
       }
+    }
 
-      if (!children.length) {
-        groups.push({ kind: 'task', node: projectNode })
-        return
-      }
+    // Only one level nests. A row filed under a row that is itself nested has
+    // no visible top-level parent to hang from, so it is drawn as a plain row.
+    const rowById = new Map(props.tasks.map((task) => [task.id, task]))
+    const parentRowOf = (task: DailyTask) =>
+      task.parentDailyTaskId ? rowById.get(task.parentDailyTaskId) : undefined
+    const isNested = (task: DailyTask) => {
+      const parent = parentRowOf(task)
+      return parent !== undefined && parentRowOf(parent) === undefined
+    }
 
-      groups.push({
-        kind: 'project',
-        project: projectNode,
-        children: children.map((child) => ({
-          task: child,
-          template: templateById.get(child.templateId),
-          goalTitle: goalTitleOf(child),
-          goalRate: goalRateOf(child),
-          goalColor: goalColorOf(child),
-          projectTitle: project.title,
-          isNew: isRecentlyCreated(child),
-          spilled: spilledOf(child),
-          completedCount: completedCountOf(child),
-        })),
-        doneCount: children.filter((task) => task.status === TASK_STATUS.DONE)
-          .length,
-        totalCount: children.length,
-      })
-    })
+    // A task is a parent because rows are filed under it, not because of its
+    // priority. Everything else stands on its own in the drawn order.
+    const nestedRows = props.tasks.filter(isNested)
+    const parentIds = referencedParentIds(
+      nestedRows,
+      (task) => task.parentDailyTaskId,
+    )
 
-    // Tasks that don't belong to any visible project stand on their own.
-    props.tasks
-      .filter(
-        (task) => task.priority !== PRIORITY.MAJOR && !nestedIds.has(task.id),
-      )
-      .forEach((task) => {
-        groups.push({
-          kind: 'task',
-          node: {
-            task,
-            template: templateById.get(task.templateId),
-            goalTitle: goalTitleOf(task),
-            goalRate: goalRateOf(task),
-            goalColor: goalColorOf(task),
-            isNew: isRecentlyCreated(task),
-            spilled: spilledOf(task),
-            completedCount: completedCountOf(task),
-          },
-        })
+    const groups: TaskGroup[] = props.tasks
+      .filter((task) => !isNested(task))
+      .map((root): TaskGroup => {
+        if (!parentIds.has(root.id)) {
+          return { kind: 'task', node: nodeOf(root) }
+        }
+
+        const children = nestedRows
+          .filter((child) => child.parentDailyTaskId === root.id)
+          .sort(byDrawnOrder)
+
+        return {
+          kind: 'project',
+          project: nodeOf(root),
+          children: children.map((child) => nodeOf(child, root.title)),
+          doneCount: children.filter((task) => task.status === TASK_STATUS.DONE)
+            .length,
+          totalCount: children.length,
+        }
       })
 
     return groups.sort((a, b) => {

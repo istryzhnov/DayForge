@@ -281,8 +281,12 @@
   outline: none;
 }
 
-.task-context-menu__item--danger {
-  color: var(--major);
+/* This file loads after tasks.css and repaints every item, so the danger
+   colour has to be restated here, hover included. */
+.task-context-menu__item--danger,
+.task-context-menu__item--danger:hover,
+.task-context-menu__item--danger:focus-visible {
+  color: var(--danger);
 }
 
 .task-context-menu__divider {
@@ -362,12 +366,13 @@
   color: var(--muted);
 }
 
+/* Text fields only: a bare `.task-editor input` also boxed the "Schedule on
+   the calendar" checkbox as if it were a text field. */
 .modal-card .timer-field input,
 .modal-card .timer-field select,
 .modal-card .project-billing__field input,
 .modal-card .project-billing__field select,
-.task-editor input,
-.task-editor select,
+.task-editor__field input,
 .task-schedule__field input,
 .task-schedule__field select,
 .notes-pop__text,
@@ -405,8 +410,7 @@
 .modal-card .timer-field select:focus,
 .modal-card .project-billing__field input:focus,
 .modal-card .project-billing__field select:focus,
-.task-editor input:focus,
-.task-editor select:focus,
+.task-editor__field input:focus,
 .task-schedule__field input:focus,
 .task-schedule__field select:focus,
 .notes-pop__text:focus,
@@ -657,7 +661,7 @@
   height: 2.625rem;
 }
 
-/* Goal (project) context menu: glass list, danger in var(--major). */
+/* Goal (project) context menu: glass list, danger in var(--danger). */
 .goal-context-menu {
   min-width: 13rem;
   padding: 0.5rem;
@@ -701,7 +705,7 @@
 }
 
 .goal-context-menu .goal-settings__item--danger {
-  color: var(--major);
+  color: var(--danger);
 }
 
 /* Project notes side panel: glass aside, 16px radius. */
@@ -807,4 +811,15 @@
   .project-billing__figures {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Task context menu: first-level rows lead with an icon. A block-level SVG
+   inside an inline button would push the label onto its own line, so the row
+   becomes a flex line that centres icon and text on one baseline. */
+.task-context-menu__item--icon {
+  display: flex;
+  align-items: center;
+  /* tasks.css spreads items apart; with an icon the label sits right after it. */
+  justify-content: flex-start;
+  gap: 0.625rem;
 }

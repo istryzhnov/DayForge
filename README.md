@@ -130,3 +130,12 @@ their GitHub profile.
   translation, a setting or a synced table.
 - [supabase/README.md](supabase/README.md): setting up the backend and push reminders.
 - [CHANGELOG.md](CHANGELOG.md): what changed, by month.
+
+## License
+
+Copyright © 2026 istryzhnov.
+
+DayForge is source-available under the [Elastic License 2.0](LICENSE). You may read, use, copy
+and modify the code, including for your own work. You may not offer DayForge to others as a
+hosted or managed service, or remove or work around any functionality protected by a license
+key. This is not an OSI open-source license.

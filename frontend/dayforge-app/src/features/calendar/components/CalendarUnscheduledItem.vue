@@ -44,7 +44,7 @@ const { isLifted, onPointerDown } = usePressGesture({
 <template>
   <div
     class="calendar-view__unscheduled-item"
-    :class="[task.priority, { 'is-lifted': isLifted }]"
+    :class="{ 'is-lifted': isLifted }"
     :style="themeVars"
     :draggable="!isCoarsePointer"
     role="button"

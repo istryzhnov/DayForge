@@ -18,7 +18,7 @@
   "name_subtasks": "Podzadania",
   "desc_subtasks": "Podziel duże zadanie na kroki",
   "name_reminders": "Przypomnienia",
-  "desc_reminders": "Powiadomienie, nawet gdy aplikacja jest zamknięta",
+  "desc_reminders": "Przed startem zadania · powiadomienie przy zamkniętej aplikacji, po zalogowaniu i włączeniu",
   "name_board": "Tablica",
   "desc_board": "Kolumny kanban dla projektów",
   "name_calendar": "Kalendarz",

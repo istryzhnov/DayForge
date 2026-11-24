@@ -263,6 +263,29 @@
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+/* Desktop: the hour grid scrolls inside its card, so the toolbar and the week's
+   day names stay on screen while the day moves to its start hour. The height
+   leaves room for the toolbar above. The day names and the hour-gutter corner
+   stick, so they need an opaque fill to hide the hours scrolling beneath them.
+   Phones keep the page scroll. */
+@media (min-width: 721px) {
+  .calendar-view__grid-wrap,
+  .calendar-week__wrap {
+    max-height: max(20rem, calc(100dvh - 12rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .calendar-week__day-head,
+  .calendar-week__corner {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--text) 3%, var(--panel));
+  }
+}
+
 .calendar-week__weekday {
   grid-column: 1;
   grid-row: 1;
@@ -367,16 +390,11 @@
 /* ---- Event blocks (shared tint language) -------------------------------- */
 
 /* A block takes its project's colour as a light tint, a 1px edge and an 11px
-   corner. --tint is the project colour; major (priority) swaps it. */
+   corner. --tint is the project colour. */
 .week-event,
 .cal-event,
 .calendar-view__draft {
   --tint: var(--minor);
-}
-
-.week-event.major,
-.cal-event.major {
-  --tint: var(--major);
 }
 
 .week-event {
@@ -393,11 +411,6 @@
 
 .week-event::before {
   display: none;
-}
-
-.week-event.major {
-  background:
-    var(--glass-sheen), color-mix(in srgb, var(--tint) 18%, transparent);
 }
 
 .week-event.is-done {
@@ -471,11 +484,6 @@
 
 .cal-event::before {
   display: none;
-}
-
-.cal-event.major {
-  background:
-    var(--glass-sheen), color-mix(in srgb, var(--tint) 18%, transparent);
 }
 
 .cal-event.is-done {
@@ -659,11 +667,6 @@
   background: color-mix(in srgb, var(--minor) 18%, transparent);
 }
 
-.calendar-month__panel-event.major {
-  border-color: color-mix(in srgb, var(--major) 45%, transparent);
-  background: color-mix(in srgb, var(--major) 18%, transparent);
-}
-
 .calendar-month__panel-event.is-done {
   opacity: 0.6;
 }
@@ -727,10 +730,6 @@
   display: none;
 }
 
-.calendar-month__event.major {
-  background: color-mix(in srgb, var(--major) 22%, transparent);
-}
-
 .calendar-month__event-time {
   display: none;
 }
@@ -774,10 +773,6 @@
   width: 0.5rem;
   height: 0.5rem;
   background: var(--minor);
-}
-
-.calendar-view__unscheduled-item.major .calendar-view__unscheduled-dot {
-  background: var(--major);
 }
 
 .event-details {

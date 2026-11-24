@@ -18,7 +18,6 @@
   "moveTo": "Przenieś do",
   "clearedDone": "Wyczyszczono {n} ukończonych zadań | Wyczyszczono {n} ukończone zadanie | Wyczyszczono {n} ukończone zadania | Wyczyszczono {n} ukończonych zadań",
   "customTag": "własna",
-  "majorTag": "Ważne",
   "addColumn": "Kolumna",
   "trackedTime": "Zarejestrowany czas",
   "runningNow": "Trwa teraz"

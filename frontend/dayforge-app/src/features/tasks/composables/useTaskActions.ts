@@ -1,7 +1,7 @@
 import { inject, provide, type InjectionKey } from 'vue'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { BoardStage } from '../../../entities/constants'
-import type { ID, ISODate, Priority } from '../../../entities/types'
+import type { ID, ISODate } from '../../../entities/types'
 import type { TaskDropPayload } from './useTaskDrag'
 
 /**
@@ -15,13 +15,8 @@ import type { TaskDropPayload } from './useTaskDrag'
  */
 export interface TaskActions {
   /** Adds a task to the project on screen. */
-  addTask(title: string, priority: Priority, schedule?: TaskSchedule): void
-  addSubtask(
-    parentTemplateId: ID,
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
+  addTask(title: string, schedule?: TaskSchedule): void
+  addSubtask(parentTemplateId: ID, title: string, schedule?: TaskSchedule): void
   /** All Projects has no project on screen, so the composer names the target. */
   addInAllMode(
     title: string,
@@ -38,7 +33,6 @@ export interface TaskActions {
   schedule(templateId: ID, schedule: TaskSchedule | null): void
   setRate(templateId: ID, hourlyRate: number | undefined): void
   remove(templateId: ID): void
-  setAsProject(templateId: ID): void
   assignGoal(templateId: ID, goalId: ID | undefined): void
   attachToProject(templateId: ID, projectTemplateId: ID | null): void
   /** A dropped row: new project and new position in one go. */

@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ID, Priority } from '../../../entities/types'
+import type { ID } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type {
   TaskGroup,
   TaskNode,
 } from '../../../shared/composables/useTaskTree'
-import { PRIORITY } from '../../../entities/constants'
 import { useTaskActions } from '../composables/useTaskActions'
 import { DROP_ZONE_ROOT } from '../composables/dropRules'
 import { useTaskDrag } from '../composables/useTaskDrag'
@@ -35,7 +34,7 @@ function dropEdge(node: TaskNode) {
   return drag.dropAbove.value ? 'above' : 'below'
 }
 
-function rowDrag(node: TaskNode, parentZone: string) {
+function rowDrag(node: TaskNode, parentZone: string, hasChildren = false) {
   return drag.forRow({
     templateId: node.task.templateId,
     title: node.task.title,
@@ -44,7 +43,7 @@ function rowDrag(node: TaskNode, parentZone: string) {
     // A task inside a project row leaves that row when it lands in another project.
     canMove: true,
     color: node.goalColor,
-    isMajor: node.task.priority === PRIORITY.MAJOR,
+    hasChildren,
   })
 }
 
@@ -58,10 +57,9 @@ function toggleParent(nodeId: ID) {
 function submitSubtask(
   parentTemplateId: ID,
   title: string,
-  priority: Priority,
   schedule?: TaskSchedule,
 ) {
-  actions.addSubtask(parentTemplateId, title, priority, schedule)
+  actions.addSubtask(parentTemplateId, title, schedule)
   activeParentId.value = null
 }
 
@@ -114,7 +112,7 @@ function groupKey(group: TaskGroup) {
           :child-template-ids="
             group.children.map((child) => child.task.templateId)
           "
-          :drag="rowDrag(group.project, DROP_ZONE_ROOT)"
+          :drag="rowDrag(group.project, DROP_ZONE_ROOT, true)"
           v-bind="rowListeners"
         />
 
@@ -142,6 +140,7 @@ function groupKey(group: TaskGroup) {
         :drag="rowDrag(group.node, DROP_ZONE_ROOT)"
         :is-dragging="drag.draggingId.value === group.node.task.templateId"
         :drop-edge="dropEdge(group.node)"
+        :is-nest-target="drag.dropZone.value === group.node.task.templateId"
         v-bind="rowListeners"
       />
     </template>
@@ -165,7 +164,6 @@ function groupKey(group: TaskGroup) {
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
       :color="drag.dragColor.value"
-      :is-major="drag.dragIsMajor.value"
       :touch="drag.dragIsTouch.value"
     />
   </div>

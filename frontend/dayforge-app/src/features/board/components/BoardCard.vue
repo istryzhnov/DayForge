@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { PRIORITY } from '../../../entities/constants'
+import type { ID } from '../../../entities/types'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { usePressGesture } from '../../../shared/composables/usePressGesture'
 import { useFormat } from '../../../shared/composables/useFormat'
@@ -18,9 +18,15 @@ import {
   type BoardColumn,
 } from '../composables/boardModel'
 import type { BoardCardDrag } from '../composables/useBoardDrag'
-import { TaskNotesButton } from '../../tasks'
+import { useBoardCardMenu } from '../composables/useBoardCardMenu'
+import {
+  TaskContextMenu,
+  TaskInlineEditor,
+  TaskNotesButton,
+  TaskRateEditor,
+  useTaskActions,
+} from '../../tasks'
 import { TaskTimerButton, toggleTaskTimer } from '../../timer'
-import BoardCardMenu from './BoardCardMenu.vue'
 
 const props = defineProps<{
   card: BoardCardModel
@@ -28,13 +34,16 @@ const props = defineProps<{
   isDragging: boolean
   /** This board's columns, the project's own included, for "Move to". */
   columns: ReadonlyArray<BoardColumnDef>
+  /** The project's hourly rate, the fallback a card's own rate replaces. */
+  projectRate?: number
 }>()
 
 const emit = defineEmits<{
-  (e: 'open'): void
   (e: 'move', column: BoardColumn): void
   (e: 'save-notes', notes: string): void
   (e: 'delete'): void
+  /** "Move to…" from the menu: the page opens the move dialog. */
+  (e: 'move-task', templateId: ID): void
 }>()
 
 const { formatDate, formatTime } = useFormat()
@@ -43,6 +52,7 @@ const today = useToday()
 const isCoarsePointer = useIsCoarsePointer()
 const timer = useTimer()
 const timeEntries = useTimeEntries()
+const actions = useTaskActions()
 
 // On touch a held card is picked up and follows the finger; a quick tap is
 // still a tap, and a sideways swipe still scrolls the columns.
@@ -60,13 +70,6 @@ function onPointerDownCard(event: PointerEvent) {
 }
 
 const isDone = computed(() => props.card.done)
-const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
-const priorityLabel = computed(() =>
-  t(isMajor.value ? 'tasks.priorityMajor' : 'tasks.priorityMinor'),
-)
-const priorityText = computed(() =>
-  t('tasks.priorityLabel', { level: priorityLabel.value }),
-)
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
 
 /** The card's own time plus its subtasks', the same total the list shows. */
@@ -85,19 +88,53 @@ const notesRequested = ref(false)
 const hasNotes = computed(() => !!props.card.template.notes?.trim())
 const showNotes = computed(() => hasNotes.value || notesRequested.value)
 
-const menuPos = ref<{ x: number; y: number } | null>(null)
+// The same menu and editors the list's rows open.
+const {
+  contextMenuPos,
+  isEditing,
+  isRateEditing,
+  editorStartsScheduled,
+  hasOwnRate,
+  notesOn,
+  node,
+  toggleCheck,
+  openContextMenu,
+  closeContextMenu,
+  openEditor,
+  closeEditor,
+  openRateEditor,
+  closeRateEditor,
+  saveRate,
+  saveEdits,
+} = useBoardCardMenu(
+  () => props.card,
+  () => today.value,
+  () => props.projectRate,
+)
+
+/** A click that ends a drag is not a request to open the card. */
+function openCard() {
+  if (props.drag.consumeClick()) return
+  openEditor(false)
+}
+
+/** Overlay click or Escape closes whichever editor is open. */
+function closeEditors() {
+  closeEditor()
+  closeRateEditor()
+}
 
 /** Desktop right-click; on touch a held card is a drag, so the ⋯ button covers it. */
 function onContextMenu(event: MouseEvent) {
   if (isCoarsePointer.value) return
   event.preventDefault()
-  menuPos.value = { x: event.clientX, y: event.clientY }
+  openContextMenu(event)
 }
 
 /** Anchored under the ⋯ button, so the keyboard gets a sensible spot too. */
 function openMenuFromButton(event: MouseEvent) {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  menuPos.value = { x: rect.left, y: rect.bottom + 4 }
+  contextMenuPos.value = { x: rect.left, y: rect.bottom + 4 }
 }
 
 async function addNote() {
@@ -178,24 +215,14 @@ function onMoveChange(event: Event) {
       :aria-label="
         t('board.cardLabel', { title: card.title, column: columnTitle })
       "
-      @click="emit('open')"
+      @click="openCard"
     >
-      <span v-if="isMajor" class="board-card__tag">{{
-        t('board.majorTag')
-      }}</span>
-
       <span class="board-card__title" :class="{ 'task-done': isDone }">
         {{ card.title }}
       </span>
 
       <span class="board-card__meta">
-        <span
-          class="board-card__priority"
-          :class="{ 'is-major': isMajor }"
-          role="img"
-          :aria-label="priorityText"
-          :title="priorityText"
-        ></span>
+        <span class="board-card__priority" aria-hidden="true"></span>
 
         <span
           v-if="scheduleLabel"
@@ -285,16 +312,63 @@ function onMoveChange(event: Event) {
         </select>
       </label>
     </div>
-    <BoardCardMenu
-      v-if="menuPos"
-      :x="menuPos.x"
-      :y="menuPos.y"
-      :has-notes="hasNotes"
-      :is-timer-active="isTiming"
-      @add-note="addNote"
-      @toggle-timer="toggleTimer"
-      @delete="emit('delete')"
-      @close="menuPos = null"
-    />
+    <!-- A card is too narrow for the editor, so it opens as a dialog over the board. -->
+    <Teleport to="body">
+      <div
+        v-if="isEditing || isRateEditing"
+        class="new-goal-modal"
+        @click.self="closeEditors"
+      >
+        <div class="modal-overlay" @click="closeEditors"></div>
+        <div
+          class="modal-card board-card-editor"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="card.title"
+        >
+          <TaskInlineEditor
+            v-if="isEditing"
+            :node="node"
+            :open-scheduled="editorStartsScheduled"
+            @save="(payload) => saveEdits(payload.title, payload.schedule)"
+            @close="closeEditor"
+          />
+          <TaskRateEditor
+            v-if="isRateEditing"
+            :node="node"
+            @save="(hourlyRate) => saveRate(hourlyRate)"
+            @close="closeRateEditor"
+          />
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Teleported, so a card's transform never pulls the menu out of place. -->
+    <Teleport to="body">
+      <TaskContextMenu
+        v-if="contextMenuPos"
+        :x="contextMenuPos.x"
+        :y="contextMenuPos.y"
+        :is-done="isDone"
+        :can-add-child="false"
+        :can-notes="notesOn"
+        :has-children="false"
+        :can-move="true"
+        :is-scheduled="!!node.task.startTime"
+        :has-own-rate="hasOwnRate"
+        :has-notes="hasNotes"
+        :is-timer-active="isTiming"
+        @edit="openEditor(false)"
+        @schedule="openEditor(true)"
+        @set-rate="openRateEditor"
+        @add-note="addNote"
+        @toggle-timer="toggleTimer"
+        @move="emit('move-task', card.templateId)"
+        @nudge="(step) => actions.nudge(card.templateId, step)"
+        @delete="emit('delete')"
+        @toggle-check="toggleCheck"
+        @close="closeContextMenu"
+      />
+    </Teleport>
   </article>
 </template>

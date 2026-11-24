@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
-import type { Priority } from '../../../entities/types'
 import type {
   MajorTaskOption,
   TaskSchedule,
@@ -50,9 +49,9 @@ const targetOptions = computed<PickerOption[]>(() => [
   })),
 ])
 
-function onSubmit(title: string, priority: Priority, schedule?: TaskSchedule) {
+function onSubmit(title: string, schedule?: TaskSchedule) {
   if (!props.isAllMode) {
-    actions.addTask(title, priority, schedule)
+    actions.addTask(title, schedule)
     return
   }
 

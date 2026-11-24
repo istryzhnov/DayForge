@@ -1,26 +1,15 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type {
-  DailyTask,
-  TaskSchedule,
-  TaskTemplate,
-} from '../../../entities/TaskEntity'
-import {
-  BOARD_CUSTOM_COLUMN_LIMIT,
-  PRIORITY,
-  TASK_STATUS,
-} from '../../../entities/constants'
+import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
+import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
-import { useSettings } from '../../../shared/composables/useSettings'
 import {
   SETTINGS_SECTION,
   useSettingsPanel,
 } from '../../../shared/composables/useSettingsPanel'
-import type { TaskNode } from '../../../shared/composables/useTaskTree'
-import { dailyTaskId } from '../../../shared/composables/goalSpace/date'
 import { useToday } from '../../../shared/composables/goalSpace/today'
-import { useTaskActions, TaskInlineEditor } from '../../tasks'
+import { useTaskActions } from '../../tasks'
 import DragGhost from '../../../shared/ui/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
 import {
@@ -41,10 +30,16 @@ const props = defineProps<{
   templates: TaskTemplate[]
   /** Columns the project added, drawn between In progress and Done. */
   customColumns?: BoardCustomColumn[]
+  /** The project's hourly rate, shown as the fallback in a card's rate editor. */
+  projectRate?: number
+}>()
+
+const emit = defineEmits<{
+  /** The card's "Move to…" entry: the page opens the move dialog. */
+  (e: 'move-task', templateId: ID): void
 }>()
 
 const actions = useTaskActions()
-const { settings } = useSettings()
 const settingsPanel = useSettingsPanel()
 
 // The real day, which moves on at midnight while the board stays open.
@@ -131,57 +126,6 @@ const draggingCard = computed<BoardCardModel | null>(() => {
   return allCards.value.find((card) => card.id === id) ?? null
 })
 
-// --- editing: the same editor the list opens -----------------------------
-
-const editing = ref<BoardCardModel | null>(null)
-
-/** A click that ends a drag is not a request to open the card. */
-function openCard(card: BoardCardModel) {
-  if (drag.consumeDragClick()) return
-  editing.value = card
-}
-
-/**
- * The editor reads the title and time from a row. A card with no row today
- * (a repeating task whose next day is ahead) is edited through a stand-in.
- */
-function rowForEditing(card: BoardCardModel): DailyTask {
-  if (card.row) return card.row
-  const date = card.date ?? today.value
-  return {
-    id: dailyTaskId(card.templateId, date),
-    date,
-    templateId: card.templateId,
-    title: card.title,
-    priority: card.priority,
-    goalId: card.template.goalId,
-    tagIds: [],
-    status: TASK_STATUS.TODO,
-    startTime: card.startTime,
-    endTime: card.template.endTime,
-  }
-}
-
-const editingNode = computed<TaskNode | null>(() => {
-  if (!editing.value) return null
-  return {
-    task: rowForEditing(editing.value),
-    template: editing.value.template,
-  }
-})
-
-function saveEdits(title: string, schedule: TaskSchedule | null) {
-  const card = editing.value
-  editing.value = null
-  if (!card) return
-
-  // Same rules as the list: an unchanged title is not an edit.
-  if (title !== card.title) {
-    actions.editTitle(card.templateId, title)
-  }
-  actions.schedule(card.templateId, schedule)
-}
-
 // --- adding: creates a task in this project, the same way the composer does
 
 const adding = ref(false)
@@ -199,7 +143,7 @@ function stopAdd() {
 function submitAdd() {
   const title = draft.value.trim()
   if (!title) return
-  actions.addTask(title, settings.behavior.defaultPriority)
+  actions.addTask(title)
   // Stays open, so several tasks can be typed in a row.
   draft.value = ''
 }
@@ -247,14 +191,15 @@ function submitAdd() {
               <BoardCard
                 :card="card"
                 :columns="columns"
+                :project-rate="projectRate"
                 :drag="drag.forCard(card.id)"
                 :is-dragging="drag.draggingId.value === card.id"
-                @open="openCard(card)"
                 @move="(target) => moveCard(card.id, target)"
                 @save-notes="
                   (notes) => actions.editNotes(card.templateId, notes)
                 "
                 @delete="actions.remove(card.templateId)"
+                @move-task="(templateId) => emit('move-task', templateId)"
               />
             </li>
           </ul>
@@ -308,17 +253,17 @@ function submitAdd() {
             </form>
           </div>
         </section>
-      </div>
 
-      <button
-        v-if="canAddColumn"
-        type="button"
-        class="board-add-column"
-        :aria-label="t('board.addColumn')"
-        @click="openColumnSettings"
-      >
-        + {{ t('board.addColumn') }}
-      </button>
+        <button
+          v-if="canAddColumn"
+          type="button"
+          class="board-add-column"
+          :aria-label="t('board.addColumn')"
+          @click="openColumnSettings"
+        >
+          + {{ t('board.addColumn') }}
+        </button>
+      </div>
     </div>
 
     <DragGhost
@@ -326,15 +271,7 @@ function submitAdd() {
       :title="draggingCard.title"
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
-      :is-major="draggingCard.priority === PRIORITY.MAJOR"
       :touch="drag.isTouchDrag.value"
-    />
-
-    <TaskInlineEditor
-      v-if="editingNode"
-      :node="editingNode"
-      @save="(payload) => saveEdits(payload.title, payload.schedule)"
-      @close="editing = null"
     />
   </section>
 </template>

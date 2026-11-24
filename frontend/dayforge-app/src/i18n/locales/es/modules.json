@@ -18,7 +18,7 @@
   "name_subtasks": "Subtareas",
   "desc_subtasks": "Divide una tarea grande en pasos",
   "name_reminders": "Recordatorios",
-  "desc_reminders": "Aviso aunque la app esté cerrada",
+  "desc_reminders": "Antes de empezar una tarea · push con la app cerrada, si inicias sesión y lo activas",
   "name_board": "Tablero",
   "desc_board": "Columnas kanban para proyectos",
   "name_calendar": "Calendario",

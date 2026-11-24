@@ -277,6 +277,8 @@ const BASICS_STEPS: readonly TourStep[] = [
   },
   {
     id: 'start-timer',
+    // The card menu opens below the ⋯ button, so the bubble goes above it, not under the menu.
+    placement: 'top',
     titleKey: 'onboarding.tourStartTimerTitle',
     bodyKey: 'onboarding.tourStartTimerBody',
     touchBodyKey: 'onboarding.tourStartTimerTouchBody',

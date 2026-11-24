@@ -170,7 +170,6 @@ function pickDay(date: ISODate) {
                 class="calendar-month__event"
                 :style="event.goalId ? goalVarsById[event.goalId] : undefined"
                 :class="[
-                  event.priority,
                   {
                     'is-done': event.isDone,
                     'is-projected': event.isProjected,
@@ -206,7 +205,7 @@ function pickDay(date: ISODate) {
             v-for="event in selectedEvents"
             :key="event.key"
             class="calendar-month__panel-event"
-            :class="[event.priority, { 'is-done': event.isDone }]"
+            :class="{ 'is-done': event.isDone }"
             :style="event.goalId ? goalVarsById[event.goalId] : undefined"
           >
             <span class="calendar-month__panel-event-title">{{

@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useContextMenu } from '../../../shared/composables/useContextMenu'
+import AppIcon from '../../../shared/ui/AppIcon.vue'
 import DisclosureSection from '../../../shared/ui/DisclosureSection.vue'
 
 const props = defineProps<{
   x: number
   y: number
   isDone: boolean
-  canSetAsProject: boolean
   canAddChild: boolean
   /** The Notes module is on; off hides the notes entry. */
   canNotes?: boolean
-  isProject: boolean
+  /** Has subtasks, so the entry opens its habit view. */
+  hasChildren: boolean
   /** Only a task without a parent can pick a new home. */
   canMove: boolean
   /** Already on the calendar, so the entry offers to change it instead. */
@@ -38,7 +39,6 @@ const emit = defineEmits<{
   (e: 'add-note'): void
   (e: 'toggle-timer'): void
   (e: 'log-planned'): void
-  (e: 'set-as-project'): void
   (e: 'show-habit'): void
   (e: 'close'): void
 }>()
@@ -61,7 +61,7 @@ const { menuPositionStyle } = useContextMenu({
   >
     <button
       role="menuitem"
-      class="task-context-menu__item"
+      class="task-context-menu__item task-context-menu__item--icon"
       type="button"
       @click="
         () => {
@@ -70,51 +70,12 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
+      <AppIcon name="pencil" :size="16" />
       {{ t('tasks.edit') }}
     </button>
     <button
       role="menuitem"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('toggle-check')
-          emit('close')
-        }
-      "
-    >
-      {{ isDone ? t('tasks.markNotDone') : t('tasks.checkIt') }}
-    </button>
-    <button
-      role="menuitem"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('schedule')
-          emit('close')
-        }
-      "
-    >
-      {{ isScheduled ? t('tasks.changeTime') : t('tasks.addToCalendar') }}
-    </button>
-    <button
-      v-if="canNotes !== false"
-      role="menuitem"
-      class="task-context-menu__item"
-      type="button"
-      @click="
-        () => {
-          emit('add-note')
-          emit('close')
-        }
-      "
-    >
-      {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
-    </button>
-    <button
-      role="menuitem"
-      class="task-context-menu__item"
+      class="task-context-menu__item task-context-menu__item--icon"
       type="button"
       @click="
         () => {
@@ -123,21 +84,52 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
+      <AppIcon :name="isTimerActive ? 'stop' : 'play'" :size="16" />
       {{ isTimerActive ? t('tasks.stopTimer') : t('tasks.startTimer') }}
     </button>
     <button
-      v-if="canLogPlanned"
+      v-if="canNotes !== false"
       role="menuitem"
-      class="task-context-menu__item"
+      class="task-context-menu__item task-context-menu__item--icon"
       type="button"
       @click="
         () => {
-          emit('log-planned')
+          emit('add-note')
           emit('close')
         }
       "
     >
-      {{ t('tasks.logAsPlanned') }}
+      <AppIcon name="file-text" :size="16" />
+      {{ hasNotes ? t('tasks.editNote') : t('tasks.addNote') }}
+    </button>
+    <button
+      v-if="canMove"
+      role="menuitem"
+      class="task-context-menu__item task-context-menu__item--icon"
+      type="button"
+      @click="
+        () => {
+          emit('move')
+          emit('close')
+        }
+      "
+    >
+      <AppIcon name="chevron-right" :size="16" />
+      {{ t('tasks.moveTo') }}
+    </button>
+    <button
+      role="menuitem"
+      class="task-context-menu__item task-context-menu__item--icon"
+      type="button"
+      @click="
+        () => {
+          emit('set-rate')
+          emit('close')
+        }
+      "
+    >
+      <AppIcon name="mod-earnings" :size="16" />
+      {{ hasOwnRate ? t('tasks.changeRate') : t('tasks.setRate') }}
     </button>
     <DisclosureSection
       :label="t('tasks.more')"
@@ -145,18 +137,44 @@ const { menuPositionStyle } = useContextMenu({
       summary-role="menuitem"
     >
       <button
-        v-if="canMove"
         role="menuitem"
         class="task-context-menu__item"
         type="button"
         @click="
           () => {
-            emit('move')
+            emit('toggle-check')
             emit('close')
           }
         "
       >
-        {{ t('tasks.moveTo') }}
+        {{ isDone ? t('tasks.markNotDone') : t('tasks.checkIt') }}
+      </button>
+      <button
+        role="menuitem"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('schedule')
+            emit('close')
+          }
+        "
+      >
+        {{ isScheduled ? t('tasks.changeTime') : t('tasks.addToCalendar') }}
+      </button>
+      <button
+        v-if="canLogPlanned"
+        role="menuitem"
+        class="task-context-menu__item"
+        type="button"
+        @click="
+          () => {
+            emit('log-planned')
+            emit('close')
+          }
+        "
+      >
+        {{ t('tasks.logAsPlanned') }}
       </button>
       <button
         role="menuitem"
@@ -185,20 +203,6 @@ const { menuPositionStyle } = useContextMenu({
         {{ t('sidebar.moveDown') }}
       </button>
       <button
-        v-if="canSetAsProject"
-        role="menuitem"
-        class="task-context-menu__item"
-        type="button"
-        @click="
-          () => {
-            emit('set-as-project')
-            emit('close')
-          }
-        "
-      >
-        {{ t('tasks.setAsProject') }}
-      </button>
-      <button
         v-if="canAddChild"
         role="menuitem"
         class="task-context-menu__item"
@@ -213,7 +217,7 @@ const { menuPositionStyle } = useContextMenu({
         {{ t('tasks.addToThis') }}
       </button>
       <button
-        v-if="isProject"
+        v-if="hasChildren"
         role="menuitem"
         class="task-context-menu__item"
         type="button"
@@ -226,24 +230,11 @@ const { menuPositionStyle } = useContextMenu({
       >
         {{ t('tasks.showHabit') }}
       </button>
-      <button
-        role="menuitem"
-        class="task-context-menu__item"
-        type="button"
-        @click="
-          () => {
-            emit('set-rate')
-            emit('close')
-          }
-        "
-      >
-        {{ hasOwnRate ? t('tasks.changeRate') : t('tasks.setRate') }}
-      </button>
     </DisclosureSection>
     <div class="task-context-menu__divider" role="separator"></div>
     <button
       role="menuitem"
-      class="task-context-menu__item task-context-menu__item--danger"
+      class="task-context-menu__item task-context-menu__item--icon task-context-menu__item--danger"
       type="button"
       @click="
         () => {
@@ -252,6 +243,7 @@ const { menuPositionStyle } = useContextMenu({
         }
       "
     >
+      <AppIcon name="close" :size="16" />
       {{ t('common.delete') }}
     </button>
   </div>

@@ -1,8 +1,9 @@
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import type { useGoalSpace } from '../../shared/composables/useGoalSpace'
-import type { ActiveView, ID, ISODate, Priority } from '../../entities/types'
+import type { ActiveView, ID, ISODate } from '../../entities/types'
 import type { TaskSchedule, TaskTemplate } from '../../entities/TaskEntity'
 import {
+  PRIORITY,
   RECURRENCE_TYPE,
   TASK_STATUS,
   type BoardStage,
@@ -155,7 +156,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     const created = goalSpace.addTask(
       goalSpace.activeGoalId.value ?? undefined,
       title,
-      settings.behavior.defaultPriority,
     )
     if (!created) return
 
@@ -203,16 +203,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   // Dropping a task on a sidebar project.
   useTaskGoalDrop(goalSpace)
 
-  function handleAddTask(
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) {
+  function handleAddTask(title: string, schedule?: TaskSchedule) {
     if (!goalSpace.activeGoal.value) return
     const created = goalSpace.addTask(
       goalSpace.activeGoal.value.id,
       title,
-      priority,
+      PRIORITY.MINOR,
       schedule,
     )
     if (created) {
@@ -262,7 +258,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     const created = goalSpace.addTask(
       goalId,
       result.title,
-      result.priority ?? settings.behavior.defaultPriority,
+      PRIORITY.MINOR,
       schedule,
     )
     if (created && result.startTimer) {
@@ -287,13 +283,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   function handleAddSubTask(
     parentTemplateId: ID,
     title: string,
-    priority: Priority,
     schedule?: TaskSchedule,
   ) {
     const created = goalSpace.addSubTask(
       parentTemplateId,
       title,
-      priority,
+      PRIORITY.MINOR,
       schedule,
     )
     if (created) {
@@ -410,20 +405,15 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   }) {
     reportUserAction('block-created')
     const date = payload.date ?? goalSpace.currentDate.value
-    goalSpace.addTask(
-      undefined,
-      payload.title,
-      settings.behavior.defaultPriority,
-      {
-        date,
-        startTime: payload.startTime,
-        endTime: payload.endTime,
-        recurrence: {
-          type: RECURRENCE_TYPE.NONE,
-          startDate: date,
-        },
+    goalSpace.addTask(undefined, payload.title, PRIORITY.MINOR, {
+      date,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      recurrence: {
+        type: RECURRENCE_TYPE.NONE,
+        startDate: date,
       },
-    )
+    })
   }
 
   /** A block moved to another hour, or dropped onto a later day's grid. */
@@ -454,7 +444,6 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule: handleScheduleTask,
     setRate: goalSpace.updateTaskRate,
     remove: handleDeleteTask,
-    setAsProject: goalSpace.convertTaskToProject,
     assignGoal: goalSpace.assignTaskToGoal,
     attachToProject: goalSpace.attachTaskToProject,
     moveTo: handleMoveTaskTo,

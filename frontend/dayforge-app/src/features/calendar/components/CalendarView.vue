@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppIcon from '../../../shared/ui/AppIcon.vue'
-import { computed, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
   DailyTask,
@@ -25,6 +25,7 @@ import {
   gridStyle,
   hourLineStyle,
   HOURS,
+  minutesFromDayStart,
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import {
@@ -39,11 +40,14 @@ import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import { useModules } from '../../../shared/composables/useModules'
 import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import { useCalendarStartScroll } from '../composables/useCalendarStartScroll'
 import { useCalendarTotals } from '../composables/useCalendarTotals'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { useFormat } from '../../../shared/composables/useFormat'
 import { durationWords } from '../../../shared/composables/timer/text'
 import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
 import { blockFromTask } from '../../../shared/composables/timer/plannedBlocks'
+import { referencedParentIds } from '../../../shared/composables/goalSpace/taskParents'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -79,6 +83,7 @@ const emit = defineEmits<{
 
 const {
   viewMode,
+  gridRef,
   isCoarsePointer,
   openDay,
   dateLabel,
@@ -133,6 +138,7 @@ const {
 })
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
+const { formatHour } = useFormat()
 
 const { t } = useI18n()
 
@@ -183,6 +189,26 @@ const month = useCalendarMonth({
   getTemplates: () => props.templates,
   getDailyTasks: () => props.dailyTasks,
   getCurrentDate: () => props.currentDate,
+})
+
+const toolbarRef = useTemplateRef<HTMLElement>('toolbarRef')
+const weekRef = useTemplateRef<InstanceType<typeof CalendarWeekView>>('weekRef')
+
+useCalendarStartScroll({
+  getMode: () => viewMode.value,
+  getCurrentDate: () => props.currentDate,
+  getWeekAnchor: () => week.anchor.value,
+  getGrid: () =>
+    viewMode.value === 'week'
+      ? (weekRef.value?.hourList ?? null)
+      : gridRef.value,
+  getHeader: () => toolbarRef.value,
+  getBlockStartMinutes: () =>
+    viewMode.value === 'week'
+      ? week.days.value.flatMap((day) =>
+          day.scheduled.map((event) => minutesFromDayStart(event.startTime!)),
+        )
+      : scheduledBlocks.value.map((block) => block.startMin),
 })
 
 /** Tracked time and earnings across the month on screen (its own days only). */
@@ -246,6 +272,11 @@ function logPlannedFor(task: DailyTask | null) {
   if (task) planned.logBlock(blockFromTask(task))
 }
 
+/** Templates some other template is filed under: the parents. */
+const parentTemplateIds = computed(() =>
+  referencedParentIds(props.templates, (template) => template.parentTemplateId),
+)
+
 /** Notes live on the task's template, not on the day row the panel shows. */
 const selectedTaskNotes = computed(
   () =>
@@ -284,6 +315,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
     <!-- The time-blocking tip points here, not at the grid: the grid is a full
          day tall, so a bubble above or below it would sit over the toolbar. -->
     <header
+      ref="toolbarRef"
       class="calendar-view__toolbar"
       :data-tip-anchor="viewMode === 'day' ? 'calendar-toolbar' : undefined"
     >
@@ -344,6 +376,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
 
     <CalendarWeekView
       v-if="viewMode === 'week'"
+      ref="weekRef"
       :week="week"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
@@ -371,7 +404,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
               :key="hour"
               class="calendar-view__hour-label"
             >
-              {{ String(hour).padStart(2, '0') }}:00
+              {{ formatHour(hour) }}
             </div>
           </div>
 
@@ -424,7 +457,6 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
             <div
               v-if="incomingPreview"
               class="cal-event cal-event--preview"
-              :class="incomingPreview.priority"
               :style="previewStyle(incomingPreview.top, incomingPreview.height)"
             >
               <span class="cal-event__title">{{ incomingPreview.title }}</span>
@@ -505,6 +537,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
       <EventDetailsPanel
         v-if="selectedTask"
         :task="selectedTask"
+        :has-children="parentTemplateIds.has(selectedTask.templateId)"
         :project-options="projectOptions"
         :current-project-id="selectedProjectTemplateId"
         :goals="goals"

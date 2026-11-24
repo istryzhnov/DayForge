@@ -77,6 +77,13 @@
   display: none;
 }
 
+/* Desktop lists every project in the sidebar, so the chip row is phone-only. */
+@media (min-width: 961px) {
+  .today-chips {
+    display: none;
+  }
+}
+
 .today-chips__chip {
   flex: none;
   min-width: max-content;
@@ -99,18 +106,6 @@
   height: 0.5rem;
   border-radius: 999px;
   background: var(--accent);
-}
-
-/* ---- Task rows: a standalone important task gets a pink marker ---- */
-
-.task-major-chip {
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.625rem;
-  background: color-mix(in srgb, var(--major) 16%, transparent);
-  color: var(--major);
-  font-size: calc(0.75rem * var(--text-scale));
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 @media (max-width: 960px) {

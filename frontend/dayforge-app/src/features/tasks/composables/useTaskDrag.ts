@@ -30,7 +30,8 @@ export type DragTask = {
   canMove: boolean
   /** Project colour, for the accent bar of the floating copy. */
   color?: string
-  isMajor?: boolean
+  /** Has children, so it can only be reordered or moved as a whole block. */
+  hasChildren?: boolean
 }
 
 export type TaskDropPayload = {
@@ -71,7 +72,6 @@ export function useTaskDrag(actions: DragActions) {
   const pointer = ref<GesturePoint>({ x: 0, y: 0 })
   /** What the floating copy shows about the task being dragged. */
   const dragColor = ref<string | undefined>(undefined)
-  const dragIsMajor = ref(false)
   /** True when a finger picked the task up rather than a mouse. */
   const dragIsTouch = ref(false)
   /** Sidebar project under the pointer, when it would take the task. */
@@ -95,14 +95,19 @@ export function useTaskDrag(actions: DragActions) {
     const element = document.elementFromPoint(point.x, point.y)
     const zoneElement = element?.closest<HTMLElement>('[data-drop-zone]')
     const row = element?.closest<HTMLElement>('[data-drop-row]')
+    const rowBox = row?.getBoundingClientRect()
 
     const target = pickDropTarget(
       {
         zone: zoneElement?.dataset.dropZone ?? null,
         rowId: row?.dataset.dropRow ?? null,
-        rowIsProject: row?.dataset.dropMajor !== undefined,
+        rowHasChildren: row?.dataset.dropParent !== undefined,
+        rowCanNest:
+          row?.dataset.dropNest !== undefined &&
+          !!rowBox &&
+          isInNestBand(point, rowBox),
       },
-      { id: draggingId.value, isProject: !!candidate?.isMajor },
+      { id: draggingId.value, hasChildren: !!candidate?.hasChildren },
     )
 
     const goalId = resolveGoalTarget(point)
@@ -118,6 +123,15 @@ export function useTaskDrag(actions: DragActions) {
       above: point.y < box.top + box.height / 2,
       goalId,
     }
+  }
+
+  /**
+   * The middle half of a row nests a task under it; the outer quarters on
+   * either side still place the task above or below the row.
+   */
+  function isInNestBand(point: GesturePoint, box: DOMRect) {
+    const quarter = box.height / 4
+    return point.y > box.top + quarter && point.y < box.bottom - quarter
   }
 
   /** A sidebar project only counts when the task is movable and it is not its own. */
@@ -191,7 +205,6 @@ export function useTaskDrag(actions: DragActions) {
     dragTitle.value = task.title
     dragParentZone.value = task.parentZone
     dragColor.value = task.color
-    dragIsMajor.value = !!task.isMajor
     pointer.value = point
     if (task.canMove) beginGoalDrop(task.goalId)
     updateTarget(point)
@@ -298,7 +311,6 @@ export function useTaskDrag(actions: DragActions) {
     dragTitle,
     dragParentZone,
     dragColor,
-    dragIsMajor,
     dragIsTouch,
     dropZone,
     dropRowId,

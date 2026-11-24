@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="index, follow" />
     <title data-i18n="pageTitle">DayForge · Plan your day, track your time, keep your habits</title>
-    <meta name="description" data-i18n-attr="content:metaDescription" content="DayForge is a free planner that combines tasks and projects, habits, calendar, time tracking with hourly rates and analytics, a kanban board and notes. It works offline and syncs across devices." />
+    <meta name="description" data-i18n-attr="content:metaDescription" content="DayForge is a free planner for tasks and projects, with habits, a calendar, a timer with hourly rates, earnings analytics, a kanban board and notes. It works offline, and optional Google sign-in syncs your devices." />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ff7a2f" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
@@ -15,7 +15,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="DayForge" />
     <meta property="og:title" data-i18n-attr="content:pageTitle" content="DayForge · Plan your day, track your time, keep your habits" />
-    <meta property="og:description" data-i18n-attr="content:shortDescription" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline and syncs across your devices." />
+    <meta property="og:description" data-i18n-attr="content:shortDescription" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline. Optional Google sign-in syncs your devices." />
     <meta property="og:url" content="https://day-forge-app-is.netlify.app/about" />
     <meta property="og:image" content="https://day-forge-app-is.netlify.app/landing/og.jpg" />
     <meta property="og:image:type" content="image/jpeg" />
@@ -24,7 +24,7 @@
     <meta property="og:image:alt" data-i18n-attr="content:shotToday" content="DayForge task list across projects, with coloured project tags, done tasks and upcoming times" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" data-i18n-attr="content:pageTitle" content="DayForge · Plan your day, track your time, keep your habits" />
-    <meta name="twitter:description" data-i18n-attr="content:shortDescription" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline and syncs across your devices." />
+    <meta name="twitter:description" data-i18n-attr="content:shortDescription" content="A free planner for tasks, habits, calendar, time tracking and earnings. Works offline. Optional Google sign-in syncs your devices." />
     <meta name="twitter:image" content="https://day-forge-app-is.netlify.app/landing/og.jpg" />
     <style>
       :root {
@@ -895,7 +895,7 @@
             <span aria-hidden="true">ayForge</span>
             <span class="sr-only">DayForge</span>
           </h1>
-          <p class="lead" data-i18n="heroLead">Start with a task list and a calendar. Add a board, a timer and earnings when your work needs them.</p>
+          <p class="lead" data-i18n="heroLead">Start with tasks and projects. Switch on the calendar, a timer, habits, a board or earnings when your work needs them.</p>
           <div class="cta">
             <a class="btn btn--primary" href="/" data-i18n="openApp">Open DayForge</a>
             <a class="btn btn--ghost" href="#how" data-i18n="seeHow">See how it works</a>
@@ -912,14 +912,14 @@
             <div class="builder__text reveal">
               <p class="eyebrow" data-i18n="navWhy">Why DayForge</p>
               <h2 id="why-title" data-i18n="whyTitle">Starts simple. Grows with your work.</h2>
-              <p class="builder__lead" data-i18n="whyLead">On day one you get tasks and a calendar, nothing more. Switch on a kanban board, a timer with hourly rates or analytics of what you earn only when you need them. Nothing to build, nothing in the way.</p>
+              <p class="builder__lead" data-i18n="whyLead">On day one you get tasks and projects, nothing more. Switch on a calendar, a timer, habits, a kanban board or earnings only when you need them. Nothing to build, nothing in the way.</p>
 
               <ul class="modules" data-i18n-attr="aria-label:modulesLabel" aria-label="Modules">
                 <li class="module module--base">
                   <span class="module__switch is-on" aria-hidden="true"></span>
                   <span class="module__text">
-                    <strong data-i18n="modBaseTitle">Tasks and calendar</strong>
-                    <span data-i18n="modBaseHint">Always there: plan the day and give tasks a time.</span>
+                    <strong data-i18n="modBaseTitle">Tasks and projects</strong>
+                    <span data-i18n="modBaseHint">Always there. Every other module is optional.</span>
                   </span>
                   <span class="module__badge" data-i18n="modAlwaysOn">Always on</span>
                 </li>
@@ -927,8 +927,8 @@
                   <button class="module__btn" type="button" data-module="board" aria-pressed="false">
                     <span class="module__switch" aria-hidden="true"></span>
                     <span class="module__text">
-                      <strong data-i18n="modBoardTitle">Kanban board</strong>
-                      <span data-i18n="modBoardHint">Move a project's tasks through To do, In progress and Done.</span>
+                      <strong data-i18n="modBoardTitle">Board</strong>
+                      <span data-i18n="modBoardHint">Kanban columns for a project: To do, In progress, Done, or your own.</span>
                     </span>
                   </button>
                 </li>
@@ -936,8 +936,8 @@
                   <button class="module__btn" type="button" data-module="timer" aria-pressed="false">
                     <span class="module__switch" aria-hidden="true"></span>
                     <span class="module__text">
-                      <strong data-i18n="modTimerTitle">Timer and rates</strong>
-                      <span data-i18n="modTimerHint">Track time on any task, with an hourly rate per project.</span>
+                      <strong data-i18n="modTimerTitle">Timer</strong>
+                      <span data-i18n="modTimerHint">Stopwatch, countdown or pomodoro, with a history of tracked time.</span>
                     </span>
                   </button>
                 </li>
@@ -945,8 +945,8 @@
                   <button class="module__btn" type="button" data-module="money" aria-pressed="false">
                     <span class="module__switch" aria-hidden="true"></span>
                     <span class="module__text">
-                      <strong data-i18n="modMoneyTitle">Earnings analytics</strong>
-                      <span data-i18n="modMoneyHint">See where the hours went and what they earned.</span>
+                      <strong data-i18n="modMoneyTitle">Earnings and rates</strong>
+                      <span data-i18n="modMoneyHint">An hourly rate per project and a monthly income goal.</span>
                     </span>
                   </button>
                 </li>
@@ -1034,7 +1034,7 @@
             </div>
             <div class="pillar">
               <h3 data-i18n="pillarKeyboardTitle">Fast with the keyboard</h3>
-              <p data-i18n-html="pillarKeyboardBody">Quick add, search with <kbd>Ctrl</kbd> + <kbd>K</kbd> and shortcuts for the things you do most.</p>
+              <p data-i18n-html="pillarKeyboardBody">Quick add with <kbd>N</kbd>, dates like "tomorrow" and #project to file a task. Search with <kbd>Ctrl</kbd> + <kbd>K</kbd> or <kbd>/</kbd>.</p>
             </div>
             <div class="pillar">
               <h3 data-i18n="pillarFreeTitle">Free to start</h3>
@@ -1056,7 +1056,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M8 9h8M8 13h5"/><circle cx="6.5" cy="9" r="0.6" fill="currentColor"/></svg>
               </span>
               <h3 data-i18n="featTasksTitle">Tasks and projects</h3>
-              <p data-i18n="featTasksBody">Group work into projects with their own colours. Add tasks with a date, a time and a repeat, and see what is next.</p>
+              <p data-i18n="featTasksBody">Group work into projects with their own colours. Tasks can have a date, a time, a repeat, steps, notes and reminders.</p>
             </article>
             <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
@@ -1069,8 +1069,8 @@
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
               </span>
-              <h3 data-i18n="featTimerTitle">Timer, rates and analytics</h3>
-              <p data-i18n="featTimerBody">Start a timer on any task. Set an hourly rate or a fixed price per project and see what your hours are worth.</p>
+              <h3 data-i18n="featTimerTitle">Timer, rates and budgets</h3>
+              <p data-i18n="featTimerBody">Start a stopwatch, countdown or pomodoro on any task. Set hourly rates per project or task, and optional budgets that warn you at 80%.</p>
             </article>
             <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
@@ -1084,21 +1084,21 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg>
               </span>
               <h3 data-i18n="featBoardTitle">Optional kanban board</h3>
-              <p data-i18n="featBoardBody">Turn on a board for any project and move tasks between columns. Drag tasks between them.</p>
+              <p data-i18n="featBoardBody">Turn on a board for any project. Move tasks across To do, In progress and Done, or add your own columns.</p>
             </article>
             <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-2.5-1.5L13 21l-2.5-1.5L8 21l-2-1.5z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
               </span>
-              <h3 data-i18n="featNotesTitle">Notes</h3>
-              <p data-i18n="featNotesBody">Write notes on tasks and on projects, so the context stays next to the work it belongs to.</p>
+              <h3 data-i18n="featClientsTitle">Clients and billing</h3>
+              <p data-i18n="featClientsBody">Bill projects to clients. Export hours and amounts as CSV or PDF, and mark what you have invoiced.</p>
             </article>
             <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg>
               </span>
               <h3 data-i18n="featSearchTitle">Search with Ctrl+K</h3>
-              <p data-i18n="featSearchBody">Find any task, project or note from anywhere in the app. One shortcut, no menus to dig through.</p>
+              <p data-i18n="featSearchBody">Find projects, tasks and finished work from anywhere in the app. Ctrl+K or / opens search.</p>
             </article>
             <article class="card feature reveal">
               <span class="feature__icon" aria-hidden="true">
@@ -1124,7 +1124,7 @@
                 <span class="scene__rows"><b></b><b></b><b></b></span>
               </div>
               <h3 data-i18n="step1Title">Start in a minute</h3>
-              <p data-i18n="step1Body">Name a project or pick a template: client work, daily rhythm, study or habits. Its first tasks are ready to try.</p>
+              <p data-i18n="step1Body">Name a project or pick a template: Client project, Daily rhythm, Study plan or Habits. Its first tasks are ready to try.</p>
             </li>
             <li class="reveal">
               <div class="scene scene--track" aria-hidden="true">
@@ -1177,7 +1177,7 @@
             </details>
             <details>
               <summary data-i18n="faq3Q">Where is my data stored?</summary>
-              <p data-i18n="faq3A">On your device, in your browser. If you sign in with Google, your projects, tasks and tracked time are also synced to a database so your devices can share them. Without signing in, nothing leaves your browser.</p>
+              <p data-i18n="faq3A">On your device, in your browser. If you sign in with Google, your projects, tasks and tracked time are also synced to a database so your devices can share them. Without signing in, your data stays in your browser. Crash reports, which hold no project or task content, may still be sent so that we can fix bugs.</p>
             </details>
             <details>
               <summary data-i18n="faq4Q">Can I use it on my phone?</summary>
@@ -1185,7 +1185,7 @@
             </details>
             <details>
               <summary data-i18n="faq5Q">How do I delete my data?</summary>
-              <p data-i18n-html="faq5A">Open Settings, go to Backup and data and choose "Delete all projects and tasks". A short undo is available, and if you are signed in it also clears your account on every device. To delete your account and server data, email <a href="mailto:thetotemofficial@gmail.com">thetotemofficial@gmail.com</a>. Clearing the site data in your browser removes the local copy.</p>
+              <p data-i18n-html="faq5A">Open Settings, go to Backup and data and choose "Delete all projects and tasks". A short undo is available, and if you are signed in it also clears them on every device. To delete your account and all of its server data, use Delete account in your profile or in the Data section of Settings. Clearing the site data in your browser removes the local copy.</p>
             </details>
           </div>
         </div>

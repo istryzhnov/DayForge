@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-
 /**
  * The floating copy of a task that is being dragged. It follows the pointer
  * (or the finger, placed above it so the finger does not cover it). Drawn in
  * the body so no list or column clips it; `pointer-events: none` keeps it out
  * of `elementFromPoint`, which the drop targets rely on.
  */
-const { t } = useI18n()
-
 withDefaults(
   defineProps<{
     title: string
@@ -16,11 +12,10 @@ withDefaults(
     y: number
     /** Project colour for the accent bar; the accent colour when absent. */
     color?: string
-    isMajor?: boolean
     /** A finger drags it: the copy sits above the touch point. */
     touch?: boolean
   }>(),
-  { color: undefined, isMajor: false, touch: false },
+  { color: undefined, touch: false },
 )
 </script>
 
@@ -38,11 +33,6 @@ withDefaults(
     >
       <span class="drag-ghost__bar"></span>
       <span class="drag-ghost__title">{{ title }}</span>
-      <span
-        v-if="isMajor"
-        class="drag-ghost__priority"
-        :title="t('tasks.priorityLabel', { level: t('tasks.priorityMajor') })"
-      ></span>
     </div>
   </Teleport>
 </template>
@@ -93,14 +83,6 @@ withDefaults(
   white-space: nowrap;
   font-weight: 500;
   line-height: 1.3;
-}
-
-.drag-ghost__priority {
-  flex: none;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--major);
 }
 
 @keyframes drag-ghost-in {

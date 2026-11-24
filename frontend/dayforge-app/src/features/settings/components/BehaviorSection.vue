@@ -17,10 +17,7 @@ import {
 } from '../../onboarding'
 import { useMediaQuery } from '../../../shared/composables/useMediaQuery'
 import { sortGoals } from '../../../shared/composables/goalSpace/goalOrder'
-import {
-  PRIORITY_OPTIONS,
-  START_VIEW_OPTIONS,
-} from '../composables/settingsOptions'
+import { START_VIEW_OPTIONS } from '../composables/settingsOptions'
 import { checkedValue, rangeValue, textValue } from '../composables/inputValue'
 
 const { t } = useI18n()
@@ -115,24 +112,6 @@ function startOnView(view: StartView) {
         </option>
       </select>
     </label>
-
-    <p class="ui-section-label ui-section-label--wrap">
-      {{ t('settings.newItemsAre') }}
-    </p>
-    <div class="ui-chips">
-      <button
-        v-for="option in PRIORITY_OPTIONS"
-        :key="option.id"
-        class="ui-chip ui-chip--wrap"
-        :class="{
-          'is-active': settings.behavior.defaultPriority === option.id,
-        }"
-        type="button"
-        @click="update('behavior', { defaultPriority: option.id })"
-      >
-        {{ t(option.labelKey) }}
-      </button>
-    </div>
 
     <p class="ui-section-label ui-section-label--wrap">
       {{ t('settings.onItsOwn') }}

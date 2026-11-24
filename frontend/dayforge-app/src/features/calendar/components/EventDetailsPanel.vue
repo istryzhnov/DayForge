@@ -15,6 +15,8 @@ import { useEventDetailsForm } from '../composables/useEventDetailsForm'
 
 const props = defineProps<{
   task: DailyTask
+  /** The task has subtasks, so it is a parent and cannot be filed under another. */
+  hasChildren: boolean
   /** The task's notes, read from its template. */
   notes: string
   projectOptions: MajorTaskOption[]
@@ -103,7 +105,7 @@ function onNotesKeydown(event: KeyboardEvent) {
       aria-labelledby="event-details-title"
     >
       <header class="event-details__head">
-        <span class="dot" :class="task.priority"></span>
+        <span class="dot"></span>
         <strong id="event-details-title">{{ task.title }}</strong>
         <button
           class="event-details__close"

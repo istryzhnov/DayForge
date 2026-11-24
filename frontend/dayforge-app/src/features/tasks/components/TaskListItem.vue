@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ID, Priority } from '../../../entities/types'
+import type { ID } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
@@ -43,6 +43,8 @@ const props = defineProps<{
   isDragging?: boolean
   /** Where the dragged task would land relative to this row. */
   dropEdge?: 'above' | 'below' | null
+  /** A dragged task would nest under this row. */
+  isNestTarget?: boolean
 }>()
 
 // What the list reacts to: its one open composer, the panel's focus and the
@@ -53,7 +55,6 @@ const emit = defineEmits<{
     e: 'submit-subtask',
     parentTemplateId: ID,
     title: string,
-    priority: Priority,
     schedule?: TaskSchedule,
   ): void
   (e: 'cancel-subtask'): void
@@ -144,9 +145,8 @@ const {
   isEditing,
   editorStartsScheduled,
   isRateEditing,
-  isProject,
+  hasChildren,
   isDone,
-  canSetAsProject,
   hasOwnRate,
   isLifted,
   onPointerDown,
@@ -173,11 +173,12 @@ const {
       'is-dragging': isDragging,
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
+      'is-nest-target': isNestTarget,
       'is-timing': isTimerActive,
-      'is-major': node.task.priority === 'major',
     }"
     :data-drop-row="drag ? node.task.templateId : undefined"
-    :data-drop-major="isProject ? 'true' : undefined"
+    :data-drop-parent="hasChildren ? 'true' : undefined"
+    :data-drop-nest="drag && !isNested && !isProjectHeader ? 'true' : undefined"
     :data-task-id="node.task.id"
     :data-tour-task="node.task.templateId"
     :data-tip-anchor="isNested ? undefined : 'task-row'"
@@ -188,10 +189,7 @@ const {
       <button
         type="button"
         class="task-dot-check"
-        :class="{
-          'is-done': isDone,
-          'task-dot-check--project': isProject,
-        }"
+        :class="{ 'is-done': isDone }"
         :aria-label="isDone ? t('tasks.markNotDone') : t('tasks.markDone')"
         @click="actions.toggleDone(node.task.id)"
       >
@@ -228,14 +226,6 @@ const {
           <span v-if="isProjectHeader" class="task-progress">
             <AppIcon name="check" :size="11" />
             {{ doneCount }}/{{ totalCount }}
-          </span>
-
-          <!-- A standalone important task; a project header already has its stripe. -->
-          <span
-            v-if="node.task.priority === 'major' && !isProjectHeader"
-            class="task-major-chip"
-          >
-            {{ t('board.majorTag') }}
           </span>
 
           <span
@@ -308,10 +298,9 @@ const {
     :x="contextMenuPos.x"
     :y="contextMenuPos.y"
     :is-done="isDone"
-    :can-set-as-project="canSetAsProject"
     :can-add-child="!isNested && subtasksOn"
     :can-notes="notesOn"
-    :is-project="isProject"
+    :has-children="hasChildren"
     :can-move="!isNested"
     :is-scheduled="!!node.task.startTime"
     :has-own-rate="hasOwnRate"
@@ -329,7 +318,6 @@ const {
     @delete="actions.remove(node.task.templateId)"
     @add-to-this="emit('toggle-parent', node.task.id)"
     @toggle-check="actions.toggleDone(node.task.id)"
-    @set-as-project="actions.setAsProject(node.task.templateId)"
     @show-habit="emit('focus-project', node.task.id)"
     @close="closeContextMenu"
   />
@@ -353,8 +341,8 @@ const {
     v-if="isActiveParent && subtasksOn"
     :is-subtask="true"
     @submit="
-      (title: string, priority: Priority, schedule?: TaskSchedule) =>
-        emit('submit-subtask', node.task.templateId, title, priority, schedule)
+      (title: string, schedule?: TaskSchedule) =>
+        emit('submit-subtask', node.task.templateId, title, schedule)
     "
     @cancel="emit('cancel-subtask')"
   />

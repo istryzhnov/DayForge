@@ -15,7 +15,10 @@ import {
   isRepeating,
   occursOn,
 } from '../../../shared/composables/goalSpace/recurrence'
-import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import {
+  addDaysToISODate,
+  dailyTaskId,
+} from '../../../shared/composables/goalSpace/date'
 import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 import { sortTasks } from '../../../shared/composables/goalSpace/taskOrder'
 
@@ -391,5 +394,27 @@ export function planBoardMove(
   return {
     toggleDone: card.done,
     stage: column === BOARD_COLUMN.TODO ? null : column,
+  }
+}
+
+/**
+ * The daily row a card's editor and menu work on. A card with no row today (a
+ * repeating task whose next day is ahead) gets a stand-in for its day, so the
+ * same editor can open on it.
+ */
+export function rowForCard(card: BoardCard, today: ISODate): DailyTask {
+  if (card.row) return card.row
+  const date = card.date ?? today
+  return {
+    id: dailyTaskId(card.templateId, date),
+    date,
+    templateId: card.templateId,
+    title: card.title,
+    priority: card.priority,
+    goalId: card.template.goalId,
+    tagIds: [],
+    status: TASK_STATUS.TODO,
+    startTime: card.startTime,
+    endTime: card.template.endTime,
   }
 }

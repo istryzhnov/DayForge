@@ -186,7 +186,7 @@
   background: var(--qa-chip, var(--muted));
 }
 
-/* ---- Tiles: date, priority, repeat ------------------------------------- */
+/* ---- Tiles: date, repeat, reminder ------------------------------------- */
 
 .qa-tiles {
   display: grid;
@@ -245,15 +245,6 @@
 
 .qa-tile.is-on > svg {
   color: var(--accent);
-}
-
-.qa-tile.is-major {
-  border-color: color-mix(in srgb, var(--major) 60%, transparent);
-  background: color-mix(in srgb, var(--major) 12%, transparent);
-}
-
-.qa-tile.is-major > svg {
-  color: var(--major);
 }
 
 /* The existing picker sits under the tiles; it lays out its own fields. */

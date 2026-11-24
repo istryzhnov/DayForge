@@ -68,6 +68,8 @@ const {
   deleteGoalFromMenu,
   reorderGoals,
   moveGoalFromMenu,
+  setGoalStatusFromMenu,
+  openProjectSettingsFromMenu,
 } = useSidebarState(props, {
   onSelectGoal: (goalId) => {
     emit('select-goal', goalId)
@@ -152,38 +154,67 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
 
 <template>
   <div class="sidebar-shell">
-    <div class="sidebar-brand">
-      <BrandWordmark />
-      <button
-        v-if="notificationsSupported && isOn('reminders')"
-        class="sidebar-notify-trigger"
-        :class="{ 'is-active': notificationsEnabled }"
-        type="button"
-        :aria-label="
-          notificationsEnabled
-            ? t('sidebar.disableReminders')
-            : t('sidebar.enableReminders')
-        "
-        :title="
-          notificationsEnabled
-            ? t('sidebar.remindersOnTitle', { minutes: leadMinutes })
-            : t('sidebar.enableRemindersTitle')
-        "
-        @click="emit('toggle-notifications')"
-      >
-        <AppIcon
-          :name="notificationsEnabled ? 'bell' : 'bell-off'"
-          :size="15"
-        />
-      </button>
-      <div class="sidebar-settings">
+    <div class="sidebar-scroll">
+      <div class="sidebar-brand">
+        <BrandWordmark />
         <button
-          class="sidebar-settings__trigger"
-          :class="{ 'is-active': isSettingsOpen }"
+          v-if="notificationsSupported && isOn('reminders')"
+          class="sidebar-notify-trigger"
+          :class="{ 'is-active': notificationsEnabled }"
           type="button"
-          :aria-label="t('sidebar.settings')"
-          :title="t('sidebar.settingsTitle')"
-          @click="toggleSettingsFromNav"
+          :aria-label="
+            notificationsEnabled
+              ? t('sidebar.disableReminders')
+              : t('sidebar.enableReminders')
+          "
+          :title="
+            notificationsEnabled
+              ? t('sidebar.remindersOnTitle', { minutes: leadMinutes })
+              : t('sidebar.enableRemindersTitle')
+          "
+          @click="emit('toggle-notifications')"
+        >
+          <AppIcon
+            :name="notificationsEnabled ? 'bell' : 'bell-off'"
+            :size="15"
+          />
+        </button>
+        <div class="sidebar-settings">
+          <button
+            class="sidebar-settings__trigger"
+            :class="{ 'is-active': isSettingsOpen }"
+            type="button"
+            :aria-label="t('sidebar.settings')"
+            :title="t('sidebar.settingsTitle')"
+            @click="toggleSettingsFromNav"
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+        <button
+          class="sidebar-search-trigger"
+          type="button"
+          :aria-label="t('sidebar.searchProjectsAndTasks')"
+          :title="
+            shortcutTitle(t('sidebar.searchProjectsAndTasks'), 'Ctrl+K or /')
+          "
+          @click="openSearchFromNav"
         >
           <svg
             width="15"
@@ -191,268 +222,244 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2.2"
+            stroke-width="2.4"
             stroke-linecap="round"
-            stroke-linejoin="round"
             aria-hidden="true"
             focusable="false"
           >
-            <path
-              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-            />
-            <circle cx="12" cy="12" r="3" />
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
           </svg>
         </button>
-      </div>
-      <button
-        class="sidebar-search-trigger"
-        type="button"
-        :aria-label="t('sidebar.searchProjectsAndTasks')"
-        :title="
-          shortcutTitle(t('sidebar.searchProjectsAndTasks'), 'Ctrl+K or /')
-        "
-        @click="openSearchFromNav"
-      >
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.4"
-          stroke-linecap="round"
-          aria-hidden="true"
-          focusable="false"
+        <!-- Always there: it also brings the tips back, not only the shortcuts. -->
+        <button
+          class="sidebar-shortcuts-trigger"
+          type="button"
+          data-tip-anchor="help-button"
+          :aria-label="t('sidebar.helpAndKeyboardShortcuts')"
+          :title="
+            keyboardShortcuts
+              ? t('sidebar.helpAndShortcutsTitle')
+              : t('sidebar.help')
+          "
+          @click="openShortcuts"
         >
-          <circle cx="11" cy="11" r="7" />
-          <path d="m20 20-3.5-3.5" />
-        </svg>
-      </button>
-      <!-- Always there: it also brings the tips back, not only the shortcuts. -->
-      <button
-        class="sidebar-shortcuts-trigger"
-        type="button"
-        data-tip-anchor="help-button"
-        :aria-label="t('sidebar.helpAndKeyboardShortcuts')"
-        :title="
-          keyboardShortcuts
-            ? t('sidebar.helpAndShortcutsTitle')
-            : t('sidebar.help')
-        "
-        @click="openShortcuts"
-      >
-        ?
-      </button>
-      <!-- Phone drawer only; hidden on desktop by mobile-nav.css. -->
-      <button
-        class="sidebar-close-trigger"
-        type="button"
-        :aria-label="t('common.close')"
-        @click="closeMobileNav()"
-      >
-        <AppIcon name="close" :size="18" />
-      </button>
-    </div>
-
-    <!-- Phone drawer only; hidden on desktop by redesign-mobile.css. -->
-    <section v-if="isLive" class="sidebar-live" :aria-label="t('timer.title')">
-      <span class="df-live-dot" aria-hidden="true"></span>
-      <div class="sidebar-live__text">
-        <p class="sidebar-live__title">{{ liveTitle }}</p>
-        <p class="sidebar-live__time">{{ displayLabel }}</p>
+          ?
+        </button>
+        <!-- Phone drawer only; hidden on desktop by mobile-nav.css. -->
+        <button
+          class="sidebar-close-trigger"
+          type="button"
+          :aria-label="t('common.close')"
+          @click="closeMobileNav()"
+        >
+          <AppIcon name="close" :size="18" />
+        </button>
       </div>
-      <button
-        class="sidebar-live__btn"
-        type="button"
-        :aria-label="isRunning ? t('timer.pause') : t('timer.resume')"
-        :title="isRunning ? t('timer.pause') : t('timer.resume')"
-        @click="toggleLiveRunning"
+
+      <!-- Phone drawer only; hidden on desktop by redesign-mobile.css. -->
+      <section
+        v-if="isLive"
+        class="sidebar-live"
+        :aria-label="t('timer.title')"
       >
-        <AppIcon :name="isRunning ? 'pause' : 'play'" :size="16" />
-      </button>
-    </section>
+        <span class="df-live-dot" aria-hidden="true"></span>
+        <div class="sidebar-live__text">
+          <p class="sidebar-live__title">{{ liveTitle }}</p>
+          <p class="sidebar-live__time">{{ displayLabel }}</p>
+        </div>
+        <button
+          class="sidebar-live__btn"
+          type="button"
+          :aria-label="isRunning ? t('timer.pause') : t('timer.resume')"
+          :title="isRunning ? t('timer.pause') : t('timer.resume')"
+          @click="toggleLiveRunning"
+        >
+          <AppIcon :name="isRunning ? 'pause' : 'play'" :size="16" />
+        </button>
+      </section>
 
-    <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>
+      <p class="sidebar-caption">{{ t('sidebar.projects') }}</p>
 
-    <button
-      class="nav-goal-btn"
-      :class="{ active: activeGoalId === null }"
-      :title="shortcutTitle(t('sidebar.allProjects'), 'G then A')"
-      @click="selectGoal(null)"
-    >
-      <span class="nav-goal-btn__main">
-        <AppIcon class="nav-goal-btn__glyph" name="grid" :size="14" />
-        <span class="nav-goal-btn__name nav-goal-btn__name--label">{{
-          t('sidebar.allProjects')
-        }}</span>
-      </span>
-      <span class="goal-count">{{ totalTaskCount }}</span>
-    </button>
-
-    <SidebarGoalButton
-      v-for="goal in listedGoals"
-      :key="goal.id"
-      :goal="goal"
-      :is-active="goal.id === activeGoalId"
-      :task-count="taskCountByGoal[goal.id] ?? 0"
-      :theme-vars="goalVarsById[goal.id]"
-      :data-reorder-goal-id="goal.id"
-      data-tip-anchor="sidebar-project"
-      :class="{
-        'is-reordering': reorderingId === goal.id,
-        'is-reorder-above': reorderTargetId === goal.id && reorderAbove,
-        'is-reorder-below': reorderTargetId === goal.id && !reorderAbove,
-      }"
-      @select="selectGoal(goal.id)"
-      @context-menu="openGoalContextMenu"
-      @pointerdown="onGoalPointerDown($event, goal.id)"
-      @reorder-start="beginGoalReorder(goal.id, $event, true)"
-      @reorder-move="moveGoalReorder"
-      @reorder-end="dropGoalReorder"
-      @reorder-cancel="cancelGoalReorder"
-    />
-
-    <template v-if="archivedGoals.length > 0">
       <button
-        class="nav-goal-btn sidebar-archived-toggle"
-        type="button"
-        :aria-expanded="showArchived"
-        @click="toggleArchived"
+        class="nav-goal-btn"
+        :class="{ active: activeGoalId === null }"
+        :title="shortcutTitle(t('sidebar.allProjects'), 'G then A')"
+        @click="selectGoal(null)"
       >
         <span class="nav-goal-btn__main">
-          <span class="nav-goal-btn__icon" aria-hidden="true">
-            <AppIcon
-              :name="showArchived ? 'chevron-down' : 'chevron-right'"
-              :size="14"
-            />
-          </span>
-          <span>{{ t('sidebar.archived') }}</span>
+          <AppIcon class="nav-goal-btn__glyph" name="grid" :size="14" />
+          <span class="nav-goal-btn__name nav-goal-btn__name--label">{{
+            t('sidebar.allProjects')
+          }}</span>
         </span>
-        <span class="goal-count">{{ archivedGoals.length }}</span>
+        <span class="goal-count">{{ totalTaskCount }}</span>
       </button>
 
       <SidebarGoalButton
-        v-for="goal in showArchived ? archivedGoals : []"
+        v-for="goal in listedGoals"
         :key="goal.id"
         :goal="goal"
-        :is-active="false"
-        :is-archived="true"
+        :is-active="goal.id === activeGoalId"
         :task-count="taskCountByGoal[goal.id] ?? 0"
         :theme-vars="goalVarsById[goal.id]"
+        :data-reorder-goal-id="goal.id"
+        data-tip-anchor="sidebar-project"
+        :class="{
+          'is-reordering': reorderingId === goal.id,
+          'is-reorder-above': reorderTargetId === goal.id && reorderAbove,
+          'is-reorder-below': reorderTargetId === goal.id && !reorderAbove,
+        }"
         @select="selectGoal(goal.id)"
         @context-menu="openGoalContextMenu"
+        @pointerdown="onGoalPointerDown($event, goal.id)"
+        @reorder-start="beginGoalReorder(goal.id, $event, true)"
+        @reorder-move="moveGoalReorder"
+        @reorder-end="dropGoalReorder"
+        @reorder-cancel="cancelGoalReorder"
       />
-    </template>
 
-    <p class="sidebar-caption">{{ t('sidebar.view') }}</p>
+      <template v-if="archivedGoals.length > 0">
+        <button
+          class="nav-goal-btn sidebar-archived-toggle"
+          type="button"
+          :aria-expanded="showArchived"
+          @click="toggleArchived"
+        >
+          <span class="nav-goal-btn__main">
+            <span class="nav-goal-btn__icon" aria-hidden="true">
+              <AppIcon
+                :name="showArchived ? 'chevron-down' : 'chevron-right'"
+                :size="14"
+              />
+            </span>
+            <span>{{ t('sidebar.archived') }}</span>
+          </span>
+          <span class="goal-count">{{ archivedGoals.length }}</span>
+        </button>
 
-    <button
-      v-if="isOn('calendar')"
-      class="nav-goal-btn"
-      :class="{ active: activeView === 'calendar' }"
-      data-tip-anchor="nav-calendar"
-      :title="shortcutTitle(t('sidebar.calendar'), 'G then C')"
-      @click="chooseView('calendar')"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="calendar" :size="16" />
-        </span>
-        <span>{{ t('sidebar.calendar') }}</span>
-      </span>
-    </button>
-    <button
-      v-if="isOn('timer')"
-      class="nav-goal-btn"
-      :class="{ active: activeView === 'timer' }"
-      data-tip-anchor="nav-timer"
-      :title="shortcutTitle(t('sidebar.timer'), 'G then T')"
-      @click="chooseView('timer')"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="timer" :size="16" />
-        </span>
-        <span>{{ t('sidebar.timer') }}</span>
-      </span>
-    </button>
-    <button
-      v-if="isOn('analytics')"
-      class="nav-goal-btn"
-      :class="{ active: activeView === 'analytics' }"
-      :title="shortcutTitle(t('sidebar.analytics'), 'G then Y')"
-      data-tip-anchor="nav-analytics"
-      @click="chooseView('analytics')"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="chart" :size="16" />
-        </span>
-        <span>{{ t('sidebar.analytics') }}</span>
-      </span>
-    </button>
-    <button
-      class="nav-goal-btn"
-      :class="{ active: activeView === 'planned' }"
-      data-tip-anchor="nav-planned"
-      @click="chooseView('planned')"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="pin" :size="16" />
-        </span>
-        <span>{{ t('sidebar.plannedTasks') }}</span>
-      </span>
-      <span class="goal-count">{{ plannedCount }}</span>
-    </button>
-    <button
-      class="nav-goal-btn"
-      :class="{ active: activeView === 'archive' }"
-      @click="chooseView('archive')"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="check-square" :size="16" />
-        </span>
-        <span>{{ t('sidebar.whatIDid') }}</span>
-      </span>
-      <span class="goal-count">{{ doneCount }}</span>
-    </button>
+        <SidebarGoalButton
+          v-for="goal in showArchived ? archivedGoals : []"
+          :key="goal.id"
+          :goal="goal"
+          :is-active="false"
+          :is-archived="true"
+          :task-count="taskCountByGoal[goal.id] ?? 0"
+          :theme-vars="goalVarsById[goal.id]"
+          @select="selectGoal(goal.id)"
+          @context-menu="openGoalContextMenu"
+        />
+      </template>
 
-    <!-- Phone drawer only; the desktop sidebar keeps its gear in the brand row. -->
-    <button
-      class="nav-goal-btn sidebar-settings-row"
-      type="button"
-      @click="toggleSettingsFromNav"
-    >
-      <span class="nav-goal-btn__main">
-        <span class="nav-goal-btn__icon" aria-hidden="true">
-          <AppIcon name="settings" :size="16" />
-        </span>
-        <span>{{ t('sidebar.settings') }}</span>
-      </span>
-    </button>
+      <p class="sidebar-caption">{{ t('sidebar.view') }}</p>
 
-    <!-- A running timer stays visible, so it can still be stopped with the module off. -->
-    <TimerWidget
-      v-if="isOn('timer') || isLive"
-      @open-timer="chooseView('timer')"
-    />
-    <div class="sidebar-actions">
       <button
-        class="btn btn-primary"
-        data-tip-anchor="new-project"
-        @click="openNewGoalForm"
+        v-if="isOn('calendar')"
+        class="nav-goal-btn"
+        :class="{ active: activeView === 'calendar' }"
+        data-tip-anchor="nav-calendar"
+        :title="shortcutTitle(t('sidebar.calendar'), 'G then C')"
+        @click="chooseView('calendar')"
       >
-        {{ t('sidebar.newProject') }}
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="calendar" :size="16" />
+          </span>
+          <span>{{ t('sidebar.calendar') }}</span>
+        </span>
       </button>
-      <NewGoalComponent
-        v-if="showNewGoalForm"
-        @submit="createGoal"
-        @cancel="closeNewGoalForm"
-      />
-    </div>
+      <button
+        v-if="isOn('timer')"
+        class="nav-goal-btn"
+        :class="{ active: activeView === 'timer' }"
+        data-tip-anchor="nav-timer"
+        :title="shortcutTitle(t('sidebar.timer'), 'G then T')"
+        @click="chooseView('timer')"
+      >
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="timer" :size="16" />
+          </span>
+          <span>{{ t('sidebar.timer') }}</span>
+        </span>
+      </button>
+      <button
+        v-if="isOn('analytics')"
+        class="nav-goal-btn"
+        :class="{ active: activeView === 'analytics' }"
+        :title="shortcutTitle(t('sidebar.analytics'), 'G then Y')"
+        data-tip-anchor="nav-analytics"
+        @click="chooseView('analytics')"
+      >
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="chart" :size="16" />
+          </span>
+          <span>{{ t('sidebar.analytics') }}</span>
+        </span>
+      </button>
+      <button
+        class="nav-goal-btn"
+        :class="{ active: activeView === 'planned' }"
+        data-tip-anchor="nav-planned"
+        @click="chooseView('planned')"
+      >
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="pin" :size="16" />
+          </span>
+          <span>{{ t('sidebar.plannedTasks') }}</span>
+        </span>
+        <span class="goal-count">{{ plannedCount }}</span>
+      </button>
+      <button
+        class="nav-goal-btn"
+        :class="{ active: activeView === 'archive' }"
+        @click="chooseView('archive')"
+      >
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="check-square" :size="16" />
+          </span>
+          <span>{{ t('sidebar.whatIDid') }}</span>
+        </span>
+        <span class="goal-count">{{ doneCount }}</span>
+      </button>
 
+      <!-- Phone drawer only; the desktop sidebar keeps its gear in the brand row. -->
+      <button
+        class="nav-goal-btn sidebar-settings-row"
+        type="button"
+        @click="toggleSettingsFromNav"
+      >
+        <span class="nav-goal-btn__main">
+          <span class="nav-goal-btn__icon" aria-hidden="true">
+            <AppIcon name="settings" :size="16" />
+          </span>
+          <span>{{ t('sidebar.settings') }}</span>
+        </span>
+      </button>
+
+      <!-- A running timer stays visible, so it can still be stopped with the module off. -->
+      <TimerWidget
+        v-if="isOn('timer') || isLive"
+        @open-timer="chooseView('timer')"
+      />
+      <div class="sidebar-actions">
+        <button
+          class="btn btn-primary"
+          data-tip-anchor="new-project"
+          @click="openNewGoalForm"
+        >
+          {{ t('sidebar.newProject') }}
+        </button>
+        <NewGoalComponent
+          v-if="showNewGoalForm"
+          @submit="createGoal"
+          @cancel="closeNewGoalForm"
+        />
+      </div>
+    </div>
     <div class="sidebar-footer">
       <TourPill />
       <SyncStatusDot :status="syncStatus" @open-account="openProfile" />
@@ -464,10 +471,13 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :x="contextMenuPos.x"
       :y="contextMenuPos.y"
       :goal-title="contextMenuGoal.title"
+      :status="contextMenuGoal.status"
       :can-move-up="menuGoalIndex > 0"
       :can-move-down="
         menuGoalIndex !== -1 && menuGoalIndex < listedGoalIds.length - 1
       "
+      @open-settings="openProjectSettingsFromMenu"
+      @set-status="setGoalStatusFromMenu"
       @move="moveGoalFromMenu"
       @delete="deleteGoalFromMenu"
       @close="closeGoalContextMenu"
