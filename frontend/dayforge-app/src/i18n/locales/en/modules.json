@@ -18,7 +18,7 @@
   "name_subtasks": "Subtasks",
   "desc_subtasks": "Break a big task into steps",
   "name_reminders": "Reminders",
-  "desc_reminders": "Push, even when the app is closed",
+  "desc_reminders": "Before a task starts · push when the app is closed, if you sign in and turn it on",
   "name_board": "Board",
   "desc_board": "Kanban columns for projects",
   "name_calendar": "Calendar",

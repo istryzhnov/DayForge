@@ -18,7 +18,7 @@
   "name_subtasks": "子任务",
   "desc_subtasks": "把大任务拆成步骤",
   "name_reminders": "提醒",
-  "desc_reminders": "即使应用已关闭也会推送",
+  "desc_reminders": "任务开始前 · 应用关闭时推送，需登录并开启",
   "name_board": "看板",
   "desc_board": "项目的看板列",
   "name_calendar": "日历",

@@ -18,7 +18,7 @@
   "name_subtasks": "Unteraufgaben",
   "desc_subtasks": "Große Aufgabe in Schritte teilen",
   "name_reminders": "Erinnerungen",
-  "desc_reminders": "Push, auch wenn die App geschlossen ist",
+  "desc_reminders": "Vor dem Start einer Aufgabe · Push bei geschlossener App, nach Anmeldung einschaltbar",
   "name_board": "Board",
   "desc_board": "Kanban-Spalten für Projekte",
   "name_calendar": "Kalender",
