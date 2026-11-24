@@ -41,6 +41,19 @@ export function useFormat() {
     }).format(new Date(2000, 0, 1, hours, minutes))
   }
 
+  /**
+   * A bare hour for the grid gutter: "06:00" in 24h, "6 AM" in 12h. Minutes are
+   * dropped because the gutter is too narrow for "6:00 AM" on a phone.
+   */
+  function formatHour(hour: number): string {
+    if (!uses12Hour.value) return `${String(hour).padStart(2, '0')}:00`
+
+    return new Intl.DateTimeFormat(locale.value, {
+      hour: 'numeric',
+      hour12: true,
+    }).format(new Date(2000, 0, 1, hour))
+  }
+
   /** A moment in local time, in the user's clock; with its day when the day is wanted. */
   function formatMoment(epochMs: number, withDate: boolean): string {
     const moment = new Date(epochMs)
@@ -71,6 +84,7 @@ export function useFormat() {
     formatDate,
     formatMonth,
     formatTime,
+    formatHour,
     formatMoment,
     weekdayLabels,
   }

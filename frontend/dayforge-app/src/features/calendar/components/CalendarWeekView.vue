@@ -22,7 +22,7 @@ import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
 import CalendarDraftForm from './CalendarDraftForm.vue'
 
-const { formatTime } = useFormat()
+const { formatHour, formatTime } = useFormat()
 
 /** The breathing room a week column keeps on both sides. */
 const WEEK_INSET_PX = 2
@@ -131,7 +131,7 @@ function eventStyle(event: PositionedEvent) {
             class="calendar-week__hour-label"
             :style="hourLineStyle(hour)"
           >
-            {{ String(hour).padStart(2, '0') }}:00
+            {{ formatHour(hour) }}
           </div>
         </div>
       </div>

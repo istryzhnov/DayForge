@@ -43,6 +43,7 @@ import { useCalendarNow } from '../composables/useCalendarNow'
 import { useCalendarStartScroll } from '../composables/useCalendarStartScroll'
 import { useCalendarTotals } from '../composables/useCalendarTotals'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
+import { useFormat } from '../../../shared/composables/useFormat'
 import { durationWords } from '../../../shared/composables/timer/text'
 import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
 import { blockFromTask } from '../../../shared/composables/timer/plannedBlocks'
@@ -137,6 +138,7 @@ const {
 })
 
 const { isToday, nowTopPx } = useCalendarNow(() => props.currentDate)
+const { formatHour } = useFormat()
 
 const { t } = useI18n()
 
@@ -402,7 +404,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
               :key="hour"
               class="calendar-view__hour-label"
             >
-              {{ String(hour).padStart(2, '0') }}:00
+              {{ formatHour(hour) }}
             </div>
           </div>
 
