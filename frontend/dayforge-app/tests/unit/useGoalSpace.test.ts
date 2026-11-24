@@ -303,7 +303,7 @@ describe('moving a task between projects', () => {
     const { space, templateOf, rowOf } = await openWorkspace()
     space.createGoal(makeGoal('work'))
     const project = space.addTask('work', 'Launch')!
-    space.convertTaskToProject(project.id)
+    space.setTaskImportant(project.id, true)
     const loose = space.addTask(undefined, 'Loose')!
 
     space.attachTaskToProject(loose.id, project.id)
@@ -348,12 +348,23 @@ describe('moving a task between projects', () => {
     const project = space.addTask(undefined, 'Launch')!
     const child = space.addSubTask(project.id, 'Write copy')!
 
-    space.convertTaskToProject(child.id)
+    space.setTaskImportant(child.id, true)
 
     expect(templateOf(child.id)).toMatchObject({
       priority: 'major',
       parentTemplateId: project.id,
     })
+  })
+
+  it('clears the important mark on the template and today’s row', async () => {
+    const { space, templateOf, rowOf } = await openWorkspace()
+    const task = space.addTask(undefined, 'Pay rent')!
+
+    space.setTaskImportant(task.id, true)
+    space.setTaskImportant(task.id, false)
+
+    expect(templateOf(task.id)!.priority).toBe('minor')
+    expect(rowOf(task.id)!.priority).toBe('minor')
   })
 
   it('offers only top-level tasks that already have a subtask as parents', async () => {

@@ -101,7 +101,7 @@ const {
   isEditing,
   isRateEditing,
   editorStartsScheduled,
-  canSetAsProject,
+  isImportant,
   hasOwnRate,
   notesOn,
   node,
@@ -341,7 +341,7 @@ function onMoveChange(event: Event) {
         :x="contextMenuPos.x"
         :y="contextMenuPos.y"
         :is-done="isDone"
-        :can-set-as-project="canSetAsProject"
+        :is-important="isImportant"
         :can-add-child="false"
         :can-notes="notesOn"
         :has-children="false"
@@ -359,7 +359,9 @@ function onMoveChange(event: Event) {
         @nudge="(step) => actions.nudge(card.templateId, step)"
         @delete="emit('delete')"
         @toggle-check="toggleCheck"
-        @set-as-project="actions.setAsProject(card.templateId)"
+        @set-important="
+          (important) => actions.setImportant(card.templateId, important)
+        "
         @close="closeContextMenu"
       />
     </Teleport>

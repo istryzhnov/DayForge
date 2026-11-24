@@ -8,7 +8,8 @@ const props = defineProps<{
   x: number
   y: number
   isDone: boolean
-  canSetAsProject: boolean
+  /** Marked important, so the entry offers to clear the mark instead. */
+  isImportant: boolean
   canAddChild: boolean
   /** The Notes module is on; off hides the notes entry. */
   canNotes?: boolean
@@ -40,7 +41,7 @@ const emit = defineEmits<{
   (e: 'add-note'): void
   (e: 'toggle-timer'): void
   (e: 'log-planned'): void
-  (e: 'set-as-project'): void
+  (e: 'set-important', important: boolean): void
   (e: 'show-habit'): void
   (e: 'close'): void
 }>()
@@ -134,19 +135,18 @@ const { menuPositionStyle } = useContextMenu({
       {{ hasOwnRate ? t('tasks.changeRate') : t('tasks.setRate') }}
     </button>
     <button
-      v-if="canSetAsProject"
       role="menuitem"
       class="task-context-menu__item task-context-menu__item--icon"
       type="button"
       @click="
         () => {
-          emit('set-as-project')
+          emit('set-important', !isImportant)
           emit('close')
         }
       "
     >
       <AppIcon name="flame" :size="16" />
-      {{ t('tasks.setAsProject') }}
+      {{ isImportant ? t('tasks.unmarkImportant') : t('tasks.setAsProject') }}
     </button>
     <DisclosureSection
       :label="t('tasks.more')"

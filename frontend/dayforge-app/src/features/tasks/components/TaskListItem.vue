@@ -149,7 +149,6 @@ const {
   isImportant,
   hasChildren,
   isDone,
-  canSetAsProject,
   hasOwnRate,
   isLifted,
   onPointerDown,
@@ -313,7 +312,7 @@ const {
     :x="contextMenuPos.x"
     :y="contextMenuPos.y"
     :is-done="isDone"
-    :can-set-as-project="canSetAsProject"
+    :is-important="isImportant"
     :can-add-child="!isNested && subtasksOn"
     :can-notes="notesOn"
     :has-children="hasChildren"
@@ -334,7 +333,9 @@ const {
     @delete="actions.remove(node.task.templateId)"
     @add-to-this="emit('toggle-parent', node.task.id)"
     @toggle-check="actions.toggleDone(node.task.id)"
-    @set-as-project="actions.setAsProject(node.task.templateId)"
+    @set-important="
+      (important) => actions.setImportant(node.task.templateId, important)
+    "
     @show-habit="emit('focus-project', node.task.id)"
     @close="closeContextMenu"
   />

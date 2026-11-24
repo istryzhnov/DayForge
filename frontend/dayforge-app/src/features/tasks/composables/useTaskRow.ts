@@ -43,8 +43,6 @@ export function useTaskRow(
   const hasChildren = computed(() => !!props.isProjectHeader)
   const hasOwnRate = computed(() => (props.node.template?.hourlyRate ?? 0) > 0)
   const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
-  // Any task may be marked important, nested or not.
-  const canSetAsProject = computed(() => !isImportant.value)
 
   const isCoarsePointer = useIsCoarsePointer()
 
@@ -119,7 +117,6 @@ export function useTaskRow(
     isImportant,
     hasChildren,
     isDone,
-    canSetAsProject,
     hasOwnRate,
     isLifted,
     onPointerDown,

@@ -38,7 +38,7 @@ export interface TaskActions {
   schedule(templateId: ID, schedule: TaskSchedule | null): void
   setRate(templateId: ID, hourlyRate: number | undefined): void
   remove(templateId: ID): void
-  setAsProject(templateId: ID): void
+  setImportant(templateId: ID, important: boolean): void
   assignGoal(templateId: ID, goalId: ID | undefined): void
   attachToProject(templateId: ID, projectTemplateId: ID | null): void
   /** A dropped row: new project and new position in one go. */

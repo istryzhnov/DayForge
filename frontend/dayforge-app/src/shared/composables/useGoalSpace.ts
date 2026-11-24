@@ -843,13 +843,15 @@ export function useGoalSpace() {
     if (plan) reorderTask(templateId, plan.targetId, plan.placeAbove)
   }
 
-  function convertTaskToProject(templateId: ID) {
+  /** "Important" is a tag on the task, so it can be set and cleared the same way. */
+  function setTaskImportant(templateId: ID, important: boolean) {
     const template = templateOf(templateId)
     if (!template) return
-    if (template.priority === PRIORITY.MAJOR) return
+    const priority = important ? PRIORITY.MAJOR : PRIORITY.MINOR
+    if (template.priority === priority) return
 
     // A subtask may be marked important too; it stays nested under its parent.
-    template.priority = PRIORITY.MAJOR
+    template.priority = priority
     template.updatedAt = new Date().toISOString()
 
     dailyTasks.value
@@ -858,7 +860,7 @@ export function useGoalSpace() {
           item.templateId === templateId && item.date >= currentDate.value,
       )
       .forEach((item) => {
-        item.priority = PRIORITY.MAJOR
+        item.priority = priority
       })
   }
 
@@ -897,7 +899,7 @@ export function useGoalSpace() {
     initializeStorage,
     toggleTaskDone,
     togglePlannedTask,
-    convertTaskToProject,
+    setTaskImportant,
     attachTaskToProject,
     reorderTask,
     nudgeTask,

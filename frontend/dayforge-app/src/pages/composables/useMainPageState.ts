@@ -454,7 +454,7 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
     schedule: handleScheduleTask,
     setRate: goalSpace.updateTaskRate,
     remove: handleDeleteTask,
-    setAsProject: goalSpace.convertTaskToProject,
+    setImportant: goalSpace.setTaskImportant,
     assignGoal: goalSpace.assignTaskToGoal,
     attachToProject: goalSpace.attachTaskToProject,
     moveTo: handleMoveTaskTo,
