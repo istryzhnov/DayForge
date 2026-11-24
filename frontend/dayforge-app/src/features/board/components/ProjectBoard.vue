@@ -1,11 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type {
-  DailyTask,
-  TaskSchedule,
-  TaskTemplate,
-} from '../../../entities/TaskEntity'
+import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
 import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import {
@@ -13,7 +9,7 @@ import {
   useSettingsPanel,
 } from '../../../shared/composables/useSettingsPanel'
 import { useToday } from '../../../shared/composables/goalSpace/today'
-import { useTaskActions, TaskInlineEditor } from '../../tasks'
+import { useTaskActions } from '../../tasks'
 import DragGhost from '../../../shared/ui/DragGhost.vue'
 import BoardCard from './BoardCard.vue'
 import {
@@ -24,7 +20,6 @@ import {
   type BoardCard as BoardCardModel,
   type BoardColumn,
 } from '../composables/boardModel'
-import { nodeForCard } from '../composables/useBoardCardMenu'
 import { useBoardDrag } from '../composables/useBoardDrag'
 import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 
@@ -35,6 +30,8 @@ const props = defineProps<{
   templates: TaskTemplate[]
   /** Columns the project added, drawn between In progress and Done. */
   customColumns?: BoardCustomColumn[]
+  /** The project's hourly rate, shown as the fallback in a card's rate editor. */
+  projectRate?: number
 }>()
 
 const emit = defineEmits<{
@@ -129,32 +126,6 @@ const draggingCard = computed<BoardCardModel | null>(() => {
   return allCards.value.find((card) => card.id === id) ?? null
 })
 
-// --- editing: the same editor the list opens -----------------------------
-
-const editing = ref<BoardCardModel | null>(null)
-
-/** A click that ends a drag is not a request to open the card. */
-function openCard(card: BoardCardModel) {
-  if (drag.consumeDragClick()) return
-  editing.value = card
-}
-
-const editingNode = computed(() =>
-  editing.value ? nodeForCard(editing.value, today.value) : null,
-)
-
-function saveEdits(title: string, schedule: TaskSchedule | null) {
-  const card = editing.value
-  editing.value = null
-  if (!card) return
-
-  // Same rules as the list: an unchanged title is not an edit.
-  if (title !== card.title) {
-    actions.editTitle(card.templateId, title)
-  }
-  actions.schedule(card.templateId, schedule)
-}
-
 // --- adding: creates a task in this project, the same way the composer does
 
 const adding = ref(false)
@@ -220,9 +191,9 @@ function submitAdd() {
               <BoardCard
                 :card="card"
                 :columns="columns"
+                :project-rate="projectRate"
                 :drag="drag.forCard(card.id)"
                 :is-dragging="drag.draggingId.value === card.id"
-                @open="openCard(card)"
                 @move="(target) => moveCard(card.id, target)"
                 @save-notes="
                   (notes) => actions.editNotes(card.templateId, notes)
@@ -301,13 +272,6 @@ function submitAdd() {
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
       :touch="drag.isTouchDrag.value"
-    />
-
-    <TaskInlineEditor
-      v-if="editingNode"
-      :node="editingNode"
-      @save="(payload) => saveEdits(payload.title, payload.schedule)"
-      @close="editing = null"
     />
   </section>
 </template>

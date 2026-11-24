@@ -15,6 +15,8 @@ export type BoardCardDrag = {
   move: (point: GesturePoint) => void
   drop: () => void
   cancel: () => void
+  /** True once, right after a drag: the click that ends it is not an open. */
+  consumeClick: () => boolean
 }
 
 /**
@@ -149,6 +151,7 @@ export function useBoardDrag(
       move: moveTo,
       drop: finish,
       cancel,
+      consumeClick: consumeDragClick,
     }
   }
 
@@ -167,7 +170,6 @@ export function useBoardDrag(
     pointer,
     isTouchDrag,
     forCard,
-    consumeDragClick,
     cancel,
   }
 }

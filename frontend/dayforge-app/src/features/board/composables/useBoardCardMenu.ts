@@ -10,19 +10,28 @@ import { rowForCard, type BoardCard } from './boardModel'
  * lives here, not in boardModel, because the model is checked by the node sync
  * harness and the tree types pull in the browser-only i18n setup.
  */
-export function nodeForCard(card: BoardCard, today: ISODate): TaskNode {
-  return { task: rowForCard(card, today), template: card.template }
+export function nodeForCard(
+  card: BoardCard,
+  today: ISODate,
+  goalRate?: number,
+): TaskNode {
+  return { task: rowForCard(card, today), template: card.template, goalRate }
 }
 
 /**
  * The task menu and editors a board card opens. It reuses the list's own row
  * composable, so the card menu and the list menu stay the same menu.
  */
-export function useBoardCardMenu(card: () => BoardCard, today: () => ISODate) {
+export function useBoardCardMenu(
+  card: () => BoardCard,
+  today: () => ISODate,
+  /** The project's rate, so the rate editor can say what the card falls back to. */
+  projectRate: () => number | undefined,
+) {
   const actions = useTaskActions()
   const { isOn: isModuleOn } = useModules()
 
-  const node = computed(() => nodeForCard(card(), today()))
+  const node = computed(() => nodeForCard(card(), today(), projectRate()))
   // A card is always a top-level task, so it is never nested in a project.
   const row = useTaskRow(
     {

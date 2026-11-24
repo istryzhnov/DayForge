@@ -227,6 +227,7 @@ const listGroups = computed<TaskGroup[]>(() =>
       :rows="dailyTasks"
       :templates="boardTemplates"
       :custom-columns="goal?.boardColumns ?? []"
+      :project-rate="goal?.hourlyRate"
       @move-task="openMoveDialog"
     />
 

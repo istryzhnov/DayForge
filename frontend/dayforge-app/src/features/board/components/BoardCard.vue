@@ -34,10 +34,11 @@ const props = defineProps<{
   isDragging: boolean
   /** This board's columns, the project's own included, for "Move to". */
   columns: ReadonlyArray<BoardColumnDef>
+  /** The project's hourly rate, the fallback a card's own rate replaces. */
+  projectRate?: number
 }>()
 
 const emit = defineEmits<{
-  (e: 'open'): void
   (e: 'move', column: BoardColumn): void
   (e: 'save-notes', notes: string): void
   (e: 'delete'): void
@@ -108,7 +109,20 @@ const {
 } = useBoardCardMenu(
   () => props.card,
   () => today.value,
+  () => props.projectRate,
 )
+
+/** A click that ends a drag is not a request to open the card. */
+function openCard() {
+  if (props.drag.consumeClick()) return
+  openEditor(false)
+}
+
+/** Overlay click or Escape closes whichever editor is open. */
+function closeEditors() {
+  closeEditor()
+  closeRateEditor()
+}
 
 /** Desktop right-click; on touch a held card is a drag, so the ⋯ button covers it. */
 function onContextMenu(event: MouseEvent) {
@@ -201,7 +215,7 @@ function onMoveChange(event: Event) {
       :aria-label="
         t('board.cardLabel', { title: card.title, column: columnTitle })
       "
-      @click="emit('open')"
+      @click="openCard"
     >
       <span class="board-card__title" :class="{ 'task-done': isDone }">
         {{ card.title }}
@@ -298,22 +312,36 @@ function onMoveChange(event: Event) {
         </select>
       </label>
     </div>
-    <!-- The editors sit in the card, so a press or right-click inside them must not start a drag or reopen the menu. -->
-    <div v-if="isEditing || isRateEditing" @pointerdown.stop @contextmenu.stop>
-      <TaskInlineEditor
-        v-if="isEditing"
-        :node="node"
-        :open-scheduled="editorStartsScheduled"
-        @save="(payload) => saveEdits(payload.title, payload.schedule)"
-        @close="closeEditor"
-      />
-      <TaskRateEditor
-        v-if="isRateEditing"
-        :node="node"
-        @save="(hourlyRate) => saveRate(hourlyRate)"
-        @close="closeRateEditor"
-      />
-    </div>
+    <!-- A card is too narrow for the editor, so it opens as a dialog over the board. -->
+    <Teleport to="body">
+      <div
+        v-if="isEditing || isRateEditing"
+        class="new-goal-modal"
+        @click.self="closeEditors"
+      >
+        <div class="modal-overlay" @click="closeEditors"></div>
+        <div
+          class="modal-card board-card-editor"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="card.title"
+        >
+          <TaskInlineEditor
+            v-if="isEditing"
+            :node="node"
+            :open-scheduled="editorStartsScheduled"
+            @save="(payload) => saveEdits(payload.title, payload.schedule)"
+            @close="closeEditor"
+          />
+          <TaskRateEditor
+            v-if="isRateEditing"
+            :node="node"
+            @save="(hourlyRate) => saveRate(hourlyRate)"
+            @close="closeRateEditor"
+          />
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Teleported, so a card's transform never pulls the menu out of place. -->
     <Teleport to="body">

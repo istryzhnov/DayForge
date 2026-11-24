@@ -306,3 +306,16 @@
     width: 100%;
   }
 }
+
+/* A card's editor opens as a dialog: wide enough for date, start and end in
+   one row, and the editor drops its own frame because the dialog is the frame. */
+.modal-card.board-card-editor {
+  max-width: 32rem;
+}
+
+.board-card-editor .task-editor {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
