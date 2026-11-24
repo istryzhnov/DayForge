@@ -804,3 +804,12 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Task context menu: first-level rows lead with an icon. A block-level SVG
+   inside an inline button would push the label onto its own line, so the row
+   becomes a flex line that centres icon and text on one baseline. */
+.task-context-menu__item--icon {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
