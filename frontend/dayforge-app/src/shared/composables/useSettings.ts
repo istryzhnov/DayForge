@@ -107,6 +107,7 @@ export interface CalendarSettings {
 
 export interface BehaviorSettings {
   startView: StartView
+  // Kept so older devices and backups round-trip; the app no longer reads it.
   defaultPriority: Priority
   /** Roll unfinished open tasks onto today. Off leaves them on their own day. */
   carryForward: boolean

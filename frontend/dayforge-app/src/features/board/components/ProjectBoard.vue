@@ -6,9 +6,11 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
+import {
+  BOARD_CUSTOM_COLUMN_LIMIT,
+  PRIORITY,
+} from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
-import { useSettings } from '../../../shared/composables/useSettings'
 import {
   SETTINGS_SECTION,
   useSettingsPanel,
@@ -44,7 +46,6 @@ const emit = defineEmits<{
 }>()
 
 const actions = useTaskActions()
-const { settings } = useSettings()
 const settingsPanel = useSettingsPanel()
 
 // The real day, which moves on at midnight while the board stays open.
@@ -174,7 +175,7 @@ function stopAdd() {
 function submitAdd() {
   const title = draft.value.trim()
   if (!title) return
-  actions.addTask(title, settings.behavior.defaultPriority)
+  actions.addTask(title, PRIORITY.MINOR)
   // Stays open, so several tasks can be typed in a row.
   draft.value = ''
 }

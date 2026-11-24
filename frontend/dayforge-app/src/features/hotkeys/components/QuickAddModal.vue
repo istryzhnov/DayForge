@@ -3,12 +3,8 @@ import { computed, nextTick, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Goal } from '../../../entities/GoalEntity'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
-import type { ID, ISODate, Priority } from '../../../entities/types'
-import {
-  GOAL_STATUS,
-  PRIORITY,
-  RECURRENCE_TYPE,
-} from '../../../entities/constants'
+import type { ID, ISODate } from '../../../entities/types'
+import { GOAL_STATUS, RECURRENCE_TYPE } from '../../../entities/constants'
 import {
   addDaysToISODate,
   getTodayISODate,
@@ -17,7 +13,6 @@ import {
   capitalizeFirst,
   panelDateLabel,
 } from '../../../shared/composables/panelDateLabel'
-import { useSettings } from '../../../shared/composables/useSettings'
 import {
   parseQuickAdd,
   type QuickAddDay,
@@ -41,7 +36,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const { closeOverlay } = useHotkeyOverlay()
-const { settings } = useSettings()
 
 const inputRef = useTemplateRef<HTMLInputElement>('inputRef')
 const scheduleFields =
@@ -199,14 +193,7 @@ function cycleReminderTile() {
   bumpRevision()
 }
 
-// --- priority and project ---------------------------------------------------
-
-const priority = ref<Priority>(settings.behavior.defaultPriority)
-const isMajor = computed(() => priority.value === PRIORITY.MAJOR)
-
-function togglePriority() {
-  priority.value = isMajor.value ? PRIORITY.MINOR : PRIORITY.MAJOR
-}
+// --- project -----------------------------------------------------------------
 
 /**
  * The chip the user picked: a project id, 'none' for "Без проєкту", or null to
@@ -332,7 +319,6 @@ function submit(keepOpen: boolean, startTimer = false) {
     day,
     date: built?.date ?? null,
     schedule: built,
-    priority: priority.value,
     noProject,
     startTimer,
   })
@@ -598,36 +584,6 @@ useFocusTrap({
             <span class="qa-tile__text">
               <span class="qa-tile__label">{{ t('hotkeys.sheetDate') }}</span>
               <span class="qa-tile__value">{{ dateValue }}</span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            class="qa-tile"
-            :class="{ 'is-major': isMajor }"
-            :aria-pressed="isMajor"
-            @click="togglePriority"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M5 21V4M5 4h11l-2 4 2 4H5" />
-            </svg>
-            <span class="qa-tile__text">
-              <span class="qa-tile__label">{{
-                t('hotkeys.sheetPriority')
-              }}</span>
-              <span class="qa-tile__value">{{
-                isMajor ? t('hotkeys.sheetMajor') : t('hotkeys.sheetMinor')
-              }}</span>
             </span>
           </button>
 
