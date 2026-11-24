@@ -1,8 +1,13 @@
 import { computed, ref } from 'vue'
 import type { Goal } from '../../../entities/GoalEntity'
-import type { ID } from '../../../entities/types'
+import type { GoalStatus, ID } from '../../../entities/types'
 import { GOAL_STATUS } from '../../../entities/constants'
 import { sortGoals } from '../../../shared/composables/goalSpace/goalOrder'
+import {
+  SETTINGS_SECTION,
+  useSettingsPanel,
+} from '../../../shared/composables/useSettingsPanel'
+import { useGoalActions } from '../../goals'
 import { i18n } from '../../../i18n'
 
 type SidebarProps = {
@@ -18,6 +23,8 @@ type SidebarActions = {
 }
 
 export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
+  const goalActions = useGoalActions()
+  const settingsPanel = useSettingsPanel()
   const showNewGoalForm = ref(false)
   const showArchived = ref(false)
 
@@ -91,6 +98,23 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     if (confirmed) actions.onDeleteGoal(goal.id)
   }
 
+  /** Pause, resume and archive from the menu go through the same action as the settings. */
+  function setGoalStatusFromMenu(status: GoalStatus) {
+    const goal = contextMenuGoal.value
+    closeGoalContextMenu()
+    if (!goal) return
+    goalActions.updateStatus(goal.id, status)
+  }
+
+  /** Settings edit the open project, so the menu selects it first. */
+  function openProjectSettingsFromMenu() {
+    const goal = contextMenuGoal.value
+    closeGoalContextMenu()
+    if (!goal) return
+    selectGoal(goal.id)
+    settingsPanel.open(SETTINGS_SECTION.PROJECT)
+  }
+
   function openNewGoalForm() {
     showNewGoalForm.value = true
   }
@@ -125,5 +149,7 @@ export function useSidebarState(props: SidebarProps, actions: SidebarActions) {
     deleteGoalFromMenu,
     reorderGoals,
     moveGoalFromMenu,
+    setGoalStatusFromMenu,
+    openProjectSettingsFromMenu,
   }
 }

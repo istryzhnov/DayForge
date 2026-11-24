@@ -68,6 +68,8 @@ const {
   deleteGoalFromMenu,
   reorderGoals,
   moveGoalFromMenu,
+  setGoalStatusFromMenu,
+  openProjectSettingsFromMenu,
 } = useSidebarState(props, {
   onSelectGoal: (goalId) => {
     emit('select-goal', goalId)
@@ -464,10 +466,13 @@ const keyboardShortcuts = computed(() => settings.behavior.keyboardShortcuts)
       :x="contextMenuPos.x"
       :y="contextMenuPos.y"
       :goal-title="contextMenuGoal.title"
+      :status="contextMenuGoal.status"
       :can-move-up="menuGoalIndex > 0"
       :can-move-down="
         menuGoalIndex !== -1 && menuGoalIndex < listedGoalIds.length - 1
       "
+      @open-settings="openProjectSettingsFromMenu"
+      @set-status="setGoalStatusFromMenu"
       @move="moveGoalFromMenu"
       @delete="deleteGoalFromMenu"
       @close="closeGoalContextMenu"
