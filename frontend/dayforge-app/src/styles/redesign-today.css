@@ -77,6 +77,13 @@
   display: none;
 }
 
+/* Desktop lists every project in the sidebar, so the chip row is phone-only. */
+@media (min-width: 961px) {
+  .today-chips {
+    display: none;
+  }
+}
+
 .today-chips__chip {
   flex: none;
   min-width: max-content;

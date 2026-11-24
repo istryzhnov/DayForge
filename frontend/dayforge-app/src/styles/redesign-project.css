@@ -269,7 +269,6 @@
 
   .goal-panel.has-side > .goal-panel-header,
   .goal-panel.has-side > .today-summary,
-  .goal-panel.has-side > .today-chips,
   .goal-panel.has-side > .task-composer {
     grid-column: 1 / -1;
   }
