@@ -263,6 +263,29 @@
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+/* Desktop: the hour grid scrolls inside its card, so the toolbar and the week's
+   day names stay on screen while the day moves to its start hour. The height
+   leaves room for the toolbar above. The day names and the hour-gutter corner
+   stick, so they need an opaque fill to hide the hours scrolling beneath them.
+   Phones keep the page scroll. */
+@media (min-width: 721px) {
+  .calendar-view__grid-wrap,
+  .calendar-week__wrap {
+    max-height: max(20rem, calc(100dvh - 12rem));
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .calendar-week__day-head,
+  .calendar-week__corner {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: color-mix(in srgb, var(--text) 3%, var(--panel));
+  }
+}
+
 .calendar-week__weekday {
   grid-column: 1;
   grid-row: 1;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { ISODate, ID } from '../../../entities/types'
 import type {
@@ -56,6 +56,10 @@ const {
 const { t } = useI18n()
 
 const { nowTopPx } = useCalendarNow(() => props.currentDate)
+
+// The start-hour scroll needs the hour grid's top edge, which is midnight.
+const hourList = useTemplateRef<HTMLElement>('hourList')
+defineExpose({ hourList })
 
 const totals = useCalendarTotals()
 const weekDates = computed(() => days.value.map((day) => day.date))
@@ -116,7 +120,11 @@ function eventStyle(event: PositionedEvent) {
       <!-- Hour labels share the grid's geometry so rows line up across columns. -->
       <div class="calendar-week__hours">
         <div class="calendar-week__corner"></div>
-        <div class="calendar-week__hour-list" :style="gridStyle(gridHeightPx)">
+        <div
+          ref="hourList"
+          class="calendar-week__hour-list"
+          :style="gridStyle(gridHeightPx)"
+        >
           <div
             v-for="hour in HOURS"
             :key="hour"

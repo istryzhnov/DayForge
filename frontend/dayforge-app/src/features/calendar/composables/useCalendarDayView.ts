@@ -316,6 +316,7 @@ export function useCalendarDayView(
 
   return {
     viewMode,
+    gridRef,
     isCoarsePointer,
     openDay,
     dateLabel,

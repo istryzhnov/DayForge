@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AppIcon from '../../../shared/ui/AppIcon.vue'
-import { computed, watch } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type {
   DailyTask,
@@ -25,6 +25,7 @@ import {
   gridStyle,
   hourLineStyle,
   HOURS,
+  minutesFromDayStart,
   pxPerMinute,
 } from '../composables/useCalendarGrid'
 import {
@@ -39,6 +40,7 @@ import { useDayEarnings } from '../../../shared/composables/useDayEarnings'
 import { useModules } from '../../../shared/composables/useModules'
 import { toggleTaskTimer } from '../../timer'
 import { useCalendarNow } from '../composables/useCalendarNow'
+import { useCalendarStartScroll } from '../composables/useCalendarStartScroll'
 import { useCalendarTotals } from '../composables/useCalendarTotals'
 import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
@@ -80,6 +82,7 @@ const emit = defineEmits<{
 
 const {
   viewMode,
+  gridRef,
   isCoarsePointer,
   openDay,
   dateLabel,
@@ -186,6 +189,26 @@ const month = useCalendarMonth({
   getCurrentDate: () => props.currentDate,
 })
 
+const toolbarRef = useTemplateRef<HTMLElement>('toolbarRef')
+const weekRef = useTemplateRef<InstanceType<typeof CalendarWeekView>>('weekRef')
+
+useCalendarStartScroll({
+  getMode: () => viewMode.value,
+  getCurrentDate: () => props.currentDate,
+  getWeekAnchor: () => week.anchor.value,
+  getGrid: () =>
+    viewMode.value === 'week'
+      ? (weekRef.value?.hourList ?? null)
+      : gridRef.value,
+  getHeader: () => toolbarRef.value,
+  getBlockStartMinutes: () =>
+    viewMode.value === 'week'
+      ? week.days.value.flatMap((day) =>
+          day.scheduled.map((event) => minutesFromDayStart(event.startTime!)),
+        )
+      : scheduledBlocks.value.map((block) => block.startMin),
+})
+
 /** Tracked time and earnings across the month on screen (its own days only). */
 const totals = useCalendarTotals()
 const monthDates = computed(() =>
@@ -290,6 +313,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
     <!-- The time-blocking tip points here, not at the grid: the grid is a full
          day tall, so a bubble above or below it would sit over the toolbar. -->
     <header
+      ref="toolbarRef"
       class="calendar-view__toolbar"
       :data-tip-anchor="viewMode === 'day' ? 'calendar-toolbar' : undefined"
     >
@@ -350,6 +374,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
 
     <CalendarWeekView
       v-if="viewMode === 'week'"
+      ref="weekRef"
       :week="week"
       :current-date="currentDate"
       :goal-vars-by-id="goalVarsById"
