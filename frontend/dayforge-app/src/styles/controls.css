@@ -82,8 +82,7 @@ select optgroup {
 /* --- checkboxes ---------------------------------------------------------- */
 
 input[type='checkbox'],
-.settings-toggle input[type='checkbox'],
-.composer-section__toggle input {
+.settings-toggle input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   flex: none;
