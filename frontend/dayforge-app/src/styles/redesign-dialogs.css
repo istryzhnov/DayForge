@@ -281,10 +281,6 @@
   outline: none;
 }
 
-.task-context-menu__item--danger {
-  color: var(--major);
-}
-
 .task-context-menu__divider {
   height: 1px;
   margin: 0.25rem 0.5rem;
@@ -657,7 +653,7 @@
   height: 2.625rem;
 }
 
-/* Goal (project) context menu: glass list, danger in var(--major). */
+/* Goal (project) context menu: glass list, danger in var(--danger). */
 .goal-context-menu {
   min-width: 13rem;
   padding: 0.5rem;
@@ -701,7 +697,7 @@
 }
 
 .goal-context-menu .goal-settings__item--danger {
-  color: var(--major);
+  color: var(--danger);
 }
 
 /* Project notes side panel: glass aside, 16px radius. */
