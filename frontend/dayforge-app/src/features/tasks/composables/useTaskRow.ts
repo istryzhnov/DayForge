@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
-import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import { TASK_STATUS } from '../../../entities/constants'
 import type { TaskActions } from './useTaskActions'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import {
@@ -35,10 +35,6 @@ export function useTaskRow(
   const editorStartsScheduled = ref(false)
   const isRateEditing = ref(false)
 
-  /** "Important": a tag and a colour. Says nothing about nesting. */
-  const isImportant = computed(
-    () => props.node.task.priority === PRIORITY.MAJOR,
-  )
   /** Structure: other rows are filed under this one. */
   const hasChildren = computed(() => !!props.isProjectHeader)
   const hasOwnRate = computed(() => (props.node.template?.hourlyRate ?? 0) > 0)
@@ -114,7 +110,6 @@ export function useTaskRow(
     isEditing,
     editorStartsScheduled,
     isRateEditing,
-    isImportant,
     hasChildren,
     isDone,
     hasOwnRate,

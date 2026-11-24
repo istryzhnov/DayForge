@@ -7,7 +7,6 @@ import type {
   TaskGroup,
   TaskNode,
 } from '../../../shared/composables/useTaskTree'
-import { PRIORITY } from '../../../entities/constants'
 import { useTaskActions } from '../composables/useTaskActions'
 import { DROP_ZONE_ROOT } from '../composables/dropRules'
 import { useTaskDrag } from '../composables/useTaskDrag'
@@ -44,7 +43,6 @@ function rowDrag(node: TaskNode, parentZone: string, hasChildren = false) {
     // A task inside a project row leaves that row when it lands in another project.
     canMove: true,
     color: node.goalColor,
-    isMajor: node.task.priority === PRIORITY.MAJOR,
     hasChildren,
   })
 }
@@ -167,7 +165,6 @@ function groupKey(group: TaskGroup) {
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
       :color="drag.dragColor.value"
-      :is-major="drag.dragIsMajor.value"
       :touch="drag.dragIsTouch.value"
     />
   </div>

@@ -1,7 +1,6 @@
 import { computed, ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { PRIORITY } from '../../../entities/constants'
 
 type SelectionOptions = {
   getTasks: () => DailyTask[]
@@ -40,7 +39,7 @@ export function useCalendarSelection(options: SelectionOptions) {
   function openContextMenu(payload: { taskId: ID; x: number; y: number }) {
     const task = options.getTasks().find((item) => item.id === payload.taskId)
 
-    if (!task || task.priority !== PRIORITY.MINOR) {
+    if (!task) {
       closeContextMenu()
       return
     }

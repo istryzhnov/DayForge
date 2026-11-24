@@ -189,10 +189,6 @@
   background: var(--minor);
 }
 
-.board-card__priority.is-major {
-  background: var(--major);
-}
-
 .board-chip {
   display: inline-flex;
   align-items: center;

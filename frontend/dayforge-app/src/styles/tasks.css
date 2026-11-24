@@ -397,21 +397,6 @@ body.is-dragging-task {
   animation: task-dot-pop 0.22s ease;
 }
 
-/* A project is completable like anything else, but keeps its own colour so it
-   still reads as the container of the block. */
-.task-dot-check--project {
-  border-color: color-mix(in srgb, var(--major) 70%, var(--line));
-}
-
-.task-dot-check--project:hover {
-  border-color: var(--major);
-}
-
-.task-dot-check--project.is-done {
-  background: var(--major);
-  border-color: var(--major);
-}
-
 .task-dot-check__mark {
   color: var(--ring-check);
 }

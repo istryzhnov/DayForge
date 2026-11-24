@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { PRIORITY } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { usePressGesture } from '../../../shared/composables/usePressGesture'
@@ -70,13 +69,6 @@ function onPointerDownCard(event: PointerEvent) {
 }
 
 const isDone = computed(() => props.card.done)
-const isMajor = computed(() => props.card.priority === PRIORITY.MAJOR)
-const priorityLabel = computed(() =>
-  t(isMajor.value ? 'tasks.priorityMajor' : 'tasks.priorityMinor'),
-)
-const priorityText = computed(() =>
-  t('tasks.priorityLabel', { level: priorityLabel.value }),
-)
 const isTiming = computed(() => timer.isActiveTask(props.card.templateId))
 
 /** The card's own time plus its subtasks', the same total the list shows. */
@@ -101,7 +93,6 @@ const {
   isEditing,
   isRateEditing,
   editorStartsScheduled,
-  isImportant,
   hasOwnRate,
   notesOn,
   node,
@@ -212,22 +203,12 @@ function onMoveChange(event: Event) {
       "
       @click="emit('open')"
     >
-      <span v-if="isMajor" class="board-card__tag">{{
-        t('board.majorTag')
-      }}</span>
-
       <span class="board-card__title" :class="{ 'task-done': isDone }">
         {{ card.title }}
       </span>
 
       <span class="board-card__meta">
-        <span
-          class="board-card__priority"
-          :class="{ 'is-major': isMajor }"
-          role="img"
-          :aria-label="priorityText"
-          :title="priorityText"
-        ></span>
+        <span class="board-card__priority" aria-hidden="true"></span>
 
         <span
           v-if="scheduleLabel"
@@ -341,7 +322,6 @@ function onMoveChange(event: Event) {
         :x="contextMenuPos.x"
         :y="contextMenuPos.y"
         :is-done="isDone"
-        :is-important="isImportant"
         :can-add-child="false"
         :can-notes="notesOn"
         :has-children="false"
@@ -359,9 +339,6 @@ function onMoveChange(event: Event) {
         @nudge="(step) => actions.nudge(card.templateId, step)"
         @delete="emit('delete')"
         @toggle-check="toggleCheck"
-        @set-important="
-          (important) => actions.setImportant(card.templateId, important)
-        "
         @close="closeContextMenu"
       />
     </Teleport>

@@ -30,8 +30,6 @@ export type DragTask = {
   canMove: boolean
   /** Project colour, for the accent bar of the floating copy. */
   color?: string
-  /** Important, for the floating copy's mark. Not what decides a nest. */
-  isMajor?: boolean
   /** Has children, so it can only be reordered or moved as a whole block. */
   hasChildren?: boolean
 }
@@ -74,7 +72,6 @@ export function useTaskDrag(actions: DragActions) {
   const pointer = ref<GesturePoint>({ x: 0, y: 0 })
   /** What the floating copy shows about the task being dragged. */
   const dragColor = ref<string | undefined>(undefined)
-  const dragIsMajor = ref(false)
   /** True when a finger picked the task up rather than a mouse. */
   const dragIsTouch = ref(false)
   /** Sidebar project under the pointer, when it would take the task. */
@@ -208,7 +205,6 @@ export function useTaskDrag(actions: DragActions) {
     dragTitle.value = task.title
     dragParentZone.value = task.parentZone
     dragColor.value = task.color
-    dragIsMajor.value = !!task.isMajor
     pointer.value = point
     if (task.canMove) beginGoalDrop(task.goalId)
     updateTarget(point)
@@ -315,7 +311,6 @@ export function useTaskDrag(actions: DragActions) {
     dragTitle,
     dragParentZone,
     dragColor,
-    dragIsMajor,
     dragIsTouch,
     dropZone,
     dropRowId,

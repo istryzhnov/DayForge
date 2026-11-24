@@ -100,19 +100,6 @@
     calc(16px * var(--radius-scale)) 0 0;
 }
 
-/* "Важливо": pink, shown only for a major task (the card already carries
-   its priority, so nothing new is read). */
-.board-card__tag {
-  justify-self: start;
-  padding: 0.125rem 0.5rem;
-  border-radius: calc(8px * var(--radius-scale));
-  background: color-mix(in srgb, var(--major) 16%, transparent);
-  color: color-mix(in srgb, var(--major) 75%, var(--text));
-  font-size: calc(0.6875rem * var(--text-scale));
-  font-weight: 800;
-  line-height: 1.5;
-}
-
 .board-card__title {
   font-size: calc(0.875rem * var(--text-scale));
   font-weight: 700;
@@ -129,11 +116,6 @@
   gap: 0.5rem;
   color: var(--muted);
   font-weight: 600;
-}
-
-/* A major task's pink tag already says it; the dot would repeat it. */
-.board-card__priority.is-major {
-  display: none;
 }
 
 /* Subtask progress: mono, no pill, like the mockup's "☑ 2/4". */

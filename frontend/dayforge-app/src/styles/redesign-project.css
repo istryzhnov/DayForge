@@ -83,22 +83,6 @@
   padding: 0.75rem 0.75rem 0.75rem 1rem;
 }
 
-/* Major: a thin pink stripe down the left, inside the card. */
-.task-row.is-major > .task-main {
-  position: relative;
-}
-
-.task-row.is-major > .task-main::before {
-  content: '';
-  position: absolute;
-  left: -0.5rem;
-  top: 0.5rem;
-  bottom: 0.5rem;
-  width: 0.1875rem;
-  border-radius: 2px;
-  background: var(--major);
-}
-
 /* The project block is no longer a box: its parent and children are cards. */
 .task-project {
   display: grid;

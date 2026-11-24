@@ -6,10 +6,7 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import {
-  BOARD_CUSTOM_COLUMN_LIMIT,
-  PRIORITY,
-} from '../../../entities/constants'
+import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../shared/composables/useSettings'
 import {
@@ -305,7 +302,6 @@ function submitAdd() {
       :title="draggingCard.title"
       :x="drag.pointer.value.x"
       :y="drag.pointer.value.y"
-      :is-major="draggingCard.priority === PRIORITY.MAJOR"
       :touch="drag.isTouchDrag.value"
     />
 

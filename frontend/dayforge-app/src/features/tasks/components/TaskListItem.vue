@@ -146,7 +146,6 @@ const {
   isEditing,
   editorStartsScheduled,
   isRateEditing,
-  isImportant,
   hasChildren,
   isDone,
   hasOwnRate,
@@ -177,7 +176,6 @@ const {
       'is-drop-below': dropEdge === 'below',
       'is-nest-target': isNestTarget,
       'is-timing': isTimerActive,
-      'is-major': node.task.priority === 'major',
     }"
     :data-drop-row="drag ? node.task.templateId : undefined"
     :data-drop-parent="hasChildren ? 'true' : undefined"
@@ -192,10 +190,7 @@ const {
       <button
         type="button"
         class="task-dot-check"
-        :class="{
-          'is-done': isDone,
-          'task-dot-check--project': isImportant,
-        }"
+        :class="{ 'is-done': isDone }"
         :aria-label="isDone ? t('tasks.markNotDone') : t('tasks.markDone')"
         @click="actions.toggleDone(node.task.id)"
       >
@@ -232,14 +227,6 @@ const {
           <span v-if="isProjectHeader" class="task-progress">
             <AppIcon name="check" :size="11" />
             {{ doneCount }}/{{ totalCount }}
-          </span>
-
-          <!-- A standalone important task; a project header already has its stripe. -->
-          <span
-            v-if="node.task.priority === 'major' && !isProjectHeader"
-            class="task-major-chip"
-          >
-            {{ t('board.majorTag') }}
           </span>
 
           <span
@@ -312,7 +299,6 @@ const {
     :x="contextMenuPos.x"
     :y="contextMenuPos.y"
     :is-done="isDone"
-    :is-important="isImportant"
     :can-add-child="!isNested && subtasksOn"
     :can-notes="notesOn"
     :has-children="hasChildren"
@@ -333,9 +319,6 @@ const {
     @delete="actions.remove(node.task.templateId)"
     @add-to-this="emit('toggle-parent', node.task.id)"
     @toggle-check="actions.toggleDone(node.task.id)"
-    @set-important="
-      (important) => actions.setImportant(node.task.templateId, important)
-    "
     @show-habit="emit('focus-project', node.task.id)"
     @close="closeContextMenu"
   />

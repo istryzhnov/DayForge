@@ -108,18 +108,6 @@
   background: var(--accent);
 }
 
-/* ---- Task rows: a standalone important task gets a pink marker ---- */
-
-.task-major-chip {
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.625rem;
-  background: color-mix(in srgb, var(--major) 16%, transparent);
-  color: var(--major);
-  font-size: calc(0.75rem * var(--text-scale));
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 @media (max-width: 960px) {
   .today-summary {
     margin: 1rem 1rem 0;
