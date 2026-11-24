@@ -282,17 +282,17 @@ function submitAdd() {
             </form>
           </div>
         </section>
-      </div>
 
-      <button
-        v-if="canAddColumn"
-        type="button"
-        class="board-add-column"
-        :aria-label="t('board.addColumn')"
-        @click="openColumnSettings"
-      >
-        + {{ t('board.addColumn') }}
-      </button>
+        <button
+          v-if="canAddColumn"
+          type="button"
+          class="board-add-column"
+          :aria-label="t('board.addColumn')"
+          @click="openColumnSettings"
+        >
+          + {{ t('board.addColumn') }}
+        </button>
+      </div>
     </div>
 
     <DragGhost
