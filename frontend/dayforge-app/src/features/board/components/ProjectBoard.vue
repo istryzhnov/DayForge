@@ -9,7 +9,6 @@ import type {
 import {
   BOARD_CUSTOM_COLUMN_LIMIT,
   PRIORITY,
-  TASK_STATUS,
 } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import { useSettings } from '../../../shared/composables/useSettings'
@@ -17,8 +16,6 @@ import {
   SETTINGS_SECTION,
   useSettingsPanel,
 } from '../../../shared/composables/useSettingsPanel'
-import type { TaskNode } from '../../../shared/composables/useTaskTree'
-import { dailyTaskId } from '../../../shared/composables/goalSpace/date'
 import { useToday } from '../../../shared/composables/goalSpace/today'
 import { useTaskActions, TaskInlineEditor } from '../../tasks'
 import DragGhost from '../../../shared/ui/DragGhost.vue'
@@ -27,6 +24,7 @@ import {
   BOARD_COLUMN,
   boardColumnsFor,
   buildBoardCards,
+  nodeForCard,
   planBoardMove,
   type BoardCard as BoardCardModel,
   type BoardColumn,
@@ -41,6 +39,11 @@ const props = defineProps<{
   templates: TaskTemplate[]
   /** Columns the project added, drawn between In progress and Done. */
   customColumns?: BoardCustomColumn[]
+}>()
+
+const emit = defineEmits<{
+  /** The card's "Move to…" entry: the page opens the move dialog. */
+  (e: 'move-task', templateId: ID): void
 }>()
 
 const actions = useTaskActions()
@@ -141,34 +144,9 @@ function openCard(card: BoardCardModel) {
   editing.value = card
 }
 
-/**
- * The editor reads the title and time from a row. A card with no row today
- * (a repeating task whose next day is ahead) is edited through a stand-in.
- */
-function rowForEditing(card: BoardCardModel): DailyTask {
-  if (card.row) return card.row
-  const date = card.date ?? today.value
-  return {
-    id: dailyTaskId(card.templateId, date),
-    date,
-    templateId: card.templateId,
-    title: card.title,
-    priority: card.priority,
-    goalId: card.template.goalId,
-    tagIds: [],
-    status: TASK_STATUS.TODO,
-    startTime: card.startTime,
-    endTime: card.template.endTime,
-  }
-}
-
-const editingNode = computed<TaskNode | null>(() => {
-  if (!editing.value) return null
-  return {
-    task: rowForEditing(editing.value),
-    template: editing.value.template,
-  }
-})
+const editingNode = computed(() =>
+  editing.value ? nodeForCard(editing.value, today.value) : null,
+)
 
 function saveEdits(title: string, schedule: TaskSchedule | null) {
   const card = editing.value
@@ -255,6 +233,7 @@ function submitAdd() {
                   (notes) => actions.editNotes(card.templateId, notes)
                 "
                 @delete="actions.remove(card.templateId)"
+                @move-task="(templateId) => emit('move-task', templateId)"
               />
             </li>
           </ul>

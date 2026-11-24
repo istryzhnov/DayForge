@@ -2,6 +2,7 @@
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { PRIORITY } from '../../../entities/constants'
+import type { ID } from '../../../entities/types'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { usePressGesture } from '../../../shared/composables/usePressGesture'
 import { useFormat } from '../../../shared/composables/useFormat'
@@ -18,9 +19,15 @@ import {
   type BoardColumn,
 } from '../composables/boardModel'
 import type { BoardCardDrag } from '../composables/useBoardDrag'
-import { TaskNotesButton } from '../../tasks'
+import { useBoardCardMenu } from '../composables/useBoardCardMenu'
+import {
+  TaskContextMenu,
+  TaskInlineEditor,
+  TaskNotesButton,
+  TaskRateEditor,
+  useTaskActions,
+} from '../../tasks'
 import { TaskTimerButton, toggleTaskTimer } from '../../timer'
-import BoardCardMenu from './BoardCardMenu.vue'
 
 const props = defineProps<{
   card: BoardCardModel
@@ -35,6 +42,8 @@ const emit = defineEmits<{
   (e: 'move', column: BoardColumn): void
   (e: 'save-notes', notes: string): void
   (e: 'delete'): void
+  /** "Move to…" from the menu: the page opens the move dialog. */
+  (e: 'move-task', templateId: ID): void
 }>()
 
 const { formatDate, formatTime } = useFormat()
@@ -43,6 +52,7 @@ const today = useToday()
 const isCoarsePointer = useIsCoarsePointer()
 const timer = useTimer()
 const timeEntries = useTimeEntries()
+const actions = useTaskActions()
 
 // On touch a held card is picked up and follows the finger; a quick tap is
 // still a tap, and a sideways swipe still scrolls the columns.
@@ -85,19 +95,41 @@ const notesRequested = ref(false)
 const hasNotes = computed(() => !!props.card.template.notes?.trim())
 const showNotes = computed(() => hasNotes.value || notesRequested.value)
 
-const menuPos = ref<{ x: number; y: number } | null>(null)
+// The same menu and editors the list's rows open.
+const {
+  contextMenuPos,
+  isEditing,
+  isRateEditing,
+  editorStartsScheduled,
+  canSetAsProject,
+  hasOwnRate,
+  notesOn,
+  node,
+  toggleCheck,
+  openContextMenu,
+  closeContextMenu,
+  openEditor,
+  closeEditor,
+  openRateEditor,
+  closeRateEditor,
+  saveRate,
+  saveEdits,
+} = useBoardCardMenu(
+  () => props.card,
+  () => today.value,
+)
 
 /** Desktop right-click; on touch a held card is a drag, so the ⋯ button covers it. */
 function onContextMenu(event: MouseEvent) {
   if (isCoarsePointer.value) return
   event.preventDefault()
-  menuPos.value = { x: event.clientX, y: event.clientY }
+  openContextMenu(event)
 }
 
 /** Anchored under the ⋯ button, so the keyboard gets a sensible spot too. */
 function openMenuFromButton(event: MouseEvent) {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  menuPos.value = { x: rect.left, y: rect.bottom + 4 }
+  contextMenuPos.value = { x: rect.left, y: rect.bottom + 4 }
 }
 
 async function addNote() {
@@ -285,16 +317,51 @@ function onMoveChange(event: Event) {
         </select>
       </label>
     </div>
-    <BoardCardMenu
-      v-if="menuPos"
-      :x="menuPos.x"
-      :y="menuPos.y"
-      :has-notes="hasNotes"
-      :is-timer-active="isTiming"
-      @add-note="addNote"
-      @toggle-timer="toggleTimer"
-      @delete="emit('delete')"
-      @close="menuPos = null"
-    />
+    <!-- The editors sit in the card, so a press or right-click inside them must not start a drag or reopen the menu. -->
+    <div v-if="isEditing || isRateEditing" @pointerdown.stop @contextmenu.stop>
+      <TaskInlineEditor
+        v-if="isEditing"
+        :node="node"
+        :open-scheduled="editorStartsScheduled"
+        @save="(payload) => saveEdits(payload.title, payload.schedule)"
+        @close="closeEditor"
+      />
+      <TaskRateEditor
+        v-if="isRateEditing"
+        :node="node"
+        @save="(hourlyRate) => saveRate(hourlyRate)"
+        @close="closeRateEditor"
+      />
+    </div>
+
+    <!-- Teleported, so a card's transform never pulls the menu out of place. -->
+    <Teleport to="body">
+      <TaskContextMenu
+        v-if="contextMenuPos"
+        :x="contextMenuPos.x"
+        :y="contextMenuPos.y"
+        :is-done="isDone"
+        :can-set-as-project="canSetAsProject"
+        :can-add-child="false"
+        :can-notes="notesOn"
+        :is-project="false"
+        :can-move="true"
+        :is-scheduled="!!node.task.startTime"
+        :has-own-rate="hasOwnRate"
+        :has-notes="hasNotes"
+        :is-timer-active="isTiming"
+        @edit="openEditor(false)"
+        @schedule="openEditor(true)"
+        @set-rate="openRateEditor"
+        @add-note="addNote"
+        @toggle-timer="toggleTimer"
+        @move="emit('move-task', card.templateId)"
+        @nudge="(step) => actions.nudge(card.templateId, step)"
+        @delete="emit('delete')"
+        @toggle-check="toggleCheck"
+        @set-as-project="actions.setAsProject(card.templateId)"
+        @close="closeContextMenu"
+      />
+    </Teleport>
   </article>
 </template>
