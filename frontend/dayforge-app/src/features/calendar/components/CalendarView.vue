@@ -455,7 +455,6 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
             <div
               v-if="incomingPreview"
               class="cal-event cal-event--preview"
-              :class="incomingPreview.priority"
               :style="previewStyle(incomingPreview.top, incomingPreview.height)"
             >
               <span class="cal-event__title">{{ incomingPreview.title }}</span>

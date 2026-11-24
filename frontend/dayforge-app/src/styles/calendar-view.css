@@ -292,14 +292,6 @@
   background: var(--minor);
 }
 
-.calendar-month__event.major {
-  background: color-mix(in srgb, var(--major) 10%, var(--panel-soft));
-}
-
-.calendar-month__event.major::before {
-  background: var(--major);
-}
-
 .calendar-month__event.is-done {
   text-decoration: line-through;
   opacity: 0.55;
@@ -314,10 +306,6 @@
 .calendar-month__event.is-projected::before {
   background: transparent;
   box-shadow: inset 0 0 0 0.0938rem var(--minor);
-}
-
-.calendar-month__event.major.is-projected::before {
-  box-shadow: inset 0 0 0 0.0938rem var(--major);
 }
 
 .calendar-month__event-title {
@@ -450,15 +438,6 @@
   background: var(--minor);
 }
 
-.cal-event.major {
-  background: color-mix(in srgb, var(--major) 16%, var(--panel));
-}
-
-.cal-event.major::before {
-  width: 0.25rem;
-  background: var(--major);
-}
-
 .cal-event__time {
   flex: 0 0 auto;
   font-size: calc(0.6875rem * var(--text-scale));
@@ -578,10 +557,6 @@
   height: 0.5625rem;
   border-radius: 999px;
   background: var(--minor);
-}
-
-.calendar-view__unscheduled-item.major .calendar-view__unscheduled-dot {
-  background: var(--major);
 }
 
 .calendar-view__unscheduled-name {
@@ -870,10 +845,6 @@
     touch-action: pan-x;
   }
 
-  .calendar-view__unscheduled-item.major {
-    border-color: color-mix(in srgb, var(--major) 55%, var(--line));
-  }
-
   /* Lifted out of the bar and following the finger. */
   .calendar-view__unscheduled-item.is-lifted {
     border-color: var(--accent);
@@ -1086,15 +1057,6 @@
   bottom: 0.25rem;
   width: 0.1875rem;
   background: var(--minor);
-}
-
-.week-event.major {
-  background: color-mix(in srgb, var(--major) 16%, var(--panel));
-}
-
-.week-event.major::before {
-  width: 0.25rem;
-  background: var(--major);
 }
 
 .week-event.is-done {

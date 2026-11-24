@@ -349,15 +349,6 @@ body.is-dragging-task {
   flex: 0 0 auto;
   margin-top: 0;
   border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
-}
-
-.dot.major {
-  background:
-    radial-gradient(circle at 35% 35%, #fff4, transparent 40%),
-    color-mix(in srgb, var(--major) 90%, black 10%);
-}
-
-.dot.minor {
   background:
     radial-gradient(circle at 35% 35%, #fff4, transparent 40%),
     color-mix(in srgb, var(--minor) 90%, black 10%);
@@ -1306,7 +1297,6 @@ body.is-dragging-task {
     gap: 0.3125rem;
   }
 
-  .major-inline-chip,
   .task-priority-chip {
     font-size: calc(0.625rem * var(--text-scale));
     padding: 0.125rem 0.4375rem;
@@ -1370,15 +1360,6 @@ body.is-dragging-task {
     flex: 1 1 auto;
     padding: 0.5625rem 0.625rem;
   }
-}
-
-.major-inline-chip {
-  border: 1px solid var(--major);
-  background: color-mix(in srgb, var(--major) 14%, transparent);
-  color: var(--major);
-  border-radius: 999px;
-  font-size: calc(0.6875rem * var(--text-scale));
-  padding: 0.1875rem 0.5625rem;
 }
 
 /* --- Day lists: Planned tasks and What I did ---------------------------- */

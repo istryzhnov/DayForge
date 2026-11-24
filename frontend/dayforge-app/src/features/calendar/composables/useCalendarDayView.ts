@@ -238,7 +238,6 @@ export function useCalendarDayView(
 
     return {
       title: task.title,
-      priority: task.priority,
       top: preview.startMin * pxPerMinute(),
       height: preview.durationMin * pxPerMinute(),
     }

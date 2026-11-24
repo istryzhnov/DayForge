@@ -390,16 +390,11 @@
 /* ---- Event blocks (shared tint language) -------------------------------- */
 
 /* A block takes its project's colour as a light tint, a 1px edge and an 11px
-   corner. --tint is the project colour; major (priority) swaps it. */
+   corner. --tint is the project colour. */
 .week-event,
 .cal-event,
 .calendar-view__draft {
   --tint: var(--minor);
-}
-
-.week-event.major,
-.cal-event.major {
-  --tint: var(--major);
 }
 
 .week-event {
@@ -416,11 +411,6 @@
 
 .week-event::before {
   display: none;
-}
-
-.week-event.major {
-  background:
-    var(--glass-sheen), color-mix(in srgb, var(--tint) 18%, transparent);
 }
 
 .week-event.is-done {
@@ -494,11 +484,6 @@
 
 .cal-event::before {
   display: none;
-}
-
-.cal-event.major {
-  background:
-    var(--glass-sheen), color-mix(in srgb, var(--tint) 18%, transparent);
 }
 
 .cal-event.is-done {
@@ -682,11 +667,6 @@
   background: color-mix(in srgb, var(--minor) 18%, transparent);
 }
 
-.calendar-month__panel-event.major {
-  border-color: color-mix(in srgb, var(--major) 45%, transparent);
-  background: color-mix(in srgb, var(--major) 18%, transparent);
-}
-
 .calendar-month__panel-event.is-done {
   opacity: 0.6;
 }
@@ -750,10 +730,6 @@
   display: none;
 }
 
-.calendar-month__event.major {
-  background: color-mix(in srgb, var(--major) 22%, transparent);
-}
-
 .calendar-month__event-time {
   display: none;
 }
@@ -797,10 +773,6 @@
   width: 0.5rem;
   height: 0.5rem;
   background: var(--minor);
-}
-
-.calendar-view__unscheduled-item.major .calendar-view__unscheduled-dot {
-  background: var(--major);
 }
 
 .event-details {

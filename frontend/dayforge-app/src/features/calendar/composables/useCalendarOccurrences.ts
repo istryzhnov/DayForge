@@ -1,5 +1,5 @@
 import type { DailyTask, TaskTemplate } from '../../../entities/TaskEntity'
-import type { ID, ISODate, Priority, TimeOfDay } from '../../../entities/types'
+import type { ID, ISODate, TimeOfDay } from '../../../entities/types'
 import { TASK_STATUS } from '../../../entities/constants'
 import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
 import { occursOn } from '../../../shared/composables/goalSpace/recurrence'
@@ -18,7 +18,6 @@ export type DayEvent = {
   taskId?: ID
   startTime?: TimeOfDay
   endTime?: TimeOfDay
-  priority: Priority
   isDone: boolean
   /** No row exists yet — projected from the template's recurrence rule. */
   isProjected: boolean
@@ -75,7 +74,6 @@ export function collectDayEvents({
     goalId: row.goalId,
     taskId: row.templateId,
     ...timesOn(date, row),
-    priority: row.priority,
     isDone: row.status === TASK_STATUS.DONE,
     isProjected: false,
   }))
@@ -88,7 +86,6 @@ export function collectDayEvents({
       goalId: row.goalId,
       taskId: row.templateId,
       ...timesOn(date, row),
-      priority: row.priority,
       isDone: row.status === TASK_STATUS.DONE,
       isProjected: false,
     })
@@ -102,7 +99,6 @@ export function collectDayEvents({
         goalId: template.goalId,
         taskId: template.id,
         ...timesOn(date, { ...template, date }),
-        priority: template.priority,
         isDone: false,
         isProjected: true,
       })
@@ -122,7 +118,6 @@ export function collectDayEvents({
         goalId: template.goalId,
         taskId: template.id,
         ...timesOn(date, block),
-        priority: template.priority,
         isDone: false,
         isProjected: true,
       })

@@ -189,7 +189,6 @@ function eventStyle(event: PositionedEvent) {
               type="button"
               class="week-event"
               :class="[
-                event.priority,
                 {
                   'is-done': event.isDone,
                   'is-projected': event.isProjected,

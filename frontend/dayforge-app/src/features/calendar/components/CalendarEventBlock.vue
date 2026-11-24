@@ -72,7 +72,6 @@ const timeLabel = computed(() => {
     ref="blockRef"
     class="cal-event"
     :class="[
-      task.priority,
       {
         'is-done': isDone,
         'is-resizing': isResizing,
