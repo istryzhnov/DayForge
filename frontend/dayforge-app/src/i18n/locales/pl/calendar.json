@@ -39,7 +39,7 @@
   "notesField": "Notatki",
   "notesPlaceholder": "Dodaj notatki",
   "goalField": "Cel",
-  "noGoal": "Bez celu",
+  "noGoal": "Brak projektu",
   "projectField": "Projekt",
   "startField": "Początek",
   "endField": "Koniec",
