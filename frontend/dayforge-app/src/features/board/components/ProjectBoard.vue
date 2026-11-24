@@ -24,11 +24,11 @@ import {
   BOARD_COLUMN,
   boardColumnsFor,
   buildBoardCards,
-  nodeForCard,
   planBoardMove,
   type BoardCard as BoardCardModel,
   type BoardColumn,
 } from '../composables/boardModel'
+import { nodeForCard } from '../composables/useBoardCardMenu'
 import { useBoardDrag } from '../composables/useBoardDrag'
 import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 

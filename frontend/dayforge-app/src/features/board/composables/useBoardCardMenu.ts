@@ -2,7 +2,17 @@ import { computed } from 'vue'
 import type { ISODate } from '../../../entities/types'
 import { useModules } from '../../../shared/composables/useModules'
 import { useTaskActions, useTaskRow } from '../../tasks'
-import { nodeForCard, type BoardCard } from './boardModel'
+import type { TaskNode } from '../../../shared/composables/useTaskTree'
+import { rowForCard, type BoardCard } from './boardModel'
+
+/**
+ * The node the task editor, rate editor and task menu take for a card. It
+ * lives here, not in boardModel, because the model is checked by the node sync
+ * harness and the tree types pull in the browser-only i18n setup.
+ */
+export function nodeForCard(card: BoardCard, today: ISODate): TaskNode {
+  return { task: rowForCard(card, today), template: card.template }
+}
 
 /**
  * The task menu and editors a board card opens. It reuses the list's own row

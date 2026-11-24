@@ -19,7 +19,6 @@ import {
   addDaysToISODate,
   dailyTaskId,
 } from '../../../shared/composables/goalSpace/date'
-import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import type { BoardCustomColumn } from '../../../entities/GoalEntity'
 import { sortTasks } from '../../../shared/composables/goalSpace/taskOrder'
 
@@ -418,9 +417,4 @@ export function rowForCard(card: BoardCard, today: ISODate): DailyTask {
     startTime: card.startTime,
     endTime: card.template.endTime,
   }
-}
-
-/** The node the task editor, rate editor and task menu take for a card. */
-export function nodeForCard(card: BoardCard, today: ISODate): TaskNode {
-  return { task: rowForCard(card, today), template: card.template }
 }
