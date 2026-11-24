@@ -366,12 +366,13 @@
   color: var(--muted);
 }
 
+/* Text fields only: a bare `.task-editor input` also boxed the "Schedule on
+   the calendar" checkbox as if it were a text field. */
 .modal-card .timer-field input,
 .modal-card .timer-field select,
 .modal-card .project-billing__field input,
 .modal-card .project-billing__field select,
-.task-editor input,
-.task-editor select,
+.task-editor__field input,
 .task-schedule__field input,
 .task-schedule__field select,
 .notes-pop__text,
@@ -409,8 +410,7 @@
 .modal-card .timer-field select:focus,
 .modal-card .project-billing__field input:focus,
 .modal-card .project-billing__field select:focus,
-.task-editor input:focus,
-.task-editor select:focus,
+.task-editor__field input:focus,
 .task-schedule__field input:focus,
 .task-schedule__field select:focus,
 .notes-pop__text:focus,

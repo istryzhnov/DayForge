@@ -38,7 +38,8 @@
   color: var(--text);
 }
 
-.modal-card input,
+/* Text fields only; a checkbox or radio boxed like a text field looks empty. */
+.modal-card input:not([type='checkbox'], [type='radio']),
 .modal-card textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -50,7 +51,7 @@
   font-size: inherit;
 }
 
-.modal-card input:focus,
+.modal-card input:not([type='checkbox'], [type='radio']):focus,
 .modal-card textarea:focus {
   outline: 1px solid var(--accent);
 }
