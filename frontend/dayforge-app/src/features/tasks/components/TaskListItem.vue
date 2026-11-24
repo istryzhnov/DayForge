@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ID, Priority } from '../../../entities/types'
+import type { ID } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type { TaskNode } from '../../../shared/composables/useTaskTree'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
@@ -55,7 +55,6 @@ const emit = defineEmits<{
     e: 'submit-subtask',
     parentTemplateId: ID,
     title: string,
-    priority: Priority,
     schedule?: TaskSchedule,
   ): void
   (e: 'cancel-subtask'): void
@@ -342,8 +341,8 @@ const {
     v-if="isActiveParent && subtasksOn"
     :is-subtask="true"
     @submit="
-      (title: string, priority: Priority, schedule?: TaskSchedule) =>
-        emit('submit-subtask', node.task.templateId, title, priority, schedule)
+      (title: string, schedule?: TaskSchedule) =>
+        emit('submit-subtask', node.task.templateId, title, schedule)
     "
     @cancel="emit('cancel-subtask')"
   />

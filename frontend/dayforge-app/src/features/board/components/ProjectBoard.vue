@@ -6,10 +6,7 @@ import type {
   TaskSchedule,
   TaskTemplate,
 } from '../../../entities/TaskEntity'
-import {
-  BOARD_CUSTOM_COLUMN_LIMIT,
-  PRIORITY,
-} from '../../../entities/constants'
+import { BOARD_CUSTOM_COLUMN_LIMIT } from '../../../entities/constants'
 import type { ID } from '../../../entities/types'
 import {
   SETTINGS_SECTION,
@@ -175,7 +172,7 @@ function stopAdd() {
 function submitAdd() {
   const title = draft.value.trim()
   if (!title) return
-  actions.addTask(title, PRIORITY.MINOR)
+  actions.addTask(title)
   // Stays open, so several tasks can be typed in a row.
   draft.value = ''
 }

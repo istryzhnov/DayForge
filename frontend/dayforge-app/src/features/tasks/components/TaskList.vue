@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { ID, Priority } from '../../../entities/types'
+import type { ID } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import type {
   TaskGroup,
@@ -57,10 +57,9 @@ function toggleParent(nodeId: ID) {
 function submitSubtask(
   parentTemplateId: ID,
   title: string,
-  priority: Priority,
   schedule?: TaskSchedule,
 ) {
-  actions.addSubtask(parentTemplateId, title, priority, schedule)
+  actions.addSubtask(parentTemplateId, title, schedule)
   activeParentId.value = null
 }
 

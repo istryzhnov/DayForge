@@ -2,7 +2,6 @@
 import { onMounted, ref, useId, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import AppIcon from '../../../shared/ui/AppIcon.vue'
-import type { Priority } from '../../../entities/types'
 import type { TaskSchedule } from '../../../entities/TaskEntity'
 import { useTaskComposerState } from '../composables/useTaskComposerState'
 import { reportUserAction } from '../../../shared/composables/userActions'
@@ -15,12 +14,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (
-    e: 'submit',
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ): void
+  (e: 'submit', title: string, schedule?: TaskSchedule): void
   (e: 'cancel'): void
 }>()
 
@@ -45,8 +39,8 @@ const { title, submit, cancel } = useTaskComposerState(
     onScheduleSubmitted: () => scheduleFields.value?.reset(),
   },
   {
-    onSubmit: (nextTitle, nextPriority, nextSchedule) =>
-      emit('submit', nextTitle, nextPriority, nextSchedule),
+    onSubmit: (nextTitle, nextSchedule) =>
+      emit('submit', nextTitle, nextSchedule),
     onCancel: () => emit('cancel'),
   },
 )

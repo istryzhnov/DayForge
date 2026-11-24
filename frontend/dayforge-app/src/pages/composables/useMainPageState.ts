@@ -1,6 +1,6 @@
 import { computed, onMounted, ref, watchEffect } from 'vue'
 import type { useGoalSpace } from '../../shared/composables/useGoalSpace'
-import type { ActiveView, ID, ISODate, Priority } from '../../entities/types'
+import type { ActiveView, ID, ISODate } from '../../entities/types'
 import type { TaskSchedule, TaskTemplate } from '../../entities/TaskEntity'
 import {
   PRIORITY,
@@ -203,16 +203,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   // Dropping a task on a sidebar project.
   useTaskGoalDrop(goalSpace)
 
-  function handleAddTask(
-    title: string,
-    priority: Priority,
-    schedule?: TaskSchedule,
-  ) {
+  function handleAddTask(title: string, schedule?: TaskSchedule) {
     if (!goalSpace.activeGoal.value) return
     const created = goalSpace.addTask(
       goalSpace.activeGoal.value.id,
       title,
-      priority,
+      PRIORITY.MINOR,
       schedule,
     )
     if (created) {
@@ -287,13 +283,12 @@ export function useMainPageState(goalSpace: GoalSpaceApi) {
   function handleAddSubTask(
     parentTemplateId: ID,
     title: string,
-    priority: Priority,
     schedule?: TaskSchedule,
   ) {
     const created = goalSpace.addSubTask(
       parentTemplateId,
       title,
-      priority,
+      PRIORITY.MINOR,
       schedule,
     )
     if (created) {
