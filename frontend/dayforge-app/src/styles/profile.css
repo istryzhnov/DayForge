@@ -5,8 +5,6 @@
 }
 
 .sidebar-footer {
-  position: sticky;
-  bottom: 0;
   margin-top: auto;
   padding-top: 0.5rem;
   display: grid;
@@ -176,6 +174,11 @@
     min-height: 0;
   }
 
+  /* The phone drawer keeps its old flow: the wrapper adds no box of its own. */
+  .sidebar-scroll {
+    display: contents;
+  }
+
   .sidebar-footer {
     position: static;
     background: none;
@@ -205,14 +208,29 @@
   gap: 0.5rem;
 }
 
-/* Content scrolls under the pinned footer on a short screen, so the footer
-   needs a solid face and an edge; see-through, a button under it read as if
-   it sat on top of "Sign in". */
+/* The footer is not sticky: a sticky footer sits over the content above it
+   whenever the sidebar is taller than the window, hiding the timer card and
+   "New Project". The footer stays at the bottom of the sidebar and the content
+   above it scrolls in .sidebar-scroll instead. The footer still reaches over
+   the bottom padding, so its face and border meet the sidebar's edge. */
 @media (min-width: 961px) {
+  .app-sidebar .sidebar-shell {
+    height: 100%;
+  }
+
+  /* Only the projects-to-"New Project" part scrolls; the footer stays put. */
+  .sidebar-scroll {
+    /* Same rhythm as .sidebar-shell, which spaced these sections before. */
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   .sidebar-footer {
-    /* Reach over the sidebar's bottom padding too, or the list shows through
-       the gap under "Sign in" while it scrolls. */
-    bottom: -1.375rem;
     margin-bottom: -1.375rem;
     padding-bottom: 1.375rem;
     background: var(--panel);
