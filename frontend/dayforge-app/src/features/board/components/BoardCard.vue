@@ -344,7 +344,7 @@ function onMoveChange(event: Event) {
         :can-set-as-project="canSetAsProject"
         :can-add-child="false"
         :can-notes="notesOn"
-        :is-project="false"
+        :has-children="false"
         :can-move="true"
         :is-scheduled="!!node.task.startTime"
         :has-own-rate="hasOwnRate"

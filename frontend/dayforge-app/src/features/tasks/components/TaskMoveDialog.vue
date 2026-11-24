@@ -13,6 +13,8 @@ import { useTaskMove } from '../composables/useTaskMove'
 
 const props = defineProps<{
   template: TaskTemplate
+  /** The task has subtasks, so it is a parent and cannot be filed under another. */
+  hasChildren: boolean
   goals: Goal[]
   projectOptions: MajorTaskOption[]
 }>()

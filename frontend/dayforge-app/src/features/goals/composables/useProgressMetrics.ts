@@ -1,11 +1,7 @@
 import { computed, type Ref } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import {
-  PRIORITY,
-  PROGRESS_SCOPE_TYPE,
-  TASK_STATUS,
-} from '../../../entities/constants'
+import { PROGRESS_SCOPE_TYPE, TASK_STATUS } from '../../../entities/constants'
 
 export type ProgressScope =
   | { type: typeof PROGRESS_SCOPE_TYPE.ALL }
@@ -23,18 +19,16 @@ function percent(done: number, total: number): number {
 }
 
 function calcMajorDayProgress(dayTasks: DailyTask[], majorDailyTaskId: ID) {
-  const major = dayTasks.find(
-    (t) => t.id === majorDailyTaskId && t.priority === PRIORITY.MAJOR,
-  )
-  if (!major) return { done: 0, total: 0, percent: 0 }
+  const parent = dayTasks.find((t) => t.id === majorDailyTaskId)
+  if (!parent) return { done: 0, total: 0, percent: 0 }
 
-  const minors = dayTasks.filter(
-    (t) =>
-      t.parentDailyTaskId === majorDailyTaskId && t.priority === PRIORITY.MINOR,
+  // Every row filed under the parent counts, whatever its priority.
+  const children = dayTasks.filter(
+    (t) => t.parentDailyTaskId === majorDailyTaskId,
   )
 
-  const done = minors.filter((t) => t.status === TASK_STATUS.DONE).length
-  const total = minors.length
+  const done = children.filter((t) => t.status === TASK_STATUS.DONE).length
+  const total = children.length
 
   return { done, total, percent: percent(done, total) }
 }

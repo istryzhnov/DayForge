@@ -216,6 +216,12 @@ body.is-dragging-task {
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+/* A plain row that a dragged task would nest under. */
+.task-row.is-nest-target {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
 .task-list.is-drop-target {
   outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
   outline-offset: 6px;

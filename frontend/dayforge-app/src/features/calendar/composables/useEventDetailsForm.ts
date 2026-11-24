@@ -1,10 +1,11 @@
 import { computed, ref, watch } from 'vue'
 import type { DailyTask, MajorTaskOption } from '../../../entities/TaskEntity'
 import type { ID } from '../../../entities/types'
-import { PRIORITY } from '../../../entities/constants'
 
 type DetailsProps = {
   task: DailyTask
+  /** The task has subtasks, so it is a parent and cannot be filed under another. */
+  hasChildren: boolean
   projectOptions: MajorTaskOption[]
   currentProjectId: ID | null
   currentGoalId: ID | null
@@ -34,10 +35,8 @@ export function useEventDetailsForm(
   const goalId = ref<ID | ''>(props.currentGoalId ?? '')
   const projectId = ref<ID | ''>(props.currentProjectId ?? '')
 
-  // A project groups other tasks, so it cannot itself be nested.
-  const canAttachToProject = computed(
-    () => props.task.priority !== PRIORITY.MAJOR,
-  )
+  // A parent groups other tasks, so it cannot itself be filed under one.
+  const canAttachToProject = computed(() => !props.hasChildren)
 
   const projectsForGoal = computed(() => {
     const selectedGoalId = goalId.value || undefined

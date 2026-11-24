@@ -62,15 +62,15 @@ describe('adding tasks', () => {
     expect(space.tasksForActiveGoal.value).toHaveLength(0)
   })
 
-  it('turns a task into a project when it gets its first subtask', async () => {
+  it('leaves the parent priority alone when it gets its first subtask', async () => {
     const { space, templateOf, rowOf } = await openWorkspace()
     space.createGoal(makeGoal('work'))
     const parent = space.addTask('work', 'Launch')!
 
     const child = space.addSubTask(parent.id, 'Write copy')!
 
-    expect(templateOf(parent.id)!.priority).toBe('major')
-    expect(rowOf(parent.id)!.priority).toBe('major')
+    expect(templateOf(parent.id)!.priority).toBe('minor')
+    expect(rowOf(parent.id)!.priority).toBe('minor')
     expect(child).toMatchObject({ parentTemplateId: parent.id, goalId: 'work' })
     expect(rowOf(child.id)!.parentDailyTaskId).toBe(rowOf(parent.id)!.id)
   })
@@ -318,29 +318,57 @@ describe('moving a task between projects', () => {
     })
   })
 
-  it('never nests a project inside another, or a task inside itself', async () => {
+  it('never files a task that has children under another task', async () => {
     const { space, templateOf } = await openWorkspace()
-    const one = space.addTask(undefined, 'One')!
-    const two = space.addTask(undefined, 'Two')!
-    space.convertTaskToProject(one.id)
-    space.convertTaskToProject(two.id)
+    const parent = space.addTask(undefined, 'Parent')!
+    space.addSubTask(parent.id, 'Child')
+    const other = space.addTask(undefined, 'Other')!
+    space.addSubTask(other.id, 'Other child')
 
-    space.attachTaskToProject(one.id, two.id)
-    expect(templateOf(one.id)!.parentTemplateId).toBeUndefined()
+    space.attachTaskToProject(parent.id, other.id)
 
-    const task = space.addTask(undefined, 'Task')!
-    space.attachTaskToProject(task.id, task.id)
-    expect(templateOf(task.id)!.parentTemplateId).toBeUndefined()
+    expect(templateOf(parent.id)!.parentTemplateId).toBeUndefined()
   })
 
-  it('does not promote a subtask to a project', async () => {
+  it('never files a task inside itself or under one of its own subtasks', async () => {
+    const { space, templateOf } = await openWorkspace()
+    const parent = space.addTask(undefined, 'Parent')!
+    const child = space.addSubTask(parent.id, 'Child')!
+    const loose = space.addTask(undefined, 'Loose')!
+
+    space.attachTaskToProject(loose.id, loose.id)
+    expect(templateOf(loose.id)!.parentTemplateId).toBeUndefined()
+
+    space.attachTaskToProject(loose.id, child.id)
+    expect(templateOf(loose.id)!.parentTemplateId).toBeUndefined()
+  })
+
+  it('marks a subtask important without moving it out of its parent', async () => {
     const { space, templateOf } = await openWorkspace()
     const project = space.addTask(undefined, 'Launch')!
     const child = space.addSubTask(project.id, 'Write copy')!
 
     space.convertTaskToProject(child.id)
 
-    expect(templateOf(child.id)!.priority).toBe('minor')
+    expect(templateOf(child.id)).toMatchObject({
+      priority: 'major',
+      parentTemplateId: project.id,
+    })
+  })
+
+  it('offers only top-level tasks that already have a subtask as parents', async () => {
+    const { space } = await openWorkspace()
+    const parent = space.addTask(undefined, 'Parent')!
+    const important = space.addTask(undefined, 'Important', 'major')!
+    space.addTask(undefined, 'Childless')
+    space.addTask(undefined, 'Childless major', 'major')
+    space.addSubTask(parent.id, 'Child')
+    space.addSubTask(important.id, 'Child of important')
+
+    expect(space.activeMajorTemplates.value.map((task) => task.id)).toEqual([
+      parent.id,
+      important.id,
+    ])
   })
 })
 

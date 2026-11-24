@@ -12,7 +12,8 @@ const props = defineProps<{
   canAddChild: boolean
   /** The Notes module is on; off hides the notes entry. */
   canNotes?: boolean
-  isProject: boolean
+  /** Has subtasks, so the entry opens its habit view. */
+  hasChildren: boolean
   /** Only a task without a parent can pick a new home. */
   canMove: boolean
   /** Already on the calendar, so the entry offers to change it instead. */
@@ -233,7 +234,7 @@ const { menuPositionStyle } = useContextMenu({
         {{ t('tasks.addToThis') }}
       </button>
       <button
-        v-if="isProject"
+        v-if="hasChildren"
         role="menuitem"
         class="task-context-menu__item"
         type="button"

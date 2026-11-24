@@ -27,6 +27,7 @@ import { useUndoToast } from './useUndoToast'
 import { addDaysToISODate, createId, getTodayISODate } from './goalSpace/date'
 import { dayToShowAfterChange, useToday } from './goalSpace/today'
 import { isRepeating } from './goalSpace/recurrence'
+import { referencedParentIds } from './goalSpace/taskParents'
 import { DAILY_TASKS_STORAGE_KEY, TASKS_STORAGE_KEY } from './goalSpace/storage'
 import { normalizeNotes } from './goalSpace/notes'
 import { removedColumnIds } from './goalSpace/boardColumns'
@@ -323,8 +324,7 @@ export function useGoalSpace() {
     priority: Priority = PRIORITY.MINOR,
     schedule?: TaskSchedule,
   ) {
-    convertTaskToProject(parentTemplateId)
-
+    // The parent keeps its priority: having children is what makes it a parent.
     return createTask({
       kind: TASK_KIND.SUBTASK,
       parentTemplateId,
@@ -524,10 +524,17 @@ export function useGoalSpace() {
 
   function attachTaskToProject(templateId: ID, projectTemplateId: ID | null) {
     const template = templateOf(templateId)
-    if (!template || template.priority === PRIORITY.MAJOR) return
+    if (!template) return
 
     const project = projectTemplateId ? templateOf(projectTemplateId) : null
-    if (projectTemplateId && (!project || project.id === templateId)) return
+    if (projectTemplateId) {
+      // A task with children is a parent and cannot become a child. A child
+      // cannot be a parent either, so nesting stays one level deep.
+      if (!project || project.id === templateId || project.parentTemplateId) {
+        return
+      }
+      if (hasChildTemplates(templateId)) return
+    }
 
     template.parentTemplateId = project?.id
     template.updatedAt = new Date().toISOString()
@@ -703,11 +710,28 @@ export function useGoalSpace() {
     goToDate(getTodayISODate())
   }
 
-  const activeMajorTemplates = computed(() =>
-    taskTemplates.value.filter(
-      (task) => task.priority === PRIORITY.MAJOR && task.isActive,
-    ),
-  )
+  /**
+   * Top-level tasks that already hold an active subtask: the options for
+   * "add into" and "attach to". Priority is not consulted; a parent is a task
+   * with children.
+   */
+  const activeMajorTemplates = computed(() => {
+    const activeTemplates = taskTemplates.value.filter((task) => task.isActive)
+    const parentIds = referencedParentIds(
+      activeTemplates,
+      (task) => task.parentTemplateId,
+    )
+    return activeTemplates.filter(
+      (task) => !task.parentTemplateId && parentIds.has(task.id),
+    )
+  })
+
+  function hasChildTemplates(templateId: ID) {
+    return referencedParentIds(
+      taskTemplates.value,
+      (task) => task.parentTemplateId,
+    ).has(templateId)
+  }
 
   function toggleTaskDone(dailyTaskId: ID) {
     const task = rowOf(dailyTaskId)
@@ -823,8 +847,8 @@ export function useGoalSpace() {
     const template = templateOf(templateId)
     if (!template) return
     if (template.priority === PRIORITY.MAJOR) return
-    if (template.parentTemplateId) return
 
+    // A subtask may be marked important too; it stays nested under its parent.
     template.priority = PRIORITY.MAJOR
     template.updatedAt = new Date().toISOString()
 

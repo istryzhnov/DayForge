@@ -35,7 +35,7 @@ function dropEdge(node: TaskNode) {
   return drag.dropAbove.value ? 'above' : 'below'
 }
 
-function rowDrag(node: TaskNode, parentZone: string) {
+function rowDrag(node: TaskNode, parentZone: string, hasChildren = false) {
   return drag.forRow({
     templateId: node.task.templateId,
     title: node.task.title,
@@ -45,6 +45,7 @@ function rowDrag(node: TaskNode, parentZone: string) {
     canMove: true,
     color: node.goalColor,
     isMajor: node.task.priority === PRIORITY.MAJOR,
+    hasChildren,
   })
 }
 
@@ -114,7 +115,7 @@ function groupKey(group: TaskGroup) {
           :child-template-ids="
             group.children.map((child) => child.task.templateId)
           "
-          :drag="rowDrag(group.project, DROP_ZONE_ROOT)"
+          :drag="rowDrag(group.project, DROP_ZONE_ROOT, true)"
           v-bind="rowListeners"
         />
 
@@ -142,6 +143,7 @@ function groupKey(group: TaskGroup) {
         :drag="rowDrag(group.node, DROP_ZONE_ROOT)"
         :is-dragging="drag.draggingId.value === group.node.task.templateId"
         :drop-edge="dropEdge(group.node)"
+        :is-nest-target="drag.dropZone.value === group.node.task.templateId"
         v-bind="rowListeners"
       />
     </template>

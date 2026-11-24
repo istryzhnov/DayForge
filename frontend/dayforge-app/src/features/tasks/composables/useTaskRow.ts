@@ -12,6 +12,8 @@ import {
 type TaskRowProps = {
   node: TaskNode
   isNested?: boolean
+  /** Drawn as the header of a block of children, so the row has children. */
+  isProjectHeader?: boolean
 }
 
 /** Touch drag hooks; absent for rows that cannot be moved. */
@@ -33,10 +35,16 @@ export function useTaskRow(
   const editorStartsScheduled = ref(false)
   const isRateEditing = ref(false)
 
-  const isProject = computed(() => props.node.task.priority === PRIORITY.MAJOR)
+  /** "Important": a tag and a colour. Says nothing about nesting. */
+  const isImportant = computed(
+    () => props.node.task.priority === PRIORITY.MAJOR,
+  )
+  /** Structure: other rows are filed under this one. */
+  const hasChildren = computed(() => !!props.isProjectHeader)
   const hasOwnRate = computed(() => (props.node.template?.hourlyRate ?? 0) > 0)
   const isDone = computed(() => props.node.task.status === TASK_STATUS.DONE)
-  const canSetAsProject = computed(() => !isProject.value && !props.isNested)
+  // Any task may be marked important, nested or not.
+  const canSetAsProject = computed(() => !isImportant.value)
 
   const isCoarsePointer = useIsCoarsePointer()
 
@@ -108,7 +116,8 @@ export function useTaskRow(
     isEditing,
     editorStartsScheduled,
     isRateEditing,
-    isProject,
+    isImportant,
+    hasChildren,
     isDone,
     canSetAsProject,
     hasOwnRate,

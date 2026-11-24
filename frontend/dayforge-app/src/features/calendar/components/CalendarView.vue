@@ -44,6 +44,7 @@ import { formatHoursMinutes } from '../../../shared/composables/timer/format'
 import { durationWords } from '../../../shared/composables/timer/text'
 import { useLogPlanned } from '../../../shared/composables/useLogPlanned'
 import { blockFromTask } from '../../../shared/composables/timer/plannedBlocks'
+import { referencedParentIds } from '../../../shared/composables/goalSpace/taskParents'
 
 const props = defineProps<{
   tasks: DailyTask[]
@@ -245,6 +246,11 @@ function canLogPlanned(task: DailyTask | null): boolean {
 function logPlannedFor(task: DailyTask | null) {
   if (task) planned.logBlock(blockFromTask(task))
 }
+
+/** Templates some other template is filed under: the parents. */
+const parentTemplateIds = computed(() =>
+  referencedParentIds(props.templates, (template) => template.parentTemplateId),
+)
 
 /** Notes live on the task's template, not on the day row the panel shows. */
 const selectedTaskNotes = computed(
@@ -505,6 +511,7 @@ function periodEarnedLabel(dates: ISODate[]): string | null {
       <EventDetailsPanel
         v-if="selectedTask"
         :task="selectedTask"
+        :has-children="parentTemplateIds.has(selectedTask.templateId)"
         :project-options="projectOptions"
         :current-project-id="selectedProjectTemplateId"
         :goals="goals"

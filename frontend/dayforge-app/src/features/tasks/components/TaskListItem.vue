@@ -43,6 +43,8 @@ const props = defineProps<{
   isDragging?: boolean
   /** Where the dragged task would land relative to this row. */
   dropEdge?: 'above' | 'below' | null
+  /** A dragged task would nest under this row. */
+  isNestTarget?: boolean
 }>()
 
 // What the list reacts to: its one open composer, the panel's focus and the
@@ -144,7 +146,8 @@ const {
   isEditing,
   editorStartsScheduled,
   isRateEditing,
-  isProject,
+  isImportant,
+  hasChildren,
   isDone,
   canSetAsProject,
   hasOwnRate,
@@ -173,11 +176,13 @@ const {
       'is-dragging': isDragging,
       'is-drop-above': dropEdge === 'above',
       'is-drop-below': dropEdge === 'below',
+      'is-nest-target': isNestTarget,
       'is-timing': isTimerActive,
       'is-major': node.task.priority === 'major',
     }"
     :data-drop-row="drag ? node.task.templateId : undefined"
-    :data-drop-major="isProject ? 'true' : undefined"
+    :data-drop-parent="hasChildren ? 'true' : undefined"
+    :data-drop-nest="drag && !isNested && !isProjectHeader ? 'true' : undefined"
     :data-task-id="node.task.id"
     :data-tour-task="node.task.templateId"
     :data-tip-anchor="isNested ? undefined : 'task-row'"
@@ -190,7 +195,7 @@ const {
         class="task-dot-check"
         :class="{
           'is-done': isDone,
-          'task-dot-check--project': isProject,
+          'task-dot-check--project': isImportant,
         }"
         :aria-label="isDone ? t('tasks.markNotDone') : t('tasks.markDone')"
         @click="actions.toggleDone(node.task.id)"
@@ -311,7 +316,7 @@ const {
     :can-set-as-project="canSetAsProject"
     :can-add-child="!isNested && subtasksOn"
     :can-notes="notesOn"
-    :is-project="isProject"
+    :has-children="hasChildren"
     :can-move="!isNested"
     :is-scheduled="!!node.task.startTime"
     :has-own-rate="hasOwnRate"

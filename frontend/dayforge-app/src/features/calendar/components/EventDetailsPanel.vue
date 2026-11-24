@@ -15,6 +15,8 @@ import { useEventDetailsForm } from '../composables/useEventDetailsForm'
 
 const props = defineProps<{
   task: DailyTask
+  /** The task has subtasks, so it is a parent and cannot be filed under another. */
+  hasChildren: boolean
   /** The task's notes, read from its template. */
   notes: string
   projectOptions: MajorTaskOption[]

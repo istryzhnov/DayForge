@@ -1,7 +1,7 @@
 import { computed, ref, useTemplateRef } from 'vue'
 import type { DailyTask } from '../../../entities/TaskEntity'
 import type { ID, ISODate } from '../../../entities/types'
-import { PRIORITY, TASK_STATUS } from '../../../entities/constants'
+import { TASK_STATUS } from '../../../entities/constants'
 import { useIsCoarsePointer } from '../../../shared/composables/useMediaQuery'
 import { formatCalendarDayTitle } from './calendarTitles'
 import type { GesturePoint } from '../../../shared/composables/usePressGesture'
@@ -15,6 +15,7 @@ import {
   segmentForDay,
 } from '../../../shared/composables/goalSpace/overnight'
 import { addDaysToISODate } from '../../../shared/composables/goalSpace/date'
+import { referencedParentIds } from '../../../shared/composables/goalSpace/taskParents'
 import { useToday } from '../../../shared/composables/goalSpace/today'
 import { layoutOverlaps } from './overlapLayout'
 import {
@@ -144,10 +145,15 @@ export function useCalendarDayView(
       })
     }
 
+    // A task with rows filed under it is a parent: the rows are the work, so it stays off.
+    const parentRowIds = referencedParentIds(
+      pool,
+      (task) => task.parentDailyTaskId,
+    )
     return pool.filter(
       (task) =>
         !task.startTime &&
-        task.priority !== PRIORITY.MAJOR &&
+        !parentRowIds.has(task.id) &&
         task.status !== TASK_STATUS.DONE &&
         isGoalVisible(task.goalId),
     )
